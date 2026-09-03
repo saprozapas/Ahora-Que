@@ -1,6 +1,10 @@
 from flask import Blueprint, render_template, request, redirect
+from models.user import User
+from services.auth_service import AuthService
+from werkzeug.security import generate_password_hash
 
 auth = Blueprint("auth", __name__)
+auth_service = AuthService()
 
 @auth.route("/login")
 def login():
@@ -17,9 +21,12 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
 
+
         # validar datos
-        # crear usuario
-        # guardar usuario en BD
+        password_hash = generate_password_hash(password)
+        # crear usuario y guardar usuario en BD
+        auth_service.register(User(name, birth_date, username, password_hash))
+        
 
         return redirect("/login")
 
