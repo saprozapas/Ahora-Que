@@ -14,6 +14,15 @@
 
 6. Funcionalidad de distancias: CUSTOM, NEARBY, FAR AWAY.
 
+7. Sistema de **PUNTAJES** de planes post-realizacion mediante 5 estrellas.
+
+8. Sistema de **HISTORIAL** de planes para que el usuario pueda ver los planes que 
+   realizó, qué puntajes le puso, etc.
+
+9. Sistema de **ENCUESTAS** para los planes grupales.
+
+10. Filtro de planes: SOLO, AMIGOS, FAMILIA, PAREJA, etc.
+
 
 
 
