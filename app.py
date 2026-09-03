@@ -1,23 +1,11 @@
 from flask import Flask, render_template, request
-import psycopg2
 from auth import auth
-import os
+from database import get_db_connection
 
 app = Flask(__name__)
 
 #registro todas las rutas que estan en auth.py.
 app.register_blueprint(auth)
-
-#PASS de la BD: AhoraQue2026
-# ---- CONEXIÓN A LA BASE DE DATOS (Supabase / PostgreSQL) ----
-# Reemplazá esto con el connection string que te da Supabase
-# (Project Settings -> Database -> Connection String)
-DB_URL = os.environ.get("DATABASE_URL", "postgresql://usuario:password@host:5432/basededatos")
-
-def get_db_connection():
-    conn = psycopg2.connect(DB_URL)
-    return conn
-
 
 # ---- RUTAS ----
 
