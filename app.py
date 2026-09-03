@@ -35,6 +35,7 @@ def productos():
         cur.close()
         conn.close()
         items = [{"id": f[0], "nombre": f[1], "descripcion": f[2]} for f in filas]
+
     except Exception as e:
         # Fallback con datos de ejemplo si la base no está lista todavía
         items = [
