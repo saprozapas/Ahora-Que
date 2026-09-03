@@ -19,8 +19,7 @@ def get_db_connection():
 
 @app.route('/')
 def home():
-    return "<p>Hello, World!</p>"
-    #return render_template('index.html')
+    return render_template('home.html')
 
 
 @app.route('/productos')
