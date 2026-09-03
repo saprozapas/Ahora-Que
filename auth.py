@@ -6,7 +6,7 @@ auth = Blueprint("auth", __name__)
 def login():
     return "Login"
 
-@app.route("/register", methods=["GET", "POST"])
+@auth.route("/register", methods=["GET", "POST"])
 def register():
 
     if request.method == "POST":
