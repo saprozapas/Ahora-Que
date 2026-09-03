@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from auth import auth
+from routes.auth import auth
 from database import get_db_connection
 
 app = Flask(__name__)
