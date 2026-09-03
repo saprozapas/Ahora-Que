@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request
 import psycopg2
+from auth import auth
 import os
 
 app = Flask(__name__)
+
+#registro todas las rutas que estan en auth.py.
+app.register_blueprint(auth)
 
 #PASS de la BD: AhoraQue2026
 # ---- CONEXIÓN A LA BASE DE DATOS (Supabase / PostgreSQL) ----
