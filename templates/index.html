@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ahora Qué — Encontrá algo para hacer</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- ==================== NAVBAR ==================== -->
+
+    <header class="navbar">
+
+        <a href="#" class="logo">
+            <span>Ahora</span>
+            <span class="logo-question">Qué?</span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="#explorar">Explorar</a>
+            <a href="#como-funciona">Cómo funciona</a>
+            <a href="#guardados">Mis planes</a>
+        </nav>
+
+        <button class="profile-button">
+            <span class="profile-icon">○</span>
+            Mi perfil
+        </button>
+
+    </header>
+
+
+    <main>
+
+        <!-- ==================== HERO ==================== -->
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <p class="eyebrow">
+                    ✦ Encontrá algo que hacer
+                </p>
+
+                <h1>
+                    ¿Ahora<br>
+                    <span>qué?</span>
+                </h1>
+
+                <p class="hero-description">
+                    Decinos qué tenés ganas de hacer.
+                    Nosotros encontramos el plan.
+                </p>
+
+                <!-- SEARCH -->
+
+                <div class="search-container">
+
+                    <div class="search-icon">
+                        ✦
+                    </div>
+
+                    <input
+                        type="text"
+                        placeholder="Tengo dos horas y estoy aburrido..."
+                    >
+
+                    <button class="search-button">
+                        Encontrar
+                        <span>→</span>
+                    </button>
+
+                </div>
+
+                <!-- QUICK OPTIONS -->
+
+                <div class="quick-options">
+
+                    <span>Probá con:</span>
+
+                    <button>Tengo poco tiempo</button>
+                    <button>Quiero gastar poco</button>
+                    <button>Estoy con amigos</button>
+                    <button>Sorprendeme</button>
+
+                </div>
+
+            </div>
+
+            <div class="hero-decoration">
+
+                <div class="floating-card card-one">
+                    <span>☀️</span>
+                    <div>
+                        <strong>Buen día para salir</strong>
+                        <small>23° · Despejado</small>
+                    </div>
+                </div>
+
+                <div class="circle-decoration">
+                    <span>?</span>
+                </div>
+
+                <div class="floating-card card-two">
+                    <span>📍</span>
+                    <div>
+                        <strong>12 planes cerca</strong>
+                        <small>A menos de 2 km</small>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================== CATEGORIES ==================== -->
+
+        <section class="categories" id="explorar">
+
+            <div class="section-header">
+
+                <div>
+                    <p class="eyebrow">Explorá</p>
+
+                    <h2>
+                        ¿Qué tipo de<br>
+                        plan buscás?
+                    </h2>
+                </div>
+
+                <a href="#" class="text-link">
+                    Ver todo →
+                </a>
+
+            </div>
+
+
+            <div class="category-grid">
+
+                <article class="category-card category-outdoor">
+
+                    <div class="category-number">01</div>
+
+                    <div class="category-content">
+                        <span>🌿</span>
+                        <h3>Afuera</h3>
+                        <p>Salir, caminar, explorar.</p>
+                    </div>
+
+                    <div class="category-arrow">↗</div>
+
+                </article>
+
+
+                <article class="category-card category-social">
+
+                    <div class="category-number">02</div>
+
+                    <div class="category-content">
+                        <span>🍻</span>
+                        <h3>Con amigos</h3>
+                        <p>Planes para compartir.</p>
+                    </div>
+
+                    <div class="category-arrow">↗</div>
+
+                </article>
+
+
+                <article class="category-card category-chill">
+
+                    <div class="category-number">03</div>
+
+                    <div class="category-content">
+                        <span>☕</span>
+                        <h3>Tranquilo</h3>
+                        <p>Desconectar un rato.</p>
+                    </div>
+
+                    <div class="category-arrow">↗</div>
+
+                </article>
+
+
+                <article class="category-card category-adventure">
+
+                    <div class="category-number">04</div>
+
+                    <div class="category-content">
+                        <span>⚡</span>
+                        <h3>Algo distinto</h3>
+                        <p>Salir de la rutina.</p>
+                    </div>
+
+                    <div class="category-arrow">↗</div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================== FEATURED PLAN ==================== -->
+
+        <section class="featured">
+
+            <div class="section-header">
+
+                <div>
+                    <p class="eyebrow">Una idea para hoy</p>
+
+                    <h2>
+                        Podrías hacer<br>
+                        esto.
+                    </h2>
+                </div>
+
+                <button class="refresh-button">
+                    ↻ Otra idea
+                </button>
+
+            </div>
+
+
+            <article class="featured-plan">
+
+                <div class="plan-image">
+
+                    <div class="image-placeholder">
+                        <span>ATARDECER</span>
+                    </div>
+
+                    <div class="image-label">
+                        PLAN #01
+                    </div>
+
+                </div>
+
+
+                <div class="plan-info">
+
+                    <div class="plan-top">
+
+                        <span class="plan-tag">
+                            🌅 RELAX
+                        </span>
+
+                        <button class="save-button">
+                            ♡
+                        </button>
+
+                    </div>
+
+
+                    <h3>
+                        Caminata al atardecer
+                        + café
+                    </h3>
+
+                    <p class="plan-description">
+                        Salí a caminar sin rumbo durante un rato,
+                        encontrá un café que no conozcas y terminá
+                        viendo caer el sol.
+                    </p>
+
+
+                    <div class="plan-details">
+
+                        <div>
+                            <span>⏱</span>
+                            <strong>1h 40min</strong>
+                        </div>
+
+                        <div>
+                            <span>💰</span>
+                            <strong>$</strong>
+                        </div>
+
+                        <div>
+                            <span>📍</span>
+                            <strong>1.8 km</strong>
+                        </div>
+
+                    </div>
+
+
+                    <button class="primary-button">
+                        Ver el plan
+                        <span>→</span>
+                    </button>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- ==================== HOW IT WORKS ==================== -->
+
+        <section class="how-it-works" id="como-funciona">
+
+            <div class="how-header">
+
+                <p class="eyebrow">Simple</p>
+
+                <h2>
+                    Menos pensar.<br>
+                    <span>Más hacer.</span>
+                </h2>
+
+            </div>
+
+
+            <div class="steps">
+
+                <div class="step">
+
+                    <span class="step-number">01</span>
+
+                    <div class="step-icon">💭</div>
+
+                    <h3>Contanos</h3>
+
+                    <p>
+                        Decinos cuánto tiempo tenés,
+                        con quién estás y qué te pinta.
+                    </p>
+
+                </div>
+
+
+                <div class="step-line"></div>
+
+
+                <div class="step">
+
+                    <span class="step-number">02</span>
+
+                    <div class="step-icon">✦</div>
+
+                    <h3>Nosotros pensamos</h3>
+
+                    <p>
+                        Combinamos tus preferencias
+                        con lo que está pasando cerca tuyo.
+                    </p>
+
+                </div>
+
+
+                <div class="step-line"></div>
+
+
+                <div class="step">
+
+                    <span class="step-number">03</span>
+
+                    <div class="step-icon">🚀</div>
+
+                    <h3>Salí</h3>
+
+                    <p>
+                        Elegí un plan y dejá de perder
+                        tiempo pensando qué hacer.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================== CTA ==================== -->
+
+        <section class="final-cta">
+
+            <p class="eyebrow">No pienses tanto.</p>
+
+            <h2>
+                ¿Qué hacemos?
+            </h2>
+
+            <button class="cta-button">
+                Encontrar un plan
+                <span>→</span>
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==================== FOOTER ==================== -->
+
+    <footer class="footer">
+
+        <div class="footer-logo">
+            Ahora Qué?
+        </div>
+
+        <p>
+            Encontrá algo que hacer.
+        </p>
+
+        <div class="footer-links">
+            <a href="#">Sobre nosotros</a>
+            <a href="#">Contacto</a>
+            <a href="#">Privacidad</a>
+        </div>
+
+    </footer>
+
+</body>
+</html>
