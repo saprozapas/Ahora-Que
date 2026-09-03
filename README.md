@@ -22,14 +22,3 @@
 9. Sistema de **ENCUESTAS** para los planes grupales.
 
 10. Filtro de planes: SOLO, AMIGOS, FAMILIA, PAREJA, etc.
-
-
-
-
-
-
-
-
-
-
-
