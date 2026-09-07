@@ -1,10 +1,1 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar sesión — Ahora Qué</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="auth-page">
-    <main class="auth-shell"><a class="brand" href="/"><span class="brand-mark">AQ</span><span class="brand-name">Ahora <em>Qué</em></span></a><div class="auth-grid"><section><p class="kicker">qué bueno verte</p><h1>Volvamos a<br><em>hacer algo.</em></h1><p class="auth-note">Guardá tus planes, retomá un grupo y encontrá una idea que les cierre a todos.</p></section><form class="auth-form" action="/login" method="post"><label for="username">Usuario o email</label><input id="username" name="username" type="text" required><label for="password">Contraseña</label><input id="password" name="password" type="password" required><button class="dark-button" type="submit">Iniciar sesión <span aria-hidden="true">→</span></button><p class="auth-switch">¿Todavía no tenés cuenta? <a href="/register">Creala acá</a></p></form></div></main>
-</body>
-</html>
+{% extends 'base.html' %}{% block title %}Iniciar sesión — Ahora Qué{% endblock %}{% block content %}<section class="auth-page section-shell"><div class="auth-intro"><p class="eyebrow-chip">qué bueno verte</p><h1>Volvamos a<br><em>hacer algo.</em></h1><p>Guardá tus planes, retomá un grupo y encontrá una idea que les cierre a todos.</p></div><form class="auth-form" action="/login" method="post"><label for="username">Usuario o email</label><input id="username" name="username" type="text" required><label for="password">Contraseña</label><input id="password" name="password" type="password" required><button class="dark-button" type="submit">Iniciar sesión <span>→</span></button><p>¿Todavía no tenés cuenta? <a href="/register">Creala acá</a></p></form></section>{% endblock %}

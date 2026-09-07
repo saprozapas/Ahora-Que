@@ -6,8 +6,10 @@ from werkzeug.security import generate_password_hash
 auth = Blueprint("auth", __name__)
 auth_service = AuthService()
 
-@auth.route("/login")
+@auth.route("/login", methods=["GET", "POST"])
 def login():
+    if request.method == "POST":
+        return redirect("/")
     return render_template("login.html")
 
 @auth.route("/register", methods=["GET", "POST"])

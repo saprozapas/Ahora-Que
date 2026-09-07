@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block title %}Explorar planes — Ahora Qué{% endblock %}{% block content %}
+<section class="page-hero section-shell"><p class="eyebrow-chip">explorar</p><h1>Una buena idea<br>empieza por <em>elegir.</em></h1><p>Filtrá por el mood del grupo, el tiempo que tienen y las ganas de salir de la rutina.</p></section>
+<section class="filter-bar section-shell"><span>Mostrar planes para</span><button class="filter-active">cualquiera</button><button>amigos</button><button>familia</button><button>pareja</button><span class="filter-spacer"></span><button>Filtros +</button></section>
+<section class="plan-index section-shell">{% for plan in plans %}<a class="index-card" href="/plan/{{ plan.slug }}"><div class="index-art tone-{{ plan.tone }}"><span>{{ '%02d'|format(plan.id) }}</span><strong>{{ plan.mood }}</strong></div><div class="index-copy"><span>{{ plan.type }}</span><h2>{{ plan.title }}</h2><p>{{ plan.description }}</p><small>{{ plan.time }} · {{ plan.cost }} · {{ plan.distance }}</small><b>Ver plan ↗</b></div></a>{% endfor %}</section>
+<section class="contact-cta section-shell compact"><div><p class="section-tag">no encontraste lo que buscabas</p><h2>Contanos qué<br>les <em>pinta.</em></h2></div><a class="lime-button" href="/contacto">Pedir una idea <span>↗</span></a></section>
+{% endblock %}
