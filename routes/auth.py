@@ -8,7 +8,7 @@ auth_service = AuthService()
 
 @auth.route("/login")
 def login():
-    return "Login"
+    return render_template("login.html")
 
 @auth.route("/register", methods=["GET", "POST"])
 def register():
@@ -35,4 +35,4 @@ def register():
 
 @auth.route("/logout")
 def logout():
-    return "Logout"
+    return redirect("/")

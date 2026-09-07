@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear cuenta — Ahora Qué</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-page">
+    <main class="auth-shell"><a class="brand" href="/"><span class="brand-mark">AQ</span><span class="brand-name">Ahora <em>Qué</em></span></a><div class="auth-grid"><section><p class="kicker">empecemos por una idea</p><h1>Hacer planes<br><em>es más fácil.</em></h1><p class="auth-note">Creá tu cuenta y armá grupos para decidir sin eternizarse en el chat.</p></section><form class="auth-form" action="/register" method="post"><label for="name">Nombre</label><input id="name" name="name" type="text" required><label for="birth_date">Fecha de nacimiento</label><input id="birth_date" name="birth_date" type="date" required><label for="username">Usuario</label><input id="username" name="username" type="text" required><label for="password">Contraseña</label><input id="password" name="password" type="password" required><button class="coral-button" type="submit">Crear cuenta <span aria-hidden="true">↗</span></button><p class="auth-switch">¿Ya tenés cuenta? <a href="/login">Iniciá sesión</a></p></form></div></main>
+</body>
+</html>
