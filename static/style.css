@@ -156,3 +156,10 @@ body :where(p,li,dt,dd,input,textarea){font-weight:550}
 .centered-hero .hero-actions{margin-top:48px;gap:56px}
 @media(max-width:950px){.main-nav{font-size:15px}.header-action{font-size:15px}.centered-hero .hero-actions{margin-top:44px;gap:48px}}
 @media(max-width:650px){body{font-size:19px}.main-nav{font-size:14px}.header-action{font-size:14px}.hero-text,.manifesto-content p,.detail-copy>p:not(.eyebrow-chip),.contact-copy>p:not(.eyebrow-chip),.auth-intro>p:not(.eyebrow-chip){font-size:19px}.lime-button,.dark-button{font-size:14px}.text-button,.arrow-link{font-size:14px}.centered-hero .hero-actions{margin-top:40px;gap:34px}}
+
+/* Final interface scale overrides the component defaults above. */
+body{font-family:var(--sans)!important;font-size:21px!important;font-weight:550!important}
+body p,body li,body dt,body dd,body input,body textarea{font-family:var(--sans)!important;font-size:21px!important;font-weight:550!important}
+body .main-nav,body .main-nav a,body .header-action{font-family:var(--sans)!important;font-size:17px!important;font-weight:750!important}
+@media(max-width:950px){body .main-nav,body .main-nav a,body .header-action{font-size:15px!important}}
+@media(max-width:650px){body{font-size:19px!important}body p,body li,body dt,body dd,body input,body textarea{font-size:19px!important}body .main-nav,body .main-nav a,body .header-action{font-size:14px!important}}
