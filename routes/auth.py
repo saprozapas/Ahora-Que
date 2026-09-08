@@ -49,10 +49,22 @@ def register():
             return render_template(
                 "register.html",
                 error="Se registró correctamente. Ahora podés iniciar sesión.",
-                form_data=form_data,
+                form_data={},
             ), 400
-        except ValueError as ve:
-            print("ACA IRIA SI SE INTENTA CREAR UN USUARIO CON MAIL O USERNAME REPETIDO//// el auth_service.register lanza ValueError si el mail o username ya existen")
+        except psycopg2.errors.UniqueViolation as uv:
+            
+            if uv.diag.constraint_name == "Usuarios_Username_key":
+                return render_template(
+                    "register.html",
+                    error="El nombre de usuario ya está en uso.",
+                    form_data=form_data,
+                ), 400
+            else:
+                return render_template(
+                    "register.html",
+                    error="El mail ingresado ya está en uso.",
+                    form_data=form_data,
+                ), 400
         except Exception as e:
             print(f"Error al registrar usuario: {e}")
             return render_template(
