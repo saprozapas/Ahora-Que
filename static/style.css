@@ -146,13 +146,13 @@ body :where(p,li,dt,dd,input,textarea){font-weight:500}
 body :where(.main-nav,.header-action,.eyebrow-chip,.section-tag,.lime-button,.dark-button,.text-button,.arrow-link,.proof-inner,.filter-bar,.story-type,.back-link,.contact-facts span,.footer-links,.footer-year){font-weight:700}
 
 /* Final mono scale: larger and slightly heavier, without changing display headings. */
-body{font-size:19px;font-weight:550}
+body{font-size:21px;font-weight:550}
 body :where(p,li,dt,dd,input,textarea){font-weight:550}
-.main-nav{font-size:14px;font-weight:750}
-.header-action{font-size:14px;font-weight:750}
-.hero-text,.manifesto-content p,.detail-copy>p:not(.eyebrow-chip),.contact-copy>p:not(.eyebrow-chip),.auth-intro>p:not(.eyebrow-chip){font-size:20px}
+.main-nav{font-size:17px;font-weight:750}
+.header-action{font-size:17px;font-weight:750}
+.hero-text,.manifesto-content p,.detail-copy>p:not(.eyebrow-chip),.contact-copy>p:not(.eyebrow-chip),.auth-intro>p:not(.eyebrow-chip){font-size:22px}
 .lime-button,.dark-button{font-size:15px;font-weight:750}
 .text-button,.arrow-link{font-size:15px;font-weight:750}
 .centered-hero .hero-actions{margin-top:48px;gap:56px}
-@media(max-width:950px){.main-nav{font-size:13px}.header-action{font-size:13px}.centered-hero .hero-actions{margin-top:44px;gap:48px}}
-@media(max-width:650px){body{font-size:18px}.main-nav{font-size:12px}.header-action{font-size:12px}.hero-text,.manifesto-content p,.detail-copy>p:not(.eyebrow-chip),.contact-copy>p:not(.eyebrow-chip),.auth-intro>p:not(.eyebrow-chip){font-size:18px}.lime-button,.dark-button{font-size:14px}.text-button,.arrow-link{font-size:14px}.centered-hero .hero-actions{margin-top:40px;gap:34px}}
+@media(max-width:950px){.main-nav{font-size:15px}.header-action{font-size:15px}.centered-hero .hero-actions{margin-top:44px;gap:48px}}
+@media(max-width:650px){body{font-size:19px}.main-nav{font-size:14px}.header-action{font-size:14px}.hero-text,.manifesto-content p,.detail-copy>p:not(.eyebrow-chip),.contact-copy>p:not(.eyebrow-chip),.auth-intro>p:not(.eyebrow-chip){font-size:19px}.lime-button,.dark-button{font-size:14px}.text-button,.arrow-link{font-size:14px}.centered-hero .hero-actions{margin-top:40px;gap:34px}}
