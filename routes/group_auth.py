@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, request, redirect
-from models.user import User
+from models.group import Group
+from services.group_auth_service import GroupAuthService
 from werkzeug.security import generate_password_hash
 
 group_auth = Blueprint("group_auth", __name__)
+group_auth_service = GroupAuthService()
 
-@group_auth.route("/register", methods=["GET", "POST"])
+@group_auth.route("/group_register", methods=["GET", "POST"])
 def register():
 
     if request.method == "POST":
@@ -19,7 +21,7 @@ def register():
         # validar datos
         password_hash = generate_password_hash(password)
         # crear usuario y guardar usuario en BD
-        auth_service.register(User(name, birth_date, username, password_hash))
+        group_auth_service.register(Group(name, birth_date, username, password_hash))
         
 
         return redirect("/login")
