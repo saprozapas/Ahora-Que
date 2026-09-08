@@ -16,7 +16,6 @@ def login():
 def register():
 
     if request.method == "POST":
-        # El usuario apreto "Registrarse"
 
         name = request.form["name"]
         birth_date = request.form["birth_date"]
@@ -27,13 +26,16 @@ def register():
         # validar datos
         password_hash = generate_password_hash(password)
         # crear usuario y guardar usuario en BD
-        auth_service.register(User(name, birth_date, username, password_hash))
-        
+        try:
+            auth_service.register(User(name, birth_date, username, password_hash))
+            return render_template("register.html", registrado='Se ha registrado correctamente')
+        except Exception as e:
+            print(f"Error al registrar usuario: {e}")
+            return render_template("register.html", registrado='Hubo un error al registrarse. Intente nuevamente.')
 
-        return redirect("/login")
-
+    
     # El usuario simplemente entró a /register
-    return render_template("register.html")
+    return render_template("register.html", registrado = '')
 
 @auth.route("/logout")
 def logout():
