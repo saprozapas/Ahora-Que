@@ -114,6 +114,34 @@
             ].filter(Boolean);
             birthDate.value = parts.join("/");
           });
+
+          birthDate.addEventListener("blur", () => {
+            const value = birthDate.value;
+            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+              birthDate.setCustomValidity(
+                "Usá una fecha válida con el formato dd/mm/yyyy.",
+              );
+              return;
+            }
+
+            const [day, month, year] = value.split("/").map(Number);
+            const date = new Date(year, month - 1, day);
+            const isValid =
+              month >= 1 &&
+              month <= 12 &&
+              day >= 1 &&
+              day <= 31 &&
+              date.getFullYear() === year &&
+              date.getMonth() === month - 1 &&
+              date.getDate() === day &&
+              date <= new Date();
+
+            birthDate.setCustomValidity(
+              isValid
+                ? ""
+                : "Ingresá una fecha de nacimiento válida y no futura.",
+            );
+          });
         }
       })();
     </script>

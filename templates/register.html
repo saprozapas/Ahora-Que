@@ -7,8 +7,18 @@
     <p>Creá tu cuenta y armá grupos para decidir sin eternizarse en el chat.</p>
   </div>
   <form class="auth-form" action="/register" method="post">
+    {% if error %}
+    <div class="form-error" role="alert">{{ error }}</div>
+    {% endif %}
+
     <label for="name">Nombre</label>
-    <input id="name" name="name" type="text" required />
+    <input
+      id="name"
+      name="name"
+      type="text"
+      value="{{ form_data.name|default('', true) }}"
+      required
+    />
 
     <label for="birth_date">Fecha de nacimiento</label>
     <input
@@ -20,11 +30,18 @@
       pattern="\d{2}/\d{2}/\d{4}"
       maxlength="10"
       autocomplete="bday"
+      value="{{ form_data.birth_date|default('', true) }}"
       required
     />
 
     <label for="username">Usuario</label>
-    <input id="username" name="username" type="text" required />
+    <input
+      id="username"
+      name="username"
+      type="text"
+      value="{{ form_data.username|default('', true) }}"
+      required
+    />
 
     <label for="password">Contraseña</label>
     <input id="password" name="password" type="password" required />

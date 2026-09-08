@@ -1200,6 +1200,20 @@ h2 em {
   color: var(--muted);
   font-size: 12px;
 }
+
+.form-error {
+  padding: 12px 14px;
+  border: 2px solid var(--ink);
+  background: var(--lime);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.auth-form input:invalid:not(:placeholder-shown) {
+  border-color: var(--coral);
+  box-shadow: 0 0 0 3px rgba(31, 74, 54, 0.18);
+}
 .auth-form > p a {
   color: var(--ink);
   text-decoration: underline;

@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, request, redirect
+from datetime import datetime
+
+from flask import Blueprint, redirect, render_template, request
 from models.user import User
 from services.auth_service import AuthService
 from werkzeug.security import generate_password_hash
@@ -16,17 +18,29 @@ def login():
 def register():
 
     if request.method == "POST":
-        # El usuario apreto "Registrarse"
+        form_data = request.form.to_dict()
+        name = form_data.get("name", "").strip()
+        birth_date_input = form_data.get("birth_date", "").strip()
+        username = form_data.get("username", "").strip()
+        password = form_data.get("password", "")
 
-        name = request.form["name"]
-        birth_date = request.form["birth_date"]
-        username = request.form["username"]
-        password = request.form["password"]
+        try:
+            birth_date = datetime.strptime(birth_date_input, "%d/%m/%Y").date()
+        except ValueError:
+            return render_template(
+                "register.html",
+                error="Ingresá una fecha válida con el formato dd/mm/yyyy.",
+                form_data=form_data,
+            ), 400
 
+        if birth_date > datetime.now().date():
+            return render_template(
+                "register.html",
+                error="La fecha de nacimiento no puede ser posterior a hoy.",
+                form_data=form_data,
+            ), 400
 
-        # validar datos
         password_hash = generate_password_hash(password)
-        # crear usuario y guardar usuario en BD
         auth_service.register(User(name, birth_date, username, password_hash))
         
 
