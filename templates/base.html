@@ -4,11 +4,12 @@
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Ahora Qué te ayuda a elegir un plan que funcione para todos.">
     <title>{% block title %}Ahora Qué{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20260908-2') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20260908-3') }}">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
 </head>
 <body>
     <a class="skip-link" href="#contenido">Ir al contenido</a>
+    <div class="scroll-progress" aria-hidden="true"><span></span></div>
     <header class="site-header">
         <div class="site-header-inner">
             <a class="brand" href="/" aria-label="Ahora Qué, inicio"><span class="brand-mark">?</span><span class="brand-name">Ahora <em>Qué</em></span></a>
@@ -18,5 +19,39 @@
     </header>
     <main id="contenido">{% block content %}{% endblock %}</main>
     <footer class="site-footer section-shell"><div><a class="brand" href="/"><span class="brand-mark">?</span><span class="brand-name">Ahora <em>Qué</em></span></a><p class="footer-note">Una excusa para hacer algo.</p></div><div class="footer-links"><a href="/explorar">Explorar</a><a href="/grupos">Grupos</a><a href="/contacto">Contacto</a><a href="/login">Iniciar sesión</a></div><span class="footer-year">© 2026 Ahora Qué</span></footer>
+    <script>
+      (() => {
+        const progress = document.querySelector('.scroll-progress span');
+        let ticking = false;
+
+        const updateProgress = () => {
+          const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+          progress.style.transform = `scaleX(${scrollable > 0 ? window.scrollY / scrollable : 0})`;
+          ticking = false;
+        };
+
+        window.addEventListener('scroll', () => {
+          if (!ticking) {
+            window.requestAnimationFrame(updateProgress);
+            ticking = true;
+          }
+        }, { passive: true });
+        updateProgress();
+
+        const revealObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              revealObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12 });
+
+        document.querySelectorAll('main section, main article, .story-card, .contact-form, .auth-form').forEach((element) => {
+          element.classList.add('scroll-reveal');
+          revealObserver.observe(element);
+        });
+      })();
+    </script>
 </body>
 </html>
