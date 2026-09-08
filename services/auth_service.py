@@ -28,3 +28,25 @@ class AuthService:
             raise
         finally:
             connection.close()
+
+    def getHashPass(self, username):
+        connection = get_db_connection()
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT "Password_Hash" FROM public."Usuarios" WHERE "Username" = %s
+                    """,
+                    (username,),
+                )
+                result = cursor.fetchone()
+                if result:
+                    stored_password_hash = result[0]
+                    return stored_password_hash
+                else:
+                    return None
+        except psycopg2.Error:
+            raise
+        finally:
+            connection.close()

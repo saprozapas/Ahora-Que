@@ -12,8 +12,27 @@ auth_service = AuthService()
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        return redirect("/")
-    return render_template("login.html")
+        form_data = request.form.to_dict()
+        username = form_data.get("username", "").strip()
+        password = form_data.get("password", "")
+        hash_pass = auth_service.getHashPass(username)
+        if hash_pass is not None and hash_pass == password:
+            return redirect("/")
+            #ACA IMPLEMENTAR LO DE LA SESION.
+        else:
+            return render_template("login.html", mensaje="Usuario o contraseña incorrectos.")
+
+    return render_template("login.html",mensaje = "")
+
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
 
 @auth.route("/register", methods=["GET", "POST"])
 def register():
@@ -50,7 +69,7 @@ def register():
                 "register.html",
                 error="Se registró correctamente. Ahora podés iniciar sesión.",
                 form_data={},
-            ), 400
+            )
         except psycopg2.errors.UniqueViolation as uv:
             
             if uv.diag.constraint_name == "Usuarios_Username_key":
@@ -69,7 +88,7 @@ def register():
             print(f"Error al registrar usuario: {e}")
             return render_template(
                 "register.html",
-                error="Hubo un error. Intenta nuevamente.",
+                error="Hubo un error. Intenta nuevamente más tarde.",
                 form_data=form_data,
             ), 400
 
