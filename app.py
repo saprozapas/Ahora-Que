@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, redirect
-from routes.auth import auth
+from routes.auth import auth, group_auth
+
 
 app = Flask(__name__)
 app.register_blueprint(auth)
+app.register_blueprint(group_auth)
+
 
 PLANS = [
     {"id": 1, "slug": "caminata-atardecer", "title": "Caminata al atardecer + café", "type": "tranquilo", "description": "Caminen sin rumbo durante un rato, encuentren un café que no conozcan y terminen viendo caer el sol.", "time": "1 h 40 min", "cost": "$", "distance": "1,8 km", "mood": "Salir", "tone": "coral"},
