@@ -1,6 +1,7 @@
 import psycopg2
 
 from database import get_db_connection
+from models.user import User
 
 
 class AuthService:
@@ -29,24 +30,41 @@ class AuthService:
         finally:
             connection.close()
 
-    def getHashPass(self, username):
+    def getUserAndId(self, username):
         connection = get_db_connection()
 
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT "Password_Hash" FROM public."Usuarios" WHERE "Username" = %s
+                    SELECT
+                        "Id_Usuario",
+                        "Nombre",
+                        "Fecha_Nac",
+                        "Username",
+                        "Mail",
+                        "Password_Hash"
+                    FROM public."Usuarios"
+                    WHERE "Username" = %s
                     """,
                     (username,),
                 )
+
                 result = cursor.fetchone()
+
                 if result:
-                    stored_password_hash = result[0]
-                    return stored_password_hash
-                else:
-                    return None
+                    return User(
+                        result[1],  # Nombre
+                        result[2],  # Fecha_Nac
+                        result[3],  # Username
+                        result[4],  # Mail
+                        result[5]   # Password_Hash
+                    ), result[0]  # Id_Usuario
+
+                return None
+
         except psycopg2.Error:
             raise
+
         finally:
             connection.close()

@@ -1,10 +1,11 @@
 from datetime import datetime
 
 import psycopg2
-from flask import Blueprint, redirect, render_template, request
+from flask import Blueprint, redirect, render_template, request, session
+from models import user
 from models.user import User
 from services.auth_service import AuthService
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash,generate_password_hash
 
 auth = Blueprint("auth", __name__)
 auth_service = AuthService()
@@ -15,10 +16,13 @@ def login():
         form_data = request.form.to_dict()
         username = form_data.get("username", "").strip()
         password = form_data.get("password", "")
-        hash_pass = auth_service.getHashPass(username)
-        if hash_pass is not None and hash_pass == password:
-            return redirect("/")
-            #ACA IMPLEMENTAR LO DE LA SESION.
+        user_login,id_login = auth_service.getUserAndId(username)
+        hash_pass = user_login.get_password_hash()
+
+        if hash_pass is not None and check_password_hash(hash_pass, password):
+            session.permanent = True
+            session["user_id"] = id_login
+            return redirect("/")    
         else:
             return render_template("login.html", mensaje="Usuario o contraseña incorrectos.")
 
@@ -98,4 +102,5 @@ def register():
 
 @auth.route("/logout")
 def logout():
+    session.clear()
     return redirect("/")
