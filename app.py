@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect
-from routes.auth import auth, group_auth
+from routes.auth import auth
+from routes.group_auth import group_auth
 
 
 app = Flask(__name__)
