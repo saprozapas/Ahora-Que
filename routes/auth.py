@@ -23,6 +23,7 @@ def register():
         name = form_data.get("name", "").strip()
         birth_date_input = form_data.get("birth_date", "").strip()
         username = form_data.get("username", "").strip()
+        email = form_data.get("email", "").strip()
         password = form_data.get("password", "")
 
         try:
@@ -44,15 +45,25 @@ def register():
         password_hash = generate_password_hash(password)
         # crear usuario y guardar usuario en BD
         try:
-            auth_service.register(User(name, birth_date, username, password_hash))
-            return render_template("register.html", registrado='Se ha registrado correctamente')
+            auth_service.register(User(name, birth_date, username, email, password_hash))
+            return render_template(
+                "register.html",
+                error="Se registró correctamente. Ahora podés iniciar sesión.",
+                form_data=form_data,
+            ), 400
+        except ValueError as ve:
+            print("ACA IRIA SI SE INTENTA CREAR UN USUARIO CON MAIL O USERNAME REPETIDO//// el auth_service.register lanza ValueError si el mail o username ya existen")
         except Exception as e:
             print(f"Error al registrar usuario: {e}")
-            return render_template("register.html", registrado='Hubo un error al registrarse. Intente nuevamente.')
+            return render_template(
+                "register.html",
+                error="Hubo un error. Intenta nuevamente.",
+                form_data=form_data,
+            ), 400
 
     
     # El usuario simplemente entró a /register
-    return render_template("register.html", registrado = '')
+    return render_template("register.html",error=None, form_data={})
 
 @auth.route("/logout")
 def logout():

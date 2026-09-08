@@ -11,14 +11,15 @@ class AuthService:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO users (name, birth_date, username, password)
-                    VALUES (%s, %s, %s, %s)
+                    INSERT INTO public."Usuarios" ("Nombre", "Mail", "Fecha_Nac", "Password_Hash", "Username")
+                    VALUES (%s, %s, %s, %s, %s)
                     """,
                     (
                         user.get_name(),
+                        user.get_email(),
                         user.get_birth_date(),
-                        user.get_username(),
                         user.get_password_hash(),
+                        user.get_username(),
                     ),
                 )
             connection.commit()

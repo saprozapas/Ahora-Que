@@ -1,9 +1,10 @@
 class User:
 
-    def __init__(self, name, birth_date, username, password_hash):
+    def __init__(self, name, birth_date, username, email, password_hash):
         self.__name = name
         self.__birth_date = birth_date
         self.__username = username
+        self.__email = email
         self.__password_hash = password_hash
 
     def get_name(self):
@@ -14,3 +15,5 @@ class User:
         return self.__username
     def get_password_hash(self):
         return self.__password_hash
+    def get_email(self):
+        return self.__email
