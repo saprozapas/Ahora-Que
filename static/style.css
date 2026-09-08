@@ -50,6 +50,7 @@
 @media(max-width:650px){.centered-hero{padding:55px 0 60px;gap:35px}.centered-hero h1{font-size:clamp(36px,10vw,56px)}.centered-hero .hero-actions{align-items:flex-end;gap:24px}.centered-hero .question-panel{width:min(420px,92vw)}.manifesto,.pillars,.featured-story,.process,.detail-notes{padding-top:64px;padding-bottom:64px}}
 :root{--sans:"Courier New",Courier,monospace}
 body,button,input,textarea{font-family:var(--sans);font-size:20px;font-weight:600}
+body :where(p,li,dt,dd,label,input,textarea,button,.main-nav a,.header-action,.footer-links a,.section-tag,.eyebrow-chip,.text-button,.arrow-link,.proof-inner,.story-type,.filter-bar,.index-copy,.mini-points span,.back-link,.contact-facts span,.footer-year){font-family:var(--sans);font-size:20px!important;font-weight:600!important}
 .site-header{position:sticky;top:0;z-index:50;background:rgba(246,240,228,.96);backdrop-filter:blur(10px)}
 .centered-hero{grid-template-columns:minmax(0,1fr) minmax(320px,1fr);min-height:calc(100svh - 82px);padding:34px 0 40px;text-align:left}
 .centered-hero .hero-copy{justify-self:start;text-align:left}
