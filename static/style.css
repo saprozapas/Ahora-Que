@@ -163,3 +163,25 @@ body p,body li,body dt,body dd,body input,body textarea{font-family:var(--sans)!
 body .main-nav,body .main-nav a,body .header-action{font-family:var(--sans)!important;font-size:17px!important;font-weight:750!important}
 @media(max-width:950px){body .main-nav,body .main-nav a,body .header-action{font-size:15px!important}}
 @media(max-width:650px){body{font-size:19px!important}body p,body li,body dt,body dd,body input,body textarea{font-size:19px!important}body .main-nav,body .main-nav a,body .header-action{font-size:14px!important}}
+
+/* Keep the manifesto aligned to the shared left edge and turn the process
+   steps into a consistent horizontal card row. */
+.manifesto{grid-template-columns:1fr;gap:24px;text-align:left}
+.manifesto-content{justify-self:start;max-width:820px;text-align:left}
+.process{display:block}
+.process-title{max-width:700px;margin-bottom:42px}
+.process-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;border-top:0}
+.process-steps article{display:flex;min-height:270px;flex-direction:column;padding:25px;border:2px solid var(--ink);border-radius:var(--radius);background:var(--cream-dark);box-shadow:5px 5px 0 var(--ink)}
+.process-steps article:nth-child(odd){border-right:2px solid var(--ink)}
+.process-steps article:nth-child(2){background:#dce7d0}
+.process-steps article:nth-child(3){background:#d5c9e7}
+.process-steps article:nth-child(4){background:#bcd3dd}
+.process-steps h3{margin:38px 0 10px;font-size:28px;line-height:.95}
+.process-steps p{max-width:250px;font-size:15px}
+@media(max-width:950px){
+  .process-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+  .process-steps{grid-template-columns:1fr}
+  .process-steps article{min-height:240px}
+}
