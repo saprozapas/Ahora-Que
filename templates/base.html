@@ -10,9 +10,11 @@
 <body>
     <a class="skip-link" href="#contenido">Ir al contenido</a>
     <header class="site-header">
-        <a class="brand" href="/" aria-label="Ahora Qué, inicio"><span class="brand-mark">?</span><span class="brand-name">Ahora <em>Qué</em></span></a>
-        <nav class="main-nav" aria-label="Navegación principal"><a href="/explorar">Explorar</a><a href="/grupos">Grupos</a><a href="/#como-funciona">Cómo funciona</a><a href="/contacto">Contacto</a></nav>
-        <a class="header-action" href="/register">Crear cuenta <span aria-hidden="true">↗</span></a>
+        <div class="site-header-inner">
+            <a class="brand" href="/" aria-label="Ahora Qué, inicio"><span class="brand-mark">?</span><span class="brand-name">Ahora <em>Qué</em></span></a>
+            <nav class="main-nav" aria-label="Navegación principal"><a href="/explorar">Explorar</a><a href="/grupos">Grupos</a><a href="/#como-funciona">Cómo funciona</a><a href="/contacto">Contacto</a></nav>
+            <a class="header-action" href="/register">Crear cuenta <span aria-hidden="true">↗</span></a>
+        </div>
     </header>
     <main id="contenido">{% block content %}{% endblock %}</main>
     <footer class="site-footer section-shell"><div><a class="brand" href="/"><span class="brand-mark">?</span><span class="brand-name">Ahora <em>Qué</em></span></a><p class="footer-note">Una excusa para hacer algo.</p></div><div class="footer-links"><a href="/explorar">Explorar</a><a href="/grupos">Grupos</a><a href="/contacto">Contacto</a><a href="/login">Iniciar sesión</a></div><span class="footer-year">© 2026 Ahora Qué</span></footer>
