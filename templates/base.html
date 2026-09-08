@@ -91,6 +91,18 @@
             display.setAttribute('aria-expanded', picker.classList.contains('is-open'));
             renderCalendar();
           });
+          document.addEventListener('click', (event) => {
+            if (!picker.contains(event.target)) {
+              picker.classList.remove('is-open');
+              display.setAttribute('aria-expanded', 'false');
+            }
+          });
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+              picker.classList.remove('is-open');
+              display.setAttribute('aria-expanded', 'false');
+            }
+          });
           picker.querySelector('[data-date-prev]').addEventListener('click', () => {
             viewDate.setMonth(viewDate.getMonth() - 1);
             renderCalendar();
