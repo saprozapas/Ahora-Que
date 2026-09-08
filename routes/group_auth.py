@@ -4,8 +4,25 @@ from werkzeug.security import generate_password_hash
 
 group_auth = Blueprint("group_auth", __name__)
 
-@group_auth.route("/register_group", methods=["GET", "POST"])
-def register_group():
+@group_auth.route("/register", methods=["GET", "POST"])
+def register():
+
     if request.method == "POST":
-        return redirect("/")
-    return render_template("register_group.html")
+        # El usuario apreto "Registrarse"
+
+        name = request.form["name"]
+        birth_date = request.form["birth_date"]
+        username = request.form["username"]
+        password = request.form["password"]
+
+
+        # validar datos
+        password_hash = generate_password_hash(password)
+        # crear usuario y guardar usuario en BD
+        auth_service.register(User(name, birth_date, username, password_hash))
+        
+
+        return redirect("/login")
+
+    # El usuario simplemente entró a /group_register
+    return render_template("group_register.html")
