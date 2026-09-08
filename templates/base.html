@@ -51,6 +51,56 @@
           element.classList.add('scroll-reveal');
           revealObserver.observe(element);
         });
+
+        document.querySelectorAll('[data-date-picker]').forEach((picker) => {
+          const input = picker.querySelector('input[type="date"]');
+          const display = picker.querySelector('.date-display');
+          const popover = picker.querySelector('.date-popover');
+          const title = picker.querySelector('[data-date-title]');
+          const grid = picker.querySelector('[data-date-grid]');
+          const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+          let viewDate = new Date();
+          viewDate.setHours(12, 0, 0, 0);
+
+          const renderCalendar = () => {
+            title.textContent = `${months[viewDate.getMonth()]} ${viewDate.getFullYear()}`;
+            grid.replaceChildren();
+            const firstDay = (new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay() + 6) % 7;
+            const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+            for (let i = 0; i < firstDay; i += 1) grid.append(document.createElement('span'));
+            for (let day = 1; day <= daysInMonth; day += 1) {
+              const button = document.createElement('button');
+              const month = String(viewDate.getMonth() + 1).padStart(2, '0');
+              const date = String(day).padStart(2, '0');
+              button.type = 'button';
+              button.textContent = day;
+              button.dataset.value = `${viewDate.getFullYear()}-${month}-${date}`;
+              if (button.dataset.value === input.value) button.classList.add('selected');
+              button.addEventListener('click', () => {
+                input.value = button.dataset.value;
+                display.querySelector('span').textContent = `${date}/${month}/${viewDate.getFullYear()}`;
+                picker.classList.remove('is-open');
+                display.setAttribute('aria-expanded', 'false');
+              });
+              grid.append(button);
+            }
+          };
+
+          display.addEventListener('click', () => {
+            picker.classList.toggle('is-open');
+            display.setAttribute('aria-expanded', picker.classList.contains('is-open'));
+            renderCalendar();
+          });
+          picker.querySelector('[data-date-prev]').addEventListener('click', () => {
+            viewDate.setMonth(viewDate.getMonth() - 1);
+            renderCalendar();
+          });
+          picker.querySelector('[data-date-next]').addEventListener('click', () => {
+            viewDate.setMonth(viewDate.getMonth() + 1);
+            renderCalendar();
+          });
+          renderCalendar();
+        });
       })();
     </script>
 </body>
