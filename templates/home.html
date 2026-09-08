@@ -2,12 +2,13 @@
 {% block title %}Ahora Qué — Un plan que funcione para todos{% endblock %}
 {% block content %}
 <section class="hero centered-hero section-shell">
-  <p class="eyebrow-chip">la app para decidir juntos</p>
-  <h1>Armen el plan<br>que los <em>junta.</em></h1>
-  <p class="hero-text">Disponibilidad, presupuesto, tiempo y ganas en un mismo lugar, para dejar de dar vueltas y empezar a hacer.</p>
-  <div class="hero-actions">
-    <a class="lime-button" href="/explorar">Encontrar un plan <span>↗</span></a>
-    <a class="text-button" href="#como-funciona">Ver cómo funciona <span>↓</span></a>
+  <div class="hero-copy">
+    <h1>Para responder a la pregunta<br><em>¿Qué Hacemos Hoy?</em></h1>
+    <p class="hero-text">Disponibilidad, presupuesto, tiempo y ganas en un mismo lugar, para dejar de dar vueltas y empezar a hacer.</p>
+    <div class="hero-actions">
+      <a class="lime-button" href="/explorar">Encontrar un plan</a>
+      <a class="text-button" href="#como-funciona">Ver cómo funciona</a>
+    </div>
   </div>
   <div class="question-panel" aria-hidden="true">
     <span class="q-satellite q-sat-a">?</span>
@@ -27,10 +28,6 @@
 <section class="pillars section-shell"><div class="section-intro"><div><p class="section-tag">01 — la base</p><h2>Todo lo que hace falta para que un plan <em>arranque.</em></h2></div><p>La app lee el contexto del grupo, no solo una preferencia aislada.</p></div><div class="pillar-grid"><article><span class="pillar-number">01</span><span class="pillar-icon">◌</span><h3>Disponibilidad real</h3><p>Vemos quién está libre y cuántos pueden sumarse.</p></article><article><span class="pillar-number">02</span><span class="pillar-icon">$</span><h3>Un presupuesto posible</h3><p>Desde gratis hasta ese plan especial que vienen postergando.</p></article><article><span class="pillar-number">03</span><span class="pillar-icon">↗</span><h3>Una distancia razonable</h3><p>Ideas cerca, con el tiempo de viaje sobre la mesa.</p></article></div></section>
 
 <section class="featured-story section-shell"><div class="story-heading"><p class="section-tag">02 — una idea para hoy</p><a class="arrow-link" href="/explorar">Explorar todos <span>↗</span></a></div><article class="story-card"><div class="story-art tone-coral"><span class="art-label">plan sugerido · 01</span><div class="story-sun"></div><div class="story-land"></div><strong>caminar<br><em>sin apuro</em></strong><span class="art-coordinates">-34.90° / -56.16°</span></div><div class="story-copy"><span class="story-type">{{ featured.type }}</span><h2>{{ featured.title }}</h2><p>{{ featured.description }}</p><dl><div><dt>tiempo</dt><dd>{{ featured.time }}</dd></div><div><dt>costo</dt><dd>{{ featured.cost }}</dd></div><div><dt>cerca</dt><dd>{{ featured.distance }}</dd></div></dl><a class="dark-button" href="/plan/{{ featured.slug }}">Abrir este plan <span>→</span></a></div></article></section>
-
-<section class="quotes-section"><div class="section-shell quote-layout"><div><p class="section-tag">03 — lo que pasa cuando funciona</p><h2>La conversación<br>se vuelve <em>simple.</em></h2><div class="quote-score"><strong>4.8</strong><span>de 5 después<br>de cada plan</span></div></div><blockquote>“Por fin dejamos de mandar veinte opciones y terminar haciendo lo mismo de siempre. Elegimos en cinco minutos.”<cite>— Martina, grupo Las del jueves</cite></blockquote></div></section>
-
-<section class="audience section-shell" id="para-grupos"><div class="section-intro"><div><p class="section-tag">04 — para quién es</p><h2>Hecho para grupos<br>que quieren <em>verse.</em></h2></div><p>Porque cada grupo tiene su propia manera de organizarse. Ahora Qué acompaña todas.</p></div><div class="audience-list"><article><span>01</span><div><h3>Amigos que nunca coordinan</h3><p>Para pasar del “vemos” a una fecha, un lugar y un plan.</p></div><a href="/grupos">↗</a></article><article><span>02</span><div><h3>Familias con tiempos distintos</h3><p>Para encontrar algo que funcione entre edades y agendas.</p></div><a href="/grupos">↗</a></article><article><span>03</span><div><h3>Personas que quieren salir</h3><p>Para esos días en que solo falta una buena excusa.</p></div><a href="/grupos">↗</a></article></div></section>
 
 <section class="process section-shell" id="como-funciona"><div class="process-title"><p class="section-tag">05 — cómo funciona</p><h2>Cómo construimos<br>el próximo <em>plan.</em></h2></div><div class="process-steps"><article><span>01</span><h3>Juntan el contexto</h3><p>Quiénes están, cuándo pueden, cuánto quieren gastar.</p></article><article><span>02</span><h3>Ordenamos las opciones</h3><p>La app cruza los datos y propone ideas que entran en el mundo real.</p></article><article><span>03</span><h3>Eligen y salen</h3><p>Guardan el plan, invitan al grupo y dejan de postergarlo.</p></article><article><span>04</span><h3>Lo recuerdan</h3><p>Califican la experiencia para que el próximo plan sea aún mejor.</p></article></div></section>
 
