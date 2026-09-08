@@ -1,1 +1,39 @@
-{% extends 'base.html' %}{% block title %}Crear cuenta — Ahora Qué{% endblock %}{% block content %}<section class="auth-page section-shell"><div class="auth-intro"><p class="eyebrow-chip">empecemos por una idea</p><h1>Hacer planes<br><em>es más fácil.</em></h1><p>Creá tu cuenta y armá grupos para decidir sin eternizarse en el chat.</p></div><form class="auth-form" action="/register" method="post"><label for="name">Nombre</label><input id="name" name="name" type="text" required><label for="birth_date_display">Fecha de nacimiento</label><div class="custom-date" data-date-picker><input id="birth_date" name="birth_date" type="date" required tabindex="-1"><button class="date-display" type="button" aria-haspopup="dialog" aria-expanded="false"><span>Elegí una fecha</span><b aria-hidden="true">⌄</b></button><div class="date-popover" role="dialog" aria-label="Selector de fecha"><div class="date-header"><button type="button" data-date-prev aria-label="Mes anterior">←</button><strong data-date-title></strong><button type="button" data-date-next aria-label="Mes siguiente">→</button></div><div class="date-weekdays"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div><div class="date-grid" data-date-grid></div></div></div><label for="username">Usuario</label><input id="username" name="username" type="text" required><label for="password">Contraseña</label><input id="password" name="password" type="password" required><button class="lime-button" type="submit">Crear cuenta <span>↗</span></button><p>¿Ya tenés cuenta? <a href="/login">Iniciá sesión</a></p></form></section>{% endblock %}
+{% extends 'base.html' %} {% block title %}Crear cuenta — Ahora Qué{% endblock
+%} {% block content %}
+<section class="auth-page section-shell">
+  <div class="auth-intro">
+    <p class="eyebrow-chip">empecemos por una idea</p>
+    <h1>Hacer planes<br /><em>es más fácil.</em></h1>
+    <p>Creá tu cuenta y armá grupos para decidir sin eternizarse en el chat.</p>
+  </div>
+  <form class="auth-form" action="/register" method="post">
+    <label for="name">Nombre</label>
+    <input id="name" name="name" type="text" required />
+
+    <label for="birth_date">Fecha de nacimiento</label>
+    <input
+      id="birth_date"
+      name="birth_date"
+      type="text"
+      inputmode="numeric"
+      placeholder="dd/mm/yyyy"
+      pattern="\d{2}/\d{2}/\d{4}"
+      maxlength="10"
+      autocomplete="bday"
+      required
+    />
+
+    <label for="username">Usuario</label>
+    <input id="username" name="username" type="text" required />
+
+    <label for="password">Contraseña</label>
+    <input id="password" name="password" type="password" required />
+
+    <button class="lime-button" type="submit">
+      Crear cuenta <span>↗</span>
+    </button>
+    <p>¿Ya tenés cuenta? <a href="/login">Iniciá sesión</a></p>
+  </form>
+</section>
+
+{% endblock %}

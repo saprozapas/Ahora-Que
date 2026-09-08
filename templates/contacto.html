@@ -1,3 +1,29 @@
-{% extends 'base.html' %}{% block title %}Contacto — Ahora Qué{% endblock %}{% block content %}
-<section class="contact-page section-shell"><div class="contact-copy"><p class="eyebrow-chip">contacto</p><h1>Contanos qué<br>quieren <em>hacer.</em></h1><p>¿Tenés una idea para mejorar la app, un grupo que necesita ayuda o simplemente querés decir hola? Leemos todo.</p><div class="contact-facts"><span>respondemos pronto</span><span>sin respuestas automáticas</span></div></div><form class="contact-form" method="post"><label for="nombre">Nombre *</label><input id="nombre" name="nombre" required><label for="email">Email *</label><input id="email" name="email" type="email" required><label for="mensaje">Mensaje *</label><textarea id="mensaje" name="mensaje" rows="7" required></textarea>{% if enviado %}<p class="form-success">Mensaje recibido. Gracias por escribirnos.</p>{% endif %}<button class="dark-button" type="submit">Enviar mensaje <span>→</span></button></form></section>
+{% extends 'base.html' %}{% block title %}Contacto — Ahora Qué{% endblock %}{%
+block content %}
+<section class="contact-page section-shell">
+  <div class="contact-copy">
+    <p class="eyebrow-chip">contacto</p>
+    <h1>Contanos qué<br />quieren <em>hacer.</em></h1>
+    <p>
+      ¿Tenés una idea para mejorar la app, un grupo que necesita ayuda o
+      simplemente querés decir hola? Leemos todo.
+    </p>
+    <div class="contact-facts">
+      <span>respondemos pronto</span><span>sin respuestas automáticas</span>
+    </div>
+  </div>
+  <form class="contact-form" method="post">
+    <label for="nombre">Nombre *</label
+    ><input id="nombre" name="nombre" required /><label for="email"
+      >Email *</label
+    ><input id="email" name="email" type="email" required /><label for="mensaje"
+      >Mensaje *</label
+    ><textarea id="mensaje" name="mensaje" rows="7" required></textarea>{% if
+    enviado %}
+    <p class="form-success">Mensaje recibido. Gracias por escribirnos.</p>
+    {% endif %}<button class="dark-button" type="submit">
+      Enviar mensaje <span>→</span>
+    </button>
+  </form>
+</section>
 {% endblock %}
