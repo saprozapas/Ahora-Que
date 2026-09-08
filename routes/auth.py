@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import psycopg2
 from flask import Blueprint, redirect, render_template, request
 from models.user import User
 from services.auth_service import AuthService
@@ -41,8 +42,15 @@ def register():
             ), 400
 
         password_hash = generate_password_hash(password)
-        auth_service.register(User(name, birth_date, username, password_hash))
-        
+
+        try:
+            auth_service.register(User(name, birth_date, username, password_hash))
+        except psycopg2.Error:
+            return render_template(
+                "register.html",
+                error="No pudimos crear la cuenta. Revisá los datos e intentá nuevamente.",
+                form_data=form_data,
+            ), 500
 
         return redirect("/login")
 
