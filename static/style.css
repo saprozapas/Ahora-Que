@@ -196,15 +196,15 @@ body .main-nav,body .main-nav a,body .header-action{font-family:var(--sans)!impo
 
 /* Orbit from the exact center of the hero circle, keeping each satellite
    inside the circle instead of combining the orbit with its old offsets. */
+.question-panel{--orbit-radius:235px}
 .question-panel .q-satellite{top:50%!important;left:50%!important;right:auto!important;bottom:auto!important}
 .question-panel .q-sat-a{margin:-32px 0 0 -32px;animation:orbit-a-safe 14s linear infinite}
 .question-panel .q-sat-b{margin:-40px 0 0 -40px;animation:orbit-b-safe 18s linear infinite}
 .question-panel .q-sat-c{margin:-22px 0 0 -22px;animation:orbit-c-safe 11s linear infinite}
-@keyframes orbit-a-safe{from{transform:rotate(0deg) translateX(195px) rotate(0deg)}to{transform:rotate(360deg) translateX(195px) rotate(-360deg)}}
-@keyframes orbit-b-safe{from{transform:rotate(120deg) translateX(195px) rotate(-120deg)}to{transform:rotate(480deg) translateX(195px) rotate(-480deg)}}
-@keyframes orbit-c-safe{from{transform:rotate(240deg) translateX(195px) rotate(-240deg)}to{transform:rotate(600deg) translateX(195px) rotate(-600deg)}}
+@keyframes orbit-a-safe{from{transform:rotate(0deg) translateX(var(--orbit-radius)) rotate(0deg)}to{transform:rotate(360deg) translateX(var(--orbit-radius)) rotate(-360deg)}}
+@keyframes orbit-b-safe{from{transform:rotate(120deg) translateX(var(--orbit-radius)) rotate(-120deg)}to{transform:rotate(480deg) translateX(var(--orbit-radius)) rotate(-480deg)}}
+@keyframes orbit-c-safe{from{transform:rotate(240deg) translateX(var(--orbit-radius)) rotate(-240deg)}to{transform:rotate(600deg) translateX(var(--orbit-radius)) rotate(-600deg)}}
+@media(max-width:950px){.question-panel{--orbit-radius:45vw}}
 @media(max-width:650px){
-  @keyframes orbit-a-safe{from{transform:rotate(0deg) translateX(155px) rotate(0deg)}to{transform:rotate(360deg) translateX(155px) rotate(-360deg)}}
-  @keyframes orbit-b-safe{from{transform:rotate(120deg) translateX(155px) rotate(-120deg)}to{transform:rotate(480deg) translateX(155px) rotate(-480deg)}}
-  @keyframes orbit-c-safe{from{transform:rotate(240deg) translateX(155px) rotate(-240deg)}to{transform:rotate(600deg) translateX(155px) rotate(-600deg)}}
+  .question-panel{--orbit-radius:46vw}
 }
