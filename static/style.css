@@ -140,3 +140,8 @@ h1,h2,h3{font-family:var(--sans)}
 .site-header{position:sticky;top:0;z-index:50;background:rgba(246,240,228,.96);backdrop-filter:blur(10px)}
 @media(max-width:950px){.site-header{height:76px}.site-header-inner{gap:20px}.main-nav{gap:14px}.header-action{font-size:12px;padding:12px 17px}}
 @media(max-width:650px){.site-header{height:72px;padding-inline:16px}.site-header-inner{gap:12px}.brand-name{font-size:21px}.header-action{font-size:11px;padding:11px 14px}.eyebrow-chip{font-size:12px}.section-tag{font-size:12px}.lime-button,.dark-button{font-size:13px}.text-button,.arrow-link{font-size:13px}.hero-text,.manifesto-content p,.detail-copy>p:not(.eyebrow-chip),.contact-copy>p:not(.eyebrow-chip),.auth-intro>p:not(.eyebrow-chip){font-size:17px}.proof-inner{font-size:13px}}
+
+/* Stronger mono weight across body copy and interface controls. */
+body{font-weight:500}
+body :where(p,li,dt,dd,input,textarea){font-weight:500}
+body :where(.main-nav,.header-action,.eyebrow-chip,.section-tag,.lime-button,.dark-button,.text-button,.arrow-link,.proof-inner,.filter-bar,.story-type,.back-link,.contact-facts span,.footer-links,.footer-year){font-weight:700}
