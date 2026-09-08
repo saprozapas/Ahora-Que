@@ -193,3 +193,18 @@ body .main-nav,body .main-nav a,body .header-action{font-family:var(--sans)!impo
   .process-steps{grid-template-columns:1fr}
   .process-steps article{min-height:240px}
 }
+
+/* Orbit from the exact center of the hero circle, keeping each satellite
+   inside the circle instead of combining the orbit with its old offsets. */
+.question-panel .q-satellite{top:50%!important;left:50%!important;right:auto!important;bottom:auto!important}
+.question-panel .q-sat-a{margin:-32px 0 0 -32px;animation:orbit-a-safe 14s linear infinite}
+.question-panel .q-sat-b{margin:-40px 0 0 -40px;animation:orbit-b-safe 18s linear infinite}
+.question-panel .q-sat-c{margin:-22px 0 0 -22px;animation:orbit-c-safe 11s linear infinite}
+@keyframes orbit-a-safe{from{transform:rotate(0deg) translateX(195px) rotate(0deg)}to{transform:rotate(360deg) translateX(195px) rotate(-360deg)}}
+@keyframes orbit-b-safe{from{transform:rotate(120deg) translateX(195px) rotate(-120deg)}to{transform:rotate(480deg) translateX(195px) rotate(-480deg)}}
+@keyframes orbit-c-safe{from{transform:rotate(240deg) translateX(195px) rotate(-240deg)}to{transform:rotate(600deg) translateX(195px) rotate(-600deg)}}
+@media(max-width:650px){
+  @keyframes orbit-a-safe{from{transform:rotate(0deg) translateX(155px) rotate(0deg)}to{transform:rotate(360deg) translateX(155px) rotate(-360deg)}}
+  @keyframes orbit-b-safe{from{transform:rotate(120deg) translateX(155px) rotate(-120deg)}to{transform:rotate(480deg) translateX(155px) rotate(-480deg)}}
+  @keyframes orbit-c-safe{from{transform:rotate(240deg) translateX(155px) rotate(-240deg)}to{transform:rotate(600deg) translateX(155px) rotate(-600deg)}}
+}
