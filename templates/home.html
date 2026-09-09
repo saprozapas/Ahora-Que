@@ -17,11 +17,11 @@ todos{% endblock %} {% block content %}
 <section class="dashboard-shell section-shell">
   <div class="dashboard-heading" id="dashboard-welcome">
     <div class="dashboard-welcome">
-      <img class="dashboard-welcome-logo" src="{{ url_for('static', filename='favicon.svg') }}" alt="Logo de Ahora Qué" />
-      <div>
-      <h1>¿Qué hacemos <em>hoy?</em></h1>
-      <p class="dashboard-lead">Hola, {{ current_user.name|default(current_user.username|default('ahí'), true) }}. Todo lo que necesitan para decidir, en un mismo lugar.</p>
+      <div class="dashboard-title-row">
+        <img class="dashboard-welcome-logo" src="{{ url_for('static', filename='favicon.svg') }}" alt="Logo de Ahora Qué" />
+        <h1>¿Qué hacemos <em>hoy?</em></h1>
       </div>
+      <p class="dashboard-lead">Hola, {{ current_user.name|default(current_user.username|default('ahí'), true) }}. Todo lo que necesitan para decidir, en un mismo lugar.</p>
     </div>
     <a class="lime-button" href="/explorar">Encontrar un plan <span aria-hidden="true">↗</span></a>
   </div>
@@ -50,6 +50,7 @@ todos{% endblock %} {% block content %}
   (() => {
     const tabs = [...document.querySelectorAll('[data-dashboard-tab]')];
     const panels = [...document.querySelectorAll('[data-dashboard-panel]')];
+    const welcome = document.querySelector('.dashboard-heading');
     const setTab = (name) => {
       tabs.forEach((tab) => {
         const active = tab.dataset.dashboardTab === name;
@@ -57,6 +58,7 @@ todos{% endblock %} {% block content %}
         tab.setAttribute('aria-selected', String(active));
       });
       panels.forEach((panel) => { panel.hidden = panel.dataset.dashboardPanel !== name; });
+      if (welcome) welcome.hidden = name !== 'overview';
     };
     const sidebar = document.querySelector('.dashboard-layout');
     const sidebarToggle = document.querySelector('.dashboard-sidebar-toggle');
