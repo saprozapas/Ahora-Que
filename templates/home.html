@@ -4,14 +4,10 @@ todos{% endblock %} {% block content %}
 <div class="dashboard-layout">
   <aside class="dashboard-sidebar" aria-label="Navegación del dashboard">
     <div class="dashboard-sidebar-top">
-      <a class="dashboard-sidebar-brand" href="/dashboard" aria-label="Ir al dashboard">
-        <img src="{{ url_for('static', filename='favicon.svg') }}" alt="" />
-        <span>Ahora Qué</span>
-      </a>
       <button class="dashboard-sidebar-toggle" type="button" aria-label="Contraer navegación" aria-expanded="true">←</button>
     </div>
     <nav class="dashboard-sidebar-nav" aria-label="Secciones del dashboard">
-      <button class="dashboard-sidebar-link is-active" type="button" role="tab" aria-selected="true" aria-controls="dashboard-overview" data-dashboard-tab="overview"><span aria-hidden="true">⌂</span><span>Inicio</span></button>
+      <button class="dashboard-sidebar-link is-active" type="button" role="tab" aria-selected="true" aria-controls="dashboard-welcome" data-dashboard-tab="overview"><span aria-hidden="true">⌂</span><span>Inicio</span></button>
       <button class="dashboard-sidebar-link" type="button" role="tab" aria-selected="false" aria-controls="dashboard-groups" data-dashboard-tab="groups"><span aria-hidden="true">◌</span><span>Grupos</span></button>
       <button class="dashboard-sidebar-link" type="button" role="tab" aria-selected="false" aria-controls="dashboard-social" data-dashboard-tab="social"><span aria-hidden="true">✳</span><span>Social</span></button>
       <button class="dashboard-sidebar-link" type="button" role="tab" aria-selected="false" aria-controls="dashboard-profile" data-dashboard-tab="profile"><span aria-hidden="true">○</span><span>Perfil</span></button>
@@ -19,7 +15,7 @@ todos{% endblock %} {% block content %}
   </aside>
   <main class="dashboard-main">
 <section class="dashboard-shell section-shell">
-  <div class="dashboard-heading">
+  <div class="dashboard-heading" id="dashboard-welcome">
     <div class="dashboard-welcome">
       <img class="dashboard-welcome-logo" src="{{ url_for('static', filename='favicon.svg') }}" alt="Logo de Ahora Qué" />
       <div>
@@ -29,22 +25,6 @@ todos{% endblock %} {% block content %}
     </div>
     <a class="lime-button" href="/explorar">Encontrar un plan <span aria-hidden="true">↗</span></a>
   </div>
-
-  <section class="dashboard-panel" id="dashboard-overview" role="tabpanel" data-dashboard-panel="overview">
-    <div class="dashboard-summary">
-      <article class="dashboard-card dashboard-card-featured">
-        <p class="section-tag">una idea para empezar</p>
-        <h2>{{ featured.title }}</h2>
-        <p>{{ featured.description }}</p>
-        <div class="dashboard-meta"><span>{{ featured.time }}</span><span>{{ featured.cost }}</span><span>{{ featured.distance }}</span></div>
-        <a class="dark-button" href="/plan/{{ featured.slug }}">Abrir plan <span aria-hidden="true">→</span></a>
-      </article>
-      <div class="dashboard-stack">
-        <article class="dashboard-card"><span class="dashboard-number">01</span><h3>Grupos</h3><p>Armá una mesa para decidir con los demás.</p><a class="arrow-link" href="#dashboard-groups" data-dashboard-link="groups">Ver grupos <span aria-hidden="true">↗</span></a></article>
-        <article class="dashboard-card"><span class="dashboard-number">02</span><h3>Planes guardados</h3><p>Volvé a las ideas que todavía les dan ganas.</p><a class="arrow-link" href="/explorar">Explorar planes <span aria-hidden="true">↗</span></a></article>
-      </div>
-    </div>
-  </section>
 
   <section class="dashboard-panel" id="dashboard-groups" role="tabpanel" data-dashboard-panel="groups" hidden>
     <div class="dashboard-panel-heading"><div><p class="section-tag">tu gente</p><h2>Grupos para<br /><em>decidir juntos.</em></h2></div><a class="lime-button" href="/grupos">Abrir grupos <span aria-hidden="true">↗</span></a></div>
