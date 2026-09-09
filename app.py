@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+﻿from flask import Flask, render_template, request, redirect, session
 from routes.auth import auth
 from routes.group_auth import group_auth
 from datetime import timedelta
@@ -9,6 +9,7 @@ app.secret_key = "7f4a9c2e8b1d6f03a5c9e7b2d4f8a1c6e3b9d5f7a2c8e4b6d1f9a3c7e5b2d8
 app.permanent_session_lifetime = timedelta(days=5)
 app.register_blueprint(auth)
 app.register_blueprint(group_auth)
+print("loolll")
 
 
 PLANS = [
