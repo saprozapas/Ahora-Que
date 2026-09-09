@@ -297,7 +297,7 @@ svg {
 .dashboard-welcome{width:100%;max-width:none}
 .dashboard-title-row{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;gap:18px}
 .dashboard-title-row .dashboard-welcome-logo{margin:0;transform:none}
-.dashboard-title-row h1{margin:0;text-align:center;white-space:nowrap}
+.dashboard-title-row h1{grid-column:auto;margin:0;text-align:center;white-space:nowrap}
 .dashboard-welcome .dashboard-lead{max-width:620px;margin-inline:auto;text-align:center}
 .dashboard-welcome{transform:none}
 @media(max-width:650px){.dashboard-title-row{gap:14px}.dashboard-title-row h1{white-space:normal}}
