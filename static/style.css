@@ -272,6 +272,11 @@ svg {
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
+.header-actions.authenticated {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
 .header-action:hover,
 .lime-button:hover {
   transform: translate(2px, 2px);

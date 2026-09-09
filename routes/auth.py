@@ -32,6 +32,12 @@ def login():
         if hash_pass is not None and check_password_hash(hash_pass, password):
             session.permanent = True
             session["user_id"] = id_login
+            session["user"] = {
+                "id": id_login,
+                "name": user_login.get_name(),
+                "username": user_login.get_username(),
+                "email": user_login.get_email(),
+            }
             return redirect("/")    
         else:
             return render_template("login.html", mensaje="Usuario o contraseña incorrectos.")

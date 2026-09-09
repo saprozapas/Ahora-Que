@@ -1,6 +1,7 @@
 ﻿from flask import Flask, render_template, request, redirect, session
 from routes.auth import auth
 from routes.group_auth import group_auth
+from routes.profile import profile
 from datetime import timedelta
 
 
@@ -9,6 +10,7 @@ app.secret_key = "7f4a9c2e8b1d6f03a5c9e7b2d4f8a1c6e3b9d5f7a2c8e4b6d1f9a3c7e5b2d8
 app.permanent_session_lifetime = timedelta(days=5)
 app.register_blueprint(auth)
 app.register_blueprint(group_auth)
+app.register_blueprint(profile)
 
 
 PLANS = [
@@ -20,7 +22,8 @@ PLANS = [
 @app.context_processor
 def inject_user():
     return {
-        "logueado": "user_id" in session#true or false
+        "logueado": bool(session.get("user_id")),
+        "current_user": session.get("user", {}),
     }
 
 @app.route('/')
@@ -30,10 +33,6 @@ def home():
 @app.route('/explorar')
 def explorar():
     return render_template('explorar.html', plans=PLANS)
-
-@app.route('/grupos')
-def grupos():
-    return render_template('grupos.html')
 
 @app.route('/plan/<slug>')
 def plan(slug):

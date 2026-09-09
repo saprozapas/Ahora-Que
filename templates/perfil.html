@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil — Ahora Qué{% endblock %}
+
+{% block content %}
+<section class="auth-page section-shell">
+  <div class="auth-intro">
+    <p class="eyebrow-chip">perfil</p>
+    <h1>Tu espacio<br /><em>personal.</em></h1>
+    <p>Acá vas a encontrar tus datos, grupos y planes guardados.</p>
+  </div>
+
+  <div class="auth-form">
+    <p><strong>Nombre</strong><br />{{ user.name|default("Sin datos", true) }}</p>
+    <p><strong>Username</strong><br />{{ user.username|default("Sin datos", true) }}</p>
+    {% if user.email %}
+    <p><strong>Email</strong><br />{{ user.email }}</p>
+    {% endif %}
+    <p><strong>Grupos</strong><br />{{ groups|length }} grupos</p>
+    <p><strong>Planes publicados</strong><br />{{ published_plans|length }} planes</p>
+    <p><strong>Planes guardados</strong><br />{{ saved_plans|length }} planes</p>
+  </div>
+</section>
+{% endblock %}

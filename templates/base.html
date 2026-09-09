@@ -5,7 +5,6 @@
   <head>
     <meta charset="UTF-8" />
 
-```
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <meta
@@ -25,13 +24,10 @@
   type="image/svg+xml"
   href="{{ url_for('static', filename='favicon.svg') }}"
 />
-```
-
   </head>
 
   <body>
 
-```
 <a class="skip-link" href="#contenido">Ir al contenido</a>
 
 <div class="scroll-progress" aria-hidden="true">
@@ -58,7 +54,7 @@
       <a href="/contacto">Contacto</a>
     </nav>
 
-    <div class="header-actions">
+    <div class="header-actions{% if logueado %} authenticated{% endif %}">
 
       {% if logueado %}
 
@@ -68,6 +64,10 @@
 
         <a class="header-action" href="/grupos">
           Grupos
+        </a>
+
+        <a class="header-action" href="/logout">
+          Log Out
         </a>
 
       {% else %}
@@ -119,7 +119,7 @@
 
     {% if logueado %}
       <a href="/perfil">Perfil</a>
-      <a href="/grupo">Grupo</a>
+      <a href="/grupos">Grupos</a>
     {% else %}
       <a href="/login">Iniciar sesión</a>
     {% endif %}
@@ -265,8 +265,6 @@
   })();
 
 </script>
-```
-
   </body>
 
 </html>

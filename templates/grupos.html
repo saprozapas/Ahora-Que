@@ -1,5 +1,29 @@
 {% extends 'base.html' %}{% block title %}Grupos — Ahora Qué{% endblock %}{%
 block content %}
+{% if groups_page %}
+<section class="page-hero group-hero section-shell">
+  <p class="eyebrow-chip">grupos</p>
+  <h1>Tus grupos<br /><em>están acá.</em></h1>
+  <p>Creá un espacio para organizar planes y decidir junto a los demás.</p>
+  <a class="lime-button" href="/grupos/nuevo">Crear un grupo <span>↗</span></a>
+</section>
+<section class="group-feature section-shell">
+  <div class="group-copy">
+    <p class="section-tag">tus espacios</p>
+    {% if groups %}
+    {% for group in groups %}
+    <article>
+      <h2><a href="/grupos/{{ group.id }}">{{ group.name }}</a></h2>
+      <p>{{ group.member_count|default(0) }} integrantes</p>
+    </article>
+    {% endfor %}
+    {% else %}
+    <h2>Todavía no tenés grupos.</h2>
+    <p>Creá el primero para empezar a organizarse.</p>
+    {% endif %}
+  </div>
+</section>
+{% else %}
 <section class="page-hero group-hero section-shell">
   <p class="eyebrow-chip">grupos</p>
   <h1>El plan mejora<br />cuando <em>entran todos.</em></h1>
@@ -55,4 +79,5 @@ block content %}
     </article>
   </div>
 </section>
+{% endif %}
 {% endblock %}
