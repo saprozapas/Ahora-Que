@@ -301,7 +301,9 @@ svg {
 .dashboard-title-row h1{grid-column:auto;width:100%;max-width:none;margin:0;text-align:center;white-space:nowrap}
 .dashboard-welcome .dashboard-lead{max-width:620px;margin-inline:auto;text-align:center}
 .dashboard-welcome{transform:none}
-@media(max-width:650px){.dashboard-title-row{gap:14px}.dashboard-title-row h1{white-space:normal}}
+.dashboard-heading{gap:10px}
+.dashboard-title-row{gap:8px}
+@media(max-width:650px){.dashboard-title-row{gap:6px}.dashboard-title-row h1{white-space:normal}}
 
 /* Center the authenticated content inside the real panel, excluding navbar and sidebar. */
 .dashboard-main{display:flex;min-height:calc(100svh - 82px);align-items:center;justify-content:center}
