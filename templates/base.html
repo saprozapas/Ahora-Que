@@ -89,6 +89,7 @@
   {% block content %}{% endblock %}
 </main>
 
+{% if not logueado %}
 <footer class="site-footer section-shell">
 
   <div>
@@ -126,6 +127,7 @@
   <span class="footer-year">© 2026 Ahora Qué</span>
 
 </footer>
+{% endif %}
 
 <script>
 
