@@ -246,7 +246,7 @@ svg {
 
 /* Centered authenticated welcome, without altering the public landing layout. */
 .dashboard-shell{min-height:calc(100svh - 82px);display:flex;flex-direction:column;justify-content:center;text-align:center}
-.dashboard-heading{align-items:center;flex-direction:column;gap:26px}
+.dashboard-heading{display:grid;justify-items:center;align-items:center;gap:26px}
 .dashboard-heading h1{margin-inline:auto}
 .dashboard-lead{margin-inline:auto}
 .dashboard-heading>.lime-button{margin-inline:auto}
@@ -285,7 +285,7 @@ svg {
 .social-preview-logo,.dashboard-profile-logo{width:42px;height:42px;flex:0 0 42px}
 .dashboard-profile-logo{display:block;margin-bottom:16px}
 .dashboard-heading[hidden],.dashboard-panel[hidden]{display:none!important}
-.dashboard-welcome{width:100%;max-width:none}
+.dashboard-welcome{width:100%;max-width:none;justify-self:stretch}
 .dashboard-title-row{display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;justify-content:initial}
 .dashboard-title-row h1{grid-column:2;margin:0;text-align:center}
 .dashboard-title-row .dashboard-welcome-logo{grid-column:1;justify-self:end;margin-right:22px;transform:none}
