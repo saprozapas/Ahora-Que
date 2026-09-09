@@ -299,10 +299,7 @@ svg {
 .dashboard-title-row .dashboard-welcome-logo{margin:0;transform:none}
 .dashboard-title-row h1{margin:0;text-align:center;white-space:nowrap}
 .dashboard-welcome .dashboard-lead{max-width:620px;margin-inline:auto;text-align:center}
-.dashboard-welcome{transform:translateX(-124px)}
-.dashboard-layout.is-collapsed .dashboard-welcome{transform:translateX(-38px)}
-@media(max-width:950px){.dashboard-welcome{transform:translateX(-107px)}}
-@media(max-width:650px){.dashboard-welcome,.dashboard-layout.is-collapsed .dashboard-welcome{transform:none}}
+.dashboard-welcome{transform:none}
 @media(max-width:650px){.dashboard-title-row{gap:14px}.dashboard-title-row h1{white-space:normal}}
 @media (prefers-reduced-motion: reduce) {
   .scroll-reveal {
