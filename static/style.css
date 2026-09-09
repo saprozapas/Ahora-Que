@@ -302,6 +302,15 @@ svg {
 .dashboard-welcome .dashboard-lead{max-width:620px;margin-inline:auto;text-align:center}
 .dashboard-welcome{transform:none}
 @media(max-width:650px){.dashboard-title-row{gap:14px}.dashboard-title-row h1{white-space:normal}}
+
+/* Center the authenticated content inside the real panel, excluding navbar and sidebar. */
+.dashboard-main{display:flex;min-height:calc(100svh - 82px);align-items:center;justify-content:center}
+.dashboard-main .dashboard-shell{width:min(var(--max),calc(100% - 96px));min-height:0;margin:0;padding:0}
+.dashboard-main .dashboard-heading{width:100%;min-height:calc(100svh - 82px);justify-content:center;padding:0}
+.dashboard-main .dashboard-panel{width:100%;padding:0}
+.dashboard-main .dashboard-panel:not([hidden]){min-height:calc(100svh - 82px);display:flex;flex-direction:column;justify-content:center}
+@media(max-width:950px){.dashboard-main{min-height:calc(100svh - 76px)}.dashboard-main .dashboard-shell{width:min(var(--max),calc(100% - 48px))}.dashboard-main .dashboard-heading,.dashboard-main .dashboard-panel:not([hidden]){min-height:calc(100svh - 76px)}}
+@media(max-width:650px){.dashboard-main{min-height:calc(100svh - 72px)}.dashboard-main .dashboard-shell{width:calc(100% - 32px)}.dashboard-main .dashboard-heading,.dashboard-main .dashboard-panel:not([hidden]){min-height:calc(100svh - 72px)}}
 @media (prefers-reduced-motion: reduce) {
   .scroll-reveal {
     opacity: 1;
