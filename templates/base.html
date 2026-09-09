@@ -1,149 +1,272 @@
 <!doctype html>
+
 <html lang="es">
+
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Ahora Qué te ayuda a elegir un plan que funcione para todos."
-    />
-    <title>{% block title %}Ahora Qué{% endblock %}</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css', v='20260908-5') }}"
-    />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="{{ url_for('static', filename='favicon.svg') }}"
-    />
+
+```
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<meta
+  name="description"
+  content="Ahora Qué te ayuda a elegir un plan que funcione para todos."
+/>
+
+<title>{% block title %}Ahora Qué{% endblock %}</title>
+
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='style.css', v='20260908-5') }}"
+/>
+
+<link
+  rel="icon"
+  type="image/svg+xml"
+  href="{{ url_for('static', filename='favicon.svg') }}"
+/>
+```
+
   </head>
+
   <body>
-    <a class="skip-link" href="#contenido">Ir al contenido</a>
-    <div class="scroll-progress" aria-hidden="true"><span></span></div>
-    <header class="site-header">
-      <div class="site-header-inner">
-        <a class="brand" href="/" aria-label="Ahora Qué, inicio"
-          ><img
-            class="brand-mark"
-            src="{{ url_for('static', filename='favicon.svg') }}"
-            alt=""
-          /><span class="brand-name">Ahora <em>Qué</em></span></a
-        >
-        <nav class="main-nav" aria-label="Navegación principal">
-          <a href="/explorar">Explorar</a><a href="/grupos">Grupos</a
-          ><a href="/#como-funciona">Cómo funciona</a
-          ><a href="/contacto">Contacto</a>
-        </nav>
-        <a class="header-action" href="/register"
-          >Crear cuenta <span aria-hidden="true">↗</span></a
-        >
-      </div>
-    </header>
-    <main id="contenido">{% block content %}{% endblock %}</main>
-    <footer class="site-footer section-shell">
-      <div>
-        <a class="brand" href="/"
-          ><img
-            class="brand-mark"
-            src="{{ url_for('static', filename='favicon.svg') }}"
-            alt=""
-          /><span class="brand-name">Ahora <em>Qué</em></span></a
-        >
-        <p class="footer-note">Una excusa para hacer algo.</p>
-      </div>
-      <div class="footer-links">
-        <a href="/explorar">Explorar</a><a href="/grupos">Grupos</a
-        ><a href="/contacto">Contacto</a><a href="/login">Iniciar sesión</a>
-      </div>
-      <span class="footer-year">© 2026 Ahora Qué</span>
-    </footer>
-    <script>
-      (() => {
-        const progress = document.querySelector(".scroll-progress span");
-        let ticking = false;
 
-        const updateProgress = () => {
-          const scrollable =
-            document.documentElement.scrollHeight - window.innerHeight;
-          progress.style.transform = `scaleX(${scrollable > 0 ? window.scrollY / scrollable : 0})`;
-          ticking = false;
-        };
+```
+<a class="skip-link" href="#contenido">Ir al contenido</a>
 
-        window.addEventListener(
-          "scroll",
-          () => {
-            if (!ticking) {
-              window.requestAnimationFrame(updateProgress);
-              ticking = true;
-            }
-          },
-          { passive: true },
-        );
-        updateProgress();
+<div class="scroll-progress" aria-hidden="true">
+  <span></span>
+</div>
 
-        const revealObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("is-visible");
-                revealObserver.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.12 },
-        );
+<header class="site-header">
 
-        document
-          .querySelectorAll(
-            "main section, main article, .story-card, .contact-form, .auth-form",
-          )
-          .forEach((element) => {
-            element.classList.add("scroll-reveal");
-            revealObserver.observe(element);
-          });
+  <div class="site-header-inner">
 
-        const birthDate = document.querySelector("#birth_date");
-        if (birthDate) {
-          birthDate.addEventListener("input", () => {
-            const digits = birthDate.value.replace(/\D/g, "").slice(0, 8);
-            const parts = [
-              digits.slice(0, 2),
-              digits.slice(2, 4),
-              digits.slice(4, 8),
-            ].filter(Boolean);
-            birthDate.value = parts.join("/");
-          });
+    <a class="brand" href="/" aria-label="Ahora Qué, inicio">
+      <img
+        class="brand-mark"
+        src="{{ url_for('static', filename='favicon.svg') }}"
+        alt=""
+      />
+      <span class="brand-name">Ahora <em>Qué</em></span>
+    </a>
 
-          birthDate.addEventListener("blur", () => {
-            const value = birthDate.value;
-            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-              birthDate.setCustomValidity(
-                "Usá una fecha válida con el formato dd/mm/yyyy.",
-              );
-              return;
-            }
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a href="/explorar">Explorar</a>
+      <a href="/grupos">Grupos</a>
+      <a href="/#como-funciona">Cómo funciona</a>
+      <a href="/contacto">Contacto</a>
+    </nav>
 
-            const [day, month, year] = value.split("/").map(Number);
-            const date = new Date(year, month - 1, day);
-            const isValid =
-              month >= 1 &&
-              month <= 12 &&
-              day >= 1 &&
-              day <= 31 &&
-              date.getFullYear() === year &&
-              date.getMonth() === month - 1 &&
-              date.getDate() === day &&
-              date <= new Date();
+    <div class="header-actions">
 
-            birthDate.setCustomValidity(
-              isValid
-                ? ""
-                : "Ingresá una fecha de nacimiento válida y no futura.",
-            );
-          });
+      {% if logueado %}
+
+        <a class="header-action" href="/perfil">
+          Perfil
+        </a>
+
+        <a class="header-action" href="/grupos">
+          Grupos
+        </a>
+
+      {% else %}
+
+        <a class="header-action" href="/login">
+          Logueate
+        </a>
+
+        <a class="header-action" href="/register">
+          Crear cuenta <span aria-hidden="true">↗</span>
+        </a>
+
+      {% endif %}
+
+    </div>
+
+  </div>
+
+</header>
+
+<main id="contenido">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer section-shell">
+
+  <div>
+
+    <a class="brand" href="/">
+      <img
+        class="brand-mark"
+        src="{{ url_for('static', filename='favicon.svg') }}"
+        alt=""
+      />
+      <span class="brand-name">Ahora <em>Qué</em></span>
+    </a>
+
+    <p class="footer-note">
+      Una excusa para hacer algo.
+    </p>
+
+  </div>
+
+  <div class="footer-links">
+
+    <a href="/explorar">Explorar</a>
+    <a href="/grupos">Grupos</a>
+    <a href="/contacto">Contacto</a>
+
+    {% if logueado %}
+      <a href="/perfil">Perfil</a>
+      <a href="/grupo">Grupo</a>
+    {% else %}
+      <a href="/login">Iniciar sesión</a>
+    {% endif %}
+
+  </div>
+
+  <span class="footer-year">© 2026 Ahora Qué</span>
+
+</footer>
+
+<script>
+
+  (() => {
+
+    const progress =
+      document.querySelector(".scroll-progress span");
+
+    let ticking = false;
+
+    const updateProgress = () => {
+
+      const scrollable =
+        document.documentElement.scrollHeight -
+        window.innerHeight;
+
+      progress.style.transform =
+        `scaleX(${scrollable > 0
+          ? window.scrollY / scrollable
+          : 0})`;
+
+      ticking = false;
+    };
+
+    window.addEventListener(
+      "scroll",
+      () => {
+
+        if (!ticking) {
+
+          window.requestAnimationFrame(updateProgress);
+          ticking = true;
+
         }
-      })();
-    </script>
+
+      },
+      { passive: true },
+    );
+
+    updateProgress();
+
+    const revealObserver =
+      new IntersectionObserver(
+        (entries) => {
+
+          entries.forEach((entry) => {
+
+            if (entry.isIntersecting) {
+
+              entry.target.classList.add("is-visible");
+
+              revealObserver.unobserve(entry.target);
+
+            }
+
+          });
+
+        },
+        { threshold: 0.12 },
+      );
+
+    document
+      .querySelectorAll(
+        "main section, main article, .story-card, .contact-form, .auth-form",
+      )
+      .forEach((element) => {
+
+        element.classList.add("scroll-reveal");
+        revealObserver.observe(element);
+
+      });
+
+    const birthDate =
+      document.querySelector("#birth_date");
+
+    if (birthDate) {
+
+      birthDate.addEventListener("input", () => {
+
+        const digits =
+          birthDate.value
+            .replace(/\D/g, "")
+            .slice(0, 8);
+
+        const parts = [
+          digits.slice(0, 2),
+          digits.slice(2, 4),
+          digits.slice(4, 8),
+        ].filter(Boolean);
+
+        birthDate.value = parts.join("/");
+
+      });
+
+      birthDate.addEventListener("blur", () => {
+
+        const value = birthDate.value;
+
+        if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+
+          birthDate.setCustomValidity(
+            "Usá una fecha válida con el formato dd/mm/yyyy.",
+          );
+
+          return;
+        }
+
+        const [day, month, year] =
+          value.split("/").map(Number);
+
+        const date =
+          new Date(year, month - 1, day);
+
+        const isValid =
+          month >= 1 &&
+          month <= 12 &&
+          day >= 1 &&
+          day <= 31 &&
+          date.getFullYear() === year &&
+          date.getMonth() === month - 1 &&
+          date.getDate() === day &&
+          date <= new Date();
+
+        birthDate.setCustomValidity(
+          isValid
+            ? ""
+            : "Ingresá una fecha de nacimiento válida y no futura.",
+        );
+
+      });
+
+    }
+
+  })();
+
+</script>
+```
+
   </body>
+
 </html>

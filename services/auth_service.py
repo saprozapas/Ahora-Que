@@ -30,11 +30,12 @@ class AuthService:
         finally:
             connection.close()
 
-    def getUserAndId(self, username):
+    def getUserAndId(self, username_or_email):
         connection = get_db_connection()
 
         try:
             with connection.cursor() as cursor:
+
                 cursor.execute(
                     """
                     SELECT
@@ -47,11 +48,31 @@ class AuthService:
                     FROM public."Usuarios"
                     WHERE "Username" = %s
                     """,
-                    (username,),
+                    (username_or_email,),
                 )
 
                 result = cursor.fetchone()
 
+                # Si no encontró por username, busca por mail
+                if result is None:
+                    cursor.execute(
+                        """
+                        SELECT
+                            "Id_Usuario",
+                            "Nombre",
+                            "Fecha_Nac",
+                            "Username",
+                            "Mail",
+                            "Password_Hash"
+                        FROM public."Usuarios"
+                        WHERE "Mail" = %s
+                        """,
+                        (username_or_email,),
+                    )
+
+                    result = cursor.fetchone()
+
+                # Si encontró por username O por mail
                 if result:
                     return User(
                         result[1],  # Nombre

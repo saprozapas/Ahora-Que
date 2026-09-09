@@ -14,9 +14,9 @@ auth_service = AuthService()
 def login():
     if request.method == "POST":
         form_data = request.form.to_dict()
-        username = form_data.get("username", "").strip()
+        username_or_email = form_data.get("username", "").strip()
         password = form_data.get("password", "")
-        user_login,id_login = auth_service.getUserAndId(username)
+        user_login,id_login = auth_service.getUserAndId(username_or_email)
         hash_pass = user_login.get_password_hash()
 
         if hash_pass is not None and check_password_hash(hash_pass, password):
