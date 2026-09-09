@@ -16,7 +16,17 @@ def login():
         form_data = request.form.to_dict()
         username_or_email = form_data.get("username", "").strip()
         password = form_data.get("password", "")
-        user_login,id_login = auth_service.getUserAndId(username_or_email)
+        resultado = auth_service.getUserAndId(username_or_email)
+        
+
+        if resultado is None:
+            return render_template(
+                "login.html",
+                mensaje="Usuario o contraseña incorrectos."
+            )
+
+        user_login, id_login = resultado
+
         hash_pass = user_login.get_password_hash()
 
         if hash_pass is not None and check_password_hash(hash_pass, password):

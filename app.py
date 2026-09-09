@@ -20,7 +20,7 @@ PLANS = [
 @app.context_processor
 def inject_user():
     return {
-        "logueado": "user_id" in session
+        "logueado": "user_id" in session#true or false
     }
 
 @app.route('/')
