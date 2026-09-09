@@ -1,5 +1,74 @@
 {% extends 'base.html' %} {% block title %}Ahora Qué — Un plan que funcione para
 todos{% endblock %} {% block content %}
+{% if logueado %}
+<section class="dashboard-shell section-shell">
+  <div class="dashboard-heading">
+    <div>
+      <p class="eyebrow-chip">tu espacio</p>
+      <h1>¿Qué hacemos<br /><em>hoy?</em></h1>
+      <p class="dashboard-lead">Hola, {{ current_user.name|default(current_user.username|default('ahí'), true) }}. Todo lo que necesitan para decidir, en un mismo lugar.</p>
+    </div>
+    <a class="lime-button" href="/explorar">Encontrar un plan <span aria-hidden="true">↗</span></a>
+  </div>
+
+  <nav class="dashboard-tabs" aria-label="Secciones de tu espacio" role="tablist">
+    <button class="dashboard-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="dashboard-overview" data-dashboard-tab="overview">Inicio</button>
+    <button class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="dashboard-groups" data-dashboard-tab="groups">Grupos</button>
+    <button class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="dashboard-social" data-dashboard-tab="social">Social</button>
+    <button class="dashboard-tab" type="button" role="tab" aria-selected="false" aria-controls="dashboard-profile" data-dashboard-tab="profile">Perfil</button>
+  </nav>
+
+  <section class="dashboard-panel" id="dashboard-overview" role="tabpanel" data-dashboard-panel="overview">
+    <div class="dashboard-summary">
+      <article class="dashboard-card dashboard-card-featured">
+        <p class="section-tag">una idea para empezar</p>
+        <h2>{{ featured.title }}</h2>
+        <p>{{ featured.description }}</p>
+        <div class="dashboard-meta"><span>{{ featured.time }}</span><span>{{ featured.cost }}</span><span>{{ featured.distance }}</span></div>
+        <a class="dark-button" href="/plan/{{ featured.slug }}">Abrir plan <span aria-hidden="true">→</span></a>
+      </article>
+      <div class="dashboard-stack">
+        <article class="dashboard-card"><span class="dashboard-number">01</span><h3>Grupos</h3><p>Armá una mesa para decidir con los demás.</p><a class="arrow-link" href="#dashboard-groups" data-dashboard-link="groups">Ver grupos <span aria-hidden="true">↗</span></a></article>
+        <article class="dashboard-card"><span class="dashboard-number">02</span><h3>Planes guardados</h3><p>Volvé a las ideas que todavía les dan ganas.</p><a class="arrow-link" href="/explorar">Explorar planes <span aria-hidden="true">↗</span></a></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="dashboard-panel" id="dashboard-groups" role="tabpanel" data-dashboard-panel="groups" hidden>
+    <div class="dashboard-panel-heading"><div><p class="section-tag">tu gente</p><h2>Grupos para<br /><em>decidir juntos.</em></h2></div><a class="lime-button" href="/grupos">Abrir grupos <span aria-hidden="true">↗</span></a></div>
+    <div class="dashboard-empty"><span class="dashboard-number">01 — grupos</span><h3>Tu próxima idea puede empezar acá.</h3><p>Creá un espacio, invitá a tu gente y dejen de resolver todo en mensajes sueltos.</p><a class="dark-button" href="/grupos">Ver mis grupos <span aria-hidden="true">→</span></a></div>
+  </section>
+
+  <section class="dashboard-panel" id="dashboard-social" role="tabpanel" data-dashboard-panel="social" hidden>
+    <div class="dashboard-panel-heading"><div><p class="section-tag">ideas de la comunidad</p><h2>Lo que otros<br /><em>proponen.</em></h2></div><span class="dashboard-mark" aria-hidden="true">✳</span></div>
+    <div class="dashboard-social-grid">
+      <article class="dashboard-card social-preview"><div class="social-preview-head"><span class="avatar avatar-a">AQ</span><span><strong>Ahora Qué</strong><small>plan sugerido · hoy</small></span></div><h3>Una caminata sin apuro y algo rico al final.</h3><p>Ideas simples para salir de la rutina sin tener que organizarlo todo.</p><div class="dashboard-meta"><span>♡ 12</span><span>3 comentarios</span><a class="arrow-link" href="/explorar">Ver plan <span aria-hidden="true">↗</span></a></div></article>
+      <div class="dashboard-empty"><span class="dashboard-number">02 — social</span><h3>Compartí una idea.</h3><p>Publicá un plan, guardá los que te gusten y encontrá inspiración en otros grupos.</p><a class="dark-button" href="#dashboard-social">Explorar social <span aria-hidden="true">→</span></a></div>
+    </div>
+  </section>
+
+  <section class="dashboard-panel" id="dashboard-profile" role="tabpanel" data-dashboard-panel="profile" hidden>
+    <div class="dashboard-panel-heading"><div><p class="section-tag">tu perfil</p><h2>Tu forma de<br /><em>hacer planes.</em></h2></div><a class="lime-button" href="/perfil">Ver perfil <span aria-hidden="true">↗</span></a></div>
+    <div class="dashboard-profile-grid"><article class="dashboard-card"><span class="avatar avatar-a">AQ</span><h3>{{ current_user.name|default('Tu perfil', true) }}</h3><p>@{{ current_user.username|default('ahoraque', true) }}</p><a class="arrow-link" href="/perfil">Editar perfil <span aria-hidden="true">↗</span></a></article><div class="dashboard-empty"><span class="dashboard-number">03 — tu actividad</span><h3>Guardá las ideas que les cierren.</h3><p>Tus planes, grupos y preferencias van a vivir acá.</p></div></div>
+  </section>
+</section>
+<script>
+  (() => {
+    const tabs = [...document.querySelectorAll('[data-dashboard-tab]')];
+    const panels = [...document.querySelectorAll('[data-dashboard-panel]')];
+    const setTab = (name) => {
+      tabs.forEach((tab) => {
+        const active = tab.dataset.dashboardTab === name;
+        tab.classList.toggle('is-active', active);
+        tab.setAttribute('aria-selected', String(active));
+      });
+      panels.forEach((panel) => { panel.hidden = panel.dataset.dashboardPanel !== name; });
+    };
+    tabs.forEach((tab) => tab.addEventListener('click', () => setTab(tab.dataset.dashboardTab)));
+    document.querySelectorAll('[data-dashboard-link]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); setTab(link.dataset.dashboardLink); }));
+  })();
+</script>
+{% else %}
 <section class="hero centered-hero section-shell">
   <div class="hero-copy">
     <h1>Para responder a la pregunta<br /><em>¿Qué Hacemos Hoy?</em></h1>
@@ -139,4 +208,5 @@ todos{% endblock %} {% block content %}
   </div>
 </section>
 
+{% endif %}
 {% endblock %}

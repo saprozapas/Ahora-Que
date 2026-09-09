@@ -200,6 +200,49 @@ svg {
     }
   }
 }
+
+/* Authenticated dashboard: new, isolated components using the existing visual system. */
+.dashboard-shell{padding:82px 0 140px}
+.dashboard-heading{display:flex;align-items:end;justify-content:space-between;gap:40px;padding-bottom:55px;border-bottom:2px solid var(--line)}
+.dashboard-heading h1{max-width:760px;margin:24px 0 18px;font-size:clamp(58px,7vw,104px)}
+.dashboard-lead{max-width:570px;color:var(--muted);font-size:17px}
+.dashboard-tabs{display:flex;gap:28px;align-items:center;padding:18px 0;border-bottom:2px solid var(--line)}
+.dashboard-tab{padding:0 0 5px;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font:700 12px var(--sans);letter-spacing:.08em;text-transform:uppercase}
+.dashboard-tab:hover,.dashboard-tab.is-active{border-color:var(--ink);color:var(--ink)}
+.dashboard-panel{padding-top:52px}
+.dashboard-summary{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:20px}
+.dashboard-card,.dashboard-empty{padding:28px;border:1.5px solid var(--ink);background:var(--cream-dark)}
+.dashboard-card-featured{display:flex;min-height:365px;flex-direction:column;align-items:start;background:var(--coral);color:var(--cream);box-shadow:7px 7px 0 var(--ink)}
+.dashboard-card-featured .section-tag,.dashboard-card-featured .dashboard-meta{color:var(--lime)}
+.dashboard-card-featured h2{max-width:650px;margin:28px 0 16px;font-size:clamp(42px,5vw,70px);line-height:.9}
+.dashboard-card-featured>p:not(.section-tag){max-width:560px;color:var(--cream);font-size:16px}
+.dashboard-card-featured .dashboard-meta{margin-top:auto}
+.dashboard-card-featured .dark-button{margin-top:25px;background:var(--lime);color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.dashboard-stack{display:grid;gap:20px}
+.dashboard-stack .dashboard-card{display:flex;min-height:172px;flex-direction:column;align-items:start}
+.dashboard-card h3{margin:18px 0 8px}
+.dashboard-card p,.dashboard-empty p{color:var(--muted);font-size:14px}
+.dashboard-card .arrow-link{margin-top:auto}
+.dashboard-number{display:block;color:var(--coral);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.dashboard-meta{display:flex;flex-wrap:wrap;gap:22px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase}
+.dashboard-panel-heading{display:flex;align-items:end;justify-content:space-between;gap:35px;margin-bottom:38px}
+.dashboard-panel-heading h2{margin-top:18px;font-size:clamp(45px,5vw,76px);line-height:.9}
+.dashboard-mark{color:var(--coral);font:110px/.7 var(--serif)}
+.dashboard-empty{min-height:230px;display:flex;flex-direction:column;align-items:start;justify-content:center}
+.dashboard-empty h3{margin:22px 0 10px;font-size:32px}
+.dashboard-empty .dark-button{margin-top:24px}
+.dashboard-social-grid,.dashboard-profile-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:20px}
+.social-preview{min-height:270px}
+.social-preview-head{display:flex;align-items:center;gap:13px}
+.social-preview-head>span:last-child{display:grid;gap:3px}
+.social-preview-head small{color:var(--muted);font-size:11px;text-transform:uppercase}
+.social-preview h3{max-width:580px;margin:28px 0 12px;font-size:34px;line-height:.95}
+.social-preview .dashboard-meta{margin-top:30px;align-items:center}
+.social-preview .arrow-link{margin-left:auto}
+.dashboard-profile-grid .dashboard-card{min-height:255px}
+.dashboard-profile-grid .avatar{margin-bottom:10px}
+@media(max-width:950px){.dashboard-heading{align-items:start;flex-direction:column}.dashboard-summary,.dashboard-social-grid,.dashboard-profile-grid{grid-template-columns:1fr}.dashboard-panel-heading{align-items:start;flex-direction:column}.dashboard-mark{position:absolute;right:8vw;margin-top:-50px;font-size:85px}}
+@media(max-width:650px){.dashboard-shell{padding:62px 0 90px}.dashboard-heading h1{font-size:clamp(50px,14vw,75px)}.dashboard-lead{font-size:16px}.dashboard-heading>.lime-button{width:100%}.dashboard-tabs{gap:18px;overflow-x:auto}.dashboard-tab{flex:0 0 auto;font-size:11px}.dashboard-panel{padding-top:38px}.dashboard-card,.dashboard-empty{padding:22px}.dashboard-card-featured h2{font-size:44px}.dashboard-meta{gap:12px}.dashboard-social-grid,.dashboard-profile-grid{gap:14px}.social-preview h3{font-size:28px}}
 @media (prefers-reduced-motion: reduce) {
   .scroll-reveal {
     opacity: 1;
