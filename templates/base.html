@@ -48,23 +48,20 @@
     </a>
 
     <nav class="main-nav" aria-label="Navegación principal">
-      <a href="/explorar">Explorar</a>
-      <a href="/grupos">Grupos</a>
-      <a href="/#como-funciona">Cómo funciona</a>
-      <a href="/contacto">Contacto</a>
+      {% if logueado %}
+        <a href="/">Página principal</a>
+        <a href="/dashboard">Dashboard</a>
+      {% else %}
+        <a href="/explorar">Explorar</a>
+        <a href="/grupos">Grupos</a>
+        <a href="/#como-funciona">Cómo funciona</a>
+        <a href="/contacto">Contacto</a>
+      {% endif %}
     </nav>
 
     <div class="header-actions{% if logueado %} authenticated{% endif %}">
 
       {% if logueado %}
-
-        <a class="header-action" href="/perfil">
-          Perfil
-        </a>
-
-        <a class="header-action" href="/grupos">
-          Grupos
-        </a>
 
         <a class="header-action" href="/logout">
           Log Out

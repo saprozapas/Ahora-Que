@@ -38,7 +38,7 @@ def login():
                 "username": user_login.get_username(),
                 "email": user_login.get_email(),
             }
-            return redirect("/")    
+            return redirect("/dashboard")
         else:
             return render_template("login.html", mensaje="Usuario o contraseña incorrectos.")
 

@@ -30,6 +30,12 @@ def inject_user():
 def home():
     return render_template('home.html', featured=PLANS[0], plans=PLANS)
 
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('user_id'):
+        return redirect('/login')
+    return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True)
+
 @app.route('/explorar')
 def explorar():
     return render_template('explorar.html', plans=PLANS)

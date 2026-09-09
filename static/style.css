@@ -243,6 +243,20 @@ svg {
 .dashboard-profile-grid .avatar{margin-bottom:10px}
 @media(max-width:950px){.dashboard-heading{align-items:start;flex-direction:column}.dashboard-summary,.dashboard-social-grid,.dashboard-profile-grid{grid-template-columns:1fr}.dashboard-panel-heading{align-items:start;flex-direction:column}.dashboard-mark{position:absolute;right:8vw;margin-top:-50px;font-size:85px}}
 @media(max-width:650px){.dashboard-shell{padding:62px 0 90px}.dashboard-heading h1{font-size:clamp(50px,14vw,75px)}.dashboard-lead{font-size:16px}.dashboard-heading>.lime-button{width:100%}.dashboard-tabs{gap:18px;overflow-x:auto}.dashboard-tab{flex:0 0 auto;font-size:11px}.dashboard-panel{padding-top:38px}.dashboard-card,.dashboard-empty{padding:22px}.dashboard-card-featured h2{font-size:44px}.dashboard-meta{gap:12px}.dashboard-social-grid,.dashboard-profile-grid{gap:14px}.social-preview h3{font-size:28px}}
+
+/* Centered authenticated welcome, without altering the public landing layout. */
+.dashboard-shell{min-height:calc(100svh - 82px);display:flex;flex-direction:column;justify-content:center;text-align:center}
+.dashboard-heading{align-items:center;flex-direction:column;gap:26px}
+.dashboard-heading h1{margin-inline:auto}
+.dashboard-lead{margin-inline:auto}
+.dashboard-heading>.lime-button{margin-inline:auto}
+.dashboard-tabs{justify-content:center}
+.dashboard-panel-heading{align-items:center;flex-direction:column;text-align:center}
+.dashboard-summary,.dashboard-social-grid,.dashboard-profile-grid{width:100%;max-width:980px;margin-inline:auto;text-align:left}
+.dashboard-card-featured{align-items:center;text-align:center}
+.dashboard-card-featured>p:not(.section-tag){margin-inline:auto}
+.dashboard-mark{margin-inline:auto}
+@media(max-width:650px){.dashboard-shell{min-height:calc(100svh - 72px)}.dashboard-tabs{justify-content:flex-start}.dashboard-summary,.dashboard-social-grid,.dashboard-profile-grid{text-align:left}}
 @media (prefers-reduced-motion: reduce) {
   .scroll-reveal {
     opacity: 1;
