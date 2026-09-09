@@ -285,8 +285,13 @@ svg {
 .social-preview-logo,.dashboard-profile-logo{width:42px;height:42px;flex:0 0 42px}
 .dashboard-profile-logo{display:block;margin-bottom:16px}
 .dashboard-heading[hidden],.dashboard-panel[hidden]{display:none!important}
+.dashboard-welcome{width:100%;max-width:none}
+.dashboard-title-row{display:grid;width:100%;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;justify-content:initial}
+.dashboard-title-row h1{grid-column:2;margin:0;text-align:center}
+.dashboard-title-row .dashboard-welcome-logo{grid-column:1;justify-self:end;margin-right:22px;transform:none}
+.dashboard-welcome .dashboard-lead{margin-inline:auto;text-align:center}
 @media(max-width:950px){.dashboard-sidebar{width:214px;flex-basis:214px}.dashboard-main .dashboard-shell{width:min(var(--max),calc(100% - 48px))}.dashboard-title-row{gap:16px}.dashboard-welcome-logo{width:50px;height:50px;flex-basis:50px}.dashboard-welcome h1{font-size:clamp(48px,7vw,82px)}}
-@media(max-width:650px){.dashboard-layout{min-height:calc(100svh - 72px)}.dashboard-sidebar{position:fixed;top:72px;bottom:0;width:220px;min-height:0;transform:translateX(0);box-shadow:7px 0 0 var(--ink)}.dashboard-layout.is-collapsed .dashboard-sidebar{width:68px;flex-basis:68px;transform:none;padding-inline:10px;overflow:hidden;box-shadow:7px 0 0 var(--ink)}.dashboard-main .dashboard-shell{width:calc(100% - 32px)}.dashboard-title-row{gap:12px}.dashboard-welcome-logo{width:42px;height:42px;flex-basis:42px}.dashboard-welcome h1{font-size:clamp(34px,9vw,54px);white-space:normal}.dashboard-heading{padding-top:14px}.dashboard-heading>.lime-button{width:auto}.dashboard-sidebar-toggle{margin-left:auto}}
+@media(max-width:650px){.dashboard-layout{min-height:calc(100svh - 72px)}.dashboard-sidebar{position:fixed;top:72px;bottom:0;width:220px;min-height:0;transform:translateX(0);box-shadow:7px 0 0 var(--ink)}.dashboard-layout.is-collapsed .dashboard-sidebar{width:68px;flex-basis:68px;transform:none;padding-inline:10px;overflow:hidden;box-shadow:7px 0 0 var(--ink)}.dashboard-main .dashboard-shell{width:calc(100% - 32px)}.dashboard-title-row{display:flex;gap:12px}.dashboard-welcome-logo{width:42px;height:42px;flex-basis:42px}.dashboard-welcome h1{font-size:clamp(34px,9vw,54px);white-space:normal}.dashboard-heading{padding-top:14px}.dashboard-heading>.lime-button{width:auto}.dashboard-sidebar-toggle{margin-left:auto}}
 @media (prefers-reduced-motion: reduce) {
   .scroll-reveal {
     opacity: 1;
