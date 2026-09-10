@@ -4,13 +4,14 @@
 
 {% block content %}
 <section class="auth-page section-shell">
+  <a class="back-link" href="/dashboard">← Volver</a>
   <div class="auth-intro">
     <p class="eyebrow-chip">perfil</p>
     <h1>Tu espacio<br /><em>personal.</em></h1>
     <p>Acá vas a encontrar tus datos, grupos y planes guardados.</p>
   </div>
 
-  <div class="auth-form">
+  <div class="auth-form profile-card">
     <p><strong>Nombre</strong><br />{{ user.name|default("Sin datos", true) }}</p>
     <p><strong>Username</strong><br />{{ user.username|default("Sin datos", true) }}</p>
     {% if user.email %}

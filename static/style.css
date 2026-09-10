@@ -705,7 +705,7 @@ h2 em {
   background: #93c5bc;
 }
 .tone-coral {
-  background: #f18a66;
+  background: var(--cream-dark);
 }
 .tone-moss {
   background: #c8dcac;
@@ -2113,6 +2113,33 @@ body {
   }
 }
 
+/* Keep the new back link out of the two-column content grid. */
+.auth-page,
+.contact-page {
+  position: relative;
+}
+
+.auth-page > .back-link,
+.contact-page > .back-link {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  margin-bottom: 0;
+}
+
+.dashboard-sidebar-link > span:first-child svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 650px) {
+  .auth-page > .back-link,
+  .contact-page > .back-link {
+    top: 22px;
+  }
+}
+
 /* Stronger mono weight across body copy and interface controls. */
 body {
   font-weight: 500;
@@ -2460,7 +2487,7 @@ html[data-theme="night"] {
   --cream-dark: #29262e;
   --ink: #f3e8d5;
   --lime: #c28ad6;
-  --coral: #e4bdce;
+  --coral: #8a9b76;
   --muted: #c8bdc7;
   --line: rgba(243, 232, 213, 0.42);
   background: #141416;
@@ -2744,7 +2771,7 @@ html[data-theme="night"] .social-post-accent p {
   --cream-dark: #ebe3d6;
   --ink: #17221c;
   --lime: #c6e86b;
-  --coral: #b86750;
+  --coral: #8a9b76;
   --muted: #68716b;
   --line: rgba(23, 34, 28, 0.22);
   --sans: "Segoe UI", "Aptos", Arial, sans-serif;
@@ -3227,5 +3254,155 @@ h3 {
     width: 42px;
     justify-content: center;
     padding-inline: 0;
+  }
+}
+
+/* Visual cleanup requested for the current iteration. */
+:root {
+  --coral: #8a9b76;
+}
+
+html[data-theme="night"] {
+  --coral: #8a9b76;
+}
+
+/* Full-bleed navigation with a contained inner grid. */
+.site-header {
+  width: 100%;
+  padding-inline: clamp(16px, 4vw, 48px);
+}
+
+.site-header-inner {
+  width: min(var(--max), 100%);
+  margin-inline: auto;
+}
+
+/* Page labels repeat the title and add noise, so keep them out of the visual layer. */
+.eyebrow-chip {
+  display: none !important;
+}
+
+/* Replace the old coral illustration treatment with a quiet neutral surface. */
+.tone-coral {
+  background: var(--cream-dark);
+}
+
+html[data-theme="night"] .tone-coral {
+  background: #3b3042;
+}
+
+/* Icon-only theme control. The aria-label remains available to assistive tech. */
+.theme-toggle {
+  width: 42px;
+  min-height: 42px;
+  justify-content: center;
+  padding: 9px;
+  border-radius: 10px;
+}
+
+.theme-toggle-label {
+  display: none !important;
+}
+
+/* Less visual competition in the unauthenticated header. */
+.header-actions:not(.authenticated) {
+  gap: 4px;
+}
+
+.header-actions:not(.authenticated) .header-action:first-of-type {
+  min-height: 38px;
+  padding: 8px 10px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.header-actions:not(.authenticated) .header-action:last-child {
+  min-height: 40px;
+  padding: 9px 13px;
+  font-size: 11px;
+}
+
+/* Familiar, consistent sidebar icon language without adding a dependency. */
+.dashboard-sidebar-link > span:first-child {
+  width: 20px;
+  height: 20px;
+  font-size: 0;
+  color: var(--ink);
+}
+
+.dashboard-sidebar-link > span:first-child::before {
+  display: block;
+  font-family: "Segoe UI Symbol", "Arial Unicode MS", sans-serif;
+  font-size: 18px;
+  line-height: 20px;
+  text-align: center;
+}
+
+.dashboard-sidebar-link:nth-child(1) > span:first-child::before {
+  content: "⌂";
+}
+
+.dashboard-sidebar-link:nth-child(2) > span:first-child::before {
+  content: "♧";
+}
+
+.dashboard-sidebar-link:nth-child(3) > span:first-child::before {
+  content: "↗";
+}
+
+.dashboard-sidebar-link:nth-child(4) > span:first-child::before {
+  content: "●";
+  font-size: 13px;
+}
+
+/* Back navigation is deliberately quiet and consistent across secondary screens. */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  color: var(--muted);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.back-link:hover {
+  color: var(--ink);
+  transform: translateX(-3px);
+}
+
+.auth-page > .back-link,
+.contact-page > .back-link,
+.page-hero > .back-link {
+  align-self: start;
+}
+
+/* Distinctive profile surface: keep only this card monospaced. */
+.profile-card {
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+
+.profile-card strong,
+.profile-card p {
+  font-family: inherit;
+}
+
+@media (max-width: 650px) {
+  .site-header {
+    width: 100%;
+    padding-inline: 16px;
+  }
+
+  .header-actions:not(.authenticated) .header-action:first-of-type {
+    padding-inline: 7px;
+  }
+
+  .header-actions:not(.authenticated) .header-action:last-child {
+    padding-inline: 10px;
   }
 }
