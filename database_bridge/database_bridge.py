@@ -51,28 +51,6 @@ def getUser(uid):
         connection.close()
 
 
-# 0. Registrar usuario
-def register(user):
-    connection = get_db_connection()
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO public."Usuarios" ("Nombre", "Mail", "Fecha_Nac", "Username", "Password_Hash")
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING "Id_Usuario"
-                """,
-                (user.get_name(), user.email, user.get_birth_date(), user.get_username(), user.get_password_hash()),
-            )
-            user.id = cursor.fetchone()[0]
-        connection.commit()
-        return user
-    except psycopg2.Error:
-        connection.rollback()
-        raise
-    finally:
-        connection.close()
-
 # 1. Buscar usuarios
 def buscar_usuarios(mail=None, nombre=None, username=None, id_usuario=None):
     connection = get_db_connection()
