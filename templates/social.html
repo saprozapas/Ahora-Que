@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Social — Ahora Qué{% endblock %}
+
+{% block content %}
+<section class="page-hero social-hero section-shell">
+  <p class="eyebrow-chip">social</p>
+  <h1>Ideas que<br /><em>se comparten.</em></h1>
+  <p>Descubrí planes de otras personas, guardá los que te gusten y compartí los tuyos.</p>
+</section>
+
+<section class="social-feed section-shell" aria-label="Publicaciones de la comunidad">
+  <div class="social-feed-heading">
+    <p class="section-tag">la comunidad propone</p>
+    <a class="lime-button" href="/explorar">Encontrar un plan <span>↗</span></a>
+  </div>
+
+  <div class="social-feed-grid">
+    <article class="social-post">
+      <div class="social-post-author">
+        <img src="{{ url_for('static', filename='favicon.svg') }}" alt="" />
+        <div><strong>Ahora Qué</strong><small>plan sugerido · hoy</small></div>
+      </div>
+      <h2>Una caminata sin apuro y algo rico al final.</h2>
+      <p>Ideas simples para salir de la rutina sin tener que organizarlo todo.</p>
+      <div class="social-post-actions"><span>♡ 12</span><span>3 comentarios</span><a href="/plan/{{ featured.slug }}">Ver plan ↗</a></div>
+    </article>
+
+    <article class="social-post social-post-accent">
+      <span class="social-post-number">02 — recomendación</span>
+      <h2>Una noche de preguntas sin pantallas.</h2>
+      <p>Armen equipos, preparen algo para tomar y dejen que las preguntas hagan el resto.</p>
+      <div class="social-post-actions"><span>♡ 8</span><span>1 comentario</span><a href="/plan/noche-de-preguntas">Ver plan ↗</a></div>
+    </article>
+  </div>
+</section>
+{% endblock %}

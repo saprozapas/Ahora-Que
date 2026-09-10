@@ -7,10 +7,10 @@ todos{% endblock %} {% block content %}
       <button class="dashboard-sidebar-toggle" type="button" aria-label="Contraer navegación" aria-expanded="true">←</button>
     </div>
     <nav class="dashboard-sidebar-nav" aria-label="Secciones del dashboard">
-      <button class="dashboard-sidebar-link is-active" type="button" role="tab" aria-selected="true" aria-controls="dashboard-welcome" data-dashboard-tab="overview"><span aria-hidden="true">⌂</span><span>Inicio</span></button>
-      <button class="dashboard-sidebar-link" type="button" role="tab" aria-selected="false" aria-controls="dashboard-groups" data-dashboard-tab="groups"><span aria-hidden="true">◌</span><span>Grupos</span></button>
-      <button class="dashboard-sidebar-link" type="button" role="tab" aria-selected="false" aria-controls="dashboard-social" data-dashboard-tab="social"><span aria-hidden="true">✳</span><span>Social</span></button>
-      <button class="dashboard-sidebar-link" type="button" role="tab" aria-selected="false" aria-controls="dashboard-profile" data-dashboard-tab="profile"><span aria-hidden="true">○</span><span>Perfil</span></button>
+      <a class="dashboard-sidebar-link is-active" href="/dashboard" aria-current="page"><span aria-hidden="true">⌂</span><span>Inicio</span></a>
+      <a class="dashboard-sidebar-link" href="/grupos"><span aria-hidden="true">◌</span><span>Grupos</span></a>
+      <a class="dashboard-sidebar-link" href="/social"><span aria-hidden="true">✳</span><span>Social</span></a>
+      <a class="dashboard-sidebar-link" href="/perfil"><span aria-hidden="true">○</span><span>Perfil</span></a>
     </nav>
   </aside>
   <main class="dashboard-main">
@@ -25,51 +25,19 @@ todos{% endblock %} {% block content %}
     </div>
     <a class="lime-button" href="/explorar">Encontrar un plan <span aria-hidden="true">↗</span></a>
   </div>
-
-  <section class="dashboard-panel" id="dashboard-groups" role="tabpanel" data-dashboard-panel="groups" hidden>
-    <div class="dashboard-panel-heading"><div><p class="section-tag">tu gente</p><h2>Grupos para<br /><em>decidir juntos.</em></h2></div><a class="lime-button" href="/grupos">Abrir grupos <span aria-hidden="true">↗</span></a></div>
-    <div class="dashboard-empty"><span class="dashboard-number">01 — grupos</span><h3>Tu próxima idea puede empezar acá.</h3><p>Creá un espacio, invitá a tu gente y dejen de resolver todo en mensajes sueltos.</p><a class="dark-button" href="/grupos">Ver mis grupos <span aria-hidden="true">→</span></a></div>
-  </section>
-
-  <section class="dashboard-panel" id="dashboard-social" role="tabpanel" data-dashboard-panel="social" hidden>
-    <div class="dashboard-panel-heading"><div><p class="section-tag">ideas de la comunidad</p><h2>Lo que otros<br /><em>proponen.</em></h2></div><span class="dashboard-mark" aria-hidden="true">✳</span></div>
-    <div class="dashboard-social-grid">
-      <article class="dashboard-card social-preview"><div class="social-preview-head"><img class="social-preview-logo" src="{{ url_for('static', filename='favicon.svg') }}" alt="Logo de Ahora Qué" /><span><strong>Ahora Qué</strong><small>plan sugerido · hoy</small></span></div><h3>Una caminata sin apuro y algo rico al final.</h3><p>Ideas simples para salir de la rutina sin tener que organizarlo todo.</p><div class="dashboard-meta"><span>♡ 12</span><span>3 comentarios</span><a class="arrow-link" href="/explorar">Ver plan <span aria-hidden="true">↗</span></a></div></article>
-      <div class="dashboard-empty"><span class="dashboard-number">02 — social</span><h3>Compartí una idea.</h3><p>Publicá un plan, guardá los que te gusten y encontrá inspiración en otros grupos.</p><a class="dark-button" href="#dashboard-social">Explorar social <span aria-hidden="true">→</span></a></div>
-    </div>
-  </section>
-
-  <section class="dashboard-panel" id="dashboard-profile" role="tabpanel" data-dashboard-panel="profile" hidden>
-    <div class="dashboard-panel-heading"><div><p class="section-tag">tu perfil</p><h2>Tu forma de<br /><em>hacer planes.</em></h2></div><a class="lime-button" href="/perfil">Ver perfil <span aria-hidden="true">↗</span></a></div>
-    <div class="dashboard-profile-grid"><article class="dashboard-card"><img class="dashboard-profile-logo" src="{{ url_for('static', filename='favicon.svg') }}" alt="Logo de Ahora Qué" /><h3>{{ current_user.name|default('Tu perfil', true) }}</h3><p>@{{ current_user.username|default('ahoraque', true) }}</p><a class="arrow-link" href="/perfil">Editar perfil <span aria-hidden="true">↗</span></a></article><div class="dashboard-empty"><span class="dashboard-number">03 — tu actividad</span><h3>Guardá las ideas que les cierren.</h3><p>Tus planes, grupos y preferencias van a vivir acá.</p></div></div>
-  </section>
 </section>
   </main>
 </div>
 <script>
   (() => {
-    const tabs = [...document.querySelectorAll('[data-dashboard-tab]')];
-    const panels = [...document.querySelectorAll('[data-dashboard-panel]')];
-    const welcome = document.querySelector('.dashboard-heading');
-    const setTab = (name) => {
-      tabs.forEach((tab) => {
-        const active = tab.dataset.dashboardTab === name;
-        tab.classList.toggle('is-active', active);
-        tab.setAttribute('aria-selected', String(active));
-      });
-      panels.forEach((panel) => { panel.hidden = panel.dataset.dashboardPanel !== name; });
-      if (welcome) welcome.hidden = name !== 'overview';
-    };
     const sidebar = document.querySelector('.dashboard-layout');
     const sidebarToggle = document.querySelector('.dashboard-sidebar-toggle');
-    tabs.forEach((tab) => tab.addEventListener('click', () => setTab(tab.dataset.dashboardTab)));
     sidebarToggle?.addEventListener('click', () => {
       const collapsed = sidebar.classList.toggle('is-collapsed');
       sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
       sidebarToggle.setAttribute('aria-label', collapsed ? 'Expandir navegación' : 'Contraer navegación');
       sidebarToggle.textContent = collapsed ? '→' : '←';
     });
-    document.querySelectorAll('[data-dashboard-link]').forEach((link) => link.addEventListener('click', (event) => { event.preventDefault(); setTab(link.dataset.dashboardLink); }));
   })();
 </script>
 {% else %}

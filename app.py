@@ -36,6 +36,12 @@ def dashboard():
         return redirect('/login')
     return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True)
 
+@app.route('/social')
+def social():
+    if not session.get('user_id'):
+        return redirect('/login')
+    return render_template('social.html', featured=PLANS[0])
+
 @app.route('/explorar')
 def explorar():
     return render_template('explorar.html', plans=PLANS)
