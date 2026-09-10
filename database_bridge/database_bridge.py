@@ -51,75 +51,74 @@ def getUser(uid):
         connection.close()
 
 
-# 1. Buscar usuarios
-def buscar_usuarios(mail=None, nombre=None, username=None, id_usuario=None):
-    connection = get_db_connection()
-    try:
-        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
-            cursor.execute(
-                """
-                SELECT * FROM buscar_usuarios(%s, %s, %s, %s)
-                """,
-                (id_usuario, nombre, mail, username),
-            )
-            return cursor.fetchall()
-    except psycopg2.Error:
-        raise
-    finally:
-        connection.close()
-
-
-
-# 2. Buscar lugares
-def buscar_lugares(
-    texto=None,
-    tipo_id=None,
-    nivel_precio_max=None,
-    solo_vegano=False,
-    solo_celiaco=False,
-    apto_menores=False,
-    dia_semana=None,
-    hora=None,          # formato "HH:MM:SS"
-    limite=10,
-    offset=0
-):
-    connection = get_db_connection()
-    try:
-        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
-            cursor.execute(
-                """
-                SELECT * FROM buscar_lugares(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    texto, tipo_id, nivel_precio_max, solo_vegano,
-                    solo_celiaco, apto_menores, dia_semana, hora,
-                    limite, offset,
-                ),
-            )
-            return cursor.fetchall()
-    except psycopg2.Error:
-        raise
-    finally:
-        connection.close()
-
-
-# 3. Buscar planes
-def buscar_planes(usuario_id=None, grupo_id=None, confirmado=None):
-    connection = get_db_connection()
-    try:
-        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
-            cursor.execute(
-                """
-                SELECT * FROM buscar_planes(%s, %s, %s)
-                """,
-                (usuario_id, grupo_id, confirmado),
-            )
-            return cursor.fetchall()
-    except psycopg2.Error:
-        raise
-    finally:
-        connection.close()
-
-resultado = buscar_usuarios(username = "maximodipalma")
-print(resultado)
-
+# 1. Buscar usuarios 
+# def buscar_usuarios(mail=None, nombre=None, username=None, id_usuario=None): 
+#     connection = get_db_connection() 
+#     try: 
+#         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor: 
+#             cursor.execute( 
+#                 """ 
+#                 SELECT * FROM buscar_usuarios(%s, %s, %s, %s) 
+#                 """, 
+#                 (id_usuario, nombre, mail, username), 
+#             ) 
+#             return cursor.fetchall() 
+#     except psycopg2.Error: 
+#         raise 
+#     finally: 
+#         connection.close() 
+# 
+# 
+# 
+# # 2. Buscar lugares 
+# def buscar_lugares( 
+#     texto=None, 
+#     tipo_id=None, 
+#     nivel_precio_max=None, 
+#     solo_vegano=False, 
+#     solo_celiaco=False, 
+#     apto_menores=False, 
+#     dia_semana=None, 
+#     hora=None,          # formato "HH:MM:SS" 
+#     limite=10, 
+#     offset=0 
+# ): 
+#     connection = get_db_connection() 
+#     try: 
+#         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor: 
+#             cursor.execute( 
+#                 """ 
+#                 SELECT * FROM buscar_lugares(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+#                 """, 
+#                 ( 
+#                     texto, tipo_id, nivel_precio_max, solo_vegano, 
+#                     solo_celiaco, apto_menores, dia_semana, hora, 
+#                     limite, offset, 
+#                 ), 
+#             ) 
+#             return cursor.fetchall() 
+#     except psycopg2.Error: 
+#         raise 
+#     finally: 
+#         connection.close() 
+# 
+# 
+# # 3. Buscar planes 
+# def buscar_planes(usuario_id=None, grupo_id=None, confirmado=None): 
+#     connection = get_db_connection() 
+#     try: 
+#         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor: 
+#             cursor.execute( 
+#                 """ 
+#                 SELECT * FROM buscar_planes(%s, %s, %s) 
+#                 """, 
+#                 (usuario_id, grupo_id, confirmado), 
+#             ) 
+#             return cursor.fetchall() 
+#     except psycopg2.Error: 
+#         raise 
+#     finally: 
+#         connection.close() 
+# 
+# resultado = buscar_usuarios(username = "maximodipalma") 
+# print(resultado) 
