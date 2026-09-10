@@ -14,14 +14,27 @@
 
 <title>{% block title %}Ahora Qué{% endblock %}</title>
 
+<script>
+  (() => {
+    try {
+      if (localStorage.getItem('ahoraque-theme') === 'night') {
+        document.documentElement.dataset.theme = 'night';
+      }
+    } catch (error) {
+      // Si el almacenamiento no está disponible, se mantiene el modo claro.
+    }
+  })();
+</script>
+
 <link
   rel="stylesheet"
-  href="{{ url_for('static', filename='style.css', v='20260908-5') }}"
+  href="{{ url_for('static', filename='style.css', v='20260910-night-toggle') }}"
 />
 
 <link
   rel="icon"
   type="image/svg+xml"
+  id="theme-favicon"
   href="{{ url_for('static', filename='favicon.svg') }}"
 />
   </head>
@@ -60,6 +73,16 @@
     </nav>
 
     <div class="header-actions{% if logueado %} authenticated{% endif %}">
+
+      <button
+        class="theme-toggle"
+        type="button"
+        aria-pressed="false"
+        aria-label="Activar modo noche"
+      >
+        <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+        <span class="theme-toggle-label">Modo noche</span>
+      </button>
 
       {% if logueado %}
 
@@ -168,6 +191,30 @@
     );
 
     updateProgress();
+
+    const themeToggle = document.querySelector('.theme-toggle');
+    const themeFavicon = document.querySelector('#theme-favicon');
+    const themeAssets = document.querySelectorAll('img[src*="/static/favicon.svg"]');
+    const applyTheme = (theme) => {
+      const isNight = theme === 'night';
+      document.documentElement.dataset.theme = isNight ? 'night' : 'light';
+      themeToggle?.setAttribute('aria-pressed', String(isNight));
+      themeToggle?.setAttribute('aria-label', isNight ? 'Activar modo claro' : 'Activar modo noche');
+      const label = themeToggle?.querySelector('.theme-toggle-label');
+      const icon = themeToggle?.querySelector('.theme-toggle-icon');
+      if (label) label.textContent = isNight ? 'Modo claro' : 'Modo noche';
+      if (icon) icon.textContent = isNight ? '☼' : '☾';
+      if (themeFavicon) themeFavicon.href = isNight ? '/static/favicon-night.svg' : '/static/favicon.svg';
+      themeAssets.forEach((asset) => {
+        asset.src = isNight ? asset.src.replace('favicon.svg', 'favicon-night.svg') : asset.src.replace('favicon-night.svg', 'favicon.svg');
+      });
+    };
+    applyTheme(document.documentElement.dataset.theme || 'light');
+    themeToggle?.addEventListener('click', () => {
+      const nextTheme = document.documentElement.dataset.theme === 'night' ? 'light' : 'night';
+      try { localStorage.setItem('ahoraque-theme', nextTheme); } catch (error) {}
+      applyTheme(nextTheme);
+    });
 
     const revealObserver =
       new IntersectionObserver(
