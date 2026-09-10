@@ -3,7 +3,7 @@
   --cream-dark: #e9dfd0;
   --ink: #16231c;
   --lime: #c4f04b;
-  --coral: #1f4a36;
+  --coral: #3f5a43;
   --muted: #657067;
   --line: rgba(22, 35, 28, 0.78);
   --serif: Georgia, "Times New Roman", serif;
@@ -2487,7 +2487,7 @@ html[data-theme="night"] {
   --cream-dark: #29262e;
   --ink: #f3e8d5;
   --lime: #c28ad6;
-  --coral: #8a9b76;
+  --coral: #c8bad4;
   --muted: #c8bdc7;
   --line: rgba(243, 232, 213, 0.42);
   background: #141416;
@@ -2771,7 +2771,7 @@ html[data-theme="night"] .social-post-accent p {
   --cream-dark: #ebe3d6;
   --ink: #17221c;
   --lime: #c6e86b;
-  --coral: #8a9b76;
+  --coral: #3f5a43;
   --muted: #68716b;
   --line: rgba(23, 34, 28, 0.22);
   --sans: "Segoe UI", "Aptos", Arial, sans-serif;
@@ -3259,11 +3259,11 @@ h3 {
 
 /* Visual cleanup requested for the current iteration. */
 :root {
-  --coral: #8a9b76;
+  --coral: #3f5a43;
 }
 
 html[data-theme="night"] {
-  --coral: #8a9b76;
+  --coral: #c8bad4;
 }
 
 /* Full-bleed navigation with a contained inner grid. */
@@ -3332,28 +3332,8 @@ html[data-theme="night"] .tone-coral {
 }
 
 .dashboard-sidebar-link > span:first-child::before {
-  display: block;
-  font-family: "Segoe UI Symbol", "Arial Unicode MS", sans-serif;
-  font-size: 18px;
-  line-height: 20px;
-  text-align: center;
-}
-
-.dashboard-sidebar-link:nth-child(1) > span:first-child::before {
-  content: "⌂";
-}
-
-.dashboard-sidebar-link:nth-child(2) > span:first-child::before {
-  content: "♧";
-}
-
-.dashboard-sidebar-link:nth-child(3) > span:first-child::before {
-  content: "↗";
-}
-
-.dashboard-sidebar-link:nth-child(4) > span:first-child::before {
-  content: "●";
-  font-size: 13px;
+  display: none;
+  content: none;
 }
 
 /* Back navigation is deliberately quiet and consistent across secondary screens. */
