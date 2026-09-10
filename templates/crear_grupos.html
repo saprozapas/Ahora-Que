@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear grupo — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<section class="auth-page section-shell">
+
+    <div class="auth-intro">
+        <p class="eyebrow-chip">armemos algo</p>
+
+        <h1>Crear un grupo<br /><em>es el primer paso.</em></h1>
+
+        <p>
+            Juntá a tus amigos y dejen que Ahora Qué los ayude
+            a decidir qué hacer.
+        </p>
+    </div>
+
+    <form class="auth-form" action="/grupos/nuevo" method="post">
+
+        {% if error %}
+        <div class="form-error" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <label for="name">Nombre del grupo</label>
+
+        <input
+            id="name"
+            name="name"
+            type="text"
+            placeholder="Ej. Los pibes"
+            value="{{ form_data.name|default('', true) }}"
+            required
+        />
+
+        <label for="description">Descripción</label>
+
+        <input
+            id="description"
+            name="description"
+            type="text"
+            placeholder="Ej. Amigos de la facultad"
+            value="{{ form_data.description|default('', true) }}"
+        />
+
+        <button class="lime-button" type="submit">
+            Crear grupo <span>↗</span>
+        </button>
+
+    </form>
+
+</section>
+
+{% endblock %}
