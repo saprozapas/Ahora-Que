@@ -40,7 +40,7 @@ def nuevo_grupo():
             return render_template("crear_grupos.html", error="Error al crear grupo. Intenta loguearte nuevamente.", form_data=form_data)
 
         try:
-            group_auth_service.register(Group(user, name, description))
+            group_auth_service.register(Group(user, name, description), user_id)
         except Exception as e:
             return render_template("crear_grupos.html", error="Error al crear el grupo.", form_data=form_data)
 

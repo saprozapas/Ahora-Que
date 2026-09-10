@@ -1,7 +1,7 @@
 class Group:
 
-    def __init__(self, user_id, name, descripcion):
-        self.__user_id = user_id
+    def __init__(self, user, name, descripcion):
+        self.__user = user
         self.__name = name
         self.__descripcion = descripcion
         self.__usuarios = []
@@ -14,3 +14,5 @@ class Group:
         return self.__descripcion
     def add_usuario(self, usuario):
         self.__usuarios.append(usuario)
+    def get_user(self):
+        return self.__user

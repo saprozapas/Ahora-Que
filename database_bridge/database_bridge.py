@@ -32,8 +32,7 @@ def getUser(uid):
             if result is None:
                 return None
 
-            return User(
-                result[0],  # Id_Usuario
+            return User(  
                 result[1],  # Nombre
                 result[2],  # Fecha_Nac
                 result[3],  # Username
