@@ -7,6 +7,7 @@
   --line: rgba(24, 20, 15, 0.16);
   --accent: #31533f;
   --accent-soft: #dce7dd;
+  --surface-tint: #e7e0ec;
   --text-on-accent: #f6f1e6;
   --serif: Georgia, "Times New Roman", serif;
   --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -2498,6 +2499,7 @@ html[data-theme="night"] {
   --line: rgba(237, 243, 242, 0.16);
   --accent: #78927f;
   --accent-soft: #26382d;
+  --surface-tint: #261e30;
   --text-on-accent: #15130f;
   --shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
   --shadow-strong: 0 22px 48px rgba(0, 0, 0, 0.36);
@@ -5483,5 +5485,134 @@ html[data-theme="night"] .question-panel:hover {
 
   .dashboard-main .dashboard-heading {
     padding-bottom: 48px;
+  }
+}
+
+/* Groups and night-mode polish. */
+.groups-hero-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(44px, 7vw, 96px);
+  align-items: center;
+  margin-top: 42px;
+}
+
+.group-hero .groups-hero-copy > .lime-button {
+  margin-top: 44px;
+}
+
+.groups-carousel {
+  min-width: 0;
+}
+
+.groups-grid {
+  gap: 20px;
+  min-height: 320px;
+}
+
+.group-card {
+  min-height: 320px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--cream-dark);
+  box-shadow: var(--shadow);
+  isolation: isolate;
+}
+
+.group-card:nth-child(2n) {
+  background: var(--surface-tint);
+}
+
+.group-card::before,
+.group-card::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.group-card::before {
+  width: 230px;
+  height: 230px;
+  right: -72px;
+  top: 32px;
+}
+
+.group-card::after {
+  width: 120px;
+  height: 120px;
+  right: 10px;
+  top: 87px;
+}
+
+.group-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 12px 24px rgba(24, 20, 15, 0.09);
+}
+
+.group-card-top,
+.group-card-content {
+  position: relative;
+  z-index: 1;
+}
+
+.group-card p {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.group-card p.no-description {
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+html[data-theme="night"] .lime-button,
+html[data-theme="night"] .header-action,
+html[data-theme="night"] .dark-button,
+html[data-theme="night"] .dashboard-card-featured .dark-button {
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.62);
+}
+
+html[data-theme="night"] .lime-button:hover,
+html[data-theme="night"] .header-action:hover {
+  background: color-mix(in srgb, var(--accent) 82%, #0b0d12);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.72);
+}
+
+html[data-theme="night"] .dark-button:hover,
+html[data-theme="night"] .dashboard-card-featured .dark-button:hover {
+  background: #20232a;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.72);
+}
+
+html[data-theme="night"] .dashboard-sidebar-link:hover:not(.is-active) {
+  border-color: rgba(237, 243, 242, 0.22);
+  background: var(--surface-tint);
+  color: var(--ink);
+}
+
+html[data-theme="night"] .dashboard-sidebar-link:hover:not(.is-active) > span:first-child {
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .groups-hero-layout {
+    grid-template-columns: 1fr;
+    gap: 56px;
+  }
+}
+
+@media (max-width: 650px) {
+  .group-hero .groups-hero-copy > .lime-button {
+    margin-top: 36px;
+  }
+
+  .groups-grid {
+    grid-template-columns: 1fr;
   }
 }
