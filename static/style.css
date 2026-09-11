@@ -4943,6 +4943,8 @@ html[data-theme="night"] .q-sat-c {
     margin-left: 0;
   }
 
+}
+
 /* Hero recomposition: a typographic decision field replaces the generic question orbit. */
 .hero-editorial {
   display: grid;
