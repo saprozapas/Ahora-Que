@@ -14,7 +14,7 @@ class GroupAuthService:
             """,
             (user_id, group.get_name(), group.get_description())
         )        
-
+        # EL USUARIO SE AGREGA COMO INTEGRANTE DEL GRUPO AUTOMATICAMENTE POR UNA AUTOMATIZACION EN SUPABASE
         conn.commit()
 
         cursor.close()
