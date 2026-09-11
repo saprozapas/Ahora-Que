@@ -5167,3 +5167,194 @@ html[data-theme="night"] .hero-decision::before {
     width: 80%;
   }
 }
+
+/* Monochrome hero card: the whole hero becomes the topographic artifact. */
+:root {
+  --hero-surface: #202124;
+  --hero-text: #f5f0e7;
+  --hero-line: rgba(245, 240, 231, 0.22);
+}
+
+html[data-theme="night"] {
+  --hero-surface: #24232a;
+  --hero-text: #f3e8d5;
+  --hero-line: rgba(243, 232, 213, 0.2);
+}
+
+.hero-editorial {
+  position: relative;
+  overflow: hidden;
+  min-height: min(650px, calc(100svh - 96px));
+  padding: clamp(42px, 6vw, 72px) clamp(24px, 5vw, 64px);
+  border: 1px solid var(--hero-surface);
+  border-radius: 24px;
+  background: var(--hero-surface);
+  color: var(--hero-text);
+  isolation: isolate;
+}
+
+.hero-editorial::before,
+.hero-editorial::after {
+  position: absolute;
+  z-index: -1;
+  inset: -18%;
+  pointer-events: none;
+  content: "";
+}
+
+.hero-editorial::before {
+  background: repeating-radial-gradient(
+    ellipse at 78% 50%,
+    transparent 0 28px,
+    var(--hero-line) 29px 30px,
+    transparent 31px 54px
+  );
+  opacity: 0.85;
+  transform: rotate(-9deg) scale(1.18);
+}
+
+.hero-editorial::after {
+  background: repeating-radial-gradient(
+    ellipse at 82% 42%,
+    transparent 0 70px,
+    rgba(245, 240, 231, 0.12) 71px 72px,
+    transparent 73px 118px
+  );
+  opacity: 0.7;
+  transform: rotate(12deg) scale(1.1);
+}
+
+.hero-editorial-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-editorial h1 {
+  color: var(--hero-text);
+}
+
+.hero-editorial h1 em {
+  color: var(--hero-text);
+}
+
+.hero-editorial .hero-text {
+  color: color-mix(in srgb, var(--hero-text) 72%, transparent);
+}
+
+.hero-editorial .lime-button {
+  background: var(--hero-text);
+  color: var(--hero-surface);
+}
+
+.hero-editorial .lime-button:hover {
+  background: color-mix(in srgb, var(--hero-text) 88%, var(--hero-surface));
+  color: var(--hero-surface);
+}
+
+.hero-editorial .text-button {
+  border-color: var(--hero-text);
+  color: var(--hero-text);
+}
+
+.hero-editorial .text-button:hover {
+  border-color: color-mix(in srgb, var(--hero-text) 70%, transparent);
+  color: color-mix(in srgb, var(--hero-text) 70%, transparent);
+}
+
+.hero-decision {
+  position: relative;
+  z-index: 1;
+  min-height: 380px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.hero-decision::before,
+.hero-decision::after {
+  display: none;
+  content: none;
+}
+
+.decision-meta {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: color-mix(in srgb, var(--hero-text) 68%, transparent);
+  font: 600 10px/1.2 "Cascadia Mono", Consolas, monospace;
+  letter-spacing: 0.09em;
+}
+
+.decision-word {
+  position: absolute;
+  top: 50%;
+  right: 4%;
+  margin: 0;
+  color: var(--hero-text);
+  font-size: clamp(128px, 16vw, 236px);
+  line-height: 0.72;
+  transform: translateY(-50%);
+}
+
+.decision-marker {
+  position: absolute;
+  right: 16%;
+  bottom: 13%;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--hero-text);
+  border-radius: 50%;
+  box-shadow: 0 0 0 9px color-mix(in srgb, var(--hero-text) 10%, transparent), 0 0 0 22px color-mix(in srgb, var(--hero-text) 7%, transparent);
+}
+
+html[data-theme="night"] .hero-editorial {
+  border-color: var(--hero-surface);
+}
+
+@media (max-width: 780px) {
+  .hero-editorial {
+    min-height: auto;
+    padding: 42px 24px 48px;
+  }
+
+  .hero-decision {
+    min-height: 300px;
+  }
+
+  .decision-meta {
+    top: 2px;
+    right: 0;
+  }
+
+  .decision-word {
+    right: 3%;
+    font-size: clamp(112px, 28vw, 190px);
+  }
+
+  .decision-marker {
+    right: 14%;
+    bottom: 12%;
+  }
+}
+
+@media (max-width: 500px) {
+  .hero-editorial {
+    padding: 34px 20px 38px;
+    border-radius: 18px;
+  }
+
+  .hero-decision {
+    min-height: 240px;
+  }
+
+  .decision-word {
+    right: -2%;
+    font-size: clamp(92px, 28vw, 138px);
+  }
+
+  .decision-marker {
+    right: 12%;
+    bottom: 10%;
+  }
+}

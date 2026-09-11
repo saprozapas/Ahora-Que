@@ -21,26 +21,17 @@ todos{% endblock %} {% block content %}
 {% else %}
 <section class="hero hero-editorial section-shell">
   <div class="hero-editorial-copy">
-    <h1>¿Qué hacemos <em>hoy?</em></h1>
+    <h1>¿Qué hacemos?</h1>
     <p class="hero-text">Una idea que les cierre a todos.</p>
     <div class="hero-actions">
-      <a class="lime-button" href="/explorar">Encontrar un plan</a>
+      <a class="lime-button" href="/explorar">Encontrar una idea</a>
       <a class="text-button" href="#como-funciona">Ver cómo funciona</a>
     </div>
   </div>
   <div class="hero-decision" aria-hidden="true">
-    <div class="decision-context">
-      <span>4 personas</span>
-      <span>{{ featured.time }}</span>
-      <span>{{ featured.cost }}</span>
-    </div>
+    <span class="decision-meta">01 / AHORA QUÉ</span>
     <div class="decision-word">HOY</div>
-    <div class="decision-rule"></div>
-    <div class="decision-result">
-      <span>una idea posible</span>
-      <strong>{{ featured.mood }}</strong>
-      <small>{{ featured.distance }} · {{ featured.type }}</small>
-    </div>
+    <span class="decision-marker" aria-hidden="true"></span>
   </div>
 </section>
 
