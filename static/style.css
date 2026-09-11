@@ -3291,6 +3291,37 @@ html[data-theme="night"] .tone-coral {
   background: #3b3042;
 }
 
+/* Secondary dashboard pages reuse the same shell without inheriting the centered welcome layout. */
+.dashboard-layout-page .dashboard-main {
+  display: block;
+  min-height: 0;
+  align-items: initial;
+  justify-content: initial;
+}
+
+/* Selected navigation must read as selected in both themes. */
+.dashboard-sidebar-link.is-active,
+.dashboard-sidebar-link.is-active:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--cream);
+}
+
+.dashboard-sidebar-link.is-active > span:first-child {
+  color: var(--cream);
+}
+
+html[data-theme="night"] .dashboard-sidebar-link.is-active,
+html[data-theme="night"] .dashboard-sidebar-link.is-active:hover {
+  background: #c8bad4;
+  border-color: #c8bad4;
+  color: #211a28;
+}
+
+html[data-theme="night"] .dashboard-sidebar-link.is-active > span:first-child {
+  color: #211a28;
+}
+
 /* Icon-only theme control. The aria-label remains available to assistive tech. */
 .theme-toggle {
   width: 42px;

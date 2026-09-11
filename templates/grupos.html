@@ -1,5 +1,10 @@
 {% extends 'base.html' %}{% block title %}Grupos — Ahora Qué{% endblock %}{%
 block content %}
+{% if logueado %}
+<div class="dashboard-layout dashboard-layout-page">
+  {% include '_dashboard_sidebar.html' %}
+  <div class="dashboard-main">
+{% endif %}
 {% if groups_page %}
 <section class="page-hero group-hero section-shell">
   <a class="back-link" href="/dashboard">← Volver</a>
@@ -81,5 +86,9 @@ block content %}
     </article>
   </div>
 </section>
+{% endif %}
+{% if logueado %}
+  </div>
+</div>
 {% endif %}
 {% endblock %}
