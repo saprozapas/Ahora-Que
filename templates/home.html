@@ -31,7 +31,7 @@ todos{% endblock %} {% block content %}
   <div class="hero-decision" aria-hidden="true">
     <span class="decision-meta">01 / AHORA QUÉ</span>
     <div class="decision-word">HOY</div>
-    <svg class="hero-topography" viewBox="0 0 1200 700" preserveAspectRatio="none" focusable="false">
+    <svg class="hero-topography" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <defs>
         <path id="topo-line-a" d="M700 180 C820 70 1090 120 1140 300 C1180 500 970 630 740 530" />
         <path id="topo-line-b" d="M750 240 C860 150 1040 170 1090 310 C1120 430 970 540 790 490" />
@@ -39,30 +39,30 @@ todos{% endblock %} {% block content %}
         <path id="topo-line-d" d="M870 340 C930 300 990 315 1005 355 C1010 395 970 425 900 420" />
       </defs>
 
-      <use href="#topo-line-a" class="topo-line" />
-      <use href="#topo-line-b" class="topo-line" />
-      <use href="#topo-line-c" class="topo-line" />
-      <use href="#topo-line-d" class="topo-line" />
+      <use href="#topo-line-a" xlink:href="#topo-line-a" class="topo-line" />
+      <use href="#topo-line-b" xlink:href="#topo-line-b" class="topo-line" />
+      <use href="#topo-line-c" xlink:href="#topo-line-c" class="topo-line" />
+      <use href="#topo-line-d" xlink:href="#topo-line-d" class="topo-line" />
 
       <g class="topo-orb">
         <circle r="22" class="topo-orb-circle" />
         <text y="1" class="topo-orb-text">?</text>
         <animateMotion dur="21s" repeatCount="indefinite" rotate="auto">
-          <mpath href="#topo-line-a" />
+          <mpath href="#topo-line-a" xlink:href="#topo-line-a" />
         </animateMotion>
       </g>
       <g class="topo-orb topo-orb-small">
         <circle r="16" class="topo-orb-circle" />
         <text y="1" class="topo-orb-text">?</text>
         <animateMotion dur="27s" begin="-9s" repeatCount="indefinite" rotate="auto">
-          <mpath href="#topo-line-b" />
+          <mpath href="#topo-line-b" xlink:href="#topo-line-b" />
         </animateMotion>
       </g>
       <g class="topo-orb topo-orb-tiny">
         <circle r="11" class="topo-orb-circle" />
         <text y="1" class="topo-orb-text">?</text>
         <animateMotion dur="17s" begin="-5s" repeatCount="indefinite" rotate="auto">
-          <mpath href="#topo-line-c" />
+          <mpath href="#topo-line-c" xlink:href="#topo-line-c" />
         </animateMotion>
       </g>
     </svg>
