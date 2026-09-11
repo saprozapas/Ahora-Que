@@ -5170,13 +5170,13 @@ html[data-theme="night"] .hero-decision::before {
 
 /* Monochrome hero card: the whole hero becomes the topographic artifact. */
 :root {
-  --hero-surface: #202124;
-  --hero-text: #f5f0e7;
-  --hero-line: rgba(245, 240, 231, 0.22);
+  --hero-surface: #e4e3df;
+  --hero-text: #202124;
+  --hero-line: rgba(32, 33, 36, 0.18);
 }
 
 html[data-theme="night"] {
-  --hero-surface: #24232a;
+  --hero-surface: #242528;
   --hero-text: #f3e8d5;
   --hero-line: rgba(243, 232, 213, 0.2);
 }
@@ -5184,10 +5184,13 @@ html[data-theme="night"] {
 .hero-editorial {
   position: relative;
   overflow: hidden;
-  min-height: min(650px, calc(100svh - 96px));
-  padding: clamp(42px, 6vw, 72px) clamp(24px, 5vw, 64px);
-  border: 1px solid var(--hero-surface);
-  border-radius: 24px;
+  width: 100%;
+  max-width: none;
+  min-height: calc(100svh - 76px);
+  margin-inline: 0;
+  padding: clamp(42px, 6vw, 72px) clamp(24px, 5vw, 96px);
+  border: 0;
+  border-radius: 0;
   background: var(--hero-surface);
   color: var(--hero-text);
   isolation: isolate;
@@ -5205,22 +5208,22 @@ html[data-theme="night"] {
 .hero-editorial::before {
   background: repeating-radial-gradient(
     ellipse at 78% 50%,
-    transparent 0 28px,
-    var(--hero-line) 29px 30px,
-    transparent 31px 54px
+    transparent 0 70px,
+    var(--hero-line) 71px 72px,
+    transparent 73px 142px
   );
-  opacity: 0.85;
+  opacity: 0.72;
   transform: rotate(-9deg) scale(1.18);
 }
 
 .hero-editorial::after {
   background: repeating-radial-gradient(
     ellipse at 82% 42%,
-    transparent 0 70px,
-    rgba(245, 240, 231, 0.12) 71px 72px,
-    transparent 73px 118px
+    transparent 0 148px,
+    var(--hero-line) 149px 150px,
+    transparent 151px 286px
   );
-  opacity: 0.7;
+  opacity: 0.52;
   transform: rotate(12deg) scale(1.1);
 }
 
@@ -5314,7 +5317,7 @@ html[data-theme="night"] .hero-editorial {
 
 @media (max-width: 780px) {
   .hero-editorial {
-    min-height: auto;
+    min-height: calc(100svh - 70px);
     padding: 42px 24px 48px;
   }
 
@@ -5341,7 +5344,7 @@ html[data-theme="night"] .hero-editorial {
 @media (max-width: 500px) {
   .hero-editorial {
     padding: 34px 20px 38px;
-    border-radius: 18px;
+    border-radius: 0;
   }
 
   .hero-decision {
