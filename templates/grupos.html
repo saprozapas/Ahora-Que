@@ -1,83 +1,609 @@
-{% extends 'base.html' %}{% block title %}Grupos — Ahora Qué{% endblock %}{%
-block content %}
+
+{% extends 'base.html' %}
+
+{% block title %}Grupos — Ahora Qué{% endblock %}
+
+{% block content %}
+
 {% if groups_page %}
+
+<!-- =====================================================
+     USUARIO LOGUEADO
+     ===================================================== -->
+
 <section class="page-hero group-hero section-shell">
-  <p class="eyebrow-chip">grupos</p>
-  <h1>Tus grupos<br /><em>están acá.</em></h1>
-  <p>Creá un espacio para organizar planes y decidir junto a los demás.</p>
-  <a class="lime-button" href="/grupos/nuevo">Crear un grupo <span>↗</span></a>
-</section>
-<section class="group-feature section-shell">
-  <div class="group-copy">
-    <p class="section-tag">tus espacios</p>
+
+  <div class="groups-hero-layout">
+
+    <!-- TEXTO PRINCIPAL -->
+    <div class="groups-hero-copy">
+
+      <p class="eyebrow-chip">
+        grupos
+      </p>
+
+      <h1>
+        Tus grupos<br />
+        <em>están acá.</em>
+      </h1>
+
+      <p>
+        Creá un espacio para organizar planes y decidir junto a los demás.
+      </p>
+
+      <a class="lime-button" href="/grupos/nuevo">
+        Crear un grupo <span>↗</span>
+      </a>
+
+    </div>
+
+
+    <!-- =================================================
+         CARRUSEL
+         ================================================= -->
+
     {% if groups %}
-    {% for group in groups %}
-    <article>
-      <h2><a href="/grupos/{{ group.id }}">{{ group.name }}</a></h2>
-      <p>{{ group.member_count|default(0) }} integrantes</p>
-    </article>
-    {% endfor %}
-    {% else %}
-    <h2>Todavía no tenés grupos.</h2>
-    <p>Creá el primero para empezar a organizarse.</p>
+
+    <div class="groups-carousel">
+
+      <div class="groups-grid" id="groupsGrid">
+
+        {% for group in groups %}
+
+        <article class="group-card">
+
+          <div class="group-card-top">
+
+            <span class="group-number">
+              {{ "%02d"|format(loop.index) }}
+            </span>
+
+            <span class="group-arrow">
+              ↗
+            </span>
+
+          </div>
+
+
+          <div class="group-card-content">
+
+            <h3>
+              {{ group.get_name() }}
+            </h3>
+
+            {% if group.get_description() %}
+
+            <p>
+              {{ group.get_description() }}
+            </p>
+
+            {% else %}
+
+            <p class="no-description">
+              Sin descripción.
+            </p>
+
+            {% endif %}
+
+          </div>
+
+
+          
+
+        </article>
+
+        {% endfor %}
+
+      </div>
+
+
+      <!-- =================================================
+           NAVEGACIÓN
+           ================================================= -->
+
+      <div class="groups-navigation">
+
+        <button
+          type="button"
+          id="groupsPrev"
+          class="groups-nav-button"
+          aria-label="Grupos anteriores"
+        >
+          ←
+        </button>
+
+
+        <div class="groups-page-indicator">
+
+          <span id="groupsCurrentPage">
+            01
+          </span>
+
+          <span class="indicator-line"></span>
+
+          <span id="groupsTotalPages">
+            01
+          </span>
+
+        </div>
+
+
+        <button
+          type="button"
+          id="groupsNext"
+          class="groups-nav-button"
+          aria-label="Grupos siguientes"
+        >
+          →
+        </button>
+
+      </div>
+
+    </div>
+
     {% endif %}
+
   </div>
+
 </section>
+
+
+<!-- =====================================================
+     SIN GRUPOS
+     ===================================================== -->
+
+{% if not groups %}
+
+<section class="groups-section section-shell">
+
+  <div class="groups-empty">
+
+    <div class="empty-symbol">
+      +
+    </div>
+
+
+    <div>
+
+      <h3>
+        Todavía no tenés grupos.
+      </h3>
+
+      <p>
+        Creá el primero para empezar a organizarse.
+      </p>
+
+    </div>
+
+
+    <a
+      class="dark-button"
+      href="/grupos/nuevo"
+    >
+      Crear mi primer grupo
+    </a>
+
+  </div>
+
+</section>
+
+{% endif %}
+
+
 {% else %}
+
+<!-- =====================================================
+     USUARIO NO LOGUEADO
+     ===================================================== -->
+
 <section class="page-hero group-hero section-shell">
-  <p class="eyebrow-chip">grupos</p>
-  <h1>El plan mejora<br />cuando <em>entran todos.</em></h1>
+
+  <p class="eyebrow-chip">
+    grupos
+  </p>
+
+  <h1>
+    El plan mejora<br />
+    cuando <em>entran todos.</em>
+  </h1>
+
   <p>
     Creá un espacio para tu grupo, compartí una invitación y dejen que la
     decisión deje de depender de una sola persona.
   </p>
-  <a class="lime-button" href="/register">Crear un grupo <span>↗</span></a>
+
+  <a class="lime-button" href="/register">
+    Crear un grupo <span>↗</span>
+  </a>
+
 </section>
+
+
 <section class="group-feature section-shell">
+
   <div class="group-visual">
+
     <div class="group-orbit"></div>
-    <div class="avatar avatar-a">M</div>
-    <div class="avatar avatar-b">J</div>
-    <div class="avatar avatar-c">S</div>
-    <div class="avatar avatar-d">L</div>
-    <span>4 personas<br />disponibles</span>
+
+    <div class="avatar avatar-a">
+      M
+    </div>
+
+    <div class="avatar avatar-b">
+      J
+    </div>
+
+    <div class="avatar avatar-c">
+      S
+    </div>
+
+    <div class="avatar avatar-d">
+      L
+    </div>
+
+    <span>
+      4 personas<br />
+      disponibles
+    </span>
+
   </div>
+
+
   <div class="group-copy">
-    <p class="section-tag">una mesa para todos</p>
-    <h2>Cada persona pone algo. La app arma el mapa.</h2>
+
+    <p class="section-tag">
+      una mesa para todos
+    </p>
+
+    <h2>
+      Cada persona pone algo.
+      La app arma el mapa.
+    </h2>
+
     <p>
       Horarios, presupuesto, distancia y preferencias dejan de estar repartidos
       en capturas de pantalla. Todo queda en el mismo lugar, para que cualquiera
       pueda proponer y votar.
     </p>
+
     <div class="mini-points">
-      <span>✓ disponibilidad</span><span>✓ votaciones</span
-      ><span>✓ historial</span>
+
+      <span>
+        ✓ disponibilidad
+      </span>
+
+      <span>
+        ✓ votaciones
+      </span>
+
+      <span>
+        ✓ historial
+      </span>
+
     </div>
+
   </div>
+
 </section>
+
+
 <section class="process section-shell">
+
   <div class="process-title">
-    <p class="section-tag">armar el grupo</p>
-    <h2>Tres pasos y<br />ya están <em>adentro.</em></h2>
+
+    <p class="section-tag">
+      armar el grupo
+    </p>
+
+    <h2>
+      Tres pasos y<br />
+      ya están <em>adentro.</em>
+    </h2>
+
   </div>
+
+
   <div class="process-steps">
+
     <article>
-      <span>01</span>
-      <h3>Crean la mesa</h3>
-      <p>Un nombre simple para que todos sepan dónde entrar.</p>
+
+      <span>
+        01
+      </span>
+
+      <h3>
+        Crean la mesa
+      </h3>
+
+      <p>
+        Un nombre simple para que todos sepan dónde entrar.
+      </p>
+
     </article>
+
+
     <article>
-      <span>02</span>
-      <h3>Invitan al resto</h3>
-      <p>Comparten un link y cada persona marca cuándo puede.</p>
+
+      <span>
+        02
+      </span>
+
+      <h3>
+        Invitan al resto
+      </h3>
+
+      <p>
+        Comparten un link y cada persona marca cuándo puede.
+      </p>
+
     </article>
+
+
     <article>
-      <span>03</span>
-      <h3>Eligen juntos</h3>
-      <p>Comparan opciones y votan la que mejor les queda.</p>
+
+      <span>
+        03
+      </span>
+
+      <h3>
+        Eligen juntos
+      </h3>
+
+      <p>
+        Comparan opciones y votan la que mejor les queda.
+      </p>
+
     </article>
+
   </div>
+
 </section>
+
 {% endif %}
+
+
+<!-- =====================================================
+     JAVASCRIPT DEL CARRUSEL
+     ===================================================== -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const grid =
+    document.getElementById("groupsGrid");
+
+  /*
+   * Si no hay grupos, no hay carrusel.
+   */
+  if (!grid) {
+    return;
+  }
+
+
+  const cards =
+    Array.from(
+      grid.querySelectorAll(".group-card")
+    );
+
+
+  const prevButton =
+    document.getElementById("groupsPrev");
+
+
+  const nextButton =
+    document.getElementById("groupsNext");
+
+
+  const currentPageElement =
+    document.getElementById("groupsCurrentPage");
+
+
+  const totalPagesElement =
+    document.getElementById("groupsTotalPages");
+
+
+  let currentPage = 0;
+
+
+  /*
+   * Cantidad de grupos por página.
+   *
+   * Desktop -> 2
+   * Mobile  -> 1
+   */
+  function getCardsPerPage() {
+
+    if (window.innerWidth <= 700) {
+      return 1;
+    }
+
+    return 2;
+  }
+
+
+  function renderGroups() {
+
+    const cardsPerPage =
+      getCardsPerPage();
+
+
+    const totalPages =
+      Math.ceil(
+        cards.length / cardsPerPage
+      );
+
+
+    /*
+     * Por seguridad.
+     */
+    if (currentPage >= totalPages) {
+
+      currentPage =
+        Math.max(
+          0,
+          totalPages - 1
+        );
+
+    }
+
+
+    cards.forEach((card, index) => {
+
+      const firstCard =
+        currentPage * cardsPerPage;
+
+
+      const lastCard =
+        firstCard + cardsPerPage;
+
+
+      if (
+        index >= firstCard &&
+        index < lastCard
+      ) {
+
+        card.style.display = "flex";
+
+      } else {
+
+        card.style.display = "none";
+
+      }
+
+    });
+
+
+    /*
+     * Página actual.
+     */
+    currentPageElement.textContent =
+      String(
+        currentPage + 1
+      ).padStart(2, "0");
+
+
+    /*
+     * Total de páginas.
+     */
+    totalPagesElement.textContent =
+      String(
+        totalPages || 1
+      ).padStart(2, "0");
+
+
+    /*
+     * Desactivar flecha izquierda
+     * en la primera página.
+     */
+    prevButton.disabled =
+      currentPage === 0;
+
+
+    /*
+     * Desactivar flecha derecha
+     * en la última página.
+     */
+    nextButton.disabled =
+      currentPage >= totalPages - 1;
+
+
+    /*
+     * Si solamente hay una página,
+     * ocultamos las flechas.
+     */
+    const navigation =
+      document.querySelector(
+        ".groups-navigation"
+      );
+
+
+    if (navigation) {
+
+      navigation.style.display =
+        totalPages <= 1
+          ? "none"
+          : "flex";
+
+    }
+
+  }
+
+
+  /*
+   * ANTERIOR
+   */
+  prevButton.addEventListener(
+    "click",
+    () => {
+
+      if (currentPage > 0) {
+
+        currentPage--;
+
+        renderGroups();
+
+      }
+
+    }
+  );
+
+
+  /*
+   * SIGUIENTE
+   */
+  nextButton.addEventListener(
+    "click",
+    () => {
+
+      const cardsPerPage =
+        getCardsPerPage();
+
+
+      const totalPages =
+        Math.ceil(
+          cards.length / cardsPerPage
+        );
+
+
+      if (
+        currentPage <
+        totalPages - 1
+      ) {
+
+        currentPage++;
+
+        renderGroups();
+
+      }
+
+    }
+  );
+
+
+  /*
+   * Responsive.
+   */
+  window.addEventListener(
+    "resize",
+    () => {
+
+      currentPage = 0;
+
+      renderGroups();
+
+    }
+  );
+
+
+  /*
+   * Primera carga.
+   */
+  renderGroups();
+
+});
+
+</script>
+
 {% endblock %}
+

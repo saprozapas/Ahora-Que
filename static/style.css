@@ -3229,3 +3229,390 @@ h3 {
     padding-inline: 0;
   }
 }
+
+
+
+/* =========================================================
+   GROUPS
+   ========================================================= */
+
+.groups-section {
+  padding-top: 5rem;
+  padding-bottom: 7rem;
+}
+
+
+/* =========================================================
+   LAYOUT
+   ========================================================= */
+
+.groups-layout {
+  display: grid;
+  grid-template-columns: 0.75fr 1.5fr;
+  gap: 5rem;
+  align-items: center;
+}
+
+
+/* =========================================================
+   LEFT SIDE
+   ========================================================= */
+
+.groups-intro {
+  max-width: 360px;
+}
+
+
+.groups-intro h2 {
+  margin: 0.8rem 0 1.5rem;
+
+  font-size: clamp(2.8rem, 5vw, 5rem);
+  line-height: 0.92;
+  letter-spacing: -0.055em;
+}
+
+
+.groups-intro h2 em {
+  font-style: normal;
+  opacity: 0.45;
+}
+
+
+.groups-description {
+  max-width: 300px;
+
+  margin: 0 0 1.5rem;
+
+  font-size: 0.95rem;
+  line-height: 1.55;
+
+  opacity: 0.55;
+}
+
+
+.groups-count {
+  display: inline-block;
+
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+
+  opacity: 0.4;
+}
+
+
+/* =========================================================
+   CAROUSEL
+   ========================================================= */
+
+.groups-carousel {
+  min-width: 0;
+}
+
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  min-height: 330px;
+}
+
+
+/* =========================================================
+   GROUP CARD
+   ========================================================= */
+
+.group-card {
+  position: relative;
+
+  min-height: 330px;
+  padding: 1.5rem;
+
+  display: flex;
+  flex-direction: column;
+
+  /*
+   * Usamos colores del sistema de la página.
+   * No ponemos un fondo blanco fijo.
+   */
+  background: var(--card-background, transparent);
+  color: var(--text-color, inherit);
+
+  border: 1px solid var(--border-color, rgba(128, 128, 128, 0.25));
+  border-radius: 1.5rem;
+
+  overflow: hidden;
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+
+.group-card:hover {
+  transform: translateY(-5px);
+
+  border-color: var(
+    --border-hover,
+    rgba(128, 128, 128, 0.5)
+  );
+}
+
+
+.group-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+.group-number {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+
+  opacity: 0.4;
+}
+
+
+.group-arrow {
+  font-size: 1.2rem;
+
+  opacity: 0.45;
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+}
+
+
+.group-card:hover .group-arrow {
+  transform: translate(3px, -3px);
+  opacity: 1;
+}
+
+
+.group-card-content {
+  position: relative;
+  z-index: 2;
+
+  margin-top: auto;
+}
+
+
+.group-card h3 {
+  margin: 0 0 0.7rem;
+
+  font-size: clamp(1.5rem, 2vw, 2.1rem);
+  line-height: 1;
+
+  letter-spacing: -0.04em;
+}
+
+
+.group-card p {
+  max-width: 90%;
+
+  margin: 0;
+
+  font-size: 0.9rem;
+  line-height: 1.5;
+
+  opacity: 0.55;
+}
+
+
+.group-card p.no-description {
+  opacity: 0.3;
+}
+
+
+.group-card-link {
+  position: absolute;
+  inset: 0;
+
+  z-index: 3;
+}
+
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.groups-navigation {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 1.2rem;
+
+  margin-top: 1.5rem;
+}
+
+
+.groups-nav-button {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(
+    --border-color,
+    rgba(128, 128, 128, 0.3)
+  );
+
+  border-radius: 50%;
+
+  background: transparent;
+  color: inherit;
+
+  font-size: 1rem;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+
+.groups-nav-button:hover:not(:disabled) {
+  background: var(--text-color, #111);
+  color: var(--background-color, #fff);
+
+  transform: translateY(-2px);
+}
+
+
+.groups-nav-button:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+
+.groups-page-indicator {
+  display: flex;
+  align-items: center;
+
+  gap: 0.7rem;
+
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+
+  opacity: 0.65;
+}
+
+
+.indicator-line {
+  width: 30px;
+  height: 1px;
+
+  background: currentColor;
+
+  opacity: 0.3;
+}
+
+
+/* =========================================================
+   EMPTY
+   ========================================================= */
+
+.groups-empty {
+  min-height: 280px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 2rem;
+
+  padding: 2.5rem;
+
+  border: 1px dashed var(
+    --border-color,
+    rgba(128, 128, 128, 0.3)
+  );
+
+  border-radius: 1.5rem;
+}
+
+
+.empty-symbol {
+  width: 60px;
+  height: 60px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--text-color, #111);
+  color: var(--background-color, #fff);
+
+  font-size: 1.7rem;
+}
+
+
+.groups-empty h3 {
+  margin: 0 0 0.4rem;
+}
+
+
+.groups-empty p {
+  margin: 0;
+
+  opacity: 0.55;
+}
+
+
+.groups-empty .dark-button {
+  margin-left: auto;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .groups-layout {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .groups-intro {
+    max-width: 500px;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .groups-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .group-card {
+    min-height: 280px;
+  }
+
+  .groups-empty {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .groups-empty .dark-button {
+    margin-left: 0;
+  }
+
+}

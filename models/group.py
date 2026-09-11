@@ -10,9 +10,7 @@ class Group:
         return self.__name
     def get_usuarios(self):
         return self.__usuarios
-    def get_descripcion(self):
+    def get_description(self):
         return self.__descripcion
     def add_usuario(self, usuario):
         self.__usuarios.append(usuario)
-    def get_user(self):
-        return self.__user

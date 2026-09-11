@@ -12,7 +12,7 @@ class GroupAuthService:
             INSERT INTO public."Grupos" ("Creado_Por", "Nombre", "Descripcion")
             VALUES (%s, %s, %s)
             """,
-            (user_id, group.get_name(), group.get_descripcion())
+            (user_id, group.get_name(), group.get_description())
         )        
 
         conn.commit()
@@ -27,7 +27,7 @@ class GroupAuthService:
     
         cursor.execute(
             """
-            INSERT INTO public."Usuario-Grupo" ("Usuario_id", "Grupo_id")
+            INSERT INTO public."Usuario-Grupo" ("Usuario_Id", "Grupo_Id")
             VALUES (%s, %s)
             """,
             (user_id, group_id)

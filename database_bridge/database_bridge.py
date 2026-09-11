@@ -1,5 +1,6 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from models.group import Group
 from models.user import User
 from database import get_db_connection
 import psycopg2
@@ -50,6 +51,36 @@ def getUser(uid):
     finally:
         connection.close()
 
+def getGroupsForUser(uid):
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    g."Id_Grupo",
+                    g."Nombre",
+                    g."Descripcion"
+                FROM public."Grupos" g
+                JOIN public."Usuario-Grupo" ug ON g."Id_Grupo" = ug."Id_Grupo"
+                WHERE ug."Id_Usuario" = %s
+                """,
+                (uid,)
+            )
+
+            results = cursor.fetchall()
+
+            groups = []
+            for result in results:
+                groups.append(Group(None, result[1], result[2]))
+            return groups
+
+    except psycopg2.Error:
+        raise
+
+    finally:
+        connection.close()
 
 # 1. Buscar usuarios 
 # def buscar_usuarios(mail=None, nombre=None, username=None, id_usuario=None): 
