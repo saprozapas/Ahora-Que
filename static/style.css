@@ -3,7 +3,7 @@
   --cream-dark: #e9dfd0;
   --ink: #16231c;
   --lime: #c4f04b;
-  --coral: #1f4a36;
+  --coral: #3f5a43;
   --muted: #657067;
   --line: rgba(22, 35, 28, 0.78);
   --serif: Georgia, "Times New Roman", serif;
@@ -705,7 +705,7 @@ h2 em {
   background: #93c5bc;
 }
 .tone-coral {
-  background: #f18a66;
+  background: var(--cream-dark);
 }
 .tone-moss {
   background: #c8dcac;
@@ -2113,6 +2113,33 @@ body {
   }
 }
 
+/* Keep the new back link out of the two-column content grid. */
+.auth-page,
+.contact-page {
+  position: relative;
+}
+
+.auth-page > .back-link,
+.contact-page > .back-link {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  margin-bottom: 0;
+}
+
+.dashboard-sidebar-link > span:first-child svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 650px) {
+  .auth-page > .back-link,
+  .contact-page > .back-link {
+    top: 22px;
+  }
+}
+
 /* Stronger mono weight across body copy and interface controls. */
 body {
   font-weight: 500;
@@ -2460,7 +2487,7 @@ html[data-theme="night"] {
   --cream-dark: #29262e;
   --ink: #f3e8d5;
   --lime: #c28ad6;
-  --coral: #e4bdce;
+  --coral: #c8bad4;
   --muted: #c8bdc7;
   --line: rgba(243, 232, 213, 0.42);
   background: #141416;
@@ -2744,7 +2771,7 @@ html[data-theme="night"] .social-post-accent p {
   --cream-dark: #ebe3d6;
   --ink: #17221c;
   --lime: #c6e86b;
-  --coral: #b86750;
+  --coral: #3f5a43;
   --muted: #68716b;
   --line: rgba(23, 34, 28, 0.22);
   --sans: "Segoe UI", "Aptos", Arial, sans-serif;
@@ -3227,6 +3254,1307 @@ h3 {
     width: 42px;
     justify-content: center;
     padding-inline: 0;
+  }
+}
+
+/* Visual cleanup requested for the current iteration. */
+:root {
+  --coral: #3f5a43;
+}
+
+html[data-theme="night"] {
+  --coral: #c8bad4;
+}
+
+/* Full-bleed navigation with a contained inner grid. */
+.site-header {
+  width: 100%;
+  padding-inline: clamp(16px, 4vw, 48px);
+}
+
+.site-header-inner {
+  width: min(var(--max), 100%);
+  margin-inline: auto;
+}
+
+/* Page labels repeat the title and add noise, so keep them out of the visual layer. */
+.eyebrow-chip {
+  display: none !important;
+}
+
+/* Replace the old coral illustration treatment with a quiet neutral surface. */
+.tone-coral {
+  background: var(--cream-dark);
+}
+
+html[data-theme="night"] .tone-coral {
+  background: #3b3042;
+}
+
+/* Secondary dashboard pages reuse the same shell without inheriting the centered welcome layout. */
+.dashboard-layout-page .dashboard-main {
+  display: block;
+  min-height: 0;
+  align-items: initial;
+  justify-content: initial;
+}
+
+/* Selected navigation must read as selected in both themes. */
+.dashboard-sidebar-link.is-active,
+.dashboard-sidebar-link.is-active:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--cream);
+}
+
+.dashboard-sidebar-link.is-active > span:first-child {
+  color: var(--cream);
+}
+
+html[data-theme="night"] .dashboard-sidebar-link.is-active,
+html[data-theme="night"] .dashboard-sidebar-link.is-active:hover {
+  background: #c8bad4;
+  border-color: #c8bad4;
+  color: #211a28;
+}
+
+html[data-theme="night"] .dashboard-sidebar-link.is-active > span:first-child {
+  color: #211a28;
+}
+
+/* Icon-only theme control. The aria-label remains available to assistive tech. */
+.theme-toggle {
+  width: 42px;
+  min-height: 42px;
+  justify-content: center;
+  padding: 9px;
+  border-radius: 10px;
+}
+
+.theme-toggle-label {
+  display: none !important;
+}
+
+/* Less visual competition in the unauthenticated header. */
+.header-actions:not(.authenticated) {
+  gap: 4px;
+}
+
+.header-actions:not(.authenticated) .header-action:first-of-type {
+  min-height: 38px;
+  padding: 8px 10px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.header-actions:not(.authenticated) .header-action:last-child {
+  min-height: 40px;
+  padding: 9px 13px;
+  font-size: 11px;
+}
+
+/* Familiar, consistent sidebar icon language without adding a dependency. */
+.dashboard-sidebar-link > span:first-child {
+  width: 20px;
+  height: 20px;
+  font-size: 0;
+  color: var(--ink);
+}
+
+.dashboard-sidebar-link > span:first-child::before {
+  display: none;
+  content: none;
+}
+
+/* Back navigation is deliberately quiet and consistent across secondary screens. */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  color: var(--muted);
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.back-link:hover {
+  color: var(--ink);
+  transform: translateX(-3px);
+}
+
+.auth-page > .back-link,
+.contact-page > .back-link,
+.page-hero > .back-link {
+  align-self: start;
+}
+
+/* Distinctive profile surface: keep only this card monospaced. */
+.profile-card {
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+
+.profile-card strong,
+.profile-card p {
+  font-family: inherit;
+}
+
+@media (max-width: 650px) {
+  .site-header {
+    width: 100%;
+    padding-inline: 16px;
+  }
+
+  .header-actions:not(.authenticated) .header-action:first-of-type {
+    padding-inline: 7px;
+  }
+
+  .header-actions:not(.authenticated) .header-action:last-child {
+    padding-inline: 10px;
+  }
+}
+
+/* Premium visual system: restrained mineral accent, measured scale and quieter surfaces. */
+:root {
+  --cream: #f5f0e7;
+  --cream-dark: #ebe4d8;
+  --ink: #17221c;
+  --lime: #9baa78;
+  --coral: #657451;
+  --muted: #6c746b;
+  --line: rgba(23, 34, 28, 0.16);
+  --radius: 18px;
+  --shadow: 0 14px 32px rgba(37, 48, 39, 0.08);
+  --shadow-strong: 0 20px 44px rgba(37, 48, 39, 0.13);
+  --control-radius: 10px;
+  --content-gutter: clamp(20px, 4vw, 48px);
+}
+
+html[data-theme="night"] {
+  --cream: #151517;
+  --cream-dark: #24232a;
+  --ink: #f3e8d5;
+  --lime: #b8a2c5;
+  --coral: #9d89aa;
+  --muted: #bdb3bd;
+  --line: rgba(243, 232, 213, 0.18);
+  --shadow: 0 16px 38px rgba(0, 0, 0, 0.22);
+  --shadow-strong: 0 22px 48px rgba(0, 0, 0, 0.3);
+}
+
+body {
+  font-family: "Segoe UI", Aptos, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.section-shell {
+  width: min(var(--max), calc(100% - (var(--content-gutter) * 2)));
+}
+
+/* Keep the accent intentional: no saturated blocks competing with the page hierarchy. */
+.proof-band {
+  border-block: 1px solid var(--line);
+  background: var(--cream-dark);
+  color: var(--ink);
+}
+
+.proof-inner {
+  gap: 20px;
+  padding: 14px 0;
+  font-size: 11px;
+}
+
+.proof-mark,
+.pillar-icon,
+.index-copy > span,
+.contact-facts span:before {
+  color: var(--coral);
+}
+
+.question-panel {
+  background: color-mix(in srgb, var(--cream-dark) 78%, var(--lime));
+  box-shadow: var(--shadow-strong);
+}
+
+.q-shadow {
+  color: color-mix(in srgb, var(--lime) 64%, var(--cream));
+}
+
+.q-sat-b {
+  background: #b9d0c8;
+}
+
+.q-sat-c {
+  background: #c3cba6;
+}
+
+/* Button hierarchy: one primary action, quieter secondary actions, no hard offset shadows. */
+.header-action,
+.lime-button,
+.dark-button {
+  min-height: 44px;
+  padding: 11px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--control-radius);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.035em;
+  box-shadow: none;
+  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.lime-button {
+  background: var(--lime);
+  color: var(--ink);
+}
+
+.dark-button {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.header-action {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.header-action:hover,
+.lime-button:hover,
+.dark-button:hover {
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+.lime-button:hover {
+  background: color-mix(in srgb, var(--lime) 86%, var(--ink));
+}
+
+.dark-button:hover {
+  background: color-mix(in srgb, var(--ink) 88%, var(--coral));
+}
+
+.header-action:hover {
+  border-color: var(--ink);
+  background: var(--cream-dark);
+}
+
+.header-action:active,
+.lime-button:active,
+.dark-button:active {
+  transform: translateY(0);
+}
+
+.theme-toggle {
+  width: 40px;
+  min-height: 40px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: transparent;
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.theme-toggle:hover {
+  border-color: var(--ink);
+  background: var(--cream-dark);
+  transform: translateY(-1px);
+}
+
+/* Consistent navigation geometry across the header and the dashboard. */
+.site-header {
+  padding-inline: var(--content-gutter);
+  border-bottom: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.site-header-inner {
+  min-height: 76px;
+}
+
+.main-nav {
+  gap: 22px;
+}
+
+.main-nav a {
+  font-size: 11px;
+  letter-spacing: 0.045em;
+}
+
+.header-actions {
+  gap: 8px;
+}
+
+.header-actions:not(.authenticated) .header-action:first-of-type {
+  min-height: 40px;
+  padding: 10px 12px;
+}
+
+.header-actions:not(.authenticated) .header-action:last-child {
+  min-height: 40px;
+  padding: 10px 13px;
+}
+
+/* Dashboard navigation is calm by default and unmistakable when selected. */
+.dashboard-sidebar {
+  border-right: 1px solid var(--line);
+  background: color-mix(in srgb, var(--cream) 96%, var(--cream-dark));
+  box-shadow: none;
+}
+
+.dashboard-sidebar-nav {
+  gap: 6px;
+}
+
+.dashboard-sidebar-link {
+  min-height: 44px;
+  gap: 11px;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--control-radius);
+  font-family: "Segoe UI", Aptos, Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+.dashboard-sidebar-link:hover {
+  border-color: var(--line);
+  background: var(--cream-dark);
+}
+
+.dashboard-sidebar-link.is-active,
+.dashboard-sidebar-link.is-active:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.dashboard-sidebar-link > span:first-child {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+}
+
+.dashboard-sidebar-link > span:first-child svg {
+  width: 19px;
+  height: 19px;
+}
+
+.dashboard-sidebar-link.is-active > span:first-child {
+  color: var(--cream);
+}
+
+html[data-theme="night"] .dashboard-sidebar {
+  background: #1b1a1f;
+}
+
+html[data-theme="night"] .dashboard-sidebar-link:hover {
+  background: #2a2830;
+}
+
+html[data-theme="night"] .dashboard-sidebar-link.is-active,
+html[data-theme="night"] .dashboard-sidebar-link.is-active:hover {
+  border-color: var(--lime);
+  background: var(--lime);
+  color: #251d2b;
+}
+
+html[data-theme="night"] .dashboard-sidebar-link.is-active > span:first-child {
+  color: #251d2b;
+}
+
+/* Cards use surface separation first; only featured content receives elevation. */
+.story-card,
+.index-card,
+.detail-art,
+.contact-form,
+.auth-form,
+.contact-cta,
+.dashboard-card,
+.dashboard-empty {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+.story-card:hover,
+.detail-art:hover,
+.group-visual:hover,
+.question-panel:hover,
+.pillar-cards article:hover,
+.process-steps article:hover,
+.index-card:hover,
+.contact-form:hover,
+.auth-form:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+  border-color: var(--line);
+}
+
+.dashboard-card-featured {
+  box-shadow: var(--shadow-strong);
+}
+
+.group-visual {
+  background: color-mix(in srgb, var(--cream-dark) 72%, var(--lime));
+  box-shadow: var(--shadow);
+}
+
+/* Editorial rhythm and readable measure. */
+.centered-hero {
+  min-height: calc(100svh - 76px);
+  padding: 76px 0 88px;
+  gap: clamp(32px, 5vw, 64px);
+}
+
+.centered-hero h1 {
+  max-width: 700px;
+  margin: 20px 0 22px;
+  font-size: clamp(48px, 6vw, 86px);
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.centered-hero .hero-text,
+.page-hero > p:not(.eyebrow-chip),
+.contact-copy > p:not(.eyebrow-chip),
+.auth-intro > p:not(.eyebrow-chip) {
+  max-width: 58ch;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.centered-hero .hero-actions {
+  gap: 14px;
+  margin: 30px 0 0;
+}
+
+.page-hero {
+  padding: 78px 0 64px;
+}
+
+.page-hero h1 {
+  max-width: 780px;
+  margin: 20px 0 22px;
+  font-size: clamp(54px, 7vw, 96px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.manifesto {
+  gap: 64px;
+  padding: 96px 0;
+}
+
+.section-intro {
+  gap: 48px;
+  margin-bottom: 36px;
+}
+
+.manifesto-content h2,
+.section-intro h2,
+.process-title h2,
+.group-copy h2,
+.detail-notes h2 {
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.pillar-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  border: 0;
+}
+
+.pillar-grid article {
+  min-height: 240px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.pillar-grid article:last-child {
+  border-right: 1px solid var(--line);
+}
+
+.pillar-icon {
+  margin: 28px 0 14px;
+  font-size: 42px;
+}
+
+.featured-story,
+.pillars {
+  padding-bottom: 112px;
+}
+
+.story-card {
+  min-height: 470px;
+}
+
+.story-copy {
+  padding: clamp(28px, 4vw, 48px);
+}
+
+.process-steps {
+  gap: 16px;
+}
+
+.process-steps article {
+  padding: 24px;
+  border-radius: var(--radius);
+}
+
+/* Filters become compact controls rather than a row of competing pills. */
+.filter-bar {
+  gap: 10px;
+  padding: 16px 0;
+  border-block: 1px solid var(--line);
+  font-size: 11px;
+}
+
+.filter-bar button {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: transparent;
+  color: var(--ink);
+}
+
+.filter-bar button:hover {
+  border-color: var(--ink);
+  background: var(--cream-dark);
+}
+
+.filter-bar .filter-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--cream);
+}
+
+html[data-theme="night"] .filter-bar .filter-active {
+  background: var(--lime);
+  border-color: var(--lime);
+  color: #251d2b;
+}
+
+.plan-index {
+  grid-template-columns: 1.1fr 0.95fr 0.95fr;
+  gap: 20px;
+  padding: 44px 0 96px;
+}
+
+.index-art {
+  min-height: 210px;
+}
+
+.index-copy {
+  min-height: 220px;
+  gap: 9px;
+  padding: 24px;
+}
+
+.index-copy h2 {
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+.contact-page,
+.auth-page {
+  gap: clamp(40px, 6vw, 72px);
+  min-height: 620px;
+  padding: 72px 0 104px;
+}
+
+.contact-copy h1,
+.auth-intro h1 {
+  margin: 20px 0;
+  font-size: clamp(54px, 6.5vw, 88px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.contact-form,
+.auth-form {
+  gap: 9px;
+  padding: clamp(24px, 3vw, 32px);
+}
+
+.contact-form label,
+.auth-form label {
+  margin-top: 10px;
+  font-size: 10px;
+}
+
+.contact-form input,
+.contact-form textarea,
+.auth-form input {
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus,
+.auth-form input:focus {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lime) 42%, transparent);
+}
+
+.back-link {
+  margin-bottom: 20px;
+  font-size: 10px;
+}
+
+/* No green surfaces in night mode: every former lime surface becomes lavender or neutral. */
+html[data-theme="night"] .proof-band,
+html[data-theme="night"] .lime-button,
+html[data-theme="night"] .header-action,
+html[data-theme="night"] .filter-bar .filter-active,
+html[data-theme="night"] .form-success,
+html[data-theme="night"] .form-error,
+html[data-theme="night"] .group-visual {
+  background: var(--lime);
+  color: #251d2b;
+}
+
+html[data-theme="night"] .proof-band {
+  background: var(--cream-dark);
+  color: var(--ink);
+}
+
+html[data-theme="night"] .header-action {
+  border-color: var(--line);
+}
+
+html[data-theme="night"] .tone-coral,
+html[data-theme="night"] .tone-moss,
+html[data-theme="night"] .tone-lilac,
+html[data-theme="night"] .story-art {
+  background: #332e3a;
+}
+
+html[data-theme="night"] .q-sat-b {
+  background: #44364e;
+}
+
+html[data-theme="night"] .q-sat-c {
+  background: #3d4651;
+}
+
+@media (max-width: 950px) {
+  .section-shell {
+    width: min(var(--max), calc(100% - 48px));
+  }
+
+  .centered-hero {
+    padding-top: 64px;
+  }
+
+  .manifesto,
+  .section-intro,
+  .contact-page,
+  .auth-page {
+    gap: 40px;
+  }
+}
+
+@media (max-width: 650px) {
+  :root {
+    --content-gutter: 16px;
+  }
+
+  .section-shell {
+    width: calc(100% - 32px);
+  }
+
+  .site-header {
+    padding-inline: 16px;
+  }
+
+  .site-header-inner {
+    min-height: 70px;
+  }
+
+  .header-action {
+    min-height: 38px;
+    padding: 9px 10px;
+    font-size: 10px;
+  }
+
+  .theme-toggle {
+    width: 38px;
+    min-height: 38px;
+  }
+
+  .centered-hero {
+    min-height: auto;
+    padding: 54px 0 68px;
+    gap: 38px;
+  }
+
+  .centered-hero h1 {
+    font-size: clamp(42px, 11vw, 62px);
+  }
+
+  .centered-hero .hero-actions {
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .centered-hero .hero-actions .lime-button,
+  .centered-hero .hero-actions .dark-button {
+    width: auto;
+  }
+
+  .page-hero {
+    padding: 56px 0 44px;
+  }
+
+  .page-hero h1 {
+    font-size: clamp(46px, 12vw, 66px);
+  }
+
+  .manifesto {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 72px 0;
+  }
+
+  .pillar-grid,
+  .plan-index {
+    grid-template-columns: 1fr;
+  }
+
+  .pillar-grid article {
+    min-height: 0;
+  }
+
+  .story-card,
+  .index-card,
+  .detail-art,
+  .contact-form,
+  .auth-form,
+  .contact-cta {
+    border-radius: 15px;
+  }
+
+  .contact-page,
+  .auth-page {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 56px 0 76px;
+  }
+
+  .contact-copy h1,
+  .auth-intro h1 {
+    font-size: clamp(46px, 12vw, 66px);
+  }
+
+  .filter-bar {
+    flex-wrap: wrap;
+  }
+
+  .filter-spacer {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Density pass: bring the essential content into view without removing the natural page scroll. */
+.scroll-reveal {
+  transform: translateY(12px);
+  transition-duration: 0.5s;
+}
+
+.centered-hero {
+  min-height: auto;
+  padding: 56px 0 64px;
+  gap: 42px;
+}
+
+.centered-hero h1 {
+  max-width: 650px;
+  margin: 14px 0 18px;
+  font-size: clamp(46px, 5.3vw, 76px);
+}
+
+.centered-hero .hero-text {
+  max-width: 44ch;
+  font-size: 15px;
+}
+
+.centered-hero .hero-actions {
+  margin-top: 24px;
+}
+
+.centered-hero .question-panel {
+  width: min(430px, 68vw);
+}
+
+.q-main span {
+  font-size: clamp(132px, 18vw, 210px);
+}
+
+.proof-inner {
+  padding: 12px 0;
+}
+
+.manifesto {
+  gap: 48px;
+  padding: 76px 0;
+}
+
+.manifesto-content p {
+  max-width: 42ch;
+  margin: 20px 0;
+  font-size: 15px;
+}
+
+.pillars,
+.featured-story {
+  padding-bottom: 80px;
+}
+
+.section-intro {
+  gap: 32px;
+  margin-bottom: 28px;
+}
+
+.section-intro > p {
+  max-width: 30ch;
+  font-size: 14px;
+}
+
+.pillar-grid article {
+  min-height: 212px;
+  padding: 20px;
+}
+
+.pillar-icon {
+  margin: 22px 0 10px;
+  font-size: 36px;
+}
+
+.pillar-grid h3 {
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+.pillar-grid p {
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.story-heading {
+  margin-bottom: 18px;
+}
+
+.story-card {
+  min-height: 410px;
+}
+
+.story-art {
+  min-height: 410px;
+}
+
+.story-copy {
+  padding: 30px;
+}
+
+.process {
+  padding-bottom: 80px;
+}
+
+.process-title h2 {
+  max-width: 13ch;
+}
+
+.process-steps {
+  gap: 12px;
+}
+
+.process-steps article {
+  min-height: 0;
+  padding: 20px;
+}
+
+.process-steps h3 {
+  font-size: 22px;
+  line-height: 1.05;
+}
+
+.process-steps p {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.page-hero {
+  padding: 54px 0 42px;
+}
+
+.page-hero h1 {
+  max-width: 680px;
+  margin: 16px 0 18px;
+  font-size: clamp(50px, 6.4vw, 88px);
+}
+
+.page-hero > p:not(.eyebrow-chip) {
+  max-width: 44ch;
+  font-size: 15px;
+}
+
+.filter-bar {
+  padding: 13px 0;
+}
+
+.plan-index {
+  gap: 16px;
+  padding: 32px 0 72px;
+}
+
+.index-art {
+  min-height: 176px;
+}
+
+.index-copy {
+  min-height: 190px;
+  padding: 20px;
+}
+
+.index-copy h2 {
+  font-size: 27px;
+}
+
+.index-copy p {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.group-feature {
+  gap: 56px;
+  padding: 24px 0 84px;
+}
+
+.group-visual {
+  min-height: 350px;
+}
+
+.group-copy h2 {
+  max-width: 14ch;
+  margin: 14px 0;
+  font-size: clamp(38px, 4.5vw, 62px);
+}
+
+.group-copy > p:not(.section-tag) {
+  max-width: 42ch;
+  font-size: 15px;
+}
+
+.mini-points {
+  margin-top: 20px;
+}
+
+.detail-hero {
+  padding: 36px 0 72px;
+}
+
+.detail-grid {
+  gap: 48px;
+  margin-top: 24px;
+}
+
+.detail-art {
+  min-height: 380px;
+}
+
+.detail-copy h1 {
+  margin: 18px 0;
+  font-size: clamp(48px, 6vw, 82px);
+  line-height: 0.96;
+}
+
+.detail-copy > p:not(.eyebrow-chip) {
+  max-width: 42ch;
+  font-size: 15px;
+}
+
+.detail-notes {
+  gap: 48px;
+  padding: 72px 0;
+}
+
+.detail-notes h2 {
+  max-width: 14ch;
+  font-size: clamp(38px, 4.8vw, 62px);
+}
+
+.detail-notes p {
+  max-width: 42ch;
+  margin-bottom: 14px;
+  font-size: 14px;
+}
+
+.contact-page,
+.auth-page {
+  gap: clamp(32px, 5vw, 56px);
+  min-height: 0;
+  padding: 54px 0 80px;
+}
+
+.contact-copy h1,
+.auth-intro h1 {
+  margin: 16px 0;
+  font-size: clamp(50px, 6vw, 82px);
+}
+
+.contact-copy > p:not(.eyebrow-chip),
+.auth-intro > p:not(.eyebrow-chip) {
+  max-width: 40ch;
+  font-size: 15px;
+}
+
+.contact-form,
+.auth-form {
+  padding: 24px 26px;
+}
+
+.contact-form textarea {
+  height: 128px;
+  min-height: 128px;
+}
+
+.social-feed {
+  padding-bottom: 72px;
+}
+
+.social-feed-heading {
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+}
+
+.social-feed-grid {
+  gap: 14px;
+}
+
+.social-post {
+  min-height: 0;
+  padding: 22px;
+}
+
+.social-post h2 {
+  margin: 28px 0 12px;
+  font-size: clamp(30px, 3.6vw, 50px);
+  line-height: 0.98;
+}
+
+.social-post p {
+  max-width: 42ch;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.social-post-actions {
+  gap: 12px;
+  padding-top: 22px;
+  font-size: 11px;
+}
+
+.dashboard-main {
+  align-items: flex-start;
+}
+
+.dashboard-main .dashboard-shell {
+  min-height: 0;
+  padding: 64px 0 72px;
+}
+
+.dashboard-main .dashboard-heading {
+  padding: 0;
+}
+
+.dashboard-welcome h1 {
+  font-size: clamp(46px, 5.6vw, 78px);
+  line-height: 1;
+}
+
+.dashboard-lead {
+  max-width: 42ch;
+  font-size: 15px;
+}
+
+.site-footer {
+  padding: 28px 0 40px;
+}
+
+@media (max-width: 950px) {
+  .centered-hero .question-panel {
+    width: min(420px, 72vw);
+  }
+
+  .group-feature,
+  .detail-grid,
+  .detail-notes,
+  .contact-page,
+  .auth-page {
+    gap: 36px;
+  }
+
+  .dashboard-main .dashboard-shell {
+    padding: 54px 0 64px;
+  }
+}
+
+@media (max-width: 650px) {
+  .centered-hero {
+    padding: 42px 0 52px;
+    gap: 32px;
+  }
+
+  .centered-hero h1 {
+    font-size: clamp(40px, 10.5vw, 58px);
+  }
+
+  .centered-hero .hero-text {
+    max-width: 34ch;
+    font-size: 14px;
+  }
+
+  .centered-hero .question-panel {
+    width: min(320px, 76vw);
+  }
+
+  .q-main span {
+    font-size: clamp(112px, 34vw, 160px);
+  }
+
+  .manifesto,
+  .detail-notes {
+    padding: 60px 0;
+  }
+
+  .section-intro {
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .pillar-grid,
+  .plan-index,
+  .social-feed-grid {
+    gap: 12px;
+  }
+
+  .pillar-grid article {
+    padding: 18px;
+  }
+
+  .featured-story,
+  .pillars,
+  .process {
+    padding-bottom: 60px;
+  }
+
+  .story-card {
+    min-height: 0;
+  }
+
+  .story-art {
+    min-height: 260px;
+  }
+
+  .story-copy {
+    padding: 24px;
+  }
+
+  .process-steps article {
+    padding: 18px;
+  }
+
+  .page-hero {
+    padding: 42px 0 32px;
+  }
+
+  .page-hero h1 {
+    font-size: clamp(42px, 11vw, 62px);
+  }
+
+  .group-feature {
+    padding: 16px 0 64px;
+  }
+
+  .group-visual {
+    min-height: 300px;
+  }
+
+  .detail-hero {
+    padding: 28px 0 56px;
+  }
+
+  .detail-art {
+    min-height: 300px;
+  }
+
+  .detail-notes {
+    gap: 28px;
+  }
+
+  .contact-page,
+  .auth-page {
+    gap: 28px;
+    padding: 42px 0 64px;
+  }
+
+  .contact-form,
+  .auth-form {
+    padding: 22px 20px;
+  }
+
+  .contact-form textarea {
+    height: 112px;
+    min-height: 112px;
+  }
+
+  .social-post {
+    padding: 20px;
+  }
+
+  .social-post h2 {
+    margin-top: 22px;
+  }
+
+  .social-post-actions a {
+    width: auto;
+    margin-left: auto;
+  }
+
+  .dashboard-main .dashboard-shell {
+    padding: 42px 0 56px;
+  }
+
+  .dashboard-welcome h1 {
+    font-size: clamp(38px, 10vw, 54px);
   }
 }
 

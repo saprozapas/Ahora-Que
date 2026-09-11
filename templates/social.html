@@ -3,10 +3,16 @@
 {% block title %}Social — Ahora Qué{% endblock %}
 
 {% block content %}
+{% if logueado %}
+<div class="dashboard-layout dashboard-layout-page">
+  {% include '_dashboard_sidebar.html' %}
+  <div class="dashboard-main">
+{% endif %}
 <section class="page-hero social-hero section-shell">
+  <a class="back-link" href="/dashboard">← Volver</a>
   <p class="eyebrow-chip">social</p>
   <h1>Ideas que<br /><em>se comparten.</em></h1>
-  <p>Descubrí planes de otras personas, guardá los que te gusten y compartí los tuyos.</p>
+  <p>Descubrí, guardá y compartí planes.</p>
 </section>
 
 <section class="social-feed section-shell" aria-label="Publicaciones de la comunidad">
@@ -22,16 +28,20 @@
         <div><strong>Ahora Qué</strong><small>plan sugerido · hoy</small></div>
       </div>
       <h2>Una caminata sin apuro y algo rico al final.</h2>
-      <p>Ideas simples para salir de la rutina sin tener que organizarlo todo.</p>
+      <p>Ideas simples para salir de la rutina.</p>
       <div class="social-post-actions"><span>♡ 12</span><span>3 comentarios</span><a href="/plan/{{ featured.slug }}">Ver plan ↗</a></div>
     </article>
 
     <article class="social-post social-post-accent">
       <span class="social-post-number">02 — recomendación</span>
       <h2>Una noche de preguntas sin pantallas.</h2>
-      <p>Armen equipos, preparen algo para tomar y dejen que las preguntas hagan el resto.</p>
+      <p>Armen equipos y dejen que las preguntas hagan el resto.</p>
       <div class="social-post-actions"><span>♡ 8</span><span>1 comentario</span><a href="/plan/noche-de-preguntas">Ver plan ↗</a></div>
     </article>
   </div>
 </section>
+{% if logueado %}
+  </div>
+</div>
+{% endif %}
 {% endblock %}

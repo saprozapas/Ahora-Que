@@ -3,14 +3,20 @@
 {% block title %}Perfil — Ahora Qué{% endblock %}
 
 {% block content %}
+{% if logueado %}
+<div class="dashboard-layout dashboard-layout-page">
+  {% include '_dashboard_sidebar.html' %}
+  <div class="dashboard-main">
+{% endif %}
 <section class="auth-page section-shell">
+  <a class="back-link" href="/dashboard">← Volver</a>
   <div class="auth-intro">
     <p class="eyebrow-chip">perfil</p>
     <h1>Tu espacio<br /><em>personal.</em></h1>
-    <p>Acá vas a encontrar tus datos, grupos y planes guardados.</p>
+    <p>Tus datos, grupos y planes guardados.</p>
   </div>
 
-  <div class="auth-form">
+  <div class="auth-form profile-card">
     <p><strong>Nombre</strong><br />{{ user.name|default("Sin datos", true) }}</p>
     <p><strong>Username</strong><br />{{ user.username|default("Sin datos", true) }}</p>
     {% if user.email %}
@@ -21,4 +27,8 @@
     <p><strong>Planes guardados</strong><br />{{ saved_plans|length }} planes</p>
   </div>
 </section>
+{% if logueado %}
+  </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -28,7 +28,7 @@
 
 <link
   rel="stylesheet"
-  href="{{ url_for('static', filename='style.css', v='20260910-night-toggle') }}"
+  href="{{ url_for('static', filename='style.css', v='20260910-density-pass') }}"
 />
 
 <link
@@ -307,6 +307,16 @@
       });
 
     }
+
+    document.querySelectorAll('.dashboard-layout').forEach((layout) => {
+      const sidebarToggle = layout.querySelector('.dashboard-sidebar-toggle');
+      sidebarToggle?.addEventListener('click', () => {
+        const collapsed = layout.classList.toggle('is-collapsed');
+        sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+        sidebarToggle.setAttribute('aria-label', collapsed ? 'Expandir navegación' : 'Contraer navegación');
+        sidebarToggle.textContent = collapsed ? '→' : '←';
+      });
+    });
 
   })();
 

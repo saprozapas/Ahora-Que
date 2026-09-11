@@ -2,17 +2,7 @@
 todos{% endblock %} {% block content %}
 {% if dashboard and logueado %}
 <div class="dashboard-layout">
-  <aside class="dashboard-sidebar" aria-label="Navegación del dashboard">
-    <div class="dashboard-sidebar-top">
-      <button class="dashboard-sidebar-toggle" type="button" aria-label="Contraer navegación" aria-expanded="true">←</button>
-    </div>
-    <nav class="dashboard-sidebar-nav" aria-label="Secciones del dashboard">
-      <a class="dashboard-sidebar-link is-active" href="/dashboard" aria-current="page"><span aria-hidden="true">⌂</span><span>Inicio</span></a>
-      <a class="dashboard-sidebar-link" href="/grupos"><span aria-hidden="true">◌</span><span>Grupos</span></a>
-      <a class="dashboard-sidebar-link" href="/social"><span aria-hidden="true">✳</span><span>Social</span></a>
-      <a class="dashboard-sidebar-link" href="/perfil"><span aria-hidden="true">○</span><span>Perfil</span></a>
-    </nav>
-  </aside>
+  {% include '_dashboard_sidebar.html' %}
   <main class="dashboard-main">
 <section class="dashboard-shell section-shell">
   <div class="dashboard-heading" id="dashboard-welcome">
@@ -28,25 +18,12 @@ todos{% endblock %} {% block content %}
 </section>
   </main>
 </div>
-<script>
-  (() => {
-    const sidebar = document.querySelector('.dashboard-layout');
-    const sidebarToggle = document.querySelector('.dashboard-sidebar-toggle');
-    sidebarToggle?.addEventListener('click', () => {
-      const collapsed = sidebar.classList.toggle('is-collapsed');
-      sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
-      sidebarToggle.setAttribute('aria-label', collapsed ? 'Expandir navegación' : 'Contraer navegación');
-      sidebarToggle.textContent = collapsed ? '→' : '←';
-    });
-  })();
-</script>
 {% else %}
 <section class="hero centered-hero section-shell">
   <div class="hero-copy">
     <h1>Para responder a la pregunta<br /><em>¿Qué Hacemos Hoy?</em></h1>
     <p class="hero-text">
-      Disponibilidad, presupuesto, tiempo y ganas en un mismo lugar, para dejar
-      de dar vueltas y empezar a hacer.
+      Disponibilidad, presupuesto y ganas en un mismo lugar.
     </p>
     <div class="hero-actions">
       <a class="lime-button" href="/explorar">Encontrar un plan</a>
@@ -77,9 +54,7 @@ todos{% endblock %} {% block content %}
   <div class="manifesto-content">
     <h2>Un lugar común para<br /><em>ponerse de acuerdo.</em></h2>
     <p>
-      No somos otra lista infinita de recomendaciones. Somos la mesa donde el
-      grupo se sienta, pone sobre la mesa lo que tiene y sale con una idea
-      posible.
+      Una mesa común para decidir juntos.
     </p>
     <a class="arrow-link" href="/grupos">Conocé los grupos <span>↗</span></a>
   </div>
@@ -91,25 +66,25 @@ todos{% endblock %} {% block content %}
       <p class="section-tag">01 — la base</p>
       <h2>Todo lo que hace falta para que un plan <em>arranque.</em></h2>
     </div>
-    <p>La app lee el contexto del grupo, no solo una preferencia aislada.</p>
+    <p>Contexto real, no preferencias sueltas.</p>
   </div>
   <div class="pillar-cards">
     <article>
       <span class="pillar-number">01</span><span class="pillar-icon">◌</span>
       <h3>Disponibilidad real</h3>
-      <p>Vemos quién está libre y cuántos pueden sumarse.</p>
+      <p>Quiénes pueden sumarse.</p>
       <a href="/grupos">Ver disponibilidad ↗</a>
     </article>
     <article>
       <span class="pillar-number">02</span><span class="pillar-icon">$</span>
       <h3>Un presupuesto posible</h3>
-      <p>Desde gratis hasta ese plan especial que vienen postergando.</p>
+      <p>Opciones para cada bolsillo.</p>
       <a href="/explorar">Ver opciones ↗</a>
     </article>
     <article>
       <span class="pillar-number">03</span><span class="pillar-icon">↗</span>
       <h3>Una distancia razonable</h3>
-      <p>Ideas cerca, con el tiempo de viaje sobre la mesa.</p>
+      <p>Ideas cerca y a tiempo.</p>
       <a href="/explorar">Ver planes cerca ↗</a>
     </article>
   </div>
@@ -160,22 +135,22 @@ todos{% endblock %} {% block content %}
     <article>
       <span>01</span>
       <h3>Juntan el contexto</h3>
-      <p>Quiénes están, cuándo pueden, cuánto quieren gastar.</p>
+      <p>Horarios, presupuesto y ganas.</p>
     </article>
     <article>
       <span>02</span>
       <h3>Ordenamos las opciones</h3>
-      <p>La app cruza los datos y propone ideas que entran en el mundo real.</p>
+      <p>Cruzamos todo y proponemos opciones.</p>
     </article>
     <article>
       <span>03</span>
       <h3>Eligen y salen</h3>
-      <p>Guardan el plan, invitan al grupo y dejan de postergarlo.</p>
+      <p>Eligen una y salen.</p>
     </article>
     <article>
       <span>04</span>
       <h3>Lo recuerdan</h3>
-      <p>Califican la experiencia para que el próximo plan sea aún mejor.</p>
+      <p>Guardan lo que funcionó.</p>
     </article>
   </div>
 </section>
