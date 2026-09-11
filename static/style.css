@@ -3,7 +3,7 @@
   --cream: #f6f1e6;
   --cream-dark: #ebe2cf;
   --ink: #18140f;
-  --muted: #6e6a5d;
+  --muted: #59656d;
   --line: rgba(24, 20, 15, 0.16);
   --accent: #31533f;
   --accent-soft: #dce7dd;
@@ -2491,11 +2491,11 @@ textarea:focus-visible {
 
 
 html[data-theme="night"] {
-  --cream: #15130f;
-  --cream-dark: #211d17;
-  --ink: #f3ece0;
-  --muted: #b6ad9c;
-  --line: rgba(243, 236, 224, 0.18);
+  --cream: #101923;
+  --cream-dark: #172431;
+  --ink: #edf3f2;
+  --muted: #aebbc2;
+  --line: rgba(237, 243, 242, 0.16);
   --accent: #78927f;
   --accent-soft: #26382d;
   --text-on-accent: #15130f;
@@ -5390,5 +5390,98 @@ html[data-theme="night"] .q-sat-c {
   .auth-page {
     gap: 48px;
     padding-block: 64px 88px;
+  }
+}
+
+/* Final optical corrections for the current home/dashboard composition. */
+.hero-editorial {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+  min-height: calc(100dvh - 76px);
+}
+
+.hero-editorial h1 {
+  white-space: nowrap;
+  font-size: clamp(54px, 7.2vw, 96px);
+}
+
+.topo-mark {
+  fill: var(--accent);
+}
+
+.dashboard-main > .dashboard-shell {
+  padding-top: clamp(64px, 10vh, 116px);
+}
+
+.dashboard-main .dashboard-heading {
+  justify-items: center;
+  gap: 26px;
+  padding-block: 18px 64px;
+  text-align: center;
+}
+
+.dashboard-main .dashboard-title-row {
+  justify-content: center;
+}
+
+.dashboard-main .dashboard-welcome .dashboard-lead {
+  margin-inline: auto;
+  color: var(--muted);
+}
+
+.pillar-cards article:hover,
+.process-steps article:hover,
+.index-card:hover,
+.contact-form:hover,
+.auth-form:hover,
+.story-card:hover,
+.detail-art:hover,
+.group-visual:hover,
+.question-panel:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(24, 20, 15, 0.09);
+}
+
+.index-card:hover {
+  box-shadow: 0 12px 24px rgba(24, 20, 15, 0.09);
+}
+
+html[data-theme="night"] {
+  background: #101923;
+}
+
+html[data-theme="night"] .site-header,
+html[data-theme="night"] .dashboard-sidebar {
+  background: var(--cream);
+}
+
+html[data-theme="night"] .pillar-cards article:hover,
+html[data-theme="night"] .process-steps article:hover,
+html[data-theme="night"] .index-card:hover,
+html[data-theme="night"] .contact-form:hover,
+html[data-theme="night"] .auth-form:hover,
+html[data-theme="night"] .story-card:hover,
+html[data-theme="night"] .detail-art:hover,
+html[data-theme="night"] .group-visual:hover,
+html[data-theme="night"] .question-panel:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+}
+
+@media (max-width: 650px) {
+  .hero-editorial {
+    min-height: calc(100dvh - 72px);
+  }
+
+  .hero-editorial h1 {
+    font-size: clamp(42px, 10.5vw, 64px);
+  }
+
+  .dashboard-main > .dashboard-shell {
+    padding-top: 54px;
+  }
+
+  .dashboard-main .dashboard-heading {
+    padding-bottom: 48px;
   }
 }
