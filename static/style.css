@@ -84,6 +84,9 @@
     --illus-text:      #f2efe6;
     --illus-text-soft: rgba(242, 239, 230, 0.72);
 
+    /* Opacidad de la palabra de fondo del hero. */
+    --ghost:           0.07;
+
     /* --- Tipografías ------------------------------------------------------
        Se cargan desde Google Fonts en base.html. Si alguna vez querés
        volver a las fuentes del sistema, cambiá solo estas tres líneas.  */
@@ -94,11 +97,16 @@
 
     /* --- Escala tipográfica --------------------------------------------- */
 
-    --text-xs:         0.75rem;    /* 12px — metadatos, etiquetas         */
-    --text-sm:         0.8125rem;  /* 13px — texto de apoyo en tarjetas   */
-    --text-base:       1rem;       /* 16px — cuerpo                       */
-    --text-md:         1.0625rem;  /* 17px — bajadas                      */
-    --text-lg:         1.1875rem;  /* 19px — entradillas                  */
+    --text-xs:         0.875rem;   /* 14px — metadatos, etiquetas         */
+    --text-sm:         0.9375rem;  /* 15px — texto de apoyo en tarjetas   */
+    --text-base:       1.125rem;   /* 18px — cuerpo                       */
+    --text-md:         1.25rem;    /* 20px — bajadas                      */
+
+    /* Tamaño de los controles de interfaz (botones, navegación, chips).
+       Va aparte de la escala de texto porque los controles crecen menos
+       que el cuerpo: si siguieran a --text-base quedarían enormes.      */
+
+    --text-ui:         1rem;       /* 16px                                */
 
     /* --- Medidas y geometría -------------------------------------------- */
 
@@ -121,7 +129,6 @@
 
     --shadow-sm:       0 6px 16px rgba(24, 20, 15, 0.06);
     --shadow-md:       0 14px 32px rgba(24, 20, 15, 0.08);
-    --shadow-lg:       0 22px 48px rgba(24, 20, 15, 0.12);
     --lift:            0 3px 0 var(--ink);
     --lift-pressed:    0 1px 0 var(--ink);
 
@@ -141,30 +148,34 @@
 
   html[data-theme="night"] {
 
-    --page:            #101923;
-    --surface-1:       #172431;
-    --surface-2:       #1e2f28;
-    --surface-3:       #1b2530;
+    /* Casi negro con un violeta apenas perceptible: el azul marino
+       anterior competía con el verde de la marca.                       */
 
-    --ink:             #edf3f2;
-    --muted:           #a4b1b8;
-    --line:            rgba(237, 243, 242, 0.16);
-    --line-strong:     rgba(237, 243, 242, 0.34);
+    --page:            #141119;
+    --surface-1:       #1b1724;
+    --surface-2:       #201b2b;
+    --surface-3:       #18151f;
 
-    --accent:          #7fa98d;
-    --accent-soft:     #22342a;
-    --on-accent:       #0e1a13;
+    --ink:             #ece9f2;
+    --muted:           #a49fb2;
+    --line:            rgba(236, 233, 242, 0.14);
+    --line-strong:     rgba(236, 233, 242, 0.30);
 
-    --danger:          #ef9a8e;
-    --danger-soft:     #331d1a;
-    --success:         #86c39d;
-    --success-soft:    #17281d;
+    --accent:          #8fb59b;
+    --accent-soft:     #23202e;
+    --on-accent:       #141119;
 
-    --illus-land:      #2f5a50;
+    --danger:          #f2a094;
+    --danger-soft:     #2a1a1f;
+    --success:         #8ccfa4;
+    --success-soft:    #18221e;
+
+    --illus-land:      #315a4f;
+
+    --ghost:           0.045;
 
     --shadow-sm:       0 6px 16px rgba(0, 0, 0, 0.30);
     --shadow-md:       0 14px 32px rgba(0, 0, 0, 0.36);
-    --shadow-lg:       0 22px 48px rgba(0, 0, 0, 0.44);
     --lift:            0 3px 0 rgba(0, 0, 0, 0.55);
     --lift-pressed:    0 1px 0 rgba(0, 0, 0, 0.55);
 
@@ -273,8 +284,8 @@
   h4 {
     font-family: var(--font-display);
     font-weight: 700;
-    line-height: 1.02;
-    letter-spacing: -0.035em;
+    line-height: 1.04;
+    letter-spacing: -0.015em;
     text-wrap: balance;
   }
 
@@ -465,13 +476,17 @@
     }
   }
 
+  /* --header-h es la altura TOTAL del header, borde incluido. Por eso el
+     interior mide uno menos: asi calc(100svh - var(--header-h)) da exacto
+     y el hero no deja asomar un pixel de la seccion siguiente.        */
+
   .site-header-inner {
     display: flex;
     align-items: center;
     gap: clamp(12px, 3vw, 32px);
 
     width: min(var(--max), 100%);
-    min-height: var(--header-h);
+    min-height: calc(var(--header-h) - 1px);
     margin-inline: auto;
   }
 
@@ -491,13 +506,13 @@
   }
 
   .brand-mark {
-    width: 30px;
-    height: 30px;
-    flex: 0 0 30px;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
   }
 
   .brand-name {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
 
   .brand-name em {
@@ -526,11 +541,11 @@
     display: inline-flex;
     align-items: center;
 
-    min-height: 44px;
+    min-height: 48px;
     padding-inline: 2px;
 
     color: var(--ink);
-    font-size: var(--text-sm);
+    font-size: var(--text-ui);
     font-weight: 600;
 
     transition: color var(--fast) var(--ease);
@@ -651,9 +666,9 @@
     display: inline-flex;
     align-items: center;
 
-    min-height: 40px;
+    min-height: 44px;
 
-    font-size: var(--text-sm);
+    font-size: var(--text-ui);
     font-weight: 600;
 
     transition: color var(--fast) var(--ease);
@@ -777,14 +792,14 @@
     align-items: center;
     gap: 12px;
 
-    min-height: 44px;
-    padding: 10px 12px;
+    min-height: 50px;
+    padding: 12px 14px;
 
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
 
     color: var(--ink);
-    font-size: var(--text-sm);
+    font-size: var(--text-ui);
     font-weight: 600;
 
     transition:
@@ -797,16 +812,16 @@
     display: grid;
     place-items: center;
 
-    width: 20px;
-    height: 20px;
-    flex: 0 0 20px;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
 
     color: inherit;
   }
 
   .dashboard-sidebar-link > span:first-child svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
   }
 
   .dashboard-sidebar-link:hover {
@@ -845,7 +860,7 @@
 
   .dashboard-main {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
 
     min-width: 0;
@@ -854,7 +869,7 @@
 
   .dashboard-main > .dashboard-shell {
     width: min(var(--max), calc(100% - var(--content-gutter) * 2));
-    padding-block: clamp(56px, 10vh, 112px) 72px;
+    padding-block: 56px;
   }
 
   /* Las páginas secundarias (perfil, social, grupos) reusan el shell pero
@@ -931,7 +946,11 @@
     .dashboard-main > .dashboard-shell {
       width: calc(100% - var(--content-gutter) * 2);
       margin-inline: auto;
-      padding-block: 48px 64px;
+      padding-block: 56px 72px;
+    }
+
+    .dashboard-heading {
+      gap: 30px;
     }
   }
 }
@@ -966,13 +985,13 @@
     justify-content: center;
     gap: 10px;
 
-    min-height: 44px;
-    padding: 11px 18px;
+    min-height: 50px;
+    padding: 13px 22px;
 
     border: 1px solid var(--ink);
     border-radius: var(--radius-sm);
 
-    font-size: var(--text-sm);
+    font-size: var(--text-ui);
     font-weight: 700;
     line-height: 1;
     letter-spacing: 0.01em;
@@ -1053,12 +1072,12 @@
     align-items: center;
     gap: 8px;
 
-    min-height: 44px;
+    min-height: 48px;
     padding-bottom: 2px;
 
     border-bottom: 2px solid var(--ink);
 
-    font-size: var(--text-sm);
+    font-size: var(--text-ui);
     font-weight: 700;
 
     transition:
@@ -1112,9 +1131,9 @@
     display: grid;
     place-items: center;
 
-    width: 44px;
-    height: 44px;
-    flex: 0 0 44px;
+    width: 50px;
+    height: 50px;
+    flex: 0 0 50px;
 
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
@@ -1141,8 +1160,8 @@
   }
 
   .theme-toggle-icon svg {
-    width: 19px;
-    height: 19px;
+    width: 21px;
+    height: 21px;
   }
 
   .theme-toggle-icon .icon-sun {
@@ -1568,7 +1587,7 @@
     place-items: center;
 
     width: 100%;
-    min-height: clamp(520px, 78vh, 760px);
+    min-height: calc(100svh - var(--header-h));
     padding: clamp(48px, 8vw, 96px) var(--content-gutter);
 
     background: var(--surface-1);
@@ -1579,18 +1598,21 @@
     position: relative;
     z-index: 3;
 
-    width: min(620px, 100%);
+    /* Ancho suficiente para que el titulo entre en una linea en escritorio
+       sin tener que apretarle el tracking. Abajo de eso parte solo.    */
+
+    width: min(860px, 100%);
     text-align: center;
   }
 
-  /* Sin white-space: nowrap. El titulo anterior media 296px dentro de una
-     caja de 296px: cualquier texto mas largo, o una fuente de reserva mas
-     ancha, lo cortaba sin aviso. */
+  /* Sin white-space: nowrap (el titulo anterior media 296px dentro de una
+     caja de 296px y se cortaba sin aviso) y sin tracking negativo: a este
+     tamano las letras apretadas se leian duras, no juguetonas.        */
 
   .hero-editorial h1 {
     font-size: clamp(44px, 7.5vw, 104px);
-    line-height: 0.94;
-    letter-spacing: -0.06em;
+    line-height: 1;
+    letter-spacing: 0;
   }
 
   .hero-editorial .hero-text {
@@ -1627,7 +1649,7 @@
 
     color: var(--muted);
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.09em;
     text-transform: uppercase;
@@ -1648,7 +1670,7 @@
     font-weight: 700;
     line-height: 0.68;
     letter-spacing: -0.12em;
-    opacity: 0.07;
+    opacity: var(--ghost);
 
     transform: translate(-50%, -50%);
   }
@@ -1728,7 +1750,7 @@
   .proof-mark {
     margin-left: auto;
     color: var(--accent);
-    font-size: 1.25rem;
+    font-size: 1.5rem;
   }
 
   @media (max-width: 650px) {
@@ -1840,12 +1862,12 @@
     display: block;
     margin: 24px 0 12px;
     color: var(--accent);
-    font-size: 2.25rem;
+    font-size: 2.5rem;
     line-height: 1;
   }
 
   .pillar-cards h3 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     line-height: 1.05;
   }
 
@@ -2069,7 +2091,7 @@
 
   .process-steps h3 {
     margin: 28px 0 8px;
-    font-size: 1.375rem;
+    font-size: 1.625rem;
     line-height: 1.05;
   }
 
@@ -2115,12 +2137,17 @@
   .dashboard-heading {
     display: grid;
     justify-items: center;
-    gap: 26px;
+    gap: 36px;
 
+    width: 100%;
     text-align: center;
   }
 
   .dashboard-welcome {
+    display: grid;
+    justify-items: center;
+    gap: 18px;
+
     width: 100%;
   }
 
@@ -2128,17 +2155,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 20px;
   }
 
   .dashboard-welcome-logo {
-    width: 56px;
-    height: 56px;
-    flex: 0 0 56px;
+    width: 68px;
+    height: 68px;
+    flex: 0 0 68px;
   }
 
   .dashboard-welcome h1 {
-    font-size: clamp(38px, 5.6vw, 76px);
+    font-size: clamp(42px, 6vw, 84px);
     line-height: 1;
   }
 
@@ -2153,9 +2180,9 @@
   @media (max-width: 650px) {
 
     .dashboard-welcome-logo {
-      width: 44px;
-      height: 44px;
-      flex-basis: 44px;
+      width: 54px;
+      height: 54px;
+      flex-basis: 54px;
     }
   }
 }
@@ -2219,8 +2246,8 @@
   }
 
   .filter-chip {
-    min-height: 40px;
-    padding: 9px 16px;
+    min-height: 46px;
+    padding: 11px 20px;
 
     border: 1px solid var(--line);
     border-radius: var(--radius-pill);
@@ -2228,7 +2255,7 @@
     background: transparent;
     color: var(--ink);
 
-    font-size: var(--text-sm);
+    font-size: var(--text-ui);
     font-weight: 600;
 
     transition:
@@ -2291,7 +2318,7 @@
     max-width: calc(100% - 36px);
 
     font-family: var(--font-display);
-    font-size: 2.125rem;
+    font-size: 2.375rem;
     font-weight: 700;
     line-height: 0.92;
     letter-spacing: -0.04em;
@@ -2318,7 +2345,7 @@
   }
 
   .index-copy h2 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     line-height: 1.02;
     letter-spacing: -0.03em;
   }
@@ -2683,7 +2710,12 @@
   }
 
   .social-post-actions a {
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 44px;
     margin-left: auto;
+
     color: var(--ink);
     text-decoration: underline;
     text-underline-offset: 4px;
@@ -2804,7 +2836,7 @@
 
   .group-arrow {
     color: var(--muted);
-    font-size: 1.125rem;
+    font-size: 1.375rem;
 
     transition:
       transform var(--fast) var(--ease),
@@ -2855,8 +2887,8 @@
     display: grid;
     place-items: center;
 
-    width: 44px;
-    height: 44px;
+    width: 50px;
+    height: 50px;
 
     border: 1px solid var(--line);
     border-radius: var(--radius-pill);
@@ -2937,7 +2969,7 @@
 
   .groups-empty h3 {
     margin-bottom: 4px;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 
   .groups-empty p {
