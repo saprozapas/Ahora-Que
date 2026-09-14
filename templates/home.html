@@ -1,161 +1,297 @@
-{% extends 'base.html' %} {% block title %}Ahora Qué — Un plan que funcione para
-todos{% endblock %} {% block content %}
+{% extends 'base.html' %}
+
+{% block title %}Ahora Qué — Un plan que funcione para todos{% endblock %}
+
+{% block content %}
+
 {% if dashboard and logueado %}
+
+<!-- =========================================================================
+     DASHBOARD — bienvenida del usuario logueado
+     ========================================================================= -->
+
 <div class="dashboard-layout">
+
   {% include '_dashboard_sidebar.html' %}
-  <main class="dashboard-main">
-<section class="dashboard-shell section-shell">
-  <div class="dashboard-heading" id="dashboard-welcome">
-    <div class="dashboard-welcome">
-      <div class="dashboard-title-row">
-        <img class="dashboard-welcome-logo" src="{{ url_for('static', filename='favicon.svg') }}" alt="Logo de Ahora Qué" />
-        <h1>¿Qué hacemos <em>hoy?</em></h1>
+
+  <div class="dashboard-main">
+
+    <section class="dashboard-shell">
+
+      <div class="dashboard-heading" id="dashboard-welcome">
+
+        <div class="dashboard-welcome">
+
+          <div class="dashboard-title-row">
+
+            <img
+              class="dashboard-welcome-logo"
+              src="{{ url_for('static', filename='favicon.svg') }}"
+              alt=""
+            />
+
+            <h1>¿Qué hacemos <em>hoy?</em></h1>
+
+          </div>
+
+          <p class="dashboard-lead">
+            Hola, {{ current_user.name | default(current_user.username | default('ahí'), true) }}.
+            Todo lo que necesitan para decidir, en un mismo lugar.
+          </p>
+
+        </div>
+
+        <a class="lime-button" href="/explorar">
+          Encontrar un plan <span aria-hidden="true">↗</span>
+        </a>
+
       </div>
-      <p class="dashboard-lead">Hola, {{ current_user.name|default(current_user.username|default('ahí'), true) }}. Todo lo que necesitan para decidir, en un mismo lugar.</p>
-    </div>
-    <a class="lime-button" href="/explorar">Encontrar un plan <span aria-hidden="true">↗</span></a>
+
+    </section>
+
   </div>
-</section>
-  </main>
+
 </div>
+
 {% else %}
-<section class="hero hero-editorial section-shell">
+
+<!-- =========================================================================
+     HOME PÚBLICA
+     ========================================================================= -->
+
+
+<!-- HERO ------------------------------------------------------------------ -->
+
+<section class="hero-editorial">
+
   <div class="hero-editorial-copy">
+
     <h1>¿Qué hacemos?</h1>
+
     <p class="hero-text">Una idea que les cierre a todos.</p>
+
     <div class="hero-actions">
+
       <a class="lime-button" href="/explorar">Encontrar una idea</a>
+
       <a class="text-button" href="#como-funciona">Ver cómo funciona</a>
+
     </div>
+
   </div>
+
   <div class="hero-decision" aria-hidden="true">
+
     <span class="decision-meta">01 / AHORA QUÉ</span>
+
     <div class="decision-word">HOY</div>
-    <svg class="hero-topography" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" focusable="false">
+
+    <svg
+      class="hero-topography"
+      viewBox="0 0 1000 1000"
+      preserveAspectRatio="xMidYMid slice"
+      focusable="false"
+    >
       <circle class="topo-ring" cx="500" cy="500" r="140" />
       <circle class="topo-ring" cx="500" cy="500" r="220" />
       <circle class="topo-ring" cx="500" cy="500" r="300" />
       <circle class="topo-ring" cx="500" cy="500" r="380" />
+
       <circle class="topo-mark" cx="769" cy="231" r="7" />
       <circle class="topo-mark" cx="209" cy="744" r="7" />
       <circle class="topo-mark" cx="434" cy="125" r="7" />
     </svg>
+
   </div>
+
 </section>
+
+
+<!-- BANDA DE REFUERZO ----------------------------------------------------- -->
 
 <section class="proof-band">
+
   <div class="section-shell proof-inner">
-    <strong>Menos chat.</strong
-    ><span>Más planes.</span
-    ><span class="proof-mark">✳</span>
+
+    <strong>Menos chat.</strong>
+    <span>Más planes.</span>
+    <span class="proof-mark" aria-hidden="true">✳</span>
+
   </div>
+
 </section>
+
+
+<!-- MANIFIESTO ------------------------------------------------------------ -->
 
 <section class="manifesto section-shell">
-  <div class="section-tag">qué es ahora qué</div>
+
+  <p class="section-tag">qué es ahora qué</p>
+
   <div class="manifesto-content">
+
     <h2>Un lugar común para<br /><em>ponerse de acuerdo.</em></h2>
-    <p>
-      Una mesa común para decidir juntos.
-    </p>
-    <a class="arrow-link" href="/grupos">Conocé los grupos <span>↗</span></a>
+
+    <p>Una mesa común para decidir juntos.</p>
+
+    <a class="arrow-link" href="/grupos">
+      Conocé los grupos <span aria-hidden="true">↗</span>
+    </a>
+
   </div>
+
 </section>
 
+
+<!-- PILARES --------------------------------------------------------------- -->
+
 <section class="pillars section-shell">
+
   <div class="section-intro">
+
     <div>
       <p class="section-tag">01 — la base</p>
       <h2>Todo lo que hace falta para que un plan <em>arranque.</em></h2>
     </div>
+
     <p>Contexto real, no preferencias sueltas.</p>
+
   </div>
+
   <div class="pillar-cards">
+
     <article>
-      <span class="pillar-number">01</span><span class="pillar-icon">◌</span>
+      <span class="pillar-number">01</span>
+      <span class="pillar-icon" aria-hidden="true">◌</span>
       <h3>Disponibilidad real</h3>
       <p>Quiénes pueden sumarse.</p>
       <a href="/grupos">Ver disponibilidad ↗</a>
     </article>
+
     <article>
-      <span class="pillar-number">02</span><span class="pillar-icon">$</span>
+      <span class="pillar-number">02</span>
+      <span class="pillar-icon" aria-hidden="true">$</span>
       <h3>Un presupuesto posible</h3>
       <p>Opciones para cada bolsillo.</p>
       <a href="/explorar">Ver opciones ↗</a>
     </article>
+
     <article>
-      <span class="pillar-number">03</span><span class="pillar-icon">↗</span>
+      <span class="pillar-number">03</span>
+      <span class="pillar-icon" aria-hidden="true">↗</span>
       <h3>Una distancia razonable</h3>
       <p>Ideas cerca y a tiempo.</p>
       <a href="/explorar">Ver planes cerca ↗</a>
     </article>
+
   </div>
+
 </section>
 
+
+<!-- PLAN DESTACADO -------------------------------------------------------- -->
+
 <section class="featured-story section-shell">
+
   <div class="story-heading">
+
     <p class="section-tag">02 — una idea para hoy</p>
-    <a class="arrow-link" href="/explorar">Explorar todos <span>↗</span></a>
+
+    <a class="arrow-link" href="/explorar">
+      Explorar todos <span aria-hidden="true">↗</span>
+    </a>
+
   </div>
+
   <article class="story-card">
+
     <div class="story-art tone-coral">
+
       <div class="story-sun"></div>
       <div class="story-land"></div>
+
       <strong>caminar<br /><em>sin apuro</em></strong>
+
     </div>
+
     <div class="story-copy">
+
       <span class="story-type">{{ featured.type }}</span>
+
       <h2>{{ featured.title }}</h2>
+
       <p>{{ featured.description }}</p>
+
       <dl>
         <div>
           <dt>tiempo</dt>
           <dd>{{ featured.time }}</dd>
         </div>
+
         <div>
           <dt>costo</dt>
           <dd>{{ featured.cost }}</dd>
         </div>
+
         <div>
           <dt>cerca</dt>
           <dd>{{ featured.distance }}</dd>
         </div>
       </dl>
-      <a class="dark-button" href="/plan/{{ featured.slug }}"
-        >Abrir este plan <span>→</span></a
-      >
+
+      <a class="dark-button" href="/plan/{{ featured.slug }}">
+        Abrir este plan <span aria-hidden="true">→</span>
+      </a>
+
     </div>
+
   </article>
+
 </section>
 
+
+<!-- CÓMO FUNCIONA --------------------------------------------------------- -->
+
 <section class="process section-shell" id="como-funciona">
+
   <div class="process-title">
-    <p class="section-tag">05 — cómo funciona</p>
+
+    <p class="section-tag">03 — cómo funciona</p>
+
     <h2>Cómo construimos<br />el próximo <em>plan.</em></h2>
+
   </div>
+
   <div class="process-steps">
+
     <article>
       <span>01</span>
       <h3>Juntan el contexto</h3>
       <p>Horarios, presupuesto y ganas.</p>
     </article>
+
     <article>
       <span>02</span>
       <h3>Ordenamos las opciones</h3>
       <p>Cruzamos todo y proponemos opciones.</p>
     </article>
+
     <article>
       <span>03</span>
       <h3>Eligen y salen</h3>
       <p>Eligen una y salen.</p>
     </article>
+
     <article>
       <span>04</span>
       <h3>Lo recuerdan</h3>
       <p>Guardan lo que funcionó.</p>
     </article>
+
   </div>
+
 </section>
 
 {% endif %}
+
 {% endblock %}

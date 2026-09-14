@@ -1,31 +1,101 @@
-{% extends 'base.html' %}{% block title %}Explorar planes — Ahora Qué{% endblock
-%}{% block content %}
+{% extends 'base.html' %}
+
+{% block title %}Explorar planes — Ahora Qué{% endblock %}
+
+{% block content %}
+
 <section class="page-hero section-shell">
+
   <a class="back-link" href="/">← Volver</a>
-  <p class="eyebrow-chip">explorar</p>
+
   <h1>Una buena idea<br />empieza por <em>elegir.</em></h1>
-  <p>
-    Filtrá por tiempo, presupuesto o ganas.
-  </p>
+
+  <p>Filtrá por tiempo, presupuesto o ganas.</p>
+
 </section>
-<section class="filter-bar section-shell">
-  <span>Mostrar planes para</span
-  ><button class="filter-active">cualquiera</button><button>amigos</button
-  ><button>familia</button><button>pareja</button
-  ><span class="filter-spacer"></span><button>Filtros +</button>
+
+
+<!-- =========================================================================
+     FILTROS
+
+     Los botones se generan a partir de los tipos que realmente tienen los
+     planes, así que nunca aparece un filtro sin resultados. El filtrado
+     ocurre del lado del cliente, en app.js.
+     ========================================================================= -->
+
+<section class="filter-bar section-shell" aria-label="Filtrar planes">
+
+  <span class="filter-label">Mostrar planes</span>
+
+  <div class="filter-options">
+
+    <button
+      class="filter-chip"
+      type="button"
+      data-filtro="todos"
+      aria-pressed="true"
+    >
+      Todos
+    </button>
+
+    {% for tipo in plans | map(attribute='type') | unique | sort %}
+
+    <button
+      class="filter-chip"
+      type="button"
+      data-filtro="{{ tipo }}"
+      aria-pressed="false"
+    >
+      {{ tipo }}
+    </button>
+
+    {% endfor %}
+
+  </div>
+
 </section>
+
+
+<!-- =========================================================================
+     GRILLA DE PLANES
+     ========================================================================= -->
+
 <section class="plan-index section-shell">
-  {% for plan in plans %}<a class="index-card" href="/plan/{{ plan.slug }}"
-    ><div class="index-art tone-{{ plan.tone }}">
-      <span>{{ '%02d'|format(plan.id) }}</span><strong>{{ plan.mood }}</strong>
+
+  {% for plan in plans %}
+
+  <a class="index-card" href="/plan/{{ plan.slug }}" data-tipo="{{ plan.type }}">
+
+    <div class="index-art tone-{{ plan.tone }}">
+
+      <span>{{ '%02d' | format(plan.id) }}</span>
+
+      <strong>{{ plan.mood }}</strong>
+
     </div>
+
     <div class="index-copy">
+
       <span>{{ plan.type }}</span>
+
       <h2>{{ plan.title }}</h2>
+
       <p>{{ plan.description }}</p>
-      <small>{{ plan.time }} · {{ plan.cost }} · {{ plan.distance }}</small
-      ><b>Ver plan ↗</b>
-    </div></a
-  >{% endfor %}
+
+      <small>{{ plan.time }} · {{ plan.cost }} · {{ plan.distance }}</small>
+
+      <b>Ver plan ↗</b>
+
+    </div>
+
+  </a>
+
+  {% endfor %}
+
+  <p class="plan-index-empty" role="status" hidden>
+    No hay planes de ese tipo todavía. Probá con otro filtro.
+  </p>
+
 </section>
+
 {% endblock %}

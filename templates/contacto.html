@@ -1,29 +1,60 @@
-{% extends 'base.html' %}{% block title %}Contacto — Ahora Qué{% endblock %}{%
-block content %}
+{% extends 'base.html' %}
+
+{% block title %}Contacto — Ahora Qué{% endblock %}
+
+{% block content %}
+
 <section class="contact-page section-shell">
+
   <a class="back-link" href="/">← Volver</a>
+
   <div class="contact-copy">
-    <p class="eyebrow-chip">contacto</p>
+
     <h1>Contanos qué<br />quieren <em>hacer.</em></h1>
-    <p>
-      ¿Tenés una idea o necesitás ayuda? Te leemos.
-    </p>
+
+    <p>¿Tenés una idea o necesitás ayuda? Te leemos.</p>
+
     <div class="contact-facts">
-      <span>respondemos pronto</span><span>sin respuestas automáticas</span>
+      <span>respondemos pronto</span>
+      <span>sin respuestas automáticas</span>
     </div>
+
   </div>
+
+
   <form class="contact-form" method="post">
-    <label for="nombre">Nombre *</label
-    ><input id="nombre" name="nombre" required /><label for="email"
-      >Email *</label
-    ><input id="email" name="email" type="email" required /><label for="mensaje"
-      >Mensaje *</label
-    ><textarea id="mensaje" name="mensaje" rows="7" required></textarea>{% if
-    enviado %}
-    <p class="form-success">Mensaje recibido. Gracias por escribirnos.</p>
-    {% endif %}<button class="dark-button" type="submit">
-      Enviar mensaje <span>→</span>
+
+    {# El mensaje va arriba del formulario, no entre el textarea y el botón. #}
+    {% if enviado %}
+
+    <p class="form-message form-success" role="status">
+      Mensaje recibido. Gracias por escribirnos.
+    </p>
+
+    {% endif %}
+
+
+    <label for="nombre">Nombre *</label>
+
+    <input id="nombre" name="nombre" type="text" autocomplete="name" required />
+
+
+    <label for="email">Email *</label>
+
+    <input id="email" name="email" type="email" autocomplete="email" required />
+
+
+    <label for="mensaje">Mensaje *</label>
+
+    <textarea id="mensaje" name="mensaje" rows="7" required></textarea>
+
+
+    <button class="lime-button" type="submit">
+      Enviar mensaje <span aria-hidden="true">→</span>
     </button>
+
   </form>
+
 </section>
+
 {% endblock %}
