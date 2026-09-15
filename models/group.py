@@ -1,11 +1,17 @@
 class Group:
 
-    def __init__(self, user, name, descripcion):
+    # "id" va al final y con valor por defecto para no romper las llamadas
+    # que ya existen: Group(user, name, descripcion) sigue funcionando igual.
+    def __init__(self, user, name, descripcion, id=None):
         self.__user = user
         self.__name = name
         self.__descripcion = descripcion
         self.__usuarios = []
-        
+        self.__id = id
+
+    def get_id(self):
+        return self.__id
+
     def get_name(self):
         return self.__name
     def get_usuarios(self):

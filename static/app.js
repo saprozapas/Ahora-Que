@@ -13,6 +13,7 @@
      08. Estado "enviando" en los formularios
      09. Filtros de la página Explorar
      10. Carrusel de grupos
+     11. Copiar el enlace del grupo
 
    --------------------------------------------------------------------------
    NOTAS
@@ -642,6 +643,82 @@
 
 
   /* ========================================================================
+     11. COPIAR EL ENLACE DEL GRUPO
+
+     Copia la dirección de la página al portapapeles y confirma en el
+     propio botón. Es la forma de invitar gente mientras no exista un
+     sistema de invitaciones en el backend.
+     ======================================================================== */
+
+  const iniciarCopiarEnlace = () => {
+
+    const boton = $("[data-copiar-enlace]");
+
+    if (!boton) {
+      return;
+    }
+
+    const etiqueta = $("[data-copiar-texto]", boton) || boton;
+    const textoOriginal = etiqueta.textContent;
+    let volverATexto = null;
+
+    const confirmar = (mensaje) => {
+
+      etiqueta.textContent = mensaje;
+
+      clearTimeout(volverATexto);
+      volverATexto = setTimeout(() => {
+        etiqueta.textContent = textoOriginal;
+      }, 2200);
+    };
+
+    /*
+     * La API moderna de portapapeles falla si el documento no tiene el
+     * foco o si el navegador es viejo. En esos casos se recurre a
+     * execCommand sobre un textarea temporal, que es la via de siempre.
+     *
+     * Ese textarea depende de que el CSS permita seleccionar texto en
+     * campos de formulario: la seleccion esta desactivada en el resto de
+     * la interfaz, pero no en input ni en textarea.
+     */
+    const copiar = async (texto) => {
+
+      try {
+        await navigator.clipboard.writeText(texto);
+        return true;
+      } catch (error) {
+        // Se intenta con el metodo de reserva.
+      }
+
+      try {
+        const campo = document.createElement("textarea");
+
+        campo.value = texto;
+        campo.setAttribute("readonly", "");
+        campo.style.cssText = "position:fixed;top:0;left:-9999px;opacity:0";
+
+        document.body.appendChild(campo);
+        campo.select();
+
+        const copiado = document.execCommand("copy");
+        campo.remove();
+
+        return copiado;
+      } catch (error) {
+        return false;
+      }
+    };
+
+    boton.addEventListener("click", async () => {
+
+      const copiado = await copiar(window.location.href);
+
+      confirmar(copiado ? "Enlace copiado" : "No se pudo copiar");
+    });
+  };
+
+
+  /* ========================================================================
      ARRANQUE
      ======================================================================== */
 
@@ -654,4 +731,5 @@
   iniciarEstadoDeEnvio();
   iniciarFiltrosDePlanes();
   iniciarCarruselDeGrupos();
+  iniciarCopiarEnlace();
 })();
