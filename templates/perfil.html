@@ -17,12 +17,39 @@
 
   <a class="back-link" href="/dashboard">← Volver</a>
 
-  <div class="auth-intro">
+  <div class="profile-left">
 
-    <h1>Tu espacio<br /><em>personal.</em></h1>
+    <div class="auth-intro">
 
-    <p>Tus datos, grupos y planes guardados.</p>
+      <h1>Tu espacio<br /><em>personal.</em></h1>
 
+      <p>Tus datos, grupos y planes guardados.</p>
+
+    </div>
+
+        <form class="profile-descripcion" method="post" action="/perfil">
+
+      <label for="name">Nombre</label>
+      <input type="text" id="name" name="name" value="{{ user.name | default('', true) }}" />
+
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" value="{{ user.username | default('', true) }}" />
+
+      <label for="descripcion">Descripción</label>
+
+      <textarea
+        id="descripcion"
+        name="descripcion"
+        placeholder="Contá qué tipo de planes te gustan, con quién salís y qué buscás en el grupo..."
+      >{{ user.descripcion | default('', true) }}</textarea>
+
+      {% if error %}
+      <p class="form-message form-message-error">{{ error }}</p>
+      {% endif %}
+
+      <button class="lime-button" type="submit">Guardar</button>
+
+    </form>
   </div>
 
 

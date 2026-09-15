@@ -12,8 +12,8 @@ class AuthService:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO public."Usuarios" ("Nombre", "Mail", "Fecha_Nac", "Password_Hash", "Username")
-                    VALUES (%s, %s, %s, %s, %s)
+                    INSERT INTO public."Usuarios" ("Nombre", "Mail", "Fecha_Nac", "Password_Hash", "Username", "Description")
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     """,
                     (
                         user.get_name(),
@@ -21,6 +21,7 @@ class AuthService:
                         user.get_birth_date(),
                         user.get_password_hash(),
                         user.get_username(),
+                        user.get_description(),
                     ),
                 )
             connection.commit()
@@ -44,7 +45,8 @@ class AuthService:
                         "Fecha_Nac",
                         "Username",
                         "Mail",
-                        "Password_Hash"
+                        "Password_Hash",
+                        "Description"
                     FROM public."Usuarios"
                     WHERE "Username" = %s
                     """,
@@ -63,7 +65,8 @@ class AuthService:
                             "Fecha_Nac",
                             "Username",
                             "Mail",
-                            "Password_Hash"
+                            "Password_Hash",
+                            "Description"
                         FROM public."Usuarios"
                         WHERE "Mail" = %s
                         """,
@@ -79,7 +82,8 @@ class AuthService:
                         result[2],  # Fecha_Nac
                         result[3],  # Username
                         result[4],  # Mail
-                        result[5]   # Password_Hash
+                        result[5],  # Password_Hash
+                        result[6],   # Description
                     ), result[0]  # Id_Usuario
 
                 return None
@@ -87,5 +91,28 @@ class AuthService:
         except psycopg2.Error:
             raise
 
+        finally:
+            connection.close()
+
+    def update_profile(self, user_id, name, username, description):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT "Id_Usuario" FROM public."Usuarios" WHERE "Username" = %s AND "Id_Usuario" != %s',
+                    (username, user_id),
+                )
+                if cursor.fetchone():
+                    return False, "El nombre de usuario ya está en uso."
+
+                cursor.execute(
+                    'UPDATE public."Usuarios" SET "Nombre" = %s, "Username" = %s, "Description" = %s WHERE "Id_Usuario" = %s',
+                    (name, username, description, user_id),
+                )
+            connection.commit()
+            return True, None
+        except psycopg2.Error:
+            connection.rollback()
+            raise
         finally:
             connection.close()

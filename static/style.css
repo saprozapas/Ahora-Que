@@ -2758,16 +2758,126 @@
   /* La etiqueta va en linea: el salto lo hace el <br> del template. */
 
   .profile-card strong {
-    color: var(--muted);
-    font-size: var(--text-xs);
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+      color: var(--muted);
+      font-size: var(--text-xs);
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+      .profile-left {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;  
+    }
+
+    .profile-descripcion {
+      display: flex;
+      flex-direction: column;
+
+      flex: 1;
+      min-height: 260px;
+      padding: clamp(20px, 2.4vw, 28px);
+
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+
+      background: var(--surface-3);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .profile-descripcion label {
+      align-self: flex-start;
+
+      padding: 6px 12px;
+      margin-bottom: 16px;
+
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+
+      background: var(--page);
+      color: var(--ink);
+
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+      .profile-descripcion input[type="text"] {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+
+    background: var(--page);
+    color: var(--ink);
+
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+
+    transition:
+      border-color var(--fast) var(--ease),
+      box-shadow var(--fast) var(--ease);
   }
 
+  .profile-descripcion input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+    outline: none;
+  }
 
-  /* --- Paginas del dashboard con una sola seccion ------------------------------
-     Perfil entra entero en la pantalla, asi que su seccion se centra
+    .profile-descripcion textarea {
+      flex: 1;
+      width: 100%;
+      min-height: 160px;
+      padding: 14px 16px;
+
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      resize: vertical;
+
+      background: var(--page);
+      color: var(--ink);
+
+      font-family: var(--font-sans);
+      font-size: var(--text-base);
+      line-height: 1.5;
+
+      transition:
+        border-color var(--fast) var(--ease),
+        box-shadow var(--fast) var(--ease);
+    }
+
+    .profile-descripcion textarea::placeholder {
+      color: var(--muted);
+    }
+
+    .profile-descripcion textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+      outline: none;
+    }
+
+    .profile-descripcion button {
+      align-self: flex-start;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 900px) {
+
+      .profile-left {
+        gap: 20px;
+      }
+
+      .profile-descripcion {
+        min-height: 200px;
+      }
+    }
+
+    /* --- Paginas del dashboard con una sola seccion ------------------------------
+      Perfil entra entero en la pantalla, asi que su seccion se centra
      verticalmente y su relleno es simetrico: el titulo queda con el mismo
      aire arriba que abajo en vez de caer hacia el pie.
 
