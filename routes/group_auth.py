@@ -63,16 +63,7 @@ def detalle_grupo(group_id):
     if redirect_response:
         return redirect_response
 
-    # Se buscan los grupos del usuario y se elige el pedido. Al filtrar
-    # sobre esa lista, un usuario no puede abrir un grupo al que no
-    # pertenece: si el id no esta entre los suyos, vuelve al listado.
-    grupos = getGroupsForUser(session.get("user_id"))
-    grupo = next((g for g in grupos if g.get_id() == group_id), None)
-
-    if grupo is None:
-        return redirect(url_for("group_auth.grupos"))
-
-    return render_template("grupo.html", group=grupo, groups_page=True)
+    return render_template("grupos.html", groups=[], groups_page=True, selected_group_id=group_id)
 
 
 @group_auth.route("/group_register", methods=["GET", "POST"])

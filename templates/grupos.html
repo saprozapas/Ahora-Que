@@ -13,6 +13,41 @@
 {% endif %}
 
 
+{#
+  El interior de una tarjeta de grupo, en un macro, para no repetirlo en
+  las dos variantes de abajo (con enlace y sin enlace).
+#}
+{% macro contenido_de_tarjeta(group, numero, enlazable) %}
+
+  <div class="group-card-top">
+
+    <span class="group-number">{{ '%02d' | format(numero) }}</span>
+
+    {% if enlazable %}
+    <span class="group-arrow" aria-hidden="true">↗</span>
+    {% endif %}
+
+  </div>
+
+  <div class="group-card-content">
+
+    <h3>{{ group.get_name() }}</h3>
+
+    {% if group.get_description() %}
+
+    <p>{{ group.get_description() }}</p>
+
+    {% else %}
+
+    <p class="no-description">Sin descripción.</p>
+
+    {% endif %}
+
+  </div>
+
+{% endmacro %}
+
+
 {% if groups_page %}
 
 <!-- =========================================================================
@@ -48,33 +83,30 @@
 
         {% for group in groups %}
 
-        <a class="group-card" href="/grupos/{{ group.get_id() }}">
+        {#
+          Solo se arma el enlace si el grupo trae un id, y solo se lo pide
+          si el objeto tiene el método: "group.get_id is defined" comprueba
+          que exista ANTES de llamarlo, así el template no se rompe
+          mientras el modelo de backend no lo implemente. Cuando lo
+          implementen (Group.get_id(), o el dict/objeto que usen en su
+          lugar), esta tarjeta va a empezar a enlazar sola, sin tocar este
+          archivo.
+        #}
+        {% set group_id = group.get_id() if group.get_id is defined else none %}
 
-          <div class="group-card-top">
+        {% if group_id %}
 
-            <span class="group-number">{{ '%02d' | format(loop.index) }}</span>
-
-            <span class="group-arrow" aria-hidden="true">↗</span>
-
-          </div>
-
-          <div class="group-card-content">
-
-            <h3>{{ group.get_name() }}</h3>
-
-            {% if group.get_description() %}
-
-            <p>{{ group.get_description() }}</p>
-
-            {% else %}
-
-            <p class="no-description">Sin descripción.</p>
-
-            {% endif %}
-
-          </div>
-
+        <a class="group-card" href="/grupos/{{ group_id }}">
+          {{ contenido_de_tarjeta(group, loop.index, true) }}
         </a>
+
+        {% else %}
+
+        <article class="group-card">
+          {{ contenido_de_tarjeta(group, loop.index, false) }}
+        </article>
+
+        {% endif %}
 
         {% endfor %}
 
