@@ -54,105 +54,105 @@
      VISTA DEL USUARIO LOGUEADO
      ========================================================================= -->
 
+<!--
+  Cabecera centrada: título y bajada en una sola línea, con el botón de
+  crear grupo debajo. El carrusel es harina de otro costal: vive en su
+  propia sección de ancho completo, más abajo.
+-->
+
 <section class="page-hero section-shell">
 
   <a class="back-link" href="/dashboard">← Volver</a>
 
-  <div class="groups-hero-layout">
+  <div class="groups-hero-copy">
 
-    <div class="groups-hero-copy">
+    <h1>Tus grupos <em>están acá.</em></h1>
 
-      <h1>Tus grupos<br /><em>están acá.</em></h1>
+    <p>Creá un espacio para organizar planes y decidir junto a los demás.</p>
 
-      <p>Creá un espacio para organizar planes y decidir junto a los demás.</p>
-
-      <a class="lime-button" href="/grupos/nuevo">
-        Crear un grupo <span aria-hidden="true">↗</span>
-      </a>
-
-    </div>
-
-
-    {% if groups %}
-
-    <!-- Carrusel de grupos. La paginación la maneja app.js. -->
-
-    <div class="groups-carousel">
-
-      <div class="groups-grid" id="groupsGrid">
-
-        {% for group in groups %}
-
-        {#
-          Solo se arma el enlace si el grupo trae un id, y solo se lo pide
-          si el objeto tiene el método: "group.get_id is defined" comprueba
-          que exista ANTES de llamarlo, así el template no se rompe
-          mientras el modelo de backend no lo implemente. Cuando lo
-          implementen (Group.get_id(), o el dict/objeto que usen en su
-          lugar), esta tarjeta va a empezar a enlazar sola, sin tocar este
-          archivo.
-        #}
-        {% set group_id = group.get_id() if group.get_id is defined else none %}
-
-        {% if group_id %}
-
-        <a class="group-card" href="/grupos/{{ group_id }}">
-          {{ contenido_de_tarjeta(group, loop.index, true) }}
-        </a>
-
-        {% else %}
-
-        <article class="group-card">
-          {{ contenido_de_tarjeta(group, loop.index, false) }}
-        </article>
-
-        {% endif %}
-
-        {% endfor %}
-
-      </div>
-
-
-      <div class="groups-navigation">
-
-        <button
-          class="groups-nav-button"
-          type="button"
-          id="groupsPrev"
-          aria-label="Grupos anteriores"
-        >
-          ←
-        </button>
-
-        <p class="groups-page-indicator">
-          <span id="groupsCurrentPage">01</span>
-          <span class="indicator-line" aria-hidden="true"></span>
-          <span id="groupsTotalPages">01</span>
-        </p>
-
-        <button
-          class="groups-nav-button"
-          type="button"
-          id="groupsNext"
-          aria-label="Grupos siguientes"
-        >
-          →
-        </button>
-
-      </div>
-
-    </div>
-
-    {% endif %}
+    <a class="lime-button" href="/grupos/nuevo">
+      Crear un grupo <span aria-hidden="true">↗</span>
+    </a>
 
   </div>
 
 </section>
 
 
-{% if not groups %}
-
 <section class="groups-section section-shell">
+
+  {% if groups %}
+
+  <!-- Carrusel de grupos, a lo ancho de toda la sección. La paginación
+       la maneja app.js: de a 3 en escritorio, 2 en tablet, 1 en celular. -->
+
+  <div class="groups-carousel">
+
+    <div class="groups-grid" id="groupsGrid">
+
+      {% for group in groups %}
+
+      {#
+        Solo se arma el enlace si el grupo trae un id, y solo se lo pide
+        si el objeto tiene el método: "group.get_id is defined" comprueba
+        que exista ANTES de llamarlo, así el template no se rompe
+        mientras el modelo de backend no lo implemente. Cuando lo
+        implementen (Group.get_id(), o el dict/objeto que usen en su
+        lugar), esta tarjeta va a empezar a enlazar sola, sin tocar este
+        archivo.
+      #}
+      {% set group_id = group.get_id() if group.get_id is defined else none %}
+
+      {% if group_id %}
+
+      <a class="group-card" href="/grupos/{{ group_id }}">
+        {{ contenido_de_tarjeta(group, loop.index, true) }}
+      </a>
+
+      {% else %}
+
+      <article class="group-card">
+        {{ contenido_de_tarjeta(group, loop.index, false) }}
+      </article>
+
+      {% endif %}
+
+      {% endfor %}
+
+    </div>
+
+
+    <div class="groups-navigation">
+
+      <button
+        class="groups-nav-button"
+        type="button"
+        id="groupsPrev"
+        aria-label="Grupos anteriores"
+      >
+        ←
+      </button>
+
+      <p class="groups-page-indicator">
+        <span id="groupsCurrentPage">01</span>
+        <span class="indicator-line" aria-hidden="true"></span>
+        <span id="groupsTotalPages">01</span>
+      </p>
+
+      <button
+        class="groups-nav-button"
+        type="button"
+        id="groupsNext"
+        aria-label="Grupos siguientes"
+      >
+        →
+      </button>
+
+    </div>
+
+  </div>
+
+  {% else %}
 
   <div class="groups-empty">
 
@@ -167,9 +167,9 @@
 
   </div>
 
-</section>
+  {% endif %}
 
-{% endif %}
+</section>
 
 
 {% else %}

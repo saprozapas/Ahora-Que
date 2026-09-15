@@ -15,6 +15,7 @@
      10. Carrusel de grupos
      11. Copiar el enlace del grupo
      12. Editar Perfil
+     11. Modales
 
    --------------------------------------------------------------------------
    NOTAS
@@ -557,9 +558,10 @@
   /* ========================================================================
      10. CARRUSEL DE GRUPOS
 
-     Muestra los grupos de a página: dos por vez en escritorio, uno en
-     celular. Usa el atributo hidden en lugar de style.display para no
-     pelear con el display:flex que define el CSS.
+     Muestra los grupos de a página: tres en escritorio, dos en tablet,
+     uno en celular — los mismos tres escalones que usa la grilla de
+     .groups-grid en el CSS. Usa el atributo hidden en lugar de
+     style.display para no pelear con el display:flex que define el CSS.
      ======================================================================== */
 
   const iniciarCarruselDeGrupos = () => {
@@ -583,7 +585,19 @@
 
     let pagina = 0;
 
-    const tarjetasPorPagina = () => (window.innerWidth <= 650 ? 1 : 2);
+    // Los mismos cortes que .groups-grid en el CSS: 1 / 2 / 3 columnas.
+    const tarjetasPorPagina = () => {
+
+      if (window.innerWidth <= 650) {
+        return 1;
+      }
+
+      if (window.innerWidth <= 900) {
+        return 2;
+      }
+
+      return 3;
+    };
 
     const conDosDigitos = (numero) => String(numero).padStart(2, "0");
 
@@ -644,77 +658,49 @@
 
 
   /* ========================================================================
-     11. COPIAR EL ENLACE DEL GRUPO
+     11. MODALES
 
-     Copia la dirección de la página al portapapeles y confirma en el
-     propio botón. Es la forma de invitar gente mientras no exista un
-     sistema de invitaciones en el backend.
+     Se apoyan en <dialog> nativo (showModal / close), que da gratis el
+     cierre con Escape y el foco atrapado adentro mientras está abierto.
+     Lo único que hace falta escribir a mano es:
+
+       · abrirlo desde el botón que lo dispara
+       · cerrarlo al tocar afuera (el clic cae sobre el propio <dialog>,
+         que es lo que ocupa toda la "cortina" detrás del contenido)
+       · devolver el foco al botón que lo abrió, al cerrarse
+
+     Los botones de ADENTRO del modal (cerrar, cancelar, confirmar) no
+     necesitan JS: viven en un <form method="dialog">, así que cualquier
+     click ahí cierra el modal solo, sin mandar nada a ningún lado.
      ======================================================================== */
 
-  const iniciarCopiarEnlace = () => {
+  const iniciarModales = () => {
 
-    const boton = $("[data-copiar-enlace]");
+    $$("[data-modal-open]").forEach((disparador) => {
 
-    if (!boton) {
-      return;
-    }
+      const dialogo = document.getElementById(disparador.dataset.modalOpen);
 
-    const etiqueta = $("[data-copiar-texto]", boton) || boton;
-    const textoOriginal = etiqueta.textContent;
-    let volverATexto = null;
-
-    const confirmar = (mensaje) => {
-
-      etiqueta.textContent = mensaje;
-
-      clearTimeout(volverATexto);
-      volverATexto = setTimeout(() => {
-        etiqueta.textContent = textoOriginal;
-      }, 2200);
-    };
-
-    /*
-     * La API moderna de portapapeles falla si el documento no tiene el
-     * foco o si el navegador es viejo. En esos casos se recurre a
-     * execCommand sobre un textarea temporal, que es la via de siempre.
-     *
-     * Ese textarea depende de que el CSS permita seleccionar texto en
-     * campos de formulario: la seleccion esta desactivada en el resto de
-     * la interfaz, pero no en input ni en textarea.
-     */
-    const copiar = async (texto) => {
-
-      try {
-        await navigator.clipboard.writeText(texto);
-        return true;
-      } catch (error) {
-        // Se intenta con el metodo de reserva.
+      if (!dialogo) {
+        return;
       }
 
-      try {
-        const campo = document.createElement("textarea");
+      disparador.addEventListener("click", () => {
+        dialogo.showModal();
+      });
 
-        campo.value = texto;
-        campo.setAttribute("readonly", "");
-        campo.style.cssText = "position:fixed;top:0;left:-9999px;opacity:0";
+      dialogo.addEventListener("close", () => {
+        disparador.focus();
+      });
+    });
 
-        document.body.appendChild(campo);
-        campo.select();
+    $$("dialog.modal").forEach((dialogo) => {
 
-        const copiado = document.execCommand("copy");
-        campo.remove();
+      dialogo.addEventListener("click", (evento) => {
 
-        return copiado;
-      } catch (error) {
-        return false;
-      }
-    };
-
-    boton.addEventListener("click", async () => {
-
-      const copiado = await copiar(window.location.href);
-
-      confirmar(copiado ? "Enlace copiado" : "No se pudo copiar");
+        if (evento.target === dialogo) {
+          dialogo.close();
+        }
+      });
     });
   };
 
@@ -809,4 +795,5 @@
   iniciarCarruselDeGrupos();
   iniciarCopiarEnlace();
   iniciarCamposEditables();
+  iniciarModales();
 })();
