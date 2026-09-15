@@ -89,8 +89,18 @@ def invitar_usuario(group_id):
         )
     x, user_id = resultado
     
-
-    group_auth_service.invite_user(user_id, group_id, mensaje, nombre_invitante)
+    try:
+        group_auth_service.invite_user(user_id, group_id, mensaje, nombre_invitante)
+        flash("Usuario invitado exitosamente.")
+        return redirect(
+            url_for("group_auth.detalle_grupo", group_id=group_id)
+        )
+    except Exception as e:
+        flash("Error al invitar al usuario.")
+        return redirect(
+            url_for("group_auth.detalle_grupo", group_id=group_id)
+        )
+    
 
     return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 

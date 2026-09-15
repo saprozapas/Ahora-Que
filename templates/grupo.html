@@ -163,7 +163,8 @@
 
 <dialog class="modal" id="modal-invitar" aria-labelledby="modal-invitar-title">
 
-  <form method="POST", action="{{ url_for('group_auth.invitar_usuario', group_id=group.id) }}">
+  <form method="POST"
+        action="{{ url_for('group_auth.invitar_usuario', group_id=group.get_id()) }}">
 
     <div class="modal-head">
 
@@ -204,7 +205,7 @@
     </div>
 
     <div class="modal-actions">
-      <button class="header-action header-action-ghost" type="submit">Cancelar</button>
+      <button class="header-action header-action-ghost" type="button">Cancelar</button>
       <button class="lime-button" type="submit">Enviar invitación</button>
     </div>
 
@@ -280,7 +281,7 @@
     </div>
 
     <div class="modal-actions">
-      <button class="header-action header-action-ghost" type="submit">Cancelar</button>
+      <button class="header-action header-action-ghost" type="button">Cancelar</button>
       <button class="lime-button" type="submit">Guardar cambios</button>
     </div>
 
