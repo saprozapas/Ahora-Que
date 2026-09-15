@@ -21,6 +21,16 @@
      ========================================================================= -->
 
 <section class="group-detail section-shell">
+  
+  {% with mensajes = get_flashed_messages() %}
+    {% if mensajes %}
+        {% for mensaje in mensajes %}
+            <div class="flash-message">
+                {{ mensaje }}
+            </div>
+        {% endfor %}
+    {% endif %}
+  {% endwith %} 
 
   <a class="back-link" href="/grupos">← Volver a grupos</a>
 
@@ -153,7 +163,7 @@
 
 <dialog class="modal" id="modal-invitar" aria-labelledby="modal-invitar-title">
 
-  <form method="dialog">
+  <form method="POST", action="{{ url_for('group_auth.invitar_usuario', group_id=group.id) }}">
 
     <div class="modal-head">
 
@@ -176,7 +186,7 @@
           id="invitar-username"
           name="username"
           type="text"
-          placeholder="Ej. saprozapas"
+          placeholder="Ej. pepe123"
           autocomplete="off"
         />
       </div>

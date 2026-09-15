@@ -38,3 +38,23 @@ class GroupAuthService:
 
         cursor.close()
         conn.close()
+
+
+    def invite_user(self, user_id, group_id, mensaje, nombre_invitante, conn=None):
+        if conn is None:
+            conn = get_db_connection()
+        cursor = conn.cursor()
+    
+        cursor.execute(
+            """
+            INSERT INTO public."Invitaciones" ("Id_usuario", "Id_grupo", "Mensaje", "Nombre_invitante")
+            VALUES (%s, %s, %s, %s)
+            """,
+            (user_id, group_id, mensaje, nombre_invitante)
+        )
+        
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()

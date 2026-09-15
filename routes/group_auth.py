@@ -1,12 +1,14 @@
-from flask import Blueprint, render_template, request, redirect, session, url_for
+from flask import Blueprint, render_template, request, redirect, session, url_for, flash
 import psycopg2
 from models.group import Group
 from services.group_auth_service import GroupAuthService
 from werkzeug.security import generate_password_hash
+from services.auth_service import AuthService
 from database_bridge.database_bridge import getUser, getGroupsForUser, isUserInGroup, getGroupById
 
 group_auth = Blueprint("group_auth", __name__)
 group_auth_service = GroupAuthService()
+auth_service = AuthService()
 
 
 def _require_login():
@@ -73,6 +75,24 @@ def detalle_grupo(group_id):
     group.set_user(getUser(session.get("user_id")))
     return render_template("grupo.html", group=group, groups_page=True)
 
+@group_auth.route("/grupos/<group_id>/invitar", methods=["POST"])
+def invitar_usuario(group_id):
+    username = request.form.get("username")
+    mensaje = request.form.get("mensaje")
+    nombre_invitante = getUser(session.get("user_id")).get_name()
+    resultado = auth_service.getUserAndId(username)
+    
+    if resultado is None:
+        flash("Usuario no encontrado.")
+        return redirect(
+        url_for("group_auth.detalle_grupo", group_id=group_id)
+        )
+    x, user_id = resultado
+    
+
+    group_auth_service.invite_user(user_id, group_id, mensaje, nombre_invitante)
+
+    return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 
 @group_auth.route("/group_register", methods=["GET", "POST"])
 def register():
