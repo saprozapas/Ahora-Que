@@ -15,7 +15,7 @@
      10. Carrusel de grupos
      11. Copiar el enlace del grupo
      12. Editar Perfil
-     11. Modales
+     13. Modales
 
    --------------------------------------------------------------------------
    NOTAS
@@ -657,8 +657,74 @@
   };
 
 
+    /* ========================================================================
+     11. COPIAR EL ENLACE DEL GRUPO
+
+     Copia la dirección de la página al portapapeles y confirma en el
+     propio botón. Es la forma de invitar gente mientras no exista un
+     sistema de invitaciones en el backend.
+     ======================================================================== */
+
+  const iniciarCopiarEnlace = () => {
+
+    const boton = $("[data-copiar-enlace]");
+
+    if (!boton) {
+      return;
+    }
+
+    const etiqueta = $("[data-copiar-texto]", boton) || boton;
+    const textoOriginal = etiqueta.textContent;
+    let volverATexto = null;
+
+    const confirmar = (mensaje) => {
+
+      etiqueta.textContent = mensaje;
+
+      clearTimeout(volverATexto);
+      volverATexto = setTimeout(() => {
+        etiqueta.textContent = textoOriginal;
+      }, 2200);
+    };
+
+    const copiar = async (texto) => {
+
+      try {
+        await navigator.clipboard.writeText(texto);
+        return true;
+      } catch (error) {
+        // Se intenta con el metodo de reserva.
+      }
+
+      try {
+        const campo = document.createElement("textarea");
+
+        campo.value = texto;
+        campo.setAttribute("readonly", "");
+        campo.style.cssText = "position:fixed;top:0;left:-9999px;opacity:0";
+
+        document.body.appendChild(campo);
+        campo.select();
+
+        const copiado = document.execCommand("copy");
+        campo.remove();
+
+        return copiado;
+      } catch (error) {
+        return false;
+      }
+    };
+
+    boton.addEventListener("click", async () => {
+
+      const copiado = await copiar(window.location.href);
+
+      confirmar(copiado ? "Enlace copiado" : "No se pudo copiar");
+    });
+  };
+
   /* ========================================================================
-     11. MODALES
+     12. MODALES
 
      Se apoyan en <dialog> nativo (showModal / close), que da gratis el
      cierre con Escape y el foco atrapado adentro mientras está abierto.
@@ -705,7 +771,7 @@
   };
 
       /* ========================================================================
-     12. CAMPOS EDITABLES DEL PERFIL
+     13. CAMPOS EDITABLES DEL PERFIL
      ======================================================================== */
 
   const iniciarCamposEditables = () => {
