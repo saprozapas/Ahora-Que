@@ -82,6 +82,41 @@ def getGroupsForUser(uid):
     finally:
         connection.close()
 
+def getGroupById(group_id):
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    "Id_Grupo",
+                    "Nombre",
+                    "Descripcion"
+                FROM public."Grupos"
+                WHERE "Id_Grupo" = %s
+                """,
+                (group_id,)
+            )
+
+            result = cursor.fetchone()
+
+            if result is None:
+                return None
+
+            return Group(
+                None,      # lo que corresponda al primer atributo
+                result[1], # Nombre
+                result[2], # Descripcion
+                result[0]  # Id_Grupo
+            )
+
+    except psycopg2.Error:
+        raise
+
+    finally:
+        connection.close()
+
 def isUserInGroup(uid, group_id):
     connection = get_db_connection()
 

@@ -3,7 +3,7 @@ import psycopg2
 from models.group import Group
 from services.group_auth_service import GroupAuthService
 from werkzeug.security import generate_password_hash
-from database_bridge.database_bridge import getUser, getGroupsForUser, isUserInGroup
+from database_bridge.database_bridge import getUser, getGroupsForUser, isUserInGroup, getGroupById
 
 group_auth = Blueprint("group_auth", __name__)
 group_auth_service = GroupAuthService()
@@ -60,7 +60,7 @@ def nuevo_grupo():
                            form_data={})
 
 
-@group_auth.route("/grupos/<int:group_id>")
+@group_auth.route("/grupos/<group_id>")
 def detalle_grupo(group_id):
     redirect_response = _require_login()
     if redirect_response:
@@ -69,7 +69,9 @@ def detalle_grupo(group_id):
     if not isUserInGroup(session.get("user_id"), group_id):
         return redirect(url_for("group_auth.grupos"))
 
-    return render_template("grupos.html", groups=[], groups_page=True, selected_group_id=group_id)
+    group = getGroupById(group_id)
+    group.set_user(getUser(session.get("user_id")))
+    return render_template("grupo.html", group=group, groups_page=True)
 
 
 @group_auth.route("/group_register", methods=["GET", "POST"])
