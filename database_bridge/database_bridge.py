@@ -73,7 +73,9 @@ def getGroupsForUser(uid):
 
             groups = []
             for result in results:
-                groups.append(Group(None, result[1], result[2]))
+                # result[0] es el Id_Grupo. Antes se descartaba, y sin el
+                # las tarjetas de grupo no podian enlazar a ningun lado.
+                groups.append(Group(None, result[1], result[2], result[0]))
             return groups
 
     except psycopg2.Error:

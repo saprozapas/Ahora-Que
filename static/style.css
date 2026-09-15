@@ -819,9 +819,9 @@
     display: grid;
     place-items: center;
 
-    width: 34px;
-    height: 34px;
-    flex: 0 0 34px;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
 
     border: 1px solid var(--line);
     border-radius: var(--radius-pill);
@@ -3396,5 +3396,145 @@
 
   [hidden] {
     display: none !important;
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   DETALLE DE GRUPO
+
+   La pantalla que se abre al tocar una tarjeta en /grupos. Reusa el mismo
+   vocabulario de superficies y bordes del resto de la app.
+   -------------------------------------------------------------------------- */
+
+@layer pages {
+
+  .group-detail {
+    padding-block: clamp(40px, 6vw, 64px) clamp(28px, 4vw, 40px);
+  }
+
+  .group-detail-head {
+    display: grid;
+    justify-items: start;
+    gap: 16px;
+
+    max-width: 780px;
+  }
+
+  .group-detail-head h1 {
+    font-size: clamp(40px, 6vw, 84px);
+    line-height: 1;
+
+    /* El nombre lo escribe el usuario: puede ser una sola palabra larga. */
+    overflow-wrap: anywhere;
+  }
+
+  .group-detail-lead {
+    max-width: 52ch;
+    color: var(--muted);
+    font-size: var(--text-md);
+  }
+
+  .group-detail-lead.no-description {
+    font-style: italic;
+    opacity: 0.8;
+  }
+
+  .group-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+
+    margin-top: 12px;
+  }
+
+
+  /* --- Paneles ---------------------------------------------------------- */
+
+  .group-panels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+
+    padding-bottom: clamp(64px, 9vw, 96px);
+  }
+
+  .group-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    min-height: 230px;
+    padding: clamp(22px, 2.6vw, 30px);
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+
+    background: var(--surface-1);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .group-panel:nth-child(2) {
+    background: var(--surface-2);
+  }
+
+  .group-panel:nth-child(3) {
+    background: var(--surface-3);
+  }
+
+  .group-panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .group-panel-head h2 {
+    font-size: clamp(20px, 1.9vw, 26px);
+    line-height: 1.1;
+  }
+
+  .group-panel-count {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .group-panel-empty {
+    max-width: 34ch;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+
+  .group-panel .arrow-link {
+    margin-top: auto;
+  }
+
+  @media (max-width: 900px) {
+
+    .group-panels {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 650px) {
+
+    .group-panels {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .group-panel {
+      min-height: 0;
+    }
+
+    .group-detail-actions .lime-button,
+    .group-detail-actions .dark-button {
+      flex: 1 1 auto;
+    }
   }
 }

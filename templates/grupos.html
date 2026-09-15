@@ -48,7 +48,7 @@
 
         {% for group in groups %}
 
-        <article class="group-card">
+        <a class="group-card" href="/grupos/{{ group.get_id() }}">
 
           <div class="group-card-top">
 
@@ -74,7 +74,7 @@
 
           </div>
 
-        </article>
+        </a>
 
         {% endfor %}
 
