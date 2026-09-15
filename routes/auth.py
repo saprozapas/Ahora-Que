@@ -37,7 +37,7 @@ def login():
                 "name": user_login.get_name(),
                 "username": user_login.get_username(),
                 "email": user_login.get_email(),
-                "descripcion": user_login.get_description(),
+                "descripcion": user_login.get_descripcion(),
             }
             return redirect("/dashboard")
         else:

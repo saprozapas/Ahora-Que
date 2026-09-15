@@ -22,3 +22,9 @@
 9. Sistema de **ENCUESTAS** para los planes grupales.
 
 10. Filtro de planes: SOLO, AMIGOS, FAMILIA, PAREJA, etc.
+
+Lalo:
+1-Agregar error al cambiar username
+2-cambiar description por descripcion
+3-cambiar la pagina de editar
+4-empezar con planes creados y calendario

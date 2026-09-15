@@ -1,12 +1,12 @@
 class User:
 
-    def __init__(self, name, birth_date, username, email, password_hash, description=None):        
+    def __init__(self, name, birth_date, username, email, password_hash, descripcion=None):
         self.__name = name
         self.__birth_date = birth_date
         self.__username = username
         self.__email = email
         self.__password_hash = password_hash
-        self.__description = description
+        self.__descripcion = descripcion
 
     def get_name(self):
         return self.__name
@@ -18,8 +18,8 @@ class User:
         return self.__password_hash
     def get_email(self):
         return self.__email
-    def get_description(self):
-        return self.__description
+    def get_descripcion(self):
+        return self.__descripcion
 
     def set_name(self, name):
         self.__name = name
@@ -27,5 +27,5 @@ class User:
         self.__birth_date = birth_date
     def set_username(self, username):
         self.__username = username
-    def set_description(self, description):
-        self.__description = description
+    def set_descripcion(self, descripcion):
+        self.__descripcion = descripcion

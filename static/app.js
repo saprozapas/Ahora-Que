@@ -14,6 +14,7 @@
      09. Filtros de la página Explorar
      10. Carrusel de grupos
      11. Copiar el enlace del grupo
+     12. Editar Perfil
 
    --------------------------------------------------------------------------
    NOTAS
@@ -717,6 +718,81 @@
     });
   };
 
+      /* ========================================================================
+     12. CAMPOS EDITABLES DEL PERFIL
+     ======================================================================== */
+
+  const iniciarCamposEditables = () => {
+
+    const mostrarError = (formulario, mensaje) => {
+      const parrafo = formulario.querySelector('[data-role="error"]');
+      if (!parrafo) return;
+      parrafo.textContent = mensaje || "";
+      parrafo.hidden = !mensaje;
+    };
+
+    const manejarEnvio = (formulario, alGuardar) => {
+      formulario.addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+
+        const boton = formulario.querySelector('[type="submit"]');
+        if (boton) boton.setAttribute("aria-busy", "true");
+
+        try {
+          const respuesta = await fetch(formulario.action, {
+            method: "POST",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            body: new FormData(formulario),
+          });
+
+          const datos = await respuesta.json();
+          alGuardar(datos);
+        } catch (error) {
+          alGuardar({ ok: false, error: "No se pudo guardar. Probá de nuevo." });
+        } finally {
+          if (boton) boton.removeAttribute("aria-busy");
+        }
+      });
+    };
+
+    // Nombre y username: alternan entre vista y edición.
+    document.querySelectorAll(".field-editable").forEach((formulario) => {
+
+      const vista = formulario.querySelector(".field-view");
+      const edicion = formulario.querySelector(".field-edit");
+      const botonEditar = formulario.querySelector(".field-edit-btn");
+      const valorMostrado = formulario.querySelector('[data-role="value"]');
+      const campo = edicion ? edicion.querySelector("input") : null;
+
+      if (!vista || !edicion || !botonEditar) return;
+
+      botonEditar.addEventListener("click", () => {
+        vista.hidden = true;
+        edicion.hidden = false;
+        if (campo) campo.focus();
+      });
+
+      manejarEnvio(formulario, (datos) => {
+        if (datos.ok) {
+          if (valorMostrado) valorMostrado.textContent = datos.value;
+          mostrarError(formulario, "");
+          edicion.hidden = true;
+          vista.hidden = false;
+        } else {
+          mostrarError(formulario, datos.error);
+        }
+      });
+    });
+
+    // Descripcion: siempre editable, solo confirma o muestra error.
+    const formDescripcion = document.querySelector(".profile-descripcion");
+    if (formDescripcion) {
+      manejarEnvio(formDescripcion, (datos) => {
+        mostrarError(formDescripcion, datos.ok ? "" : datos.error);
+      });
+    }
+  };
+
 
   /* ========================================================================
      ARRANQUE
@@ -732,4 +808,5 @@
   iniciarFiltrosDePlanes();
   iniciarCarruselDeGrupos();
   iniciarCopiarEnlace();
+  iniciarCamposEditables();
 })();

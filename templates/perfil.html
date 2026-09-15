@@ -27,13 +27,9 @@
 
     </div>
 
-        <form class="profile-descripcion" method="post" action="/perfil">
+    <form class="profile-descripcion" method="post" action="/perfil">
 
-      <label for="name">Nombre</label>
-      <input type="text" id="name" name="name" value="{{ user.name | default('', true) }}" />
-
-      <label for="username">Username</label>
-      <input type="text" id="username" name="username" value="{{ user.username | default('', true) }}" />
+      <input type="hidden" name="target" value="descripcion" />
 
       <label for="descripcion">Descripción</label>
 
@@ -43,28 +39,61 @@
         placeholder="Contá qué tipo de planes te gustan, con quién salís y qué buscás en el grupo..."
       >{{ user.descripcion | default('', true) }}</textarea>
 
-      {% if error %}
-      <p class="form-message form-message-error">{{ error }}</p>
-      {% endif %}
+      <p class="form-message form-message-error" data-role="error" {% if not error_descripcion %}hidden{% endif %}>{{ error_descripcion }}</p>
 
       <button class="lime-button" type="submit">Guardar</button>
 
     </form>
+
   </div>
 
 
   <div class="auth-form profile-card">
 
-    <p>
-      <strong>Nombre</strong><br />
-      {{ user.name | default('Sin datos', true) }}
-    </p>
+        <form method="post" action="/perfil" class="field-editable">
 
-    <p>
-      <strong>Username</strong><br />
-      {{ user.username | default('Sin datos', true) }}
-    </p>
+      <input type="hidden" name="target" value="name" />
 
+      <p>
+        <strong>Nombre</strong><br />
+
+        <span class="field-view" {% if error_name %}hidden{% endif %}>
+          <span data-role="value">{{ user.name | default('Sin datos', true) }}</span>
+          <button type="button" class="field-edit-btn" aria-label="Editar nombre">✎</button>
+        </span>
+
+        <span class="field-edit" {% if not error_name %}hidden{% endif %}>
+          <input type="text" name="name" value="{{ user.name | default('', true) }}" />
+          <button type="submit" class="field-save-btn" aria-label="Guardar nombre">✓</button>
+        </span>
+      </p>
+
+      <p class="form-message form-message-error" data-role="error" {% if not error_name %}hidden{% endif %}>{{ error_name }}</p>
+
+    </form>
+
+    <form method="post" action="/perfil" class="field-editable">
+
+      <input type="hidden" name="target" value="username" />
+
+      <p>
+        <strong>Username</strong><br />
+
+        <span class="field-view" {% if error_username %}hidden{% endif %}>
+          <span data-role="value">{{ user.username | default('Sin datos', true) }}</span>
+          <button type="button" class="field-edit-btn" aria-label="Editar username">✎</button>
+        </span>
+
+        <span class="field-edit" {% if not error_username %}hidden{% endif %}>
+          <input type="text" name="username" value="{{ user.username | default('', true) }}" />
+          <button type="submit" class="field-save-btn" aria-label="Guardar username">✓</button>
+        </span>
+      </p>
+
+      <p class="form-message form-message-error" data-role="error" {% if not error_username %}hidden{% endif %}>{{ error_username }}</p>
+
+    </form>
+    
     {% if user.email %}
     <p>
       <strong>Email</strong><br />

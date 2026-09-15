@@ -2875,6 +2875,97 @@
         min-height: 200px;
       }
     }
+        .profile-descripcion button {
+      align-self: flex-start;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 900px) {
+
+      .profile-left {
+        gap: 20px;
+      }
+
+      .profile-descripcion {
+        min-height: 200px;
+      }
+    }
+
+    .field-editable {
+      margin: 0;
+    }
+
+    .field-view,
+    .field-edit {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .field-edit input {
+      flex: 1;
+      min-height: 40px;
+      padding: 8px 12px;
+
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+
+      background: var(--page);
+      color: var(--ink);
+
+      font-family: var(--font-mono);
+      font-size: var(--text-base);
+    }
+
+    .field-edit input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+      outline: none;
+    }
+
+    .field-edit-btn,
+    .field-save-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      flex-shrink: 0;
+
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+
+      background: var(--page);
+      color: var(--muted);
+
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+
+      transition:
+        border-color var(--fast) var(--ease),
+        color var(--fast) var(--ease),
+        background var(--fast) var(--ease);
+    }
+
+    .field-edit-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--surface-1);
+    }
+
+    .field-save-btn {
+      border-color: var(--accent);
+      color: var(--on-accent);
+      background: var(--accent);
+    }
+
+    .field-save-btn:hover {
+      background: color-mix(in srgb, var(--accent) 86%, var(--ink));
+    }
 
     /* --- Paginas del dashboard con una sola seccion ------------------------------
       Perfil entra entero en la pantalla, asi que su seccion se centra

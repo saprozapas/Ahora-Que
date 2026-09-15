@@ -12,7 +12,7 @@ class AuthService:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO public."Usuarios" ("Nombre", "Mail", "Fecha_Nac", "Password_Hash", "Username", "Description")
+                    INSERT INTO public."Usuarios" ("Nombre", "Mail", "Fecha_Nac", "Password_Hash", "Username", "Descripcion")
                     VALUES (%s, %s, %s, %s, %s, %s)
                     """,
                     (
@@ -21,7 +21,7 @@ class AuthService:
                         user.get_birth_date(),
                         user.get_password_hash(),
                         user.get_username(),
-                        user.get_description(),
+                        user.get_Descripcion(),
                     ),
                 )
             connection.commit()
@@ -46,7 +46,7 @@ class AuthService:
                         "Username",
                         "Mail",
                         "Password_Hash",
-                        "Description"
+                        "Descripcion"
                     FROM public."Usuarios"
                     WHERE "Username" = %s
                     """,
@@ -66,7 +66,7 @@ class AuthService:
                             "Username",
                             "Mail",
                             "Password_Hash",
-                            "Description"
+                            "Descripcion"
                         FROM public."Usuarios"
                         WHERE "Mail" = %s
                         """,
@@ -83,7 +83,7 @@ class AuthService:
                         result[3],  # Username
                         result[4],  # Mail
                         result[5],  # Password_Hash
-                        result[6],   # Description
+                        result[6],   # Descripcion
                     ), result[0]  # Id_Usuario
 
                 return None
@@ -94,7 +94,23 @@ class AuthService:
         finally:
             connection.close()
 
-    def update_profile(self, user_id, name, username, description):
+    def update_name(self, user_id, name):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'UPDATE public."Usuarios" SET "Nombre" = %s WHERE "Id_Usuario" = %s',
+                    (name, user_id),
+                )
+            connection.commit()
+            return True, None
+        except psycopg2.Error:
+            connection.rollback()
+            return False, "Hubo un error al guardar el nombre. Intentá de nuevo."
+        finally:
+            connection.close()
+
+    def update_username(self, user_id, username):
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -106,13 +122,32 @@ class AuthService:
                     return False, "El nombre de usuario ya está en uso."
 
                 cursor.execute(
-                    'UPDATE public."Usuarios" SET "Nombre" = %s, "Username" = %s, "Description" = %s WHERE "Id_Usuario" = %s',
-                    (name, username, description, user_id),
+                    'UPDATE public."Usuarios" SET "Username" = %s WHERE "Id_Usuario" = %s',
+                    (username, user_id),
+                )
+            connection.commit()
+            return True, None
+        except psycopg2.errors.UniqueViolation:
+            connection.rollback()
+            return False, "El nombre de usuario ya está en uso."
+        except psycopg2.Error:
+            connection.rollback()
+            return False, "Hubo un error al guardar el usuario. Intentá de nuevo."
+        finally:
+            connection.close()
+
+    def update_descripcion(self, user_id, descripcion):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'UPDATE public."Usuarios" SET "Descripcion" = %s WHERE "Id_Usuario" = %s',
+                    (descripcion, user_id),
                 )
             connection.commit()
             return True, None
         except psycopg2.Error:
             connection.rollback()
-            raise
+            return False, "Hubo un error al guardar la descripción. Intentá de nuevo."
         finally:
             connection.close()
