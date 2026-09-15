@@ -74,6 +74,11 @@
     --danger:          #8f2f26;
     --danger-soft:     #f7e7e4;
     --logout:          #9c4b42;
+    --login:           #31533f;
+
+    /* Velo oscuro detras del texto de las ilustraciones. Es el mismo en
+       los dos temas, porque el texto que cubre es claro en los dos.   */
+    --scrim:           rgba(16, 26, 22, 0.66);
     --success:         #2f6b45;
     --success-soft:    #e0efe5;
 
@@ -114,6 +119,7 @@
     --max:             1240px;
     --content-gutter:  clamp(20px, 4vw, 56px);
     --header-h:        76px;
+    --proof-h:         58px;
     --sidebar-w:       248px;
     --sidebar-w-min:   76px;
 
@@ -170,6 +176,7 @@
     --danger:          #f2a094;
     --danger-soft:     #2a1a1f;
     --logout:          #e9a09a;
+    --login:           #8fb59b;
     --success:         #8ccfa4;
     --success-soft:    #18221e;
 
@@ -190,6 +197,7 @@
 
     :root {
       --header-h:       64px;
+      --proof-h:        54px;
       --content-gutter: 16px;
     }
   }
@@ -314,6 +322,25 @@
 
   /* --- Selección de texto ------------------------------------------------ */
 
+  /* --- Seleccion de texto ----------------------------------------------------
+     Desactivada en toda la interfaz para que se sienta mas de aplicacion
+     que de documento. Los campos de formulario quedan fuera: ahi la
+     seleccion hace falta para editar.                                  */
+
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  input,
+  textarea,
+  select,
+  [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
   ::selection {
     background: var(--accent);
     color: var(--on-accent);
@@ -341,25 +368,30 @@
   }
 
 
-  /* --- Barra de scroll --------------------------------------------------- */
+  /* --- Barras de desplazamiento ---------------------------------------------
+     Ocultas en toda la app. El scroll sigue funcionando con rueda, touch,
+     teclado y barra espaciadora: lo unico que desaparece es el indicador.
+     La barra de progreso de arriba cumple ese rol.                      */
 
   html {
-    scrollbar-width: thin;
-    scrollbar-color: var(--line-strong) transparent;
+    scrollbar-width: none;
   }
 
   html::-webkit-scrollbar {
-    width: 10px;
+    width: 0;
+    height: 0;
+    display: none;
   }
 
-  html::-webkit-scrollbar-track {
-    background: var(--surface-1);
+  /* El unico contenedor con scroll propio es la fila de pestanas del
+     dashboard en celular. */
+
+  .dashboard-sidebar-nav {
+    scrollbar-width: none;
   }
 
-  html::-webkit-scrollbar-thumb {
-    border: 3px solid var(--surface-1);
-    border-radius: var(--radius-pill);
-    background: var(--line-strong);
+  .dashboard-sidebar-nav::-webkit-scrollbar {
+    display: none;
   }
 
 
@@ -1117,6 +1149,22 @@
   }
 
 
+  /* --- Iniciar sesion --------------------------------------------------------
+     Mismo tratamiento que cerrar sesion, en verde: los dos son la accion
+     de cuenta, uno para entrar y otro para salir.                       */
+
+  .header-action-login {
+    border-color: color-mix(in srgb, var(--login) 40%, transparent);
+    background: color-mix(in srgb, var(--login) 10%, transparent);
+    color: var(--login);
+  }
+
+  .header-action-login:hover {
+    border-color: var(--login);
+    background: color-mix(in srgb, var(--login) 18%, transparent);
+  }
+
+
   /* --- Estado "enviando" ----------------------------------------------------
      Lo aplica app.js al enviar un formulario, para que el usuario vea que
      algo paso. Antes el boton no daba ninguna senal.                     */
@@ -1591,6 +1639,25 @@
     transform: rotate(-4deg);
   }
 
+  /* Velo oscuro al pie del dibujo. Sin el, la primera linea del titulo
+     caia a veces sobre el cielo claro en vez de sobre el suelo verde, y
+     al ser texto claro desaparecia. Ahora el contraste no depende de
+     donde quede el borde del suelo.                                    */
+
+  .story-art::after,
+  .detail-art::after {
+    position: absolute;
+    z-index: 1;
+    inset: auto 0 0 0;
+
+    height: 62%;
+
+    content: "";
+    background: linear-gradient(to top, var(--scrim), transparent);
+
+    pointer-events: none;
+  }
+
   .story-art strong,
   .detail-art strong {
     position: absolute;
@@ -1651,8 +1718,12 @@
     place-items: center;
 
     width: 100%;
-    min-height: calc(100svh - var(--header-h));
-    padding: clamp(48px, 8vw, 96px) var(--content-gutter);
+
+    /* Se descuenta tambien la banda de refuerzo para que "Menos chat / Mas
+       planes" entre dentro de la primera pantalla, pegada al borde.  */
+    min-height: calc(100svh - var(--header-h) - var(--proof-h));
+
+    padding: clamp(40px, 7vw, 88px) var(--content-gutter);
 
     background: var(--surface-1);
     color: var(--ink);
@@ -1804,7 +1875,8 @@
     align-items: center;
     gap: 8px 20px;
 
-    padding-block: 16px;
+    min-height: calc(var(--proof-h) - 2px);
+    padding-block: 14px;
 
     font-size: var(--text-sm);
     font-weight: 600;
@@ -1812,10 +1884,15 @@
     letter-spacing: 0.04em;
   }
 
+  /* line-height: 1 para que el asterisco no infle la altura de la banda:
+     de el depende que --proof-h siga siendo el alto real. */
+
   .proof-mark {
     margin-left: auto;
+
     color: var(--accent);
     font-size: 1.5rem;
+    line-height: 1;
   }
 
   @media (max-width: 650px) {
@@ -2024,7 +2101,18 @@
 
     padding: clamp(28px, 4vw, 48px);
 
+    border-left: 1px solid var(--line-strong);
     background: var(--surface-1);
+  }
+
+  @media (max-width: 900px) {
+
+    /* En columna unica el limite pasa a ser horizontal. */
+
+    .story-copy {
+      border-left: 0;
+      border-top: 1px solid var(--line-strong);
+    }
   }
 
   .story-type {
@@ -2194,7 +2282,26 @@
 
 @layer pages {
 
+  /* Las mismas curvas de nivel del hero, detras de la bienvenida. */
+
+  .dashboard-main {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .dashboard-topo {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+
+    overflow: hidden;
+    pointer-events: none;
+  }
+
   .dashboard-shell {
+    position: relative;
+    z-index: 1;
+
     display: flex;
     flex-direction: column;
   }
@@ -2625,26 +2732,108 @@
   }
 
 
-  /* --- Ficha de perfil -------------------------------------------------------
-     Es la unica superficie monoespaciada de la app: el perfil se lee como
-     una ficha de datos, no como texto corrido. */
+  /* --- Perfil -----------------------------------------------------------------
+     Una sola columna centrada, con la placa de datos abajo del titulo.
+     Antes usaba la reja de dos columnas de los formularios: el titulo
+     quedaba centrado contra una tarjeta mucho mas alta y se leia caido.  */
+
+  .profile-page {
+    display: grid;
+    justify-items: center;
+    gap: clamp(32px, 4vw, 48px);
+
+    padding-block: clamp(44px, 6vw, 72px) clamp(64px, 9vw, 96px);
+
+    text-align: center;
+  }
+
+  .profile-page > .back-link {
+    justify-self: start;
+    margin-bottom: 0;
+  }
+
+  .profile-intro {
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+
+    width: 100%;
+  }
+
+  .profile-avatar {
+    width: 72px;
+    height: 72px;
+  }
+
+  .profile-intro h1 {
+    font-size: clamp(38px, 5vw, 70px);
+    line-height: 1;
+  }
+
+  .profile-intro p {
+    max-width: 44ch;
+    color: var(--muted);
+    font-size: var(--text-md);
+  }
+
+
+  /* La placa: una reja de 2 x 3 celdas. El separador de un pixel sale del
+     fondo de la reja, que asoma por el gap. */
 
   .profile-card {
-    gap: 18px;
-    font-family: var(--font-mono);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+
+    width: min(760px, 100%);
+    overflow: hidden;
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+
+    background: var(--line);
+    box-shadow: var(--shadow-sm);
   }
 
-  .profile-card p {
-    font-size: var(--text-sm);
-    line-height: 1.7;
+  .profile-row {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+
+    padding: clamp(22px, 2.6vw, 30px);
+
+    background: var(--surface-1);
+    text-align: left;
   }
 
-  .profile-card strong {
+  .profile-row dt {
     color: var(--muted);
     font-size: var(--text-xs);
-    font-weight: 500;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .profile-row dd {
+    font-family: var(--font-display);
+    font-size: clamp(24px, 2.6vw, 34px);
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 650px) {
+
+    .profile-card {
+      grid-template-columns: 1fr;
+    }
+
+    .profile-avatar {
+      width: 58px;
+      height: 58px;
+    }
   }
 
   @media (max-width: 900px) {
