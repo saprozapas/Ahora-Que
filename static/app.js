@@ -184,10 +184,21 @@
       const y = caja.top + caja.height / 2;
 
       // Distancia del botón a la esquina más lejana de la ventana.
-      const radio = Math.hypot(
+      const distancia = Math.hypot(
         Math.max(x, window.innerWidth - x),
         Math.max(y, window.innerHeight - y)
       );
+
+      /*
+       * El círculo crece un 12% más allá de esa esquina.
+       *
+       * Sin ese margen, la esquina más lejana se descubre justo en el
+       * último fotograma, que es donde cualquier curva de salida va más
+       * lenta: se veía como si la onda se trabara ahí. Con el margen, la
+       * esquina queda cubierta cuando la animación todavía va a buen
+       * ritmo, y lo que sobra crece fuera de la pantalla, sin verse.
+       */
+      const radio = distancia * 1.12;
 
       const transicion = document.startViewTransition(cambiar);
 
@@ -202,7 +213,12 @@
           },
           {
             duration: 640,
-            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+
+            // Curva de arranque suave pero sin frenada brusca al final.
+            // La de salida fuerte que había antes llegaba al 96% del radio
+            // a mitad de camino y después se arrastraba.
+            easing: "cubic-bezier(0.45, 0.05, 0.4, 1)",
+
             pseudoElement: "::view-transition-new(root)"
           }
         );
