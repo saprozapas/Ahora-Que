@@ -48,7 +48,7 @@
 
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='style.css', v='20260914-frontend-v3') }}"
+      href="{{ url_for('static', filename='style.css', v='20260914-frontend-v4') }}"
     />
 
     <link
@@ -60,7 +60,7 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20260914-frontend-v3') }}"
+      src="{{ url_for('static', filename='app.js', v='20260914-frontend-v4') }}"
     ></script>
 
   </head>
@@ -129,7 +129,10 @@
 
             {% if logueado %}
 
-              <a class="header-action header-action-ghost" href="/logout">
+              <a
+                class="header-action header-action-ghost header-action-logout"
+                href="/logout"
+              >
                 Cerrar sesión
               </a>
 

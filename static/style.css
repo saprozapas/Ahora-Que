@@ -73,6 +73,7 @@
 
     --danger:          #8f2f26;
     --danger-soft:     #f7e7e4;
+    --logout:          #9c4b42;
     --success:         #2f6b45;
     --success-soft:    #e0efe5;
 
@@ -137,6 +138,7 @@
     --ease:            cubic-bezier(0.22, 1, 0.36, 1);
     --fast:            160ms;
     --normal:          240ms;
+    --slow:            420ms;
 
     color-scheme: light;
   }
@@ -167,6 +169,7 @@
 
     --danger:          #f2a094;
     --danger-soft:     #2a1a1f;
+    --logout:          #e9a09a;
     --success:         #8ccfa4;
     --success-soft:    #18221e;
 
@@ -357,6 +360,27 @@
     border: 3px solid var(--surface-1);
     border-radius: var(--radius-pill);
     background: var(--line-strong);
+  }
+
+
+  /* --- Onda expansiva al cambiar de tema ------------------------------------
+     Las View Transitions capturan la pantalla antes y después del cambio.
+     Acá se apaga el fundido cruzado que hacen por defecto: la capa vieja
+     queda quieta y app.js anima el recorte circular de la capa nueva desde
+     el centro del botón, que es lo que produce la onda.                */
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-old(root) {
+    z-index: 1;
+  }
+
+  ::view-transition-new(root) {
+    z-index: 2;
   }
 
 
@@ -723,6 +747,8 @@
     grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
 
     min-height: calc(100svh - var(--header-h));
+
+    transition: grid-template-columns var(--slow) var(--ease);
   }
 
   .dashboard-layout.is-collapsed {
@@ -746,7 +772,7 @@
     border-right: 1px solid var(--line);
     background: var(--page);
 
-    transition: padding var(--normal) var(--ease);
+    transition: padding var(--slow) var(--ease);
   }
 
   .dashboard-sidebar-top {
@@ -774,7 +800,12 @@
 
     transition:
       background var(--fast) var(--ease),
-      border-color var(--fast) var(--ease);
+      border-color var(--fast) var(--ease),
+      transform var(--slow) var(--ease);
+  }
+
+  .dashboard-layout.is-collapsed .dashboard-sidebar-toggle {
+    transform: rotate(180deg);
   }
 
   .dashboard-sidebar-toggle:hover {
@@ -847,12 +878,24 @@
   }
 
   .dashboard-layout.is-collapsed .dashboard-sidebar-link {
+    gap: 0;
     justify-content: center;
     padding-inline: 0;
   }
 
+  .dashboard-sidebar-link > span:last-child {
+    max-width: 160px;
+    overflow: hidden;
+    white-space: nowrap;
+
+    transition:
+      max-width var(--slow) var(--ease),
+      opacity calc(var(--slow) * 0.55) var(--ease);
+  }
+
   .dashboard-layout.is-collapsed .dashboard-sidebar-link > span:last-child {
-    display: none;
+    max-width: 0;
+    opacity: 0;
   }
 
 
@@ -934,8 +977,13 @@
       padding-inline: 14px;
     }
 
+    /* En celular la barra es una fila de pestanas: la etiqueta siempre
+       se ve, este o no marcada como contraida. */
+
+    .dashboard-sidebar-link > span:last-child,
     .dashboard-layout.is-collapsed .dashboard-sidebar-link > span:last-child {
-      display: inline;
+      max-width: none;
+      opacity: 1;
     }
 
     .dashboard-main {
@@ -1050,6 +1098,22 @@
   .header-action-ghost:active {
     transform: none;
     box-shadow: none;
+  }
+
+
+  /* --- Cerrar sesion --------------------------------------------------------
+     Rojo apagado: se distingue del resto de la navegacion sin gritar como
+     lo haria el rojo de error.                                          */
+
+  .header-action-logout {
+    border-color: color-mix(in srgb, var(--logout) 40%, transparent);
+    background: color-mix(in srgb, var(--logout) 10%, transparent);
+    color: var(--logout);
+  }
+
+  .header-action-logout:hover {
+    border-color: var(--logout);
+    background: color-mix(in srgb, var(--logout) 18%, transparent);
   }
 
 
@@ -1617,11 +1681,12 @@
 
   .hero-editorial .hero-text {
     max-width: 30ch;
-    margin: 20px auto 30px;
+    margin: 20px auto 32px;
 
-    color: var(--muted);
-    font-size: var(--text-md);
-    line-height: 1.45;
+    color: var(--ink);
+    font-size: clamp(19px, 1.7vw, 25px);
+    font-weight: 600;
+    line-height: 1.35;
   }
 
   .hero-editorial .hero-actions {

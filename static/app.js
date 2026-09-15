@@ -114,6 +114,17 @@
     const favicon = $("#theme-favicon");
     const etiqueta = $(".theme-toggle-label", boton);
 
+    /*
+     * El tema vivo se guarda acá y no se lee del DOM en cada clic.
+     *
+     * startViewTransition() no ejecuta su callback en el momento: espera a
+     * capturar la pantalla. Si se leyera data-theme al hacer clic, dos
+     * clics seguidos podrían calcular el mismo destino, porque el primero
+     * todavía no escribió el atributo.
+     */
+    let temaActual =
+      document.documentElement.dataset.theme === "night" ? "night" : "light";
+
     const aplicarTema = (tema) => {
 
       const esNoche = tema === "night";
@@ -149,12 +160,67 @@
       });
     };
 
-    aplicarTema(document.documentElement.dataset.theme || "light");
+    /*
+     * La onda expansiva.
+     *
+     * Con la View Transitions API el navegador saca una foto de la
+     * pantalla antes y después del cambio. El CSS apaga el fundido que
+     * hace por defecto, y acá recortamos la foto nueva con un círculo
+     * que crece desde el centro del botón hasta cubrir la esquina más
+     * lejana: eso es lo que se ve como una onda.
+     *
+     * Si el navegador no soporta la API, o si la persona pidió menos
+     * movimiento, el tema cambia igual, solo que de golpe.
+     */
+    const animarOnda = (cambiar) => {
+
+      if (!document.startViewTransition || prefiereMenosMovimiento) {
+        cambiar();
+        return;
+      }
+
+      const caja = boton.getBoundingClientRect();
+      const x = caja.left + caja.width / 2;
+      const y = caja.top + caja.height / 2;
+
+      // Distancia del botón a la esquina más lejana de la ventana.
+      const radio = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+
+      const transicion = document.startViewTransition(cambiar);
+
+      transicion.ready.then(() => {
+
+        document.documentElement.animate(
+          {
+            clipPath: [
+              "circle(0px at " + x + "px " + y + "px)",
+              "circle(" + radio + "px at " + x + "px " + y + "px)"
+            ]
+          },
+          {
+            duration: 640,
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+            pseudoElement: "::view-transition-new(root)"
+          }
+        );
+
+      }).catch(() => {
+        // Si la transición se interrumpe (por ejemplo, dos clics
+        // seguidos), el tema ya quedó aplicado igual.
+      });
+    };
+
+    aplicarTema(temaActual);
 
     boton.addEventListener("click", () => {
 
-      const siguiente =
-        document.documentElement.dataset.theme === "night" ? "light" : "night";
+      const siguiente = temaActual === "night" ? "light" : "night";
+
+      // Se actualiza ya, sin esperar a que corra la transición.
+      temaActual = siguiente;
 
       try {
         localStorage.setItem(CLAVE_TEMA, siguiente);
@@ -163,7 +229,7 @@
         // en esta visita; solo no se recuerda para la próxima.
       }
 
-      aplicarTema(siguiente);
+      animarOnda(() => aplicarTema(siguiente));
     });
   };
 
@@ -312,7 +378,8 @@
           contraida ? "Expandir navegación" : "Contraer navegación"
         );
 
-        boton.textContent = contraida ? "→" : "←";
+        // La flecha no cambia de carácter: el CSS la rota 180°, que se
+        // lee mucho más suave que un salto de "←" a "→".
       });
     });
   };
