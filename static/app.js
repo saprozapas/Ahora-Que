@@ -556,9 +556,10 @@
   /* ========================================================================
      10. CARRUSEL DE GRUPOS
 
-     Muestra los grupos de a página: dos por vez en escritorio, uno en
-     celular. Usa el atributo hidden en lugar de style.display para no
-     pelear con el display:flex que define el CSS.
+     Muestra los grupos de a página: tres en escritorio, dos en tablet,
+     uno en celular — los mismos tres escalones que usa la grilla de
+     .groups-grid en el CSS. Usa el atributo hidden en lugar de
+     style.display para no pelear con el display:flex que define el CSS.
      ======================================================================== */
 
   const iniciarCarruselDeGrupos = () => {
@@ -582,7 +583,19 @@
 
     let pagina = 0;
 
-    const tarjetasPorPagina = () => (window.innerWidth <= 650 ? 1 : 2);
+    // Los mismos cortes que .groups-grid en el CSS: 1 / 2 / 3 columnas.
+    const tarjetasPorPagina = () => {
+
+      if (window.innerWidth <= 650) {
+        return 1;
+      }
+
+      if (window.innerWidth <= 900) {
+        return 2;
+      }
+
+      return 3;
+    };
 
     const conDosDigitos = (numero) => String(numero).padStart(2, "0");
 

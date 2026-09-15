@@ -16,8 +16,8 @@
 <!-- =========================================================================
      CABECERA DEL GRUPO
 
-     Centrada arriba de la ventana: nombre (con el lápiz de editar al
-     lado), descripción, y los dos botones debajo, como una unidad.
+     Centrada arriba de la ventana: nombre, el lápiz de editar debajo de
+     ese, descripción, y los dos botones más abajo, como una unidad.
      ========================================================================= -->
 
 <section class="group-detail section-shell">
@@ -26,31 +26,27 @@
 
   <header class="group-detail-head">
 
-    <div class="group-detail-title-row">
+    <h1>{{ group.get_name() }}</h1>
 
-      <h1>{{ group.get_name() }}</h1>
-
-      <button
-        class="group-edit-trigger"
-        type="button"
-        data-modal-open="modal-editar-grupo"
-        aria-label="Editar grupo"
-      >
-        <span aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false">
-            <path
-              d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linejoin="round"
-              stroke-linecap="round"
-            />
-          </svg>
-        </span>
-      </button>
-
-    </div>
+    <button
+      class="group-edit-trigger"
+      type="button"
+      data-modal-open="modal-editar-grupo"
+      aria-label="Editar grupo"
+    >
+      <span aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path
+            d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+        </svg>
+      </span>
+    </button>
 
     {% if group.get_description() %}
 

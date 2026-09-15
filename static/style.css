@@ -2876,37 +2876,29 @@
       }
     }
 
-    /* --- Paginas del dashboard con una sola seccion ------------------------------
-      Perfil entra entero en la pantalla, asi que su seccion se centra
-     verticalmente y su relleno es simetrico: el titulo queda con el mismo
-     aire arriba que abajo en vez de caer hacia el pie.
+    /* --- Volver, alineado con la flechita de la barra lateral -------------------
+       En TODAS las páginas secundarias del dashboard (perfil, social, grupos,
+       crear grupo): el "← Volver" queda a la misma altura que el botón que
+       contrae el sidebar, sea cual sea la sección que envuelva a cada una.
 
-     `safe center` evita el problema clasico de centrar: si algun dia el
-     contenido no entrara, se alinea arriba en lugar de desbordar hacia
-     arriba y volverse inalcanzable.                                     */
+       La cuenta es la misma que en el detalle de un grupo: la flechita mide
+       40px y arranca a 20px del techo del sidebar, así que su centro cae en
+       40px. El back-link mide 44px de alto, así que para que su centro caiga
+       también en 40px necesita empezar 18px más arriba (18 + 44/2 = 40).
 
-  .dashboard-layout-centrado .dashboard-main {
-    display: grid;
+       Sólo tiene sentido en escritorio: en celular la barra lateral pasa a
+       ser una fila de pestañas y no hay con qué alinearse.               */
 
-    /* La columna explicita es necesaria: sin ella la columna implicita se
-       ajusta al contenido y la seccion se angosta a la mitad. */
-    grid-template-columns: minmax(0, 1fr);
-
-    align-content: center;
-    align-content: safe center;
-
-    min-height: calc(100svh - var(--header-h));
-  }
-
-  .dashboard-layout-centrado .auth-page {
-    padding-block: clamp(28px, 4vw, 48px);
+  .dashboard-layout-page .page-hero,
+  .dashboard-layout-page .auth-page {
+    padding-block-start: 18px;
   }
 
   @media (max-width: 900px) {
 
-    .dashboard-layout-centrado .dashboard-main {
-      display: block;
-      min-height: 0;
+    .dashboard-layout-page .page-hero,
+    .dashboard-layout-page .auth-page {
+      padding-block-start: 32px;
     }
   }
 
@@ -3071,18 +3063,38 @@
 
 @layer pages {
 
-  .groups-hero-layout {
-    display: grid;
-    grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
-    align-items: center;
-    gap: clamp(36px, 6vw, 88px);
+  /* --- Cabecera: título y bajada en una sola línea, centrados ------------
+     El h1 pierde el max-width:14ch heredado de .page-hero (pensado para
+     títulos de dos líneas con <br>) y baja de tamaño: a la escala grande
+     de .page-hero, "Tus grupos están acá." no entra en una sola línea
+     dentro del ancho que deja la barra lateral.                        */
 
-    margin-top: 32px;
+  .groups-hero-copy {
+    display: grid;
+    justify-items: center;
+    gap: 16px;
+
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .groups-hero-copy h1 {
+    max-width: none;
+    font-size: clamp(32px, 3.6vw, 56px);
+  }
+
+  .groups-hero-copy > p {
+    max-width: 52ch;
+    color: var(--muted);
+    font-size: var(--text-md);
   }
 
   .groups-hero-copy > .lime-button {
-    margin-top: 28px;
+    margin-top: 8px;
   }
+
+
+  /* --- Carrusel: a lo ancho de toda la sección ---------------------------- */
 
   .groups-carousel {
     min-width: 0;
@@ -3090,7 +3102,7 @@
 
   .groups-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
   }
 
@@ -3311,9 +3323,8 @@
 
   @media (max-width: 900px) {
 
-    .groups-hero-layout {
-      grid-template-columns: 1fr;
-      gap: 44px;
+    .groups-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
@@ -3544,14 +3555,6 @@
     text-align: center;
   }
 
-  .group-detail-title-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-  }
-
   .group-detail-head h1 {
     font-size: clamp(40px, 6vw, 84px);
     line-height: 1;
@@ -3562,7 +3565,8 @@
 
   /* El lápiz de editar. Mismo dibujo que el botón de contraer la barra
      lateral (círculo, borde fino, 40px): es la talla que usa la app
-     para un control secundario que acompaña a otro elemento.           */
+     para un control secundario que acompaña a otro elemento. Va en su
+     propia fila del grid, entre el nombre y la descripción.            */
 
   .group-edit-trigger {
     display: grid;
@@ -3570,7 +3574,6 @@
 
     width: 40px;
     height: 40px;
-    flex: 0 0 40px;
 
     border: 1px solid var(--line);
     border-radius: var(--radius-pill);
@@ -3654,13 +3657,19 @@
     font-size: 1.125rem;
   }
 
+  /* El renglón de texto se centra igualando la altura de línea a la
+     altura de la caja: es la manera confiable de centrar una sola línea
+     verticalmente. Antes la caja media 24px pero line-height:1.4 a 18px
+     de fuente daba 25,2px de alto real, así que el texto no entraba y
+     se veía cortado arriba y abajo.                                    */
+
   .group-ai-prompt-input {
     flex: 1;
     min-width: 0;
 
-    height: 24px;
-    max-height: 24px;
-    padding-block: 3px;
+    height: 26px;
+    max-height: 26px;
+    padding-block: 0;
 
     border: 0;
     resize: none;
@@ -3671,7 +3680,7 @@
 
     font-family: var(--font-sans);
     font-size: var(--text-base);
-    line-height: 1.4;
+    line-height: 26px;
   }
 
   .group-ai-prompt-input:focus {
