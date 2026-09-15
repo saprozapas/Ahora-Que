@@ -3,7 +3,7 @@ import psycopg2
 from models.group import Group
 from services.group_auth_service import GroupAuthService
 from werkzeug.security import generate_password_hash
-from database_bridge.database_bridge import getUser, getGroupsForUser
+from database_bridge.database_bridge import getUser, getGroupsForUser, isUserInGroup, getGroupById
 
 group_auth = Blueprint("group_auth", __name__)
 group_auth_service = GroupAuthService()
@@ -21,7 +21,10 @@ def grupos():
     if redirect_response:
         return redirect_response
 
-    grupos = getGroupsForUser(session.get("user_id"))
+    grupos = getGroupsForUser(session.get("user_id"))# getGroups no devuelve grupos con usuario asignado.
+    for grupo in grupos:
+        grupo.set_user(getUser(session.get("user_id")))
+
     return render_template("grupos.html", groups=grupos, groups_page=True)
 
 
@@ -57,22 +60,18 @@ def nuevo_grupo():
                            form_data={})
 
 
-@group_auth.route("/grupos/<int:group_id>")
+@group_auth.route("/grupos/<group_id>")
 def detalle_grupo(group_id):
     redirect_response = _require_login()
     if redirect_response:
         return redirect_response
 
-    # Se buscan los grupos del usuario y se elige el pedido. Al filtrar
-    # sobre esa lista, un usuario no puede abrir un grupo al que no
-    # pertenece: si el id no esta entre los suyos, vuelve al listado.
-    grupos = getGroupsForUser(session.get("user_id"))
-    grupo = next((g for g in grupos if g.get_id() == group_id), None)
-
-    if grupo is None:
+    if not isUserInGroup(session.get("user_id"), group_id):
         return redirect(url_for("group_auth.grupos"))
 
-    return render_template("grupo.html", group=grupo, groups_page=True)
+    group = getGroupById(group_id)
+    group.set_user(getUser(session.get("user_id")))
+    return render_template("grupo.html", group=group, groups_page=True)
 
 
 @group_auth.route("/group_register", methods=["GET", "POST"])
