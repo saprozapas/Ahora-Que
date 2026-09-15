@@ -15,6 +15,9 @@
 
 <!-- =========================================================================
      CABECERA DEL GRUPO
+
+     Centrada arriba de la ventana: nombre (con el lápiz de editar al
+     lado), descripción, y los dos botones debajo, como una unidad.
      ========================================================================= -->
 
 <section class="group-detail section-shell">
@@ -23,9 +26,31 @@
 
   <header class="group-detail-head">
 
-    <p class="section-tag">grupo</p>
+    <div class="group-detail-title-row">
 
-    <h1>{{ group.get_name() }}</h1>
+      <h1>{{ group.get_name() }}</h1>
+
+      <button
+        class="group-edit-trigger"
+        type="button"
+        data-modal-open="modal-editar-grupo"
+        aria-label="Editar grupo"
+      >
+        <span aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path
+              d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+      </button>
+
+    </div>
 
     {% if group.get_description() %}
 
@@ -45,78 +70,217 @@
         Proponer un plan <span aria-hidden="true">↗</span>
       </a>
 
-      <!--
-        Copia la dirección de esta página al portapapeles. Lo resuelve
-        app.js con la API del navegador, sin pasar por el servidor.
-      -->
-      <button class="dark-button" type="button" data-copiar-enlace>
-        <span data-copiar-texto>Copiar enlace</span>
+      <button
+        class="dark-button"
+        type="button"
+        data-modal-open="modal-invitar"
+      >
+        <span aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path
+              d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+        <span>Invitar</span>
       </button>
 
     </div>
 
   </header>
 
+
+  <!-- =======================================================================
+       CONSULTA A LA IA
+
+       Solo la maqueta visual: no manda nada a ningún lado todavía.
+       ======================================================================= -->
+
+  <div class="group-ai-prompt">
+
+    <span class="group-ai-prompt-icon" aria-hidden="true">✳</span>
+
+    <textarea
+      class="group-ai-prompt-input"
+      id="group-ai-prompt-input"
+      name="mensaje-ia"
+      rows="1"
+      placeholder="Contale a la IA qué plan tenés en mente y organizalo con el grupo…"
+      aria-label="Escribile a la IA sobre el plan del grupo"
+    ></textarea>
+
+    <button class="group-ai-prompt-send" type="button" aria-label="Enviar">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path
+          d="M22 2 11 13"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+        <path
+          d="M22 2 15 22 11 13 2 9 22 2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+
+  </div>
+
 </section>
 
 
 <!-- =========================================================================
-     PANELES
+     MODAL — INVITAR
 
-     Todavía no hay datos de integrantes ni de planes por grupo en la base,
-     así que cada panel muestra su estado vacío en vez de inventar
-     contenido. Cuando el backend los exponga, se reemplaza el estado
-     vacío por el listado y el resto de la pantalla queda igual.
+     Nada de esto se envía a ningún lado: los botones de abajo solo
+     cierran el modal (es un <form method="dialog">, que no hace ningún
+     pedido al servidor). Falta conectarlo a como sea que el backend
+     termine resolviendo las invitaciones.
      ========================================================================= -->
 
-<section class="group-panels section-shell" aria-label="Actividad del grupo">
+<dialog class="modal" id="modal-invitar" aria-labelledby="modal-invitar-title">
 
-  <article class="group-panel">
+  <form method="dialog">
 
-    <div class="group-panel-head">
-      <h2>Integrantes</h2>
-      <span class="group-panel-count">1</span>
+    <div class="modal-head">
+
+      <h2 class="modal-title" id="modal-invitar-title">Invitar a alguien</h2>
+
+      <button class="modal-close" type="submit" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+
     </div>
 
-    <p class="group-panel-empty">
-      Por ahora estás solo vos. Compartí el enlace para que se sumen.
-    </p>
+    <div class="modal-body">
 
-  </article>
+      <div class="modal-field">
+        <label for="invitar-username">Usuario</label>
+        <input
+          id="invitar-username"
+          name="username"
+          type="text"
+          placeholder="Ej. saprozapas"
+          autocomplete="off"
+        />
+      </div>
 
+      <div class="modal-field">
+        <label for="invitar-mensaje">Mensaje</label>
+        <textarea
+          id="invitar-mensaje"
+          name="mensaje"
+          rows="3"
+          placeholder="Sumate al grupo, estamos armando un plan…"
+        ></textarea>
+      </div>
 
-  <article class="group-panel">
-
-    <div class="group-panel-head">
-      <h2>Planes propuestos</h2>
-      <span class="group-panel-count">0</span>
     </div>
 
-    <p class="group-panel-empty">
-      Nadie propuso nada todavía. Elegí una idea y traela al grupo.
-    </p>
-
-    <a class="arrow-link" href="/explorar">
-      Buscar una idea <span aria-hidden="true">↗</span>
-    </a>
-
-  </article>
-
-
-  <article class="group-panel">
-
-    <div class="group-panel-head">
-      <h2>Historial</h2>
-      <span class="group-panel-count">0</span>
+    <div class="modal-actions">
+      <button class="header-action header-action-ghost" type="submit">Cancelar</button>
+      <button class="lime-button" type="submit">Enviar invitación</button>
     </div>
 
-    <p class="group-panel-empty">
-      Acá van a quedar los planes que hagan, con su puntaje.
-    </p>
+  </form>
 
-  </article>
+</dialog>
 
-</section>
+
+<!-- =========================================================================
+     MODAL — EDITAR GRUPO
+
+     Igual que arriba: guardar no persiste nada todavía. Los integrantes
+     se muestran acá en vez de en una tarjeta aparte, porque hoy la app
+     solo sabe quién sos vos dentro del grupo.
+     ========================================================================= -->
+
+<dialog class="modal" id="modal-editar-grupo" aria-labelledby="modal-editar-grupo-title">
+
+  <form method="dialog">
+
+    <div class="modal-head">
+
+      <h2 class="modal-title" id="modal-editar-grupo-title">Editar grupo</h2>
+
+      <button class="modal-close" type="submit" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+
+    </div>
+
+    <div class="modal-body">
+
+      <div class="modal-field">
+        <label for="editar-nombre">Nombre del grupo</label>
+        <input
+          id="editar-nombre"
+          name="nombre"
+          type="text"
+          value="{{ group.get_name() }}"
+        />
+      </div>
+
+      <div class="modal-field">
+        <label for="editar-descripcion">Descripción</label>
+        <textarea
+          id="editar-descripcion"
+          name="descripcion"
+          rows="3"
+        >{{ group.get_description() }}</textarea>
+      </div>
+
+      <div class="modal-field">
+
+        <span class="modal-field-label">Integrantes</span>
+
+        <ul class="modal-members">
+          <li class="modal-member">
+            <span class="modal-member-avatar" aria-hidden="true">
+              {{ (current_user.name | default(current_user.username | default('V'), true))[:1] | upper }}
+            </span>
+            <span>
+              {{ current_user.name | default(current_user.username | default('Vos'), true) }}
+              <small>vos</small>
+            </span>
+          </li>
+        </ul>
+
+      </div>
+
+    </div>
+
+    <div class="modal-actions">
+      <button class="header-action header-action-ghost" type="submit">Cancelar</button>
+      <button class="lime-button" type="submit">Guardar cambios</button>
+    </div>
+
+  </form>
+
+</dialog>
 
 
 {% if logueado %}
