@@ -3,7 +3,7 @@ import psycopg2
 from models.group import Group
 from services.group_auth_service import GroupAuthService
 from werkzeug.security import generate_password_hash
-from database_bridge.database_bridge import getUser, getGroupsForUser
+from database_bridge.database_bridge import getUser, getGroupsForUser, isUserInGroup
 
 group_auth = Blueprint("group_auth", __name__)
 group_auth_service = GroupAuthService()
@@ -21,7 +21,10 @@ def grupos():
     if redirect_response:
         return redirect_response
 
-    grupos = getGroupsForUser(session.get("user_id"))
+    grupos = getGroupsForUser(session.get("user_id"))# getGroups no devuelve grupos con usuario asignado.
+    for grupo in grupos:
+        grupo.set_user(getUser(session.get("user_id")))
+
     return render_template("grupos.html", groups=grupos, groups_page=True)
 
 
@@ -62,6 +65,9 @@ def detalle_grupo(group_id):
     redirect_response = _require_login()
     if redirect_response:
         return redirect_response
+
+    if not isUserInGroup(session.get("user_id"), group_id):
+        return redirect(url_for("group_auth.grupos"))
 
     return render_template("grupos.html", groups=[], groups_page=True, selected_group_id=group_id)
 

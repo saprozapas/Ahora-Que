@@ -73,7 +73,7 @@ def getGroupsForUser(uid):
 
             groups = []
             for result in results:
-                groups.append(Group(None, result[1], result[2]))
+                groups.append(Group(None, result[1], result[2], result[0]))
             return groups
 
     except psycopg2.Error:
