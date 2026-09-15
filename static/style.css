@@ -2732,107 +2732,71 @@
   }
 
 
-  /* --- Perfil -----------------------------------------------------------------
-     Una sola columna centrada, con la placa de datos abajo del titulo.
-     Antes usaba la reja de dos columnas de los formularios: el titulo
-     quedaba centrado contra una tarjeta mucho mas alta y se leia caido.  */
-
-  .profile-page {
-    display: grid;
-    justify-items: center;
-    gap: clamp(32px, 4vw, 48px);
-
-    padding-block: clamp(44px, 6vw, 72px) clamp(64px, 9vw, 96px);
-
-    text-align: center;
-  }
-
-  .profile-page > .back-link {
-    justify-self: start;
-    margin-bottom: 0;
-  }
-
-  .profile-intro {
-    display: grid;
-    justify-items: center;
-    gap: 16px;
-
-    width: 100%;
-  }
-
-  .profile-avatar {
-    width: 72px;
-    height: 72px;
-  }
-
-  .profile-intro h1 {
-    font-size: clamp(38px, 5vw, 70px);
-    line-height: 1;
-  }
-
-  .profile-intro p {
-    max-width: 44ch;
-    color: var(--muted);
-    font-size: var(--text-md);
-  }
-
-
-  /* La placa: una reja de 2 x 3 celdas. El separador de un pixel sale del
-     fondo de la reja, que asoma por el gap. */
+  /* --- Ficha de perfil -------------------------------------------------------
+     Es la unica superficie monoespaciada de la app: el perfil se lee como
+     una ficha de datos, no como texto corrido. Va mas grande que el resto
+     del cuerpo para que la placa tenga presencia propia.                */
 
   .profile-card {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1px;
-
-    width: min(760px, 100%);
-    overflow: hidden;
-
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-
-    background: var(--line);
-    box-shadow: var(--shadow-sm);
+    gap: 24px;
+    font-family: var(--font-mono);
   }
 
-  .profile-row {
-    display: grid;
-    align-content: start;
-    gap: 10px;
+  /* Los dos primeros valores anulan la regla de ".auth-form > p", pensada
+     para el "ya tenes cuenta?" de login: sin esto, los datos del perfil
+     heredaban el color atenuado y un margen que separaba de mas. */
 
-    padding: clamp(22px, 2.6vw, 30px);
+  .profile-card p {
+    margin-top: 0;
 
-    background: var(--surface-1);
-    text-align: left;
+    color: var(--ink);
+    font-size: clamp(20px, 1.7vw, 26px);
+    font-weight: 500;
+    line-height: 1.35;
   }
 
-  .profile-row dt {
+  /* La etiqueta va en linea: el salto lo hace el <br> del template. */
+
+  .profile-card strong {
     color: var(--muted);
     font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    font-weight: 500;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
-  .profile-row dd {
-    font-family: var(--font-display);
-    font-size: clamp(24px, 2.6vw, 34px);
-    font-weight: 700;
-    line-height: 1.08;
-    letter-spacing: -0.02em;
 
-    overflow-wrap: anywhere;
+  /* --- Paginas del dashboard con una sola seccion ------------------------------
+     Perfil entra entero en la pantalla, asi que su seccion se centra
+     verticalmente y su relleno es simetrico: el titulo queda con el mismo
+     aire arriba que abajo en vez de caer hacia el pie.
+
+     `safe center` evita el problema clasico de centrar: si algun dia el
+     contenido no entrara, se alinea arriba en lugar de desbordar hacia
+     arriba y volverse inalcanzable.                                     */
+
+  .dashboard-layout-centrado .dashboard-main {
+    display: grid;
+
+    /* La columna explicita es necesaria: sin ella la columna implicita se
+       ajusta al contenido y la seccion se angosta a la mitad. */
+    grid-template-columns: minmax(0, 1fr);
+
+    align-content: center;
+    align-content: safe center;
+
+    min-height: calc(100svh - var(--header-h));
   }
 
-  @media (max-width: 650px) {
+  .dashboard-layout-centrado .auth-page {
+    padding-block: clamp(28px, 4vw, 48px);
+  }
 
-    .profile-card {
-      grid-template-columns: 1fr;
-    }
+  @media (max-width: 900px) {
 
-    .profile-avatar {
-      width: 58px;
-      height: 58px;
+    .dashboard-layout-centrado .dashboard-main {
+      display: block;
+      min-height: 0;
     }
   }
 

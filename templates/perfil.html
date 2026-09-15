@@ -5,7 +5,7 @@
 {% block content %}
 
 {% if logueado %}
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout-centrado">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -13,63 +13,54 @@
 {% endif %}
 
 
-<section class="profile-page section-shell">
+<section class="auth-page section-shell">
 
   <a class="back-link" href="/dashboard">← Volver</a>
 
-  <header class="profile-intro">
-
-    <img
-      class="profile-avatar"
-      src="{{ url_for('static', filename='favicon.svg') }}"
-      alt=""
-    />
+  <div class="auth-intro">
 
     <h1>Tu espacio<br /><em>personal.</em></h1>
 
     <p>Tus datos, grupos y planes guardados.</p>
 
-  </header>
+  </div>
 
 
-  <!--
-    Seis celdas en una reja de 2 x 3. El email se muestra siempre, aunque
-    esté vacío, para que la reja quede completa y simétrica.
-  -->
+  <div class="auth-form profile-card">
 
-  <dl class="profile-card">
+    <p>
+      <strong>Nombre</strong><br />
+      {{ user.name | default('Sin datos', true) }}
+    </p>
 
-    <div class="profile-row">
-      <dt>Nombre</dt>
-      <dd>{{ user.name | default('Sin datos', true) }}</dd>
-    </div>
+    <p>
+      <strong>Username</strong><br />
+      {{ user.username | default('Sin datos', true) }}
+    </p>
 
-    <div class="profile-row">
-      <dt>Usuario</dt>
-      <dd>{{ user.username | default('Sin datos', true) }}</dd>
-    </div>
+    {% if user.email %}
+    <p>
+      <strong>Email</strong><br />
+      {{ user.email }}
+    </p>
+    {% endif %}
 
-    <div class="profile-row">
-      <dt>Email</dt>
-      <dd>{{ user.email | default('Sin datos', true) }}</dd>
-    </div>
+    <p>
+      <strong>Grupos</strong><br />
+      {{ groups | length }} grupos
+    </p>
 
-    <div class="profile-row">
-      <dt>Grupos</dt>
-      <dd>{{ groups | length }}</dd>
-    </div>
+    <p>
+      <strong>Planes publicados</strong><br />
+      {{ published_plans | length }} planes
+    </p>
 
-    <div class="profile-row">
-      <dt>Planes publicados</dt>
-      <dd>{{ published_plans | length }}</dd>
-    </div>
+    <p>
+      <strong>Planes guardados</strong><br />
+      {{ saved_plans | length }} planes
+    </p>
 
-    <div class="profile-row">
-      <dt>Planes guardados</dt>
-      <dd>{{ saved_plans | length }}</dd>
-    </div>
-
-  </dl>
+  </div>
 
 </section>
 
