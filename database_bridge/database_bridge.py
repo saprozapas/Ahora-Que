@@ -82,6 +82,33 @@ def getGroupsForUser(uid):
     finally:
         connection.close()
 
+def isUserInGroup(uid, group_id):
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM public."Usuario-Grupo"
+                    WHERE "Id_Usuario" = %s
+                    AND "Id_Grupo" = %s
+                )
+                """,
+                (uid, group_id)
+            )
+
+            result = cursor.fetchone()
+
+            return result[0]
+
+    except psycopg2.Error:
+        raise
+
+    finally:
+        connection.close()
+
 # 1. Buscar usuarios 
 # def buscar_usuarios(mail=None, nombre=None, username=None, id_usuario=None): 
 #     connection = get_db_connection() 
