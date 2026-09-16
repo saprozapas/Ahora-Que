@@ -2,6 +2,7 @@
 from routes.auth import auth
 from routes.group_auth import group_auth
 from routes.profile import profile
+from routes.inbox import inbox_bp
 from datetime import timedelta
 from routes.calendario import calendario_bp
 
@@ -13,6 +14,7 @@ app.register_blueprint(auth)
 app.register_blueprint(group_auth)
 app.register_blueprint(profile)
 app.register_blueprint(calendario_bp)
+app.register_blueprint(inbox_bp)
 
 
 PLANS = [

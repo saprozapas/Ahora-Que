@@ -1,15 +1,17 @@
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
 import psycopg2
 from models.group import Group
+from services.invitation_service import InvitationService
 from services.group_auth_service import GroupAuthService
 from werkzeug.security import generate_password_hash
 from services.auth_service import AuthService
 from database_bridge.database_bridge import getUser, getGroupsForUser, isUserInGroup, getGroupById
 
+
 group_auth = Blueprint("group_auth", __name__)
 group_auth_service = GroupAuthService()
 auth_service = AuthService()
-
+invitation_service = InvitationService()
 
 def _require_login():
     if not session.get("user_id"):
@@ -90,39 +92,12 @@ def invitar_usuario(group_id):
     x, user_id = resultado
     
     try:
-        group_auth_service.invite_user(user_id, group_id, mensaje, nombre_invitante)
+        invitation_service.invite_user(user_id, group_id, mensaje, nombre_invitante)
         flash("Usuario invitado exitosamente.")
-        return redirect(
-            url_for("group_auth.detalle_grupo", group_id=group_id)
-        )
+        
     except Exception as e:
         flash("Error al invitar al usuario.")
-        return redirect(
-            url_for("group_auth.detalle_grupo", group_id=group_id)
-        )
-    
-
+  
     return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 
-@group_auth.route("/group_register", methods=["GET", "POST"])
-def register():
 
-    if request.method == "POST":
-        # El usuario apreto "Registrarse"
-
-        name = request.form["name"]
-        birth_date = request.form["birth_date"]
-        username = request.form["username"]
-        password = request.form["password"]
-
-
-        # validar datos
-        password_hash = generate_password_hash(password)
-        # crear usuario y guardar usuario en BD
-        group_auth_service.register(Group(name, birth_date, username, password_hash))
-        
-
-        return redirect("/login")
-
-    # El usuario simplemente entró a /group_register
-    return render_template("group_register.html")

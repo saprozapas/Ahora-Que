@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Bandeja de entrada — Ahora Qué{% endblock %}
+
+{% block content %}
+
+{% if logueado %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+{% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+<section class="inbox-section section-shell">
+
+  {% if invitaciones %}
+
+    <div class="inbox-list">
+
+      {% for invitacion in invitaciones %}
+
+        <article class="invitation-card">
+
+          <div class="invitation-card-content">
+
+            <div class="invitation-group">
+
+              <span class="invitation-label">
+                Invitación a grupo
+              </span>
+
+              <h2>
+                {{ invitacion.get_nombre_grupo() }}
+              </h2>
+
+            </div>
+
+
+            <div class="invitation-details">
+
+              <div class="invitation-inviter">
+
+                <span class="invitation-label">
+                  Invitado por
+                </span>
+
+                <p>
+                  {{ invitacion.get_nombre_invitante() }}
+                </p>
+
+              </div>
+
+
+              {% if invitacion.get_mensaje() %}
+
+                <div class="invitation-description">
+
+                  <span class="invitation-label">
+                    Mensaje
+                  </span>
+
+                  <p>
+                    {{ invitacion.get_mensaje() }}
+                  </p>
+
+                </div>
+
+              {% endif %}
+
+            </div>
+
+          </div>
+
+
+          <div class="invitation-actions">
+
+            <!-- ACEPTAR INVITACIÓN -->
+
+            <form
+              action="/invitaciones/{{ invitacion.get_group_id() }}/aceptar"
+              method="POST"
+            >
+
+              <button
+                class="invitation-action invitation-accept"
+                type="submit"
+                aria-label="Aceptar invitación"
+                title="Aceptar invitación"
+              >
+                ✓
+              </button>
+
+            </form>
+
+
+            <!-- RECHAZAR INVITACIÓN -->
+
+            <form
+              action="/invitaciones/{{ invitacion.get_group_id() }}/rechazar"
+              method="POST"
+            >
+
+              <button
+                class="invitation-action invitation-reject"
+                type="submit"
+                aria-label="Rechazar invitación"
+                title="Rechazar invitación"
+              >
+                ×
+              </button>
+
+            </form>
+
+          </div>
+
+        </article>
+
+      {% endfor %}
+
+    </div>
+
+  {% else %}
+
+    <div class="inbox-empty">
+
+      <div class="empty-symbol" aria-hidden="true">
+        ✦
+      </div>
+
+      <h2>
+        No tenés invitaciones pendientes.
+      </h2>
+
+      <p>
+        Cuando alguien te invite a un grupo, vas a encontrarla acá.
+      </p>
+
+    </div>
+
+  {% endif %}
+
+</section>
+
+  </div>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

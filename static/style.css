@@ -4247,3 +4247,306 @@
     }
   }
 }
+.inbox-empty {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.inbox-empty .empty-symbol {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+
+  border-radius: 50%;
+  background: #e8ff5a;
+  color: #111;
+  font-size: 28px;
+}
+
+.inbox-empty h2 {
+  margin: 0 0 10px;
+  font-size: 28px;
+}
+
+.inbox-empty p {
+  margin: 0;
+  max-width: 400px;
+  color: #777;
+}
+
+/* =========================================================
+   INBOX
+   ========================================================= */
+
+.inbox-section {
+  padding-top: 40px;
+  padding-bottom: 60px;
+}
+
+
+/* =========================================================
+   LISTA DE INVITACIONES
+   ========================================================= */
+
+.inbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+
+/* =========================================================
+   TARJETA
+   ========================================================= */
+
+.invitation-card {
+  width: 100%;
+  min-height: 150px;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 28px 30px;
+
+  background: var(--card-bg);
+
+  /* Delineado visible */
+  border: 2px solid var(--border-color);
+
+  border-radius: 16px;
+
+  /* Sombra muy sutil para separarla del fondo */
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.invitation-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+
+/* =========================================================
+   CONTENIDO
+   ========================================================= */
+
+.invitation-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  min-width: 0;
+  flex: 1;
+}
+
+
+.invitation-group h2 {
+  margin: 5px 0 0;
+
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+
+.invitation-details {
+  display: flex;
+  gap: 50px;
+  flex-wrap: wrap;
+}
+
+
+.invitation-label {
+  display: block;
+
+  margin-bottom: 5px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+
+  opacity: 0.55;
+}
+
+
+.invitation-inviter p,
+.invitation-description p {
+  margin: 0;
+
+  font-size: 15px;
+}
+
+
+.invitation-description {
+  max-width: 500px;
+}
+
+
+/* =========================================================
+   BOTONES
+   ========================================================= */
+
+.invitation-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-left: 30px;
+
+  flex-shrink: 0;
+}
+
+
+.invitation-actions form {
+  margin: 0;
+}
+
+
+/*
+   Botones cuadrados
+*/
+
+.invitation-action {
+  width: 48px;
+  height: 48px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 10px;
+
+  font-size: 25px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+
+.invitation-action:hover {
+  transform: scale(1.06);
+}
+
+
+.invitation-action:active {
+  transform: scale(0.94);
+}
+
+
+/* Aceptar */
+
+.invitation-accept {
+  background: #d9f99d;
+  color: #166534;
+}
+
+
+/* Rechazar */
+
+.invitation-reject {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+
+/* =========================================================
+   SIN INVITACIONES
+   ========================================================= */
+
+.inbox-empty {
+  min-height: 60vh;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+
+.inbox-empty .empty-symbol {
+  width: 64px;
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 24px;
+
+  border-radius: 50%;
+
+  background: #e8ff5a;
+  color: #111;
+
+  font-size: 28px;
+}
+
+
+.inbox-empty h2 {
+  margin: 0 0 10px;
+
+  font-size: 28px;
+}
+
+
+.inbox-empty p {
+  margin: 0;
+
+  max-width: 400px;
+
+  opacity: 0.6;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .invitation-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+
+  .invitation-actions {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+
+
+  .invitation-details {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+}
