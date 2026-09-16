@@ -3,6 +3,7 @@ from routes.auth import auth
 from routes.group_auth import group_auth
 from routes.profile import profile
 from datetime import timedelta
+from routes.calendario import calendario_bp
 
 
 app = Flask(__name__)
@@ -11,6 +12,7 @@ app.permanent_session_lifetime = timedelta(days=5)
 app.register_blueprint(auth)
 app.register_blueprint(group_auth)
 app.register_blueprint(profile)
+app.register_blueprint(calendario_bp)
 
 
 PLANS = [

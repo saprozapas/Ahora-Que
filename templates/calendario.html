@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendario — Ahora Qué{% endblock %}
+
+{% block content %}
+
+{% if logueado %}
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+{% endif %}
+
+
+<section class="section-shell calendario-page">
+
+  <a class="back-link" href="/dashboard">← Volver</a>
+
+  <div class="calendario-header">
+
+    <div class="auth-intro">
+      <h1>Tu calendario<br /><em>de planes.</em></h1>
+      <p>Los planes que confirmaste, mes a mes.</p>
+    </div>
+
+    <div class="calendario-nav">
+      <a href="/calendario?mes={{ mes_anterior }}&anio={{ anio_anterior }}" aria-label="Mes anterior">←</a>
+      <span class="calendario-mes-actual">{{ nombre_mes }} {{ anio }}</span>
+      <a href="/calendario?mes={{ mes_siguiente }}&anio={{ anio_siguiente }}" aria-label="Mes siguiente">→</a>
+    </div>
+
+  </div>
+
+  <div class="calendario-grid">
+
+    {% for dia in dias_semana %}
+    <div class="calendario-dia-nombre">{{ dia }}</div>
+    {% endfor %}
+
+    {% for semana in semanas %}
+      {% for dia in semana %}
+      <div class="calendario-celda{% if dia.numero == 0 %} calendario-celda-vacia{% endif %}{% if dia.es_hoy %} calendario-celda-hoy{% endif %}">
+        {% if dia.numero != 0 %}
+        <span class="calendario-numero">{{ dia.numero }}</span>
+
+        {% for plan in dia.planes %}
+        <span class="calendario-plan" title="{{ plan.nombre }} — {{ plan.hora.strftime('%H:%M') }}">
+          {{ plan.nombre }}
+        </span>
+        {% endfor %}
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% endfor %}
+
+  </div>
+
+</section>
+
+
+{% if logueado %}
+  </div>
+
+</div>
+{% endif %}
+
+{% endblock %}
