@@ -5,6 +5,7 @@ from routes.profile import profile
 from routes.inbox import inbox_bp
 from datetime import timedelta
 from routes.calendario import calendario_bp
+from services.invitation_service import InvitationService
 
 
 app = Flask(__name__)
@@ -15,6 +16,7 @@ app.register_blueprint(group_auth)
 app.register_blueprint(profile)
 app.register_blueprint(calendario_bp)
 app.register_blueprint(inbox_bp)
+invitation_service = InvitationService()
 
 
 PLANS = [
@@ -38,7 +40,8 @@ def home():
 def dashboard():
     if not session.get('user_id'):
         return redirect('/login')
-    return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True)
+    invitaciones = invitation_service.get_invitations_for_user(session["user_id"])
+    return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True, invitaciones = invitaciones)
 
 @app.route('/social')
 def social():

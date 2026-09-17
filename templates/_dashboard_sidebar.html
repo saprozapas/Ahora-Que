@@ -76,6 +76,12 @@
       </span>
 
       <span>Inbox</span>
+
+      {% if invitaciones and invitaciones|length > 0 %}
+        <span class="inbox-notification">
+          {{ invitaciones|length }}
+        </span>
+      {% endif %}
     </a>
 
 

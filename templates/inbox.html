@@ -12,6 +12,21 @@
 
   <div class="dashboard-main">
 
+{% with mensajes = get_flashed_messages() %}
+  {% if mensajes %}
+
+    {% for mensaje in mensajes %}
+
+      <div class="flash-message">
+        {{ mensaje }}
+      </div>
+
+    {% endfor %}
+
+  {% endif %}
+{% endwith %}
+
+
 <section class="inbox-section section-shell">
 
   {% if invitaciones %}

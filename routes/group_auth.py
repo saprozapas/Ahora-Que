@@ -90,14 +90,21 @@ def invitar_usuario(group_id):
         url_for("group_auth.detalle_grupo", group_id=group_id)
         )
     x, user_id = resultado
+
+    if group_auth_service.is_user_in_group(user_id, group_id):
+        flash("El usuario ya es miembro del grupo.")
+        return redirect(
+            url_for("group_auth.detalle_grupo", group_id=group_id)
+        )
     
     try:
         invitation_service.invite_user(user_id, group_id, mensaje, nombre_invitante)
         flash("Usuario invitado exitosamente.")
-        
+    except psycopg2.errors.UniqueViolation as ue:
+        flash("El usuario ya tiene una invitación pendiente para este grupo.")
     except Exception as e:
         flash("Error al invitar al usuario.")
-  
+
     return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 
 

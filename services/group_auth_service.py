@@ -39,5 +39,27 @@ class GroupAuthService:
         cursor.close()
         conn.close()
 
+    def is_user_in_group(self, user_id, group_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM public."Usuario-Grupo"
+                WHERE "Id_Usuario" = %s
+                AND "Id_Grupo" = %s
+            )
+            """,
+            (user_id, group_id)
+        )
+
+        result = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        return result[0]
 
     

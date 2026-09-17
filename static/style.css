@@ -65,7 +65,7 @@
 
     /* --- Acento --------------------------------------------------------- */
 
-    --accent:          #31533f;
+    --accent:          #51b99d;
     --accent-soft:     #dce7dd;
     --on-accent:       #f6f1e6;
 
@@ -897,6 +897,25 @@
     background: var(--accent);
     color: var(--on-accent);
   }
+  .inbox-notification {
+    min-width: 21px;
+    height: 21px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-left: 7px;
+
+    background: #ef4444;
+    color: white;
+
+    border-radius: 50%;
+
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+  }
 
 
   /* --- Barra lateral contraída -------------------------------------------- */
@@ -929,7 +948,9 @@
     max-width: 0;
     opacity: 0;
   }
-
+  .dashboard-layout.is-collapsed .dashboard-sidebar-link > span:not(:first-child) {
+    display: none;
+  }
 
   /* --- Panel principal ----------------------------------------------------- */
 
@@ -4084,19 +4105,16 @@
   }
 }
 .flash-message {
-    margin: 1rem auto;
-    padding: 1rem 1.25rem;
-    max-width: 600px;
+  background: var(--accent);
+  border: 1px solid var(--border-color);
+  color: inherit;
 
-    background-color: #e8f7c8;
-    border: 1px solid #b8d96b;
-    border-radius: 12px;
+  padding: 14px 18px;
+  margin: 20px 0;
 
-    color: #26320f;
-    font-weight: 500;
-    text-align: center;
+  border-radius: 10px;
 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-size: 15px;
 }
 
 
