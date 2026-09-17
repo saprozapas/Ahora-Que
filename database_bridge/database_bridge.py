@@ -117,6 +117,34 @@ def getGroupById(group_id):
     finally:
         connection.close()
 
+def getUsersInGroup(group_id):
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash"
+                FROM public."Usuarios" u
+                JOIN public."Usuario-Grupo" ug ON u."Id_Usuario" = ug."Id_Usuario"
+                WHERE ug."Id_Grupo" = %s
+                """,
+                (group_id,)
+            )
+
+            results = cursor.fetchall()
+
+            users = []
+            for result in results:
+                users.append(User(result[1], result[2], result[3], result[4], result[5]))
+            return users
+
+    except psycopg2.Error:
+        raise
+
+    finally:
+        connection.close()
+
 def isUserInGroup(uid, group_id):
     connection = get_db_connection()
 

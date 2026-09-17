@@ -154,11 +154,6 @@
 
 <!-- =========================================================================
      MODAL — INVITAR
-
-     Nada de esto se envía a ningún lado: los botones de abajo solo
-     cierran el modal (es un <form method="dialog">, que no hace ningún
-     pedido al servidor). Falta conectarlo a como sea que el backend
-     termine resolviendo las invitaciones.
      ========================================================================= -->
 
 <dialog class="modal" id="modal-invitar" aria-labelledby="modal-invitar-title">
@@ -170,10 +165,28 @@
 
       <h2 class="modal-title" id="modal-invitar-title">Invitar a alguien</h2>
 
-      <button class="modal-close" type="submit" aria-label="Cerrar">
+      <button
+        class="modal-close"
+        type="button"
+        onclick="document.getElementById('modal-invitar').close()"
+        aria-label="Cerrar"
+      >
         <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path
+            d="M18 6 6 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M6 6 18 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
         </svg>
       </button>
 
@@ -205,7 +218,13 @@
     </div>
 
     <div class="modal-actions">
-      <button class="header-action header-action-ghost" type="button">Cancelar</button>
+      <button
+        class="header-action header-action-ghost"
+        type="button"
+        onclick="document.getElementById('modal-invitar').close()"
+      >
+        Cancelar
+      </button>
       <button class="lime-button" type="submit">Enviar invitación</button>
     </div>
 
@@ -224,16 +243,35 @@
 
 <dialog class="modal" id="modal-editar-grupo" aria-labelledby="modal-editar-grupo-title">
 
-  <form method="dialog">
+  <form method="POST"
+        action="{{ url_for('group_auth.editar_grupo', group_id=group.get_id()) }}">
 
     <div class="modal-head">
 
       <h2 class="modal-title" id="modal-editar-grupo-title">Editar grupo</h2>
 
-      <button class="modal-close" type="submit" aria-label="Cerrar">
+      <button
+        class="modal-close"
+        type="button"
+        onclick="document.getElementById('modal-editar-grupo').close()"
+        aria-label="Cerrar"
+      >
         <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path
+            d="M18 6 6 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M6 6 18 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
         </svg>
       </button>
 
@@ -265,15 +303,24 @@
         <span class="modal-field-label">Integrantes</span>
 
         <ul class="modal-members">
-          <li class="modal-member">
-            <span class="modal-member-avatar" aria-hidden="true">
-              {{ (current_user.name | default(current_user.username | default('V'), true))[:1] | upper }}
-            </span>
-            <span>
-              {{ current_user.name | default(current_user.username | default('Vos'), true) }}
-              <small>vos</small>
-            </span>
-          </li>
+
+          {% for user in users %}
+
+            <li class="modal-member">
+
+              <span class="modal-member-avatar" aria-hidden="true">
+                {{ user.get_name()[:1] | upper }}
+              </span>
+
+              <span>
+                {{ user.get_name() }}
+
+              </span>
+
+            </li>
+
+          {% endfor %}
+
         </ul>
 
       </div>
@@ -281,8 +328,19 @@
     </div>
 
     <div class="modal-actions">
-      <button class="header-action header-action-ghost" type="button">Cancelar</button>
-      <button class="lime-button" type="submit">Guardar cambios</button>
+      <button
+        class="header-action header-action-ghost"
+        type="button"
+        onclick="document.getElementById('modal-editar-grupo').close()"
+      >
+        Cancelar
+      </button>
+      <button
+        class="lime-button"
+        type="submit"
+      >
+        Guardar cambios
+      </button>
     </div>
 
   </form>

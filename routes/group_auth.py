@@ -5,7 +5,7 @@ from services.invitation_service import InvitationService
 from services.group_auth_service import GroupAuthService
 from werkzeug.security import generate_password_hash
 from services.auth_service import AuthService
-from database_bridge.database_bridge import getUser, getGroupsForUser, isUserInGroup, getGroupById
+from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, isUserInGroup, getGroupById
 
 
 group_auth = Blueprint("group_auth", __name__)
@@ -75,7 +75,8 @@ def detalle_grupo(group_id):
 
     group = getGroupById(group_id)
     group.set_user(getUser(session.get("user_id")))
-    return render_template("grupo.html", group=group, groups_page=True)
+    users = getUsersInGroup(group_id)
+    return render_template("grupo.html", group=group, groups_page=True, users = users)
 
 @group_auth.route("/grupos/<group_id>/invitar", methods=["POST"])
 def invitar_usuario(group_id):
@@ -104,6 +105,20 @@ def invitar_usuario(group_id):
         flash("El usuario ya tiene una invitación pendiente para este grupo.")
     except Exception as e:
         flash("Error al invitar al usuario.")
+
+    return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
+
+@group_auth.route("/grupos/<group_id>/editar-grupo", methods=["POST"])
+def editar_grupo(group_id):
+    nombre = request.form.get("nombre")
+    descripcion = request.form.get("descripcion")
+
+    try:
+        group_auth_service.update_group(group_id, nombre, descripcion)
+        flash("Grupo actualizado exitosamente.")
+    except Exception as e:
+        flash("Error al actualizar el grupo.")
 
     return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 

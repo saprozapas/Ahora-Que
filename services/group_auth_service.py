@@ -62,4 +62,22 @@ class GroupAuthService:
 
         return result[0]
 
+    def update_group(self, group_id, name, description):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            UPDATE public."Grupos"
+            SET "Nombre" = %s, "Descripcion" = %s
+            WHERE "Id_Grupo" = %s
+            """,
+            (name, description, group_id)
+        )
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
     
