@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ plan.nombre }} — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="section-shell">
+
+      <a class="back-link" href="/planes">← Volver</a>
+
+      <div class="auth-intro">
+
+        <h1>{{ plan.nombre }}</h1>
+
+        <p>
+
+          {% if plan.fecha %}
+          {{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}
+          {% else %}
+          Sin fecha confirmada todavía.
+          {% endif %}
+
+          {% if plan.grupo %} · Grupo: {{ plan.grupo }}{% endif %}
+
+        </p>
+
+      </div>
+
+      {% if plan.precio %}
+      <p><strong>Precio total:</strong> ${{ plan.precio }}</p>
+      {% endif %}
+
+      <div class="plan-detalle-paradas">
+
+        {% if plan.lugares %}
+
+          {% for lugar in plan.lugares %}
+          <div class="plan-detalle-parada">
+            <span>
+              {{ lugar.nombre }}
+              {% if lugar.hora %}<br /><small>{{ lugar.hora.strftime('%H:%M') }}</small>{% endif %}
+            </span>
+            {% if lugar.precio %}
+            <span class="plan-detalle-parada-precio">${{ lugar.precio }}</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+
+        {% else %}
+
+          <div class="plan-detalle-parada">
+            <span>Sin lugar específico</span>
+          </div>
+
+        {% endif %}
+
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

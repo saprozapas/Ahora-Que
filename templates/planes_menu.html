@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Tus planes — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="section-shell">
+
+      <a class="back-link" href="/dashboard">← Volver</a>
+
+      <div class="auth-intro">
+        <h1>Tus<br /><em>planes.</em></h1>
+        <p>Todo lo que confirmaste, guardaste o tenés pendiente.</p>
+      </div>
+
+      <div class="planes-menu-grid">
+
+        <a class="planes-menu-tile" href="/planes/confirmados">
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <path d="m8.2 12.3 2.6 2.6 5-5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span>Planes confirmados</span>
+        </a>
+
+        <a class="planes-menu-tile" href="/planes/grupo">
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <path d="M3.5 19c.6-3 2.4-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 15c2.7-.3 4.7 1 5.3 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span>Planes de grupo</span>
+        </a>
+
+        <a class="planes-menu-tile" href="/planes/guardados">
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M6 3.8h12v16.4l-6-4.2-6 4.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span>Planes guardados</span>
+        </a>
+
+        <a class="planes-menu-tile" href="/planes/historial">
+          <span aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+              <path d="M12 7.5V12l3.2 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span>Historial de planes</span>
+        </a>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

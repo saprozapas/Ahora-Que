@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="section-shell">
+
+      <a class="back-link" href="/planes">← Volver</a>
+
+      <div class="auth-intro">
+        <h1>{{ titulo }}</h1>
+        <p>{{ subtitulo }}</p>
+      </div>
+
+      {% if planes %}
+      <div class="plan-card-list">
+
+        {% for plan in planes %}
+        <a class="plan-card" href="/planes/{{ plan.id }}">
+
+          <strong>{{ plan.nombre }}</strong>
+
+          <div class="plan-card-meta">
+
+            {% if mostrar_fecha and plan.fecha %}
+            <span>{{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
+            {% endif %}
+
+            <span>{{ plan.resumen_lugares }}</span>
+
+            {% if plan.precio %}
+            <span>${{ plan.precio }}</span>
+            {% endif %}
+
+            {% if plan.grupo %}
+            <span>{{ plan.grupo }}</span>
+            {% endif %}
+
+          </div>
+
+        </a>
+        {% endfor %}
+
+      </div>
+      {% else %}
+      <p class="plan-index-empty-inline">{{ vacio }}</p>
+      {% endif %}
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

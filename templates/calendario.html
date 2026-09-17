@@ -45,9 +45,9 @@
         <span class="calendario-numero">{{ dia.numero }}</span>
 
         {% for plan in dia.planes %}
-        <span class="calendario-plan" title="{{ plan.nombre }} — {{ plan.hora.strftime('%H:%M') }}">
+        <a class="calendario-plan" href="/planes/{{ plan.id }}" title="{{ plan.nombre }} — {{ plan.hora.strftime('%H:%M') }}">
           {{ plan.nombre }}
-        </span>
+        </a>
         {% endfor %}
         {% endif %}
       </div>
