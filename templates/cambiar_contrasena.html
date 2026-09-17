@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Cambiar contraseña — Ahora Qué{% endblock %}
+
+{% block content %}
+
+{% if logueado %}
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+{% endif %}
+
+
+<section class="auth-page section-shell">
+
+  <a class="back-link" href="/perfil">← Volver al perfil</a>
+
+  <div class="auth-intro">
+
+    <h1>Cambiar<br /><em>contraseña.</em></h1>
+
+    <p>Ingresá tu contraseña actual y la nueva contraseña que querés usar.</p>
+
+  </div>
+
+
+  <form class="auth-form" action="/perfil/cambiar-contrasena" method="post">
+
+    {% if error %}
+    <p class="form-message form-error" role="alert">{{ error }}</p>
+    {% endif %}
+
+    {% if exito %}
+    <p class="form-message form-success" role="status">{{ exito }}</p>
+    {% endif %}
+
+
+    <label for="actual">Contraseña actual</label>
+
+    <input
+      id="actual"
+      name="actual"
+      type="password"
+      autocomplete="current-password"
+      required
+    />
+
+
+    <label for="nueva">Nueva contraseña</label>
+
+    <input
+      id="nueva"
+      name="nueva"
+      type="password"
+      autocomplete="new-password"
+      required
+    />
+    <!-- minlength="8" -->
+
+
+    <label for="confirmar">Confirmar nueva contraseña</label>
+
+    <input
+      id="confirmar"
+      name="confirmar"
+      type="password"
+      autocomplete="new-password"
+      required
+    />
+    <!-- minlength="8" -->
+
+
+    <button class="lime-button" type="submit">
+      Guardar contraseña <span aria-hidden="true">→</span>
+    </button>
+
+  </form>
+
+</section>
+
+
+{% if logueado %}
+  </div>
+
+</div>
+{% endif %}
+
+{% endblock %}
