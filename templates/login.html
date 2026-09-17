@@ -22,6 +22,10 @@
 
   <form class="auth-form" action="/login" method="post">
 
+    {% for category, msg in get_flashed_messages(with_categories=true) %}
+    <p class="form-message form-{{ 'success' if category == 'success' else 'error' }}" role="alert">{{ msg }}</p>
+    {% endfor %}
+
     {% if mensaje %}
 
     <p class="form-message form-error" role="alert">{{ mensaje }}</p>

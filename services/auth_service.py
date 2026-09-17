@@ -136,6 +136,37 @@ class AuthService:
         finally:
             connection.close()
 
+    def get_password_hash_by_id(self, user_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT "Password_Hash" FROM public."Usuarios" WHERE "Id_Usuario" = %s',
+                    (user_id,),
+                )
+                result = cursor.fetchone()
+                return result[0] if result else None
+        except psycopg2.Error:
+            raise
+        finally:
+            connection.close()
+
+    def update_password(self, user_id, password_hash):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'UPDATE public."Usuarios" SET "Password_Hash" = %s WHERE "Id_Usuario" = %s',
+                    (password_hash, user_id),
+                )
+            connection.commit()
+            return True, None
+        except psycopg2.Error:
+            connection.rollback()
+            return False, "Hubo un error al guardar la contraseña. Intentá de nuevo."
+        finally:
+            connection.close()
+
     def update_descripcion(self, user_id, descripcion):
         connection = get_db_connection()
         try:
