@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear plan — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="section-shell">
+
+      <a class="back-link" href="/planes">← Volver</a>
+
+      <div class="auth-intro">
+        <h1>Crear<br /><em>plan.</em></h1>
+        <p>Armá el plan a mano: elegí fecha, hora y los lugares por los que van a pasar.</p>
+      </div>
+
+      {% if error %}
+      <p class="form-message form-error" role="alert">{{ error }}</p>
+      {% endif %}
+
+      <form class="auth-form" method="post" action="/planes/nuevo" id="form-plan">
+
+        <label for="nombre">Nombre del plan</label>
+        <input id="nombre" name="nombre" type="text"
+               value="{{ valores.get('nombre', '') }}"
+               placeholder="Cena y pool" required />
+
+        <label for="fecha">Fecha</label>
+        <input id="fecha" name="fecha" type="date"
+               value="{{ valores.get('fecha', '') }}"
+               min="{{ hoy }}" required />
+
+        <label for="hora">Hora</label>
+        <input id="hora" name="hora" type="time"
+               value="{{ valores.get('hora', '') }}" required />
+
+        <label for="descripcion">Descripción</label>
+        <textarea id="descripcion" name="descripcion" rows="3"
+                  placeholder="Detalles del plan...">{{ valores.get('descripcion', '') }}</textarea>
+
+        <!-- Los lugares elegidos van abajo. El precio se estima solo,
+             a partir del nivel de precio de cada lugar. -->
+        <h2 class="crear-plan-subtitulo">
+          Lugares del plan
+          <span class="crear-plan-contador" id="contador-lugares">0 elegidos</span>
+        </h2>
+
+        <p class="crear-plan-precio-estimado" id="precio-estimado" hidden></p>
+
+        <ul class="crear-plan-elegidos" id="lista-elegidos"></ul>
+
+        <p class="crear-plan-vacio" id="mensaje-sin-lugares">
+          Todavía no agregaste lugares. Buscalos abajo, o dejá el plan sin lugar específico.
+        </p>
+
+        <label class="crear-plan-guardar">
+          <input type="checkbox" name="guardado" />
+          Guardar también en "Planes guardados"
+        </label>
+
+        <button class="lime-button" type="submit">
+          Crear plan <span aria-hidden="true">→</span>
+        </button>
+
+      </form>
+
+      <!-- ===================== BUSCADOR DE LUGARES ===================== -->
+
+      <h2 class="crear-plan-subtitulo">Buscar lugares</h2>
+
+      <div class="crear-plan-buscador">
+
+        <div class="crear-plan-busqueda-fila">
+
+          <input id="busqueda-texto" type="search"
+                 placeholder="Buscar por nombre o tipo..." />
+
+          <select id="busqueda-tipo">
+            <option value="">Todos los tipos</option>
+            {% for tipo in tipos %}
+            <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+            {% endfor %}
+          </select>
+
+          <button class="lime-button" type="button" id="boton-buscar">Buscar</button>
+
+        </div>
+
+        <!-- Los filtros se generan solos desde services/lugar_filtros.py -->
+        <div class="crear-plan-filtros">
+
+          {% for filtro in filtros %}
+          <div class="crear-plan-filtro">
+
+            {% if filtro.tipo == 'checkbox' %}
+
+              <label>
+                <input type="checkbox" class="filtro-lugar"
+                       data-filtro="{{ filtro.id }}" value="1" />
+                {{ filtro.etiqueta }}
+              </label>
+
+            {% elif filtro.tipo == 'select' %}
+
+              <label for="filtro-{{ filtro.id }}">{{ filtro.etiqueta }}</label>
+              <select id="filtro-{{ filtro.id }}" class="filtro-lugar"
+                      data-filtro="{{ filtro.id }}">
+                {% for valor, etiqueta in filtro.opciones %}
+                <option value="{{ valor }}">{{ etiqueta }}</option>
+                {% endfor %}
+              </select>
+
+            {% else %}
+
+              <label for="filtro-{{ filtro.id }}">{{ filtro.etiqueta }}</label>
+              <input id="filtro-{{ filtro.id }}"
+                     type="{{ 'number' if filtro.tipo == 'numero' else 'text' }}"
+                     class="filtro-lugar" data-filtro="{{ filtro.id }}" />
+
+            {% endif %}
+
+          </div>
+          {% endfor %}
+
+        </div>
+
+        <ul class="crear-plan-resultados" id="resultados"></ul>
+
+        <p class="crear-plan-vacio" id="mensaje-resultados">
+          Buscá un lugar para empezar.
+        </p>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+
+<script>
+(function () {
+  "use strict";
+
+  // Rangos de precio por nivel (0 a 4), solo para mostrarle al usuario
+  // una estimación mientras arma el plan. El cálculo real y definitivo
+  // lo hace el servidor con services/precio_lugar.py — si cambian los
+  // montos ahí, conviene actualizar esta tabla también para que la
+  // vista previa no quede desalineada.
+  var RANGOS_POR_NIVEL = {
+    0: [0, 0],
+    1: [100, 300],
+    2: [300, 600],
+    3: [600, 1000],
+    4: [1000, 2000]
+  };
+
+  var listaElegidos     = document.getElementById("lista-elegidos");
+  var contador          = document.getElementById("contador-lugares");
+  var mensajeSinLugares = document.getElementById("mensaje-sin-lugares");
+  var precioEstimado    = document.getElementById("precio-estimado");
+  var resultados        = document.getElementById("resultados");
+  var mensajeResultados = document.getElementById("mensaje-resultados");
+  var formulario        = document.getElementById("form-plan");
+
+  function idsElegidos() {
+    var ids = [];
+    var inputs = listaElegidos.querySelectorAll('input[name="lugar_id"]');
+    for (var i = 0; i < inputs.length; i++) {
+      if (inputs[i].value) { ids.push(inputs[i].value); }
+    }
+    return ids;
+  }
+
+  function actualizarResumen() {
+    var items = listaElegidos.children;
+    var total = items.length;
+    contador.textContent = total === 1 ? "1 elegido" : total + " elegidos";
+    mensajeSinLugares.hidden = total > 0;
+
+    var min = 0, max = 0, huboAlguno = false;
+    for (var i = 0; i < items.length; i++) {
+      var nivel = items[i].dataset.nivelPrecio;
+      if (nivel !== "" && nivel !== undefined && RANGOS_POR_NIVEL[nivel]) {
+        huboAlguno = true;
+        min += RANGOS_POR_NIVEL[nivel][0];
+        max += RANGOS_POR_NIVEL[nivel][1];
+      }
+    }
+
+    if (huboAlguno) {
+      precioEstimado.hidden = false;
+      precioEstimado.textContent = min === max
+        ? "Precio estimado: $" + min
+        : "Precio estimado: $" + min + " - $" + max;
+    } else {
+      precioEstimado.hidden = true;
+    }
+  }
+
+  // --- Agregar una parada al plan -----------------------------------------
+
+  function agregarLugar(idLugar, nombre, nivelPrecio) {
+    if (idLugar && idsElegidos().indexOf(idLugar) !== -1) {
+      alert("Ese lugar ya está en el plan.");
+      return;
+    }
+
+    var item = document.createElement("li");
+    item.className = "crear-plan-elegido";
+    item.dataset.nivelPrecio = (nivelPrecio === null || nivelPrecio === undefined) ? "" : nivelPrecio;
+
+    var titulo = document.createElement("span");
+    titulo.className = "crear-plan-elegido-nombre";
+    titulo.textContent = nombre;
+
+    var inputId = document.createElement("input");
+    inputId.type = "hidden";
+    inputId.name = "lugar_id";
+    inputId.value = idLugar || "";
+
+    var inputNombre = document.createElement("input");
+    inputNombre.type = "hidden";
+    inputNombre.name = "lugar_nombre";
+    inputNombre.value = nombre;
+
+    var inputNivel = document.createElement("input");
+    inputNivel.type = "hidden";
+    inputNivel.name = "lugar_nivel_precio";
+    inputNivel.value = item.dataset.nivelPrecio;
+
+    var inputHora = document.createElement("input");
+    inputHora.type = "time";
+    inputHora.name = "lugar_hora";
+    inputHora.className = "crear-plan-elegido-campo";
+    inputHora.setAttribute("aria-label", "Hora en " + nombre);
+
+    var quitar = document.createElement("button");
+    quitar.type = "button";
+    quitar.className = "crear-plan-quitar";
+    quitar.textContent = "Quitar";
+    quitar.addEventListener("click", function () {
+      item.remove();
+      actualizarResumen();
+    });
+
+    item.appendChild(titulo);
+    item.appendChild(inputHora);
+    item.appendChild(quitar);
+    item.appendChild(inputId);
+    item.appendChild(inputNombre);
+    item.appendChild(inputNivel);
+
+    listaElegidos.appendChild(item);
+    actualizarResumen();
+  }
+
+  // --- Búsqueda -----------------------------------------------------------
+
+  function buscar() {
+    var parametros = new URLSearchParams();
+    parametros.set("texto", document.getElementById("busqueda-texto").value);
+    parametros.set("tipo", document.getElementById("busqueda-tipo").value);
+
+    // Recorre los filtros que haya en la página, sean los que sean.
+    var campos = document.querySelectorAll(".filtro-lugar");
+    for (var i = 0; i < campos.length; i++) {
+      var campo = campos[i];
+      var valor = campo.type === "checkbox"
+        ? (campo.checked ? "1" : "")
+        : campo.value;
+      if (valor) {
+        parametros.set(campo.dataset.filtro, valor);
+      }
+    }
+
+    mensajeResultados.hidden = false;
+    mensajeResultados.textContent = "Buscando...";
+    resultados.innerHTML = "";
+
+    fetch("/planes/buscar-lugares?" + parametros.toString())
+      .then(function (respuesta) { return respuesta.json(); })
+      .then(function (datos) {
+        mostrarResultados(datos.resultados || []);
+      })
+      .catch(function () {
+        mensajeResultados.hidden = false;
+        mensajeResultados.textContent = "No se pudo buscar. Intentá de nuevo.";
+      });
+  }
+
+  function mostrarResultados(lugares) {
+    resultados.innerHTML = "";
+
+    if (!lugares.length) {
+      mensajeResultados.hidden = false;
+      mensajeResultados.textContent = "No se encontraron lugares con esos criterios.";
+      return;
+    }
+
+    mensajeResultados.hidden = true;
+
+    lugares.forEach(function (lugar) {
+      var item = document.createElement("li");
+      item.className = "crear-plan-resultado";
+
+      var datos = document.createElement("span");
+      datos.className = "crear-plan-resultado-datos";
+
+      var nombre = document.createElement("strong");
+      nombre.textContent = lugar.nombre;
+      datos.appendChild(nombre);
+
+      var detalle = [];
+      if (lugar.direccion) { detalle.push(lugar.direccion); }
+      if (lugar.ambiente) { detalle.push(lugar.ambiente); }
+      if (lugar.nivel_precio) {
+        detalle.push(new Array(lugar.nivel_precio + 1).join("$"));
+      }
+      if (detalle.length) {
+        var sub = document.createElement("small");
+        sub.textContent = detalle.join(" · ");
+        datos.appendChild(sub);
+      }
+
+      var yaElegido = lugar.id && idsElegidos().indexOf(lugar.id) !== -1;
+
+      var agregar = document.createElement("button");
+      agregar.type = "button";
+      agregar.className = "crear-plan-agregar";
+      agregar.textContent = yaElegido ? "Ya agregado" : "Agregar";
+      agregar.disabled = yaElegido;
+      agregar.addEventListener("click", function () {
+        agregarLugar(lugar.id, lugar.nombre, lugar.nivel_precio);
+        agregar.textContent = "Ya agregado";
+        agregar.disabled = true;
+      });
+
+      item.appendChild(datos);
+      item.appendChild(agregar);
+      resultados.appendChild(item);
+    });
+  }
+
+  document.getElementById("boton-buscar").addEventListener("click", buscar);
+
+  document.getElementById("busqueda-texto").addEventListener("keydown", function (evento) {
+    if (evento.key === "Enter") {
+      evento.preventDefault();
+      buscar();
+    }
+  });
+
+  actualizarResumen();
+})();
+</script>
+
+{% endblock %}

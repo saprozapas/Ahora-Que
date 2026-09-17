@@ -1490,6 +1490,46 @@
     border-color: var(--danger);
   }
 
+  /* La regla de arriba solo cubre <input>: sin esto, los <textarea> y
+     <select> dentro de .auth-form (como "Descripción" al crear un
+     plan) quedan con el estilo por defecto del navegador. */
+
+  .auth-form textarea,
+  .auth-form select {
+    width: 100%;
+    min-height: 46px;
+    padding: 12px 14px;
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+
+    background: var(--page);
+    color: var(--ink);
+
+    font-family: inherit;
+    font-size: var(--text-base);
+
+    transition:
+      border-color var(--fast) var(--ease),
+      box-shadow var(--fast) var(--ease);
+  }
+
+  .auth-form textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .auth-form textarea::placeholder {
+    color: var(--muted);
+  }
+
+  .auth-form textarea:focus,
+  .auth-form select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+    outline: none;
+  }
+
   .auth-form button,
   .contact-form button {
     width: max-content;
@@ -2600,6 +2640,333 @@
 
 
 /* --------------------------------------------------------------------------
+   CREAR PLAN — buscador de lugares y paradas elegidas
+   -------------------------------------------------------------------------- */
+
+@layer pages {
+
+  .crear-plan-subtitulo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+
+    margin-top: clamp(28px, 4vw, 40px);
+
+    font-size: 1.375rem;
+    letter-spacing: -0.02em;
+  }
+
+  .crear-plan-contador {
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .crear-plan-precio-estimado {
+    margin-top: -8px;
+
+    color: var(--accent);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .campo-ayuda {
+    display: block;
+    margin-top: -6px;
+
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+
+  .crear-plan-vacio {
+    padding: 20px;
+
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+
+    color: var(--muted);
+    font-size: var(--text-sm);
+    text-align: center;
+  }
+
+  .crear-plan-elegidos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    margin: 12px 0;
+    padding: 0;
+
+    list-style: none;
+  }
+
+  .crear-plan-elegido {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--surface-1);
+  }
+
+  .crear-plan-elegido-nombre {
+    flex: 1;
+    min-width: 140px;
+    font-weight: 600;
+  }
+
+  .crear-plan-elegido-campo {
+    width: 110px;
+    min-height: 40px;
+    padding: 8px 10px;
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--page);
+    color: var(--ink);
+
+    font-family: inherit;
+    font-size: var(--text-sm);
+  }
+
+  .crear-plan-elegido-campo:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+    outline: none;
+  }
+
+  .crear-plan-quitar,
+  .crear-plan-agregar {
+    padding: 8px 14px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: inherit;
+
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .crear-plan-quitar:hover,
+  .crear-plan-agregar:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: var(--surface-2);
+  }
+
+  .crear-plan-agregar:disabled {
+    border-color: var(--line);
+    color: var(--muted);
+    cursor: default;
+  }
+
+  .crear-plan-guardar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: var(--text-sm);
+  }
+
+  .crear-plan-buscador {
+    padding: 18px;
+    margin-top: 12px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+  }
+
+  .crear-plan-busqueda-fila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* Estos campos están fuera de .auth-form, así que necesitan su
+     propio estilo (si no, quedan con el look por defecto del
+     navegador — la caja gris lisa que se veía antes). */
+
+  .crear-plan-busqueda-fila input[type="search"],
+  .crear-plan-busqueda-fila select,
+  .crear-plan-filtro input,
+  .crear-plan-filtro select {
+    min-height: 46px;
+    padding: 10px 14px;
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--page);
+    color: var(--ink);
+
+    font-family: inherit;
+    font-size: var(--text-base);
+
+    transition:
+      border-color var(--fast) var(--ease),
+      box-shadow var(--fast) var(--ease);
+  }
+
+  .crear-plan-busqueda-fila input[type="search"]::placeholder {
+    color: var(--muted);
+  }
+
+  .crear-plan-busqueda-fila input[type="search"]:focus,
+  .crear-plan-busqueda-fila select:focus,
+  .crear-plan-filtro input:focus,
+  .crear-plan-filtro select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+    outline: none;
+  }
+
+  .crear-plan-busqueda-fila input[type="search"] {
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .crear-plan-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+
+    padding: 16px 0;
+  }
+
+  .crear-plan-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    font-size: var(--text-sm);
+  }
+
+  .crear-plan-filtro input,
+  .crear-plan-filtro select {
+    min-height: 38px;
+    padding: 6px 10px;
+  }
+
+  .crear-plan-filtro label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .crear-plan-resultados {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    margin: 0 0 8px;
+    padding: 0;
+
+    list-style: none;
+  }
+
+  .crear-plan-resultado {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+
+  .crear-plan-resultado-datos {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .crear-plan-resultado-datos small {
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   PLANES: acciones (guardar, bajarse, eliminar) y tarjetas con "Quitar"
+   -------------------------------------------------------------------------- */
+
+@layer pages {
+
+  .plan-detalle-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    margin-top: clamp(28px, 4vw, 40px);
+  }
+
+  .plan-accion-secundaria,
+  .plan-accion-peligro {
+    padding: 10px 18px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: inherit;
+
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .plan-accion-secundaria:hover {
+    border-color: var(--ink);
+    background: var(--surface-2);
+  }
+
+  .plan-accion-peligro {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .plan-accion-peligro:hover {
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+  }
+
+  .plan-card-fila {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .plan-card-fila .plan-card {
+    flex: 1;
+  }
+
+  .plan-card-quitar button {
+    height: 100%;
+    padding: 0 16px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--muted);
+
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .plan-card-quitar button:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+}
+
+
+/* --------------------------------------------------------------------------
    PLANES (dashboard) — menú de 5 iconos, listados y detalle
    -------------------------------------------------------------------------- */
 
@@ -2607,7 +2974,7 @@
 
   .planes-menu-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 14px;
 
     padding-block: 24px clamp(48px, 8vw, 80px);
@@ -2648,7 +3015,9 @@
     flex-direction: column;
     gap: 12px;
 
+    margin: 0;
     padding-block: 24px clamp(48px, 8vw, 80px);
+    list-style: none;
   }
 
   .plan-card {

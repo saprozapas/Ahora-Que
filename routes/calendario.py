@@ -33,11 +33,11 @@ def ver_calendario():
     elif mes > 12:
         mes, anio = 1, anio + 1
 
-    planes = plan_service.get_planes_confirmados(session["user_id"])
+    planes = plan_service.get_planes_confirmados_calendario(session["user_id"])
 
     planes_por_dia = {}
     for plan in planes:
-        if plan["fecha"].year == anio and plan["fecha"].month == mes:
+        if plan["fecha"] and plan["fecha"].year == anio and plan["fecha"].month == mes:
             planes_por_dia.setdefault(plan["fecha"].day, []).append(plan)
 
     cal = calendar.Calendar(firstweekday=0)  # 0 = lunes

@@ -12,6 +12,14 @@
 
     <section class="section-shell">
 
+      {% with mensajes = get_flashed_messages() %}
+        {% if mensajes %}
+          {% for mensaje in mensajes %}
+          <div class="flash-message">{{ mensaje }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
       <a class="back-link" href="/planes">← Volver</a>
 
       <div class="auth-intro">
@@ -32,8 +40,21 @@
 
       </div>
 
-      {% if plan.precio %}
-      <p><strong>Precio total:</strong> ${{ plan.precio }}</p>
+      {% if plan.descripcion %}
+      <p>{{ plan.descripcion }}</p>
+      {% endif %}
+
+      {% if plan.precio_min is not none and plan.precio_max is not none %}
+      <p>
+        <strong>Precio estimado:</strong>
+        {% if plan.precio_min == plan.precio_max %}
+        ${{ plan.precio_min | int }}
+        {% else %}
+        ${{ plan.precio_min | int }} - ${{ plan.precio_max | int }}
+        {% endif %}
+      </p>
+      {% elif plan.precio %}
+      <p><strong>Precio:</strong> ${{ plan.precio }}</p>
       {% endif %}
 
       <div class="plan-detalle-paradas">
@@ -46,8 +67,14 @@
               {{ lugar.nombre }}
               {% if lugar.hora %}<br /><small>{{ lugar.hora.strftime('%H:%M') }}</small>{% endif %}
             </span>
-            {% if lugar.precio %}
-            <span class="plan-detalle-parada-precio">${{ lugar.precio }}</span>
+            {% if lugar.precio_min is not none and lugar.precio_max is not none %}
+            <span class="plan-detalle-parada-precio">
+              {% if lugar.precio_min == lugar.precio_max %}
+              ${{ lugar.precio_min | int }}
+              {% else %}
+              ${{ lugar.precio_min | int }} - ${{ lugar.precio_max | int }}
+              {% endif %}
+            </span>
             {% endif %}
           </div>
           {% endfor %}
@@ -58,6 +85,34 @@
             <span>Sin lugar específico</span>
           </div>
 
+        {% endif %}
+
+      </div>
+
+      <div class="plan-detalle-acciones">
+
+        {% if plan.guardado %}
+        <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}">
+          <button class="plan-accion-secundaria" type="submit">Quitar de guardados</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('planes.guardar', plan_id=plan.id) }}">
+          <button class="plan-accion-secundaria" type="submit">Guardar plan</button>
+        </form>
+        {% endif %}
+
+        {% if plan.confirmado and not plan.es_creador %}
+        <form method="post" action="{{ url_for('planes.bajarme', plan_id=plan.id) }}"
+              onsubmit="return confirm('¿Te querés bajar de este plan?')">
+          <button class="plan-accion-secundaria" type="submit">Bajarme del plan</button>
+        </form>
+        {% endif %}
+
+        {% if plan.es_creador %}
+        <form method="post" action="{{ url_for('planes.eliminar', plan_id=plan.id) }}"
+              onsubmit="return confirm('¿Eliminar este plan? No se puede deshacer.')">
+          <button class="plan-accion-peligro" type="submit">Eliminar plan</button>
+        </form>
         {% endif %}
 
       </div>
