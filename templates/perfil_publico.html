@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ usuario.get_name() }} — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="auth-page section-shell">
+
+      <a class="back-link" href="javascript:history.back()">← Volver</a>
+
+      <div class="profile-left">
+
+        <div class="auth-intro">
+
+          <h1>{{ usuario.get_name() }}</h1>
+
+          {% if usuario.get_username() %}
+          <p>@{{ usuario.get_username() }}</p>
+          {% endif %}
+
+        </div>
+
+      </div>
+
+      <div class="auth-form profile-card">
+
+        <p>
+          <strong>Nombre</strong><br />
+          {{ usuario.get_name() | default('Sin datos', true) }}
+        </p>
+
+        <p>
+          <strong>Username</strong><br />
+          {{ usuario.get_username() | default('Sin datos', true) }}
+        </p>
+
+        <p>
+          <strong>Descripción</strong><br />
+          {{ usuario.get_descripcion() | default('Este usuario todavía no escribió una descripción.', true) }}
+        </p>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

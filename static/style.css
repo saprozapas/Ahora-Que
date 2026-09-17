@@ -2607,7 +2607,7 @@
 
   .planes-menu-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
 
     padding-block: 24px clamp(48px, 8vw, 80px);
@@ -4159,6 +4159,20 @@
     gap: 12px;
 
     padding: 10px 4px;
+  }
+
+  /* Los integrantes son links al perfil de cada uno. */
+
+  .modal-member-link {
+    padding: 10px 8px;
+
+    border-radius: var(--radius-sm);
+    color: inherit;
+  }
+
+  .modal-member-link:hover,
+  .modal-member-link:focus-visible {
+    background: var(--surface-1);
   }
 
   .modal-member-avatar {

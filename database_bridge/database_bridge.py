@@ -25,7 +25,8 @@ def getUser(uid):
                     "Fecha_Nac",
                     "Username",
                     "Mail",
-                    "Password_Hash"
+                    "Password_Hash",
+                    "Descripcion"
                 FROM public."Usuarios"
                 WHERE "Id_Usuario" = %s
                 """,
@@ -42,7 +43,8 @@ def getUser(uid):
                 result[2],  # Fecha_Nac
                 result[3],  # Username
                 result[4],  # Mail
-                result[5]   # Password_Hash
+                result[5],  # Password_Hash
+                result[6]   # Descripcion
             )
 
     except psycopg2.Error:
@@ -137,6 +139,40 @@ def getUsersInGroup(group_id):
             users = []
             for result in results:
                 users.append(User(result[1], result[2], result[3], result[4], result[5]))
+            return users
+
+    except psycopg2.Error:
+        raise
+
+    finally:
+        connection.close()
+
+def getUsersInGroupWithIds(group_id):
+    """Como getUsersInGroup, pero devuelve también el Id_Usuario de cada
+    integrante (necesario para linkear a su perfil) y su Descripcion."""
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash", u."Descripcion"
+                FROM public."Usuarios" u
+                JOIN public."Usuario-Grupo" ug ON u."Id_Usuario" = ug."Id_Usuario"
+                WHERE ug."Id_Grupo" = %s
+                ORDER BY u."Nombre"
+                """,
+                (group_id,)
+            )
+
+            results = cursor.fetchall()
+
+            users = []
+            for result in results:
+                users.append({
+                    "id": result[0],
+                    "user": User(result[1], result[2], result[3], result[4], result[5], result[6]),
+                })
             return users
 
     except psycopg2.Error:
