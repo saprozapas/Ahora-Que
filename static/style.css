@@ -65,7 +65,7 @@
 
     /* --- Acento --------------------------------------------------------- */
 
-    --accent:          #51b99d;
+    --accent:          #31533f;
     --accent-soft:     #dce7dd;
     --on-accent:       #f6f1e6;
 
@@ -1080,6 +1080,7 @@
 
   .lime-button,
   .dark-button,
+  .logout-button,
   .header-action {
     display: inline-flex;
     align-items: center;
@@ -1117,6 +1118,12 @@
     color: var(--page);
   }
 
+  .logout-button {
+    border-color: color-mix(in srgb, var(--logout) 40%, transparent);
+    background: color-mix(in srgb, var(--logout) 10%, transparent);
+    color: var(--logout);
+  }
+
   .lime-button:hover,
   .header-action:hover {
     background: color-mix(in srgb, var(--accent) 86%, var(--ink));
@@ -1126,8 +1133,14 @@
     background: color-mix(in srgb, var(--ink) 86%, var(--accent));
   }
 
+  .logout-button:hover {
+    border-color: var(--logout);
+    background: color-mix(in srgb, var(--logout) 18%, transparent);
+  }
+
   .lime-button:active,
   .dark-button:active,
+  .logout-button:active,
   .header-action:active {
     transform: translateY(2px);
     box-shadow: var(--lift-pressed);
@@ -4343,7 +4356,8 @@
   @media (max-width: 650px) {
 
     .group-detail-actions .lime-button,
-    .group-detail-actions .dark-button {
+    .group-detail-actions .dark-button,
+    .group-detail-actions .logout-button {
       flex: 1 1 auto;
     }
 
