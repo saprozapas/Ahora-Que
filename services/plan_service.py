@@ -69,11 +69,12 @@ class PlanService:
             return nombres[0]
         return f"{nombres[0]} y {len(nombres) - 1} más"
 
-    def _armar_plan(self, cursor, fila, extra=None):
+    def _armar_plan(self, cursor, fila, extra=None, lugares=None):
         """fila tiene que terminar siempre en (..., Precio_Min, Precio_Max):
         así no importa cuántas columnas más traiga cada consulta."""
         plan_id = fila[0]
-        lugares = self._lugares_de_plan(cursor, plan_id)
+        if lugares is None:
+            lugares = self._lugares_de_plan(cursor, plan_id)
         plan = {
             "id": plan_id,
             "nombre": fila[1],
@@ -89,6 +90,67 @@ class PlanService:
         if extra:
             plan.update(extra)
         return plan
+
+    def _lugares_de_planes(self, cursor, plan_ids):
+        """Como _lugares_de_plan, pero para MUCHOS planes en 2 consultas
+        en total (antes era 1-2 consultas POR plan). Devuelve
+        {plan_id: [lugares]}."""
+        resultado = {plan_id: [] for plan_id in plan_ids}
+        if not plan_ids:
+            return resultado
+
+        cursor.execute(
+            """
+            SELECT "Id_Plan", "Nombre", "Precio_Min", "Precio_Max", "Hora"
+            FROM public."Plan_Lugar"
+            WHERE "Id_Plan" IN %s
+            ORDER BY "Id_Plan", "Orden", "Id_Plan_Lugar"
+            """,
+            (tuple(plan_ids),),
+        )
+        for fila in cursor.fetchall():
+            resultado.setdefault(fila[0], []).append({
+                "nombre": fila[1],
+                "precio_min": fila[2],
+                "precio_max": fila[3],
+                "hora": fila[4],
+            })
+
+        # Fallback a "Plan"."Lugar_id" para los planes viejos sin Plan_Lugar.
+        sin_lugares = tuple(plan_id for plan_id, lugares in resultado.items() if not lugares)
+        if sin_lugares:
+            cursor.execute(
+                """
+                SELECT p."id_Plan", l."Nombre", l."Nivel_Precio"
+                FROM public."Plan" p
+                JOIN public."Lugar" l ON l."Id_Lugar" = p."Lugar_id"
+                WHERE p."id_Plan" IN %s
+                """,
+                (sin_lugares,),
+            )
+            for fila in cursor.fetchall():
+                rango = rango_de_nivel(fila[2])
+                resultado[fila[0]] = [{
+                    "nombre": fila[1],
+                    "precio_min": rango[0] if rango else None,
+                    "precio_max": rango[1] if rango else None,
+                    "hora": None,
+                }]
+
+        return resultado
+
+    def _armar_planes(self, cursor, filas, extra=None):
+        """Arma varios planes de una. extra (opcional) es una función
+        fila -> dict con campos adicionales."""
+        lugares_por_plan = self._lugares_de_planes(cursor, [fila[0] for fila in filas])
+        return [
+            self._armar_plan(
+                cursor, fila,
+                extra(fila) if extra else None,
+                lugares=lugares_por_plan.get(fila[0], []),
+            )
+            for fila in filas
+        ]
 
     # --- Listados -------------------------------------------------------
 
@@ -112,7 +174,7 @@ class PlanService:
                     """,
                     (user_id,),
                 )
-                return [self._armar_plan(cursor, fila) for fila in cursor.fetchall()]
+                return self._armar_planes(cursor, cursor.fetchall())
         except psycopg2.Error:
             raise
         finally:
@@ -136,7 +198,7 @@ class PlanService:
                     """,
                     (user_id,),
                 )
-                return [self._armar_plan(cursor, fila) for fila in cursor.fetchall()]
+                return self._armar_planes(cursor, cursor.fetchall())
         except psycopg2.Error:
             raise
         finally:
@@ -166,10 +228,9 @@ class PlanService:
                     """,
                     (user_id, user_id),
                 )
-                return [
-                    self._armar_plan(cursor, fila, {"grupo": fila[6]})
-                    for fila in cursor.fetchall()
-                ]
+                return self._armar_planes(
+                    cursor, cursor.fetchall(), lambda fila: {"grupo": fila[6]}
+                )
         except psycopg2.Error:
             raise
         finally:
@@ -191,7 +252,7 @@ class PlanService:
                     """,
                     (user_id,),
                 )
-                return [self._armar_plan(cursor, fila) for fila in cursor.fetchall()]
+                return self._armar_planes(cursor, cursor.fetchall())
         except psycopg2.Error:
             raise
         finally:
@@ -217,7 +278,7 @@ class PlanService:
                     """,
                     (user_id,),
                 )
-                return [self._armar_plan(cursor, fila) for fila in cursor.fetchall()]
+                return self._armar_planes(cursor, cursor.fetchall())
         except psycopg2.Error:
             raise
         finally:
@@ -401,47 +462,35 @@ class PlanService:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
+                # Plan + relación del usuario + pertenencia al grupo, todo
+                # en una sola consulta (antes eran 3 viajes a la base).
                 cursor.execute(
                     """
                     SELECT
                         p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
                         p."Grupo_id", g."Nombre", p."Descripcion", p."Creado_Por",
+                        COALESCE(up."Confirmado", false),
+                        COALESCE(up."Guardado", false),
+                        EXISTS (
+                            SELECT 1 FROM public."Usuario-Grupo" ug
+                            WHERE ug."Id_Grupo" = p."Grupo_id" AND ug."Id_Usuario" = %s
+                        ),
                         p."Precio_Min", p."Precio_Max"
                     FROM public."Plan" p
                     LEFT JOIN public."Grupos" g ON g."Id_Grupo" = p."Grupo_id"
+                    LEFT JOIN public."Usuario-Plan" up
+                           ON up."Plan_id" = p."id_Plan" AND up."Usuario_id" = %s
                     WHERE p."id_Plan" = %s
                     """,
-                    (plan_id,),
+                    (user_id, user_id, plan_id),
                 )
                 fila = cursor.fetchone()
                 if fila is None:
                     return None
 
-                cursor.execute(
-                    """
-                    SELECT "Confirmado", "Guardado"
-                    FROM public."Usuario-Plan"
-                    WHERE "Plan_id" = %s AND "Usuario_id" = %s
-                    """,
-                    (plan_id, user_id),
-                )
-                relacion = cursor.fetchone()
-                confirmado = bool(relacion[0]) if relacion else False
-                guardado = bool(relacion[1]) if relacion else False
-
-                id_grupo = fila[6]
-                en_grupo = False
-                if id_grupo is not None:
-                    cursor.execute(
-                        """
-                        SELECT EXISTS (
-                            SELECT 1 FROM public."Usuario-Grupo"
-                            WHERE "Id_Grupo" = %s AND "Id_Usuario" = %s
-                        )
-                        """,
-                        (id_grupo, user_id),
-                    )
-                    en_grupo = cursor.fetchone()[0]
+                confirmado = bool(fila[10])
+                guardado = bool(fila[11])
+                en_grupo = bool(fila[12])
 
                 if not (confirmado or guardado or en_grupo):
                     return None

@@ -26,8 +26,9 @@ def grupos():
         return redirect_response
 
     grupos = getGroupsForUser(session.get("user_id"))# getGroups no devuelve grupos con usuario asignado.
+    usuario = getUser(session.get("user_id"))  # una sola consulta, no una por grupo
     for grupo in grupos:
-        grupo.set_user(getUser(session.get("user_id")))
+        grupo.set_user(usuario)
 
     return render_template("grupos.html", groups=grupos, groups_page=True)
 
@@ -121,5 +122,3 @@ def editar_grupo(group_id):
         flash("Error al actualizar el grupo.")
 
     return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
-
-

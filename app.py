@@ -1,4 +1,6 @@
-﻿from flask import Flask, render_template, request, redirect, session
+﻿import time
+
+from flask import Flask, g, render_template, request, redirect, session
 from routes.auth import auth
 from routes.group_auth import group_auth
 from routes.profile import profile
@@ -33,24 +35,50 @@ PLANS = [
 
 @app.context_processor
 def inject_user():
-    notificaciones_pendientes = 0
-
-    # Se calcula acá (y no en cada ruta) para que la burbuja del ícono de
-    # Inbox se vea en TODAS las páginas del dashboard, no solo en /dashboard
-    # y /inbox. Suma invitaciones a grupo + solicitudes de amistad.
-    if session.get("user_id"):
-        try:
-            invitaciones_pendientes = invitation_service.get_invitations_for_user(session["user_id"])
-            solicitudes_pendientes = friend_service.get_requests_for_user(session["user_id"])
-            notificaciones_pendientes = len(invitaciones_pendientes) + len(solicitudes_pendientes)
-        except Exception:
-            notificaciones_pendientes = 0
-
     return {
         "logueado": bool(session.get("user_id")),
         "current_user": session.get("user", {}),
-        "notificaciones_pendientes": notificaciones_pendientes,
     }
+
+
+# ---- Medición: imprime cuánto tardó cada request (sacar cuando no haga falta) ----
+@app.before_request
+def _empezar_cronometro():
+    g._inicio = time.perf_counter()
+
+
+@app.after_request
+def _mostrar_tiempo(response):
+    if hasattr(g, "_inicio") and not request.path.startswith("/static"):
+        print(f"{request.method} {request.path} -> {(time.perf_counter() - g._inicio) * 1000:.0f} ms")
+    return response
+
+# ---- Inbox guardado en memoria ----
+# El dashboard no consulta la base cada vez que se entra: usa lo que se
+# guardó y lo vuelve a pedir recién cuando pasaron 30 segundos.
+_SEGUNDOS_INBOX = 30
+_inbox_cache = {}  # user_id -> (invitaciones, cantidad, momento)
+
+
+def _inbox_guardado(user_id):
+    guardado = _inbox_cache.get(user_id)
+    if guardado and time.monotonic() - guardado[2] < _SEGUNDOS_INBOX:
+        return guardado[0], guardado[1]
+
+    invitaciones = invitation_service.get_invitations_for_user(user_id)
+    solicitudes = friend_service.get_requests_for_user(user_id)
+    notificaciones = invitaciones + solicitudes
+    _inbox_cache[user_id] = (invitaciones, len(notificaciones), time.monotonic())
+    return invitaciones, len(notificaciones)
+
+
+@app.before_request
+def _borrar_inbox_guardado():
+    # Si el usuario acepta/rechaza algo (cualquier POST), se borra lo
+    # guardado para que el contador se actualice al momento.
+    if request.method == "POST" and session.get("user_id"):
+        _inbox_cache.pop(session["user_id"], None)
+
 
 @app.route('/')
 def home():
@@ -60,8 +88,10 @@ def home():
 def dashboard():
     if not session.get('user_id'):
         return redirect('/login')
-    invitaciones = invitation_service.get_invitations_for_user(session["user_id"])
-    return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True, invitaciones = invitaciones)
+    invitaciones, cantidad = _inbox_guardado(session["user_id"])
+    return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True,
+                           invitaciones=invitaciones,
+                           notificaciones_pendientes=cantidad)
 
 @app.route('/social')
 def social():
