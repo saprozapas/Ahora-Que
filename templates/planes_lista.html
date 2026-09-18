@@ -12,6 +12,14 @@
 
     <section class="section-shell">
 
+      {% with mensajes = get_flashed_messages() %}
+        {% if mensajes %}
+          {% for mensaje in mensajes %}
+          <div class="flash-message">{{ mensaje }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
       <a class="back-link" href="/planes">← Volver</a>
 
       <div class="auth-intro">
@@ -20,35 +28,55 @@
       </div>
 
       {% if planes %}
-      <div class="plan-card-list">
+      <ul class="plan-card-list">
 
         {% for plan in planes %}
-        <a class="plan-card" href="/planes/{{ plan.id }}">
+        <li class="plan-card-fila">
 
-          <strong>{{ plan.nombre }}</strong>
+          <a class="plan-card" href="/planes/{{ plan.id }}">
 
-          <div class="plan-card-meta">
+            <strong>{{ plan.nombre }}</strong>
 
-            {% if mostrar_fecha and plan.fecha %}
-            <span>{{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
-            {% endif %}
+            <div class="plan-card-meta">
 
-            <span>{{ plan.resumen_lugares }}</span>
+              {% if mostrar_fecha and plan.fecha %}
+              <span>{{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
+              {% endif %}
 
-            {% if plan.precio %}
-            <span>${{ plan.precio }}</span>
-            {% endif %}
+              <span>{{ plan.resumen_lugares }}</span>
 
-            {% if plan.grupo %}
-            <span>{{ plan.grupo }}</span>
-            {% endif %}
+              {% if plan.precio_min is not none and plan.precio_max is not none %}
+              <span>
+                {% if plan.precio_min == plan.precio_max %}
+                ${{ plan.precio_min | int }}
+                {% else %}
+                ${{ plan.precio_min | int }} - ${{ plan.precio_max | int }}
+                {% endif %}
+              </span>
+              {% elif plan.precio %}
+              <span>${{ plan.precio }}</span>
+              {% endif %}
 
-          </div>
+              {% if plan.grupo %}
+              <span>{{ plan.grupo }}</span>
+              {% endif %}
 
-        </a>
+            </div>
+
+          </a>
+
+          {% if mostrar_quitar_guardado %}
+          <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}"
+                class="plan-card-quitar"
+                onsubmit="return confirm('¿Quitar este plan de guardados?')">
+            <button type="submit">Quitar</button>
+          </form>
+          {% endif %}
+
+        </li>
         {% endfor %}
 
-      </div>
+      </ul>
       {% else %}
       <p class="plan-index-empty-inline">{{ vacio }}</p>
       {% endif %}

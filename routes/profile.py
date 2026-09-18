@@ -1,5 +1,6 @@
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from services.auth_service import AuthService
+from database_bridge.database_bridge import getUser
 from werkzeug.security import check_password_hash, generate_password_hash
 
 profile = Blueprint("profile", __name__)
@@ -99,3 +100,20 @@ def cambiar_contrasena():
                 error = err
 
     return render_template("cambiar_contrasena.html", error=error, exito=exito)
+
+
+@profile.route("/usuarios/<user_id>")
+def perfil_publico(user_id):
+    """Perfil de otro usuario: solo lectura, sin ningún formulario."""
+    if not session.get("user_id"):
+        return redirect(url_for("auth.login"))
+
+    # Si es el propio usuario, no tiene sentido la vista de solo lectura.
+    if str(user_id) == str(session.get("user_id")):
+        return redirect(url_for("profile.perfil"))
+
+    usuario = getUser(user_id)
+    if usuario is None:
+        abort(404)
+
+    return render_template("perfil_publico.html", usuario=usuario)

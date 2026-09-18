@@ -5,7 +5,7 @@ from services.invitation_service import InvitationService
 from services.group_auth_service import GroupAuthService
 from werkzeug.security import generate_password_hash
 from services.auth_service import AuthService
-from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, isUserInGroup, getGroupById
+from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, getUsersInGroupWithIds, isUserInGroup, getGroupById
 
 
 group_auth = Blueprint("group_auth", __name__)
@@ -75,7 +75,7 @@ def detalle_grupo(group_id):
 
     group = getGroupById(group_id)
     group.set_user(getUser(session.get("user_id")))
-    users = getUsersInGroup(group_id)
+    users = getUsersInGroupWithIds(group_id)
     return render_template("grupo.html", group=group, groups_page=True, users = users)
 
 @group_auth.route("/grupos/<group_id>/invitar", methods=["POST"])

@@ -1,6 +1,7 @@
 import psycopg2
 
 from database import get_db_connection
+from services.precio_lugar import rango_de_nivel, sumar_rangos
 
 
 class PlanService:
@@ -11,13 +12,13 @@ class PlanService:
         """Paradas de un plan.
 
         Salen de "Plan_Lugar" (un plan puede tener varias, cada una con su
-        precio). Si el plan todavía no tiene filas ahí pero sí el "Lugar_id"
-        único de "Plan" (los planes viejos), se usa ese lugar como única
-        parada.
+        rango de precio estimado). Si el plan todavía no tiene filas ahí
+        pero sí el "Lugar_id" único de "Plan" (los planes viejos), se usa
+        ese lugar como única parada.
         """
         cursor.execute(
             """
-            SELECT "Nombre", "Precio", "Hora"
+            SELECT "Nombre", "Precio_Min", "Precio_Max", "Hora"
             FROM public."Plan_Lugar"
             WHERE "Id_Plan" = %s
             ORDER BY "Orden", "Id_Plan_Lugar"
@@ -25,17 +26,23 @@ class PlanService:
             (plan_id,),
         )
         lugares = [
-            {"nombre": fila[0], "precio": fila[1], "hora": fila[2]}
+            {
+                "nombre": fila[0],
+                "precio_min": fila[1],
+                "precio_max": fila[2],
+                "hora": fila[3],
+            }
             for fila in cursor.fetchall()
         ]
 
         if lugares:
             return lugares
 
-        # Fallback al lugar único de "Plan"."Lugar_id".
+        # Fallback a "Plan"."Lugar_id" (planes de antes de Plan_Lugar).
+        # Se estima igual un rango a partir del Nivel_Precio del lugar.
         cursor.execute(
             """
-            SELECT l."Nombre"
+            SELECT l."Nombre", l."Nivel_Precio"
             FROM public."Plan" p
             JOIN public."Lugar" l ON l."Id_Lugar" = p."Lugar_id"
             WHERE p."id_Plan" = %s
@@ -44,7 +51,13 @@ class PlanService:
         )
         fila = cursor.fetchone()
         if fila:
-            return [{"nombre": fila[0], "precio": None, "hora": None}]
+            rango = rango_de_nivel(fila[1])
+            return [{
+                "nombre": fila[0],
+                "precio_min": rango[0] if rango else None,
+                "precio_max": rango[1] if rango else None,
+                "hora": None,
+            }]
 
         return []
 
@@ -57,6 +70,8 @@ class PlanService:
         return f"{nombres[0]} y {len(nombres) - 1} más"
 
     def _armar_plan(self, cursor, fila, extra=None):
+        """fila tiene que terminar siempre en (..., Precio_Min, Precio_Max):
+        así no importa cuántas columnas más traiga cada consulta."""
         plan_id = fila[0]
         lugares = self._lugares_de_plan(cursor, plan_id)
         plan = {
@@ -64,8 +79,10 @@ class PlanService:
             "nombre": fila[1],
             "fecha": fila[2],
             "hora": fila[3],
-            "precio": fila[4],
+            "precio": fila[4],  # legacy: planes creados antes del rango
             "estado": fila[5],
+            "precio_min": fila[-2],
+            "precio_max": fila[-1],
             "lugares": lugares,
             "resumen_lugares": self._resumen_lugares(lugares),
         }
@@ -76,12 +93,41 @@ class PlanService:
     # --- Listados -------------------------------------------------------
 
     def get_planes_confirmados(self, user_id):
+        """Planes confirmados que todavía no pasaron. Una vez que la
+        fecha queda atrás, el plan deja de aparecer acá (pasa a
+        "Historial") aunque siga Confirmado = true en la base."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado"
+                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
+                           p."Precio_Min", p."Precio_Max"
+                    FROM public."Usuario-Plan" up
+                    JOIN public."Plan" p ON p."id_Plan" = up."Plan_id"
+                    WHERE up."Usuario_id" = %s
+                      AND up."Confirmado" = true
+                      AND p."Fecha" >= CURRENT_DATE
+                    ORDER BY p."Fecha", p."Hora"
+                    """,
+                    (user_id,),
+                )
+                return [self._armar_plan(cursor, fila) for fila in cursor.fetchall()]
+        except psycopg2.Error:
+            raise
+        finally:
+            connection.close()
+
+    def get_planes_confirmados_calendario(self, user_id):
+        """Como get_planes_confirmados, pero sin filtrar por fecha: el
+        calendario tiene que poder mostrar también los meses pasados."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
+                           p."Precio_Min", p."Precio_Max"
                     FROM public."Usuario-Plan" up
                     JOIN public."Plan" p ON p."id_Plan" = up."Plan_id"
                     WHERE up."Usuario_id" = %s
@@ -103,7 +149,8 @@ class PlanService:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado", g."Nombre"
+                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado", g."Nombre",
+                           p."Precio_Min", p."Precio_Max"
                     FROM public."Plan" p
                     JOIN public."Grupos" g ON g."Id_Grupo" = p."Grupo_id"
                     JOIN public."Usuario-Grupo" ug ON ug."Id_Grupo" = p."Grupo_id"
@@ -134,7 +181,8 @@ class PlanService:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado"
+                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
+                           p."Precio_Min", p."Precio_Max"
                     FROM public."Usuario-Plan" up
                     JOIN public."Plan" p ON p."id_Plan" = up."Plan_id"
                     WHERE up."Usuario_id" = %s
@@ -150,13 +198,15 @@ class PlanService:
             connection.close()
 
     def get_historial(self, user_id):
-        """Planes confirmados de los últimos 3 meses, con fecha ya pasada."""
+        """Planes confirmados de los últimos 3 meses, con fecha ya pasada
+        (acá es donde "aterrizan" los que se salen de "Confirmados")."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado"
+                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
+                           p."Precio_Min", p."Precio_Max"
                     FROM public."Usuario-Plan" up
                     JOIN public."Plan" p ON p."id_Plan" = up."Plan_id"
                     WHERE up."Usuario_id" = %s
@@ -169,6 +219,175 @@ class PlanService:
                 )
                 return [self._armar_plan(cursor, fila) for fila in cursor.fetchall()]
         except psycopg2.Error:
+            raise
+        finally:
+            connection.close()
+
+    # --- Creación --------------------------------------------------------
+
+    def crear_plan(self, user_id, nombre, fecha, hora, descripcion, lugares,
+                   guardado=False, grupo_id=None):
+        """Crea un plan y lo deja confirmado para el usuario que lo creó.
+
+        lugares: lista de dicts con las paradas, en orden:
+                 {"id_lugar": uuid o None, "nombre": str,
+                  "nivel_precio": 0-4 o None, "hora": "HH:MM" o None}
+                 Puede venir vacía: un plan sin lugar específico
+                 (por ejemplo "llamada a las 8") es válido.
+
+        El precio no lo elige el usuario: se estima sumando el rango de
+        cada lugar según su Nivel_Precio (ver services/precio_lugar.py).
+
+        Al quedar Confirmado = true, el plan aparece automáticamente en
+        el calendario y en "Planes confirmados".
+
+        Devuelve el id del plan creado.
+        """
+        rangos_por_lugar = [
+            rango_de_nivel(lugar.get("nivel_precio")) for lugar in lugares
+        ]
+        rango_total = sumar_rangos(rangos_por_lugar)
+        precio_min_total = rango_total[0] if rango_total else None
+        precio_max_total = rango_total[1] if rango_total else None
+
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                # Grupo_id y Lugar_id van en NULL explícito: así no se
+                # activa el DEFAULT gen_random_uuid() que tienen esas
+                # columnas (que generaría un uuid inexistente y rompería
+                # la foreign key). Las paradas van en "Plan_Lugar".
+                cursor.execute(
+                    """
+                    INSERT INTO public."Plan"
+                        ("Nombre", "Fecha", "Hora", "Descripcion",
+                         "Precio_Min", "Precio_Max",
+                         "Creado_Por", "Estado", "Grupo_id", "Lugar_id")
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'activo', %s, NULL)
+                    RETURNING "id_Plan"
+                    """,
+                    (nombre, fecha, hora, descripcion,
+                     precio_min_total, precio_max_total, user_id, grupo_id),
+                )
+                plan_id = cursor.fetchone()[0]
+
+                for orden, (lugar, rango) in enumerate(zip(lugares, rangos_por_lugar), start=1):
+                    cursor.execute(
+                        """
+                        INSERT INTO public."Plan_Lugar"
+                            ("Id_Plan", "Id_Lugar", "Nombre", "Precio_Min", "Precio_Max", "Hora", "Orden")
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (
+                            plan_id,
+                            lugar.get("id_lugar"),
+                            lugar["nombre"],
+                            rango[0] if rango else None,
+                            rango[1] if rango else None,
+                            lugar.get("hora"),
+                            orden,
+                        ),
+                    )
+
+                cursor.execute(
+                    """
+                    INSERT INTO public."Usuario-Plan"
+                        ("Usuario_id", "Plan_id", "Confirmado", "Guardado")
+                    VALUES (%s, %s, true, %s)
+                    """,
+                    (user_id, plan_id, guardado),
+                )
+
+            connection.commit()
+            return plan_id
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
+    # --- Guardar / desguardar ----------------------------------------------
+
+    def set_guardado(self, plan_id, user_id, guardado):
+        """Marca o desmarca un plan como guardado para ese usuario.
+
+        Si el usuario todavía no tenía ninguna relación con el plan
+        (no lo había confirmado ni guardado), se crea una fila nueva
+        con Confirmado = false.
+        """
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO public."Usuario-Plan" ("Usuario_id", "Plan_id", "Confirmado", "Guardado")
+                    VALUES (%s, %s, false, %s)
+                    ON CONFLICT ("Usuario_id", "Plan_id")
+                    DO UPDATE SET "Guardado" = EXCLUDED."Guardado"
+                    """,
+                    (user_id, plan_id, guardado),
+                )
+            connection.commit()
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
+    # --- Bajarse / eliminar --------------------------------------------------
+
+    def bajarse_de_plan(self, plan_id, user_id):
+        """Saca al usuario de un plan (deja de estar confirmado). No
+        borra el plan en sí, solo la relación de este usuario con él."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    DELETE FROM public."Usuario-Plan"
+                    WHERE "Plan_id" = %s AND "Usuario_id" = %s
+                    """,
+                    (plan_id, user_id),
+                )
+            connection.commit()
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
+    def eliminar_plan(self, plan_id, user_id):
+        """Borra el plan entero. Solo puede hacerlo quien lo creó.
+
+        Devuelve True si lo borró, False si el usuario no es el creador
+        (o el plan no existe)."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT "Creado_Por" FROM public."Plan" WHERE "id_Plan" = %s',
+                    (plan_id,),
+                )
+                fila = cursor.fetchone()
+                if fila is None or str(fila[0]) != str(user_id):
+                    return False
+
+                # "Plan_Lugar" tiene ON DELETE CASCADE, pero
+                # "Usuario-Plan" no, así que esa hay que borrarla a mano
+                # antes de poder borrar el Plan.
+                cursor.execute(
+                    'DELETE FROM public."Usuario-Plan" WHERE "Plan_id" = %s',
+                    (plan_id,),
+                )
+                cursor.execute(
+                    'DELETE FROM public."Plan" WHERE "id_Plan" = %s',
+                    (plan_id,),
+                )
+
+            connection.commit()
+            return True
+        except psycopg2.Error:
+            connection.rollback()
             raise
         finally:
             connection.close()
@@ -186,7 +405,8 @@ class PlanService:
                     """
                     SELECT
                         p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
-                        p."Grupo_id", g."Nombre"
+                        p."Grupo_id", g."Nombre", p."Descripcion", p."Creado_Por",
+                        p."Precio_Min", p."Precio_Max"
                     FROM public."Plan" p
                     LEFT JOIN public."Grupos" g ON g."Id_Grupo" = p."Grupo_id"
                     WHERE p."id_Plan" = %s
@@ -231,6 +451,8 @@ class PlanService:
                     fila,
                     {
                         "grupo": fila[7],
+                        "descripcion": fila[8],
+                        "es_creador": str(fila[9]) == str(user_id),
                         "confirmado": confirmado,
                         "guardado": guardado,
                     },
