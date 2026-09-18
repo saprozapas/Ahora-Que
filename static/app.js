@@ -847,6 +847,243 @@
 
 
   /* ========================================================================
+     14. BUSCADOR DE AMIGOS
+
+     Debounce sobre el input de /amigos: manda la búsqueda a
+     /amigos/buscar y arma la lista de resultados. El botón "Agregar"
+     manda la solicitud por fetch, sin recargar la página, y se
+     deshabilita apenas se envía.
+     ======================================================================== */
+
+  const iniciarBuscarAmigos = () => {
+
+    const contenedor = $("[data-friend-search]");
+    if (!contenedor) return;
+
+    const input = $("#buscar-amigos-input", contenedor);
+    const resultados = $("#buscar-amigos-resultados", contenedor);
+
+    if (!input || !resultados) return;
+
+    let temporizador = null;
+    let controlador = null;
+
+    const etiquetaEstado = (usuario) => {
+
+      if (usuario.ya_amigos) {
+        return { texto: "Ya son amigos", deshabilitado: true };
+      }
+
+      if (usuario.solicitud_enviada) {
+        return { texto: "Solicitud enviada", deshabilitado: true };
+      }
+
+      if (usuario.solicitud_recibida) {
+        return { texto: "Te invitó · revisá tu inbox", deshabilitado: true };
+      }
+
+      return { texto: "Agregar", deshabilitado: false };
+    };
+
+    const renderizarResultados = (usuarios) => {
+
+      resultados.innerHTML = "";
+
+      if (usuarios.length === 0) {
+        const vacio = document.createElement("p");
+        vacio.className = "friend-search-empty";
+        vacio.textContent = "No encontramos a nadie con ese nombre o usuario.";
+        resultados.appendChild(vacio);
+        resultados.hidden = false;
+        return;
+      }
+
+      usuarios.forEach((usuario) => {
+
+        const fila = document.createElement("div");
+        fila.className = "friend-search-result";
+
+        const identidad = document.createElement("a");
+        identidad.className = "friend-search-result-identity";
+        identidad.href = `/usuarios/${usuario.id}`;
+
+        const avatar = document.createElement("span");
+        avatar.className = "friend-avatar";
+        avatar.setAttribute("aria-hidden", "true");
+        avatar.textContent = (usuario.nombre || "?").slice(0, 1).toUpperCase();
+
+        const nombres = document.createElement("span");
+        nombres.className = "friend-search-result-names";
+
+        const nombre = document.createElement("strong");
+        nombre.textContent = usuario.nombre;
+        nombres.appendChild(nombre);
+
+        if (usuario.username) {
+          const username = document.createElement("small");
+          username.textContent = `@${usuario.username}`;
+          nombres.appendChild(username);
+        }
+
+        identidad.appendChild(avatar);
+        identidad.appendChild(nombres);
+
+        const estado = etiquetaEstado(usuario);
+
+        const boton = document.createElement("button");
+        boton.type = "button";
+        boton.className = "friend-search-add";
+        boton.textContent = estado.texto;
+        boton.disabled = estado.deshabilitado;
+
+        if (!estado.deshabilitado) {
+          boton.addEventListener("click", async () => {
+
+            boton.disabled = true;
+            boton.textContent = "Enviando…";
+
+            try {
+              const respuesta = await fetch(input.dataset.solicitarUrl, {
+                method: "POST",
+                headers: {
+                  "X-Requested-With": "XMLHttpRequest",
+                  "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: `user_id=${encodeURIComponent(usuario.id)}`,
+              });
+
+              const datos = await respuesta.json();
+
+              if (datos.ok) {
+                boton.textContent = datos.estado === "amigos" ? "Ya son amigos" : "Solicitud enviada";
+              } else {
+                boton.disabled = false;
+                boton.textContent = datos.error || "Reintentar";
+              }
+            } catch (error) {
+              boton.disabled = false;
+              boton.textContent = "Reintentar";
+            }
+          });
+        }
+
+        fila.appendChild(identidad);
+        fila.appendChild(boton);
+        resultados.appendChild(fila);
+      });
+
+      resultados.hidden = false;
+    };
+
+    const buscar = async (consulta) => {
+
+      if (controlador) controlador.abort();
+      controlador = new AbortController();
+
+      try {
+        const respuesta = await fetch(
+          `${input.dataset.buscarUrl}?q=${encodeURIComponent(consulta)}`,
+          { signal: controlador.signal }
+        );
+        const datos = await respuesta.json();
+        renderizarResultados(datos.resultados || []);
+      } catch (error) {
+        // Búsqueda cancelada por una más nueva, o error de red: no hacemos nada.
+      }
+    };
+
+    input.addEventListener("input", () => {
+
+      const consulta = input.value.trim();
+
+      clearTimeout(temporizador);
+
+      if (consulta.length < 2) {
+        resultados.hidden = true;
+        resultados.innerHTML = "";
+        return;
+      }
+
+      temporizador = setTimeout(() => buscar(consulta), 300);
+    });
+
+    document.addEventListener("click", (evento) => {
+      if (!contenedor.contains(evento.target)) {
+        resultados.hidden = true;
+      }
+    });
+  };
+
+
+  /* ========================================================================
+     15. INVITAR A UN AMIGO A UN GRUPO
+
+     El modal es único y se reutiliza para cualquier amigo: al abrirlo
+     desde su botón se actualiza a qué URL apunta el form y el nombre
+     que aparece en el título.
+     ======================================================================== */
+
+  const iniciarInvitarAmigoAGrupo = () => {
+
+    const form = $("#modal-invitar-grupo-form");
+    const nombreSpan = $("#modal-invitar-grupo-nombre");
+
+    $$("[data-invite-url]").forEach((boton) => {
+
+      boton.addEventListener("click", () => {
+        if (form) form.action = boton.dataset.inviteUrl;
+        if (nombreSpan) nombreSpan.textContent = boton.dataset.friendName || "tu amigo";
+      });
+    });
+
+    const buscador = $("[data-buscar-en-modal-grupos]");
+    const lista = $$(".modal-group-item");
+    const vacio = $("#modal-invitar-grupo-vacio");
+
+    if (!buscador || lista.length === 0) return;
+
+    buscador.addEventListener("input", () => {
+
+      const consulta = buscador.value.trim().toLowerCase();
+      let visibles = 0;
+
+      lista.forEach((item) => {
+
+        const coincide = item.dataset.nombreGrupo.includes(consulta);
+        item.closest("li").hidden = !coincide;
+
+        if (coincide) visibles += 1;
+      });
+
+      if (vacio) vacio.hidden = visibles !== 0;
+    });
+  };
+
+
+  /* ========================================================================
+     16. ELIMINAR AMIGO
+
+     Confirmación antes de mandar el form, usando el mensaje que trae
+     el propio form en data-confirmar.
+     ======================================================================== */
+
+  const iniciarEliminarAmigo = () => {
+
+    $$(".form-eliminar-amigo").forEach((formulario) => {
+
+      formulario.addEventListener("submit", (evento) => {
+
+        const mensaje = formulario.dataset.confirmar || "¿Eliminar de tus amigos?";
+
+        if (!window.confirm(mensaje)) {
+          evento.preventDefault();
+        }
+      });
+    });
+  };
+
+
+  /* ========================================================================
      ARRANQUE
      ======================================================================== */
 
@@ -862,4 +1099,7 @@
   iniciarCopiarEnlace();
   iniciarCamposEditables();
   iniciarModales();
+  iniciarBuscarAmigos();
+  iniciarInvitarAmigoAGrupo();
+  iniciarEliminarAmigo();
 })();

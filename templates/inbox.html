@@ -135,7 +135,7 @@
 
     </div>
 
-  {% else %}
+  {% elif not solicitudes_amistad %}
 
     <div class="inbox-empty">
 
@@ -156,6 +156,106 @@
   {% endif %}
 
 </section>
+
+
+{% if solicitudes_amistad %}
+
+<section class="inbox-section section-shell">
+
+  <div class="inbox-list">
+
+    {% for solicitud in solicitudes_amistad %}
+
+      <article class="invitation-card">
+
+        <div class="invitation-card-content">
+
+          <div class="invitation-group">
+
+            <span class="invitation-label">
+              Solicitud de amistad
+            </span>
+
+            <h2>
+              {{ solicitud.get_nombre_solicitante() }}
+            </h2>
+
+          </div>
+
+
+          <div class="invitation-details">
+
+            {% if solicitud.get_username_solicitante() %}
+
+              <div class="invitation-inviter">
+
+                <span class="invitation-label">
+                  Usuario
+                </span>
+
+                <p>
+                  @{{ solicitud.get_username_solicitante() }}
+                </p>
+
+              </div>
+
+            {% endif %}
+
+          </div>
+
+        </div>
+
+
+        <div class="invitation-actions">
+
+          <!-- ACEPTAR SOLICITUD -->
+
+          <form
+            action="{{ url_for('friends.aceptar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}"
+            method="POST"
+          >
+
+            <button
+              class="invitation-action invitation-accept"
+              type="submit"
+              aria-label="Aceptar solicitud de amistad"
+              title="Aceptar solicitud de amistad"
+            >
+              ✓
+            </button>
+
+          </form>
+
+
+          <!-- RECHAZAR SOLICITUD -->
+
+          <form
+            action="{{ url_for('friends.rechazar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}"
+            method="POST"
+          >
+
+            <button
+              class="invitation-action invitation-reject"
+              type="submit"
+              aria-label="Rechazar solicitud de amistad"
+              title="Rechazar solicitud de amistad"
+            >
+              ×
+            </button>
+
+          </form>
+
+        </div>
+
+      </article>
+
+    {% endfor %}
+
+  </div>
+
+</section>
+
+{% endif %}
 
   </div>
 
