@@ -6,7 +6,9 @@ from routes.inbox import inbox_bp
 from datetime import timedelta
 from routes.calendario import calendario_bp
 from routes.planes import planes_bp
+from routes.friends import friends_bp
 from services.invitation_service import InvitationService
+from services.friend_service import FriendService
 
 
 app = Flask(__name__)
@@ -18,7 +20,9 @@ app.register_blueprint(profile)
 app.register_blueprint(calendario_bp)
 app.register_blueprint(planes_bp)
 app.register_blueprint(inbox_bp)
+app.register_blueprint(friends_bp)
 invitation_service = InvitationService()
+friend_service = FriendService()
 
 
 PLANS = [
@@ -29,9 +33,23 @@ PLANS = [
 
 @app.context_processor
 def inject_user():
+    notificaciones_pendientes = 0
+
+    # Se calcula acá (y no en cada ruta) para que la burbuja del ícono de
+    # Inbox se vea en TODAS las páginas del dashboard, no solo en /dashboard
+    # y /inbox. Suma invitaciones a grupo + solicitudes de amistad.
+    if session.get("user_id"):
+        try:
+            invitaciones_pendientes = invitation_service.get_invitations_for_user(session["user_id"])
+            solicitudes_pendientes = friend_service.get_requests_for_user(session["user_id"])
+            notificaciones_pendientes = len(invitaciones_pendientes) + len(solicitudes_pendientes)
+        except Exception:
+            notificaciones_pendientes = 0
+
     return {
         "logueado": bool(session.get("user_id")),
         "current_user": session.get("user", {}),
+        "notificaciones_pendientes": notificaciones_pendientes,
     }
 
 @app.route('/')

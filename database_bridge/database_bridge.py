@@ -181,6 +181,105 @@ def getUsersInGroupWithIds(group_id):
     finally:
         connection.close()
 
+def getFriendsForUser(uid):
+    """Amigos ya confirmados de un usuario, con su Id_Usuario incluido
+    (necesario para linkear a su perfil, invitarlo a un grupo, etc)."""
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash", u."Descripcion"
+                FROM public."Usuarios" u
+                JOIN public."Amistades" a
+                    ON u."Id_Usuario" = CASE
+                        WHEN a."Id_Usuario1" = %s THEN a."Id_Usuario2"
+                        ELSE a."Id_Usuario1"
+                    END
+                WHERE a."Id_Usuario1" = %s OR a."Id_Usuario2" = %s
+                ORDER BY u."Nombre"
+                """,
+                (uid, uid, uid)
+            )
+
+            results = cursor.fetchall()
+
+            amigos = []
+            for result in results:
+                amigos.append({
+                    "id": result[0],
+                    "user": User(result[1], result[2], result[3], result[4], result[5], result[6]),
+                })
+            return amigos
+
+    except psycopg2.Error:
+        raise
+
+    finally:
+        connection.close()
+
+
+def buscarUsuarios(query, uid_actual, limite=8):
+    """Busca usuarios por nombre o username para agregar como amigos,
+    excluyendo al propio usuario. Para cada resultado indica si ya son
+    amigos o si ya existe una solicitud pendiente en algún sentido, así
+    el frontend puede mostrar el botón correcto (Agregar / Ya son amigos /
+    Solicitud enviada / Te invitó)."""
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            patron = f"%{query}%"
+            cursor.execute(
+                """
+                SELECT
+                    u."Id_Usuario",
+                    u."Nombre",
+                    u."Username",
+                    EXISTS (
+                        SELECT 1 FROM public."Amistades" a
+                        WHERE a."Id_Usuario1" = LEAST(u."Id_Usuario", %s)
+                          AND a."Id_Usuario2" = GREATEST(u."Id_Usuario", %s)
+                    ) AS ya_amigos,
+                    EXISTS (
+                        SELECT 1 FROM public."Solicitudes_Amistad" s
+                        WHERE s."Id_Solicitante" = %s AND s."Id_Destinatario" = u."Id_Usuario"
+                    ) AS solicitud_enviada,
+                    EXISTS (
+                        SELECT 1 FROM public."Solicitudes_Amistad" s
+                        WHERE s."Id_Solicitante" = u."Id_Usuario" AND s."Id_Destinatario" = %s
+                    ) AS solicitud_recibida
+                FROM public."Usuarios" u
+                WHERE u."Id_Usuario" != %s
+                    AND (u."Nombre" ILIKE %s OR u."Username" ILIKE %s)
+                ORDER BY u."Nombre"
+                LIMIT %s
+                """,
+                (uid_actual, uid_actual, uid_actual, uid_actual, uid_actual, patron, patron, limite)
+            )
+
+            results = cursor.fetchall()
+
+            usuarios = []
+            for result in results:
+                usuarios.append({
+                    "id": result[0],
+                    "nombre": result[1],
+                    "username": result[2],
+                    "ya_amigos": result[3],
+                    "solicitud_enviada": result[4],
+                    "solicitud_recibida": result[5],
+                })
+            return usuarios
+
+    except psycopg2.Error:
+        raise
+
+    finally:
+        connection.close()
+
+
 def isUserInGroup(uid, group_id):
     connection = get_db_connection()
 

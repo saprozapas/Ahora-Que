@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block title %}Amigos — Ahora Qué{% endblock %}
+
+{% block content %}
+
+{% if logueado %}
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+{% endif %}
+
+
+{% with mensajes = get_flashed_messages() %}
+  {% if mensajes %}
+
+    {% for mensaje in mensajes %}
+
+      <div class="flash-message">
+        {{ mensaje }}
+      </div>
+
+    {% endfor %}
+
+  {% endif %}
+{% endwith %}
+
+
+<section class="page-hero section-shell">
+
+  <a class="back-link" href="/dashboard">← Volver</a>
+
+  <div class="groups-hero-copy">
+
+    <h1>Tus amigos <em>están acá.</em></h1>
+
+    <p>Buscalos por nombre o usuario y armá tu círculo.</p>
+
+  </div>
+
+  <div class="friend-search" data-friend-search>
+
+    <span class="friend-search-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8" />
+        <path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </span>
+
+    <input
+      type="search"
+      id="buscar-amigos-input"
+      placeholder="Buscar por nombre o usuario…"
+      autocomplete="off"
+      aria-label="Buscar personas para agregar como amigos"
+      data-buscar-url="{{ url_for('friends.buscar_amigos') }}"
+      data-solicitar-url="{{ url_for('friends.solicitar_amistad') }}"
+    />
+
+    <div class="friend-search-results" id="buscar-amigos-resultados" hidden></div>
+
+  </div>
+
+</section>
+
+
+<section class="friends-section section-shell">
+
+  {% if friends %}
+
+  <div class="friends-list">
+
+    {% for amigo in friends %}
+
+      <article class="friend-card">
+
+        <a class="friend-card-identity"
+           href="{{ url_for('profile.perfil_publico', user_id=amigo.id) }}">
+
+          <span class="friend-avatar" aria-hidden="true">
+            {{ amigo.user.get_name()[:1] | upper }}
+          </span>
+
+          <span class="friend-card-names">
+            <strong>{{ amigo.user.get_name() }}</strong>
+            {% if amigo.user.get_username() %}
+              <small>@{{ amigo.user.get_username() }}</small>
+            {% endif %}
+          </span>
+
+        </a>
+
+        <div class="friend-card-actions">
+
+          <!-- MENSAJE: sólo el ícono, todavía no funciona -->
+
+          <button
+            class="friend-action"
+            type="button"
+            disabled
+            aria-label="Mandar mensaje (próximamente)"
+            title="Próximamente"
+          >
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path
+                d="M4 5.5h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-4.5 3.5V6.5a1 1 0 0 1 1-1Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+
+          <!-- INVITAR A UN GRUPO -->
+
+          <button
+            class="friend-action"
+            type="button"
+            data-modal-open="modal-invitar-grupo"
+            data-invite-url="{{ url_for('friends.invitar_amigo_a_grupo', friend_id=amigo.id) }}"
+            data-friend-name="{{ amigo.user.get_name() }}"
+            aria-label="Invitar a un grupo"
+            title="Invitar a un grupo"
+          >
+            <svg viewBox="0 0 24 24" focusable="false">
+              <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <path
+                d="M2.8 19c.6-3 2.4-4.5 6.2-4.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+              />
+              <path
+                d="M17.5 6.5v6M14.5 9.5h6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+
+          <!-- ELIMINAR DE AMIGOS -->
+
+          <form
+            class="form-eliminar-amigo"
+            action="{{ url_for('friends.eliminar_amigo', friend_id=amigo.id) }}"
+            method="POST"
+            data-confirmar="¿Eliminar a {{ amigo.user.get_name() }} de tus amigos?"
+          >
+            <button
+              class="friend-action friend-action-danger"
+              type="submit"
+              aria-label="Eliminar de amigos"
+              title="Eliminar de amigos"
+            >
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path
+                  d="M5 8.5h14M9.5 8.5V6a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2.5M7.5 8.5 8.3 19a1.5 1.5 0 0 0 1.5 1.4h4.4a1.5 1.5 0 0 0 1.5-1.4l.8-10.5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </form>
+
+        </div>
+
+      </article>
+
+    {% endfor %}
+
+  </div>
+
+  {% else %}
+
+  <div class="groups-empty">
+
+    <div class="empty-symbol" aria-hidden="true">+</div>
+
+    <div>
+      <h3>Todavía no tenés amigos agregados.</h3>
+      <p>Usá el buscador de arriba para encontrarlos.</p>
+    </div>
+
+  </div>
+
+  {% endif %}
+
+</section>
+
+
+<!-- =========================================================================
+     MODAL — INVITAR A UN GRUPO
+
+     El mismo modal sirve para cualquier amigo: al hacer click en su
+     botón "Invitar a un grupo" se actualiza la acción del form y el
+     nombre que aparece en el título, antes de abrirse.
+     ========================================================================= -->
+
+<dialog class="modal" id="modal-invitar-grupo" aria-labelledby="modal-invitar-grupo-title">
+
+  <form
+    id="modal-invitar-grupo-form"
+    method="POST"
+    action=""
+  >
+
+    <div class="modal-head">
+
+      <h2 class="modal-title" id="modal-invitar-grupo-title">
+        Invitar a <span id="modal-invitar-grupo-nombre">tu amigo</span> a un grupo
+      </h2>
+
+      <button
+        class="modal-close"
+        type="button"
+        onclick="document.getElementById('modal-invitar-grupo').close()"
+        aria-label="Cerrar"
+      >
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+
+    </div>
+
+    <div class="modal-body">
+
+      {% if groups %}
+
+      <div class="modal-field">
+        <label for="modal-buscar-grupo">Buscar grupo</label>
+        <input
+          id="modal-buscar-grupo"
+          type="search"
+          placeholder="Nombre del grupo…"
+          autocomplete="off"
+          data-buscar-en-modal-grupos
+        />
+      </div>
+
+      <ul class="modal-members" id="modal-invitar-grupo-lista">
+
+        {% for group in groups %}
+
+          <li>
+            <button
+              type="submit"
+              name="group_id"
+              value="{{ group.get_id() }}"
+              class="modal-member modal-member-link modal-group-item"
+              data-nombre-grupo="{{ group.get_name() | lower }}"
+            >
+              <span class="modal-member-avatar" aria-hidden="true">
+                {{ group.get_name()[:1] | upper }}
+              </span>
+              <span>{{ group.get_name() }}</span>
+            </button>
+          </li>
+
+        {% endfor %}
+
+      </ul>
+
+      <p class="modal-group-sin-resultados" id="modal-invitar-grupo-vacio" hidden>
+        No encontramos ningún grupo con ese nombre.
+      </p>
+
+      {% else %}
+
+      <p class="no-description">Todavía no tenés grupos. Creá uno para poder invitar a tus amigos.</p>
+
+      {% endif %}
+
+    </div>
+
+    <div class="modal-actions">
+      <button
+        class="header-action header-action-ghost"
+        type="button"
+        onclick="document.getElementById('modal-invitar-grupo').close()"
+      >
+        Cancelar
+      </button>
+    </div>
+
+  </form>
+
+</dialog>
+
+
+{% if logueado %}
+  </div>
+
+</div>
+{% endif %}
+
+{% endblock %}

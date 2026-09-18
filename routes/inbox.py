@@ -1,16 +1,19 @@
 from flask import Blueprint, flash, app, redirect, render_template, request, session, url_for
 from services.invitation_service import InvitationService
+from services.friend_service import FriendService
 
 inbox_bp = Blueprint("inbox", __name__)
 invitation_service = InvitationService()
+friend_service = FriendService()
 
 @inbox_bp.route("/inbox")
 def inbox():
     if not session.get("user_id"):
         return redirect(url_for("auth.login"))
     invitaciones = invitation_service.get_invitations_for_user(session["user_id"])
+    solicitudes_amistad = friend_service.get_requests_for_user(session["user_id"])
 
-    return render_template("inbox.html", logueado = True, invitaciones = invitaciones)
+    return render_template("inbox.html", logueado = True, invitaciones = invitaciones, solicitudes_amistad = solicitudes_amistad)
 
 @inbox_bp.route("/invitaciones/<group_id>/rechazar", methods=["POST"])
 def rechazar_invitacion(group_id):
