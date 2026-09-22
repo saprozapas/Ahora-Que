@@ -1,7 +1,30 @@
+import threading
+import time
+
 import psycopg2
 
 from database import get_db_connection
 from services.precio_lugar import rango_de_nivel, sumar_rangos
+
+
+# Texto para mostrar cada estado en pantalla.
+ESTADOS_PLAN = {
+    "idea": "Idea",
+    "votacion": "En votación",
+    "esperando_horario": "Esperando horario",
+    "confirmado": "Confirmado",
+    "rechazado": "Descartado",
+    "vencido": "Vencido",
+    "archivado": "Archivado",
+    "activo": "Confirmado",
+}
+
+# El archivado automático corre como mucho una vez cada tantos segundos
+# (en toda la app, no por usuario): es un UPDATE barato pero es un viaje
+# más a la base.
+_SEGUNDOS_MANTENIMIENTO = 60
+_ultimo_mantenimiento = 0.0
+_lock_mantenimiento = threading.Lock()
 
 
 class PlanService:
@@ -82,6 +105,7 @@ class PlanService:
             "hora": fila[3],
             "precio": fila[4],  # legacy: planes creados antes del rango
             "estado": fila[5],
+            "estado_texto": ESTADOS_PLAN.get(fila[5], fila[5]),
             "precio_min": fila[-2],
             "precio_max": fila[-1],
             "lugares": lugares,
@@ -152,6 +176,53 @@ class PlanService:
             for fila in filas
         ]
 
+    # --- Mantenimiento ------------------------------------------------------
+
+    def archivar_vencidos(self, forzar=False):
+        """Pasa a "archivado" los planes de grupo confirmados que arrancaron
+        hace 12 horas o más (ahí aparece la votación de puntaje y se
+        publican en Social). También da por vencidas las votaciones y los
+        horarios propuestos cuya fecha ya pasó.
+
+        Las fechas del plan están en hora de Montevideo; la base corre en
+        UTC, por eso se compara contra now() convertido."""
+        global _ultimo_mantenimiento
+        with _lock_mantenimiento:
+            if not forzar and time.monotonic() - _ultimo_mantenimiento < _SEGUNDOS_MANTENIMIENTO:
+                return
+            _ultimo_mantenimiento = time.monotonic()
+
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE public."Plan"
+                    SET "Estado" = 'archivado'
+                    WHERE "Estado" = 'confirmado'
+                      AND "Grupo_id" IS NOT NULL
+                      AND "Fecha" + COALESCE("Hora", '00:00'::time) + INTERVAL '12 hours'
+                          <= (now() AT TIME ZONE 'America/Montevideo');
+
+                    UPDATE public."Plan"
+                    SET "Estado" = 'vencido'
+                    WHERE "Estado" = 'votacion'
+                      AND "Fecha" + COALESCE("Hora", '00:00'::time)
+                          < (now() AT TIME ZONE 'America/Montevideo');
+
+                    UPDATE public."Plan_Horario"
+                    SET "Estado" = 'rechazado'
+                    WHERE "Estado" = 'votacion'
+                      AND "Fecha" + "Hora" < (now() AT TIME ZONE 'America/Montevideo');
+                    """
+                )
+            connection.commit()
+        except psycopg2.Error as e:
+            connection.rollback()
+            print(f"No se pudieron archivar los planes vencidos: {e}")
+        finally:
+            connection.close()
+
     # --- Listados -------------------------------------------------------
 
     def get_planes_confirmados(self, user_id):
@@ -170,6 +241,7 @@ class PlanService:
                     WHERE up."Usuario_id" = %s
                       AND up."Confirmado" = true
                       AND p."Fecha" >= CURRENT_DATE
+                      AND p."Estado" IN ('confirmado', 'activo')
                     ORDER BY p."Fecha", p."Hora"
                     """,
                     (user_id,),
@@ -205,31 +277,34 @@ class PlanService:
             connection.close()
 
     def get_planes_grupo(self, user_id):
-        """Planes futuros de grupos del usuario que todavía no confirmó."""
+        """Planes activos de los grupos del usuario que él todavía no
+        confirmó: los que están en votación, esperando horario, o ya
+        confirmados por otros (y a los que se puede sumar)."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
                     SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado", g."Nombre",
-                           p."Precio_Min", p."Precio_Max"
+                           p."Grupo_id", p."Precio_Min", p."Precio_Max"
                     FROM public."Plan" p
                     JOIN public."Grupos" g ON g."Id_Grupo" = p."Grupo_id"
                     JOIN public."Usuario-Grupo" ug ON ug."Id_Grupo" = p."Grupo_id"
                     WHERE ug."Id_Usuario" = %s
-                      AND p."Fecha" >= CURRENT_DATE
+                      AND p."Estado" IN ('votacion', 'esperando_horario', 'confirmado')
                       AND NOT EXISTS (
                           SELECT 1 FROM public."Usuario-Plan" up
                           WHERE up."Plan_id" = p."id_Plan"
                             AND up."Usuario_id" = %s
                             AND up."Confirmado" = true
                       )
-                    ORDER BY p."Fecha", p."Hora"
+                    ORDER BY p."Fecha" NULLS LAST, p."Hora"
                     """,
                     (user_id, user_id),
                 )
                 return self._armar_planes(
-                    cursor, cursor.fetchall(), lambda fila: {"grupo": fila[6]}
+                    cursor, cursor.fetchall(),
+                    lambda fila: {"grupo": fila[6], "grupo_id": fila[7]},
                 )
         except psycopg2.Error:
             raise
@@ -258,27 +333,64 @@ class PlanService:
         finally:
             connection.close()
 
-    def get_historial(self, user_id):
-        """Planes confirmados de los últimos 3 meses, con fecha ya pasada
-        (acá es donde "aterrizan" los que se salen de "Confirmados")."""
+    def get_archivados(self, user_id):
+        """Planes que el usuario hizo: los de grupo ya archivados (12 h
+        después de arrancar) y, por compatibilidad, los individuales viejos
+        cuya fecha ya pasó. Sirven también como ideas para postular."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
                     SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
+                           g."Nombre", up."Puntaje",
                            p."Precio_Min", p."Precio_Max"
                     FROM public."Usuario-Plan" up
                     JOIN public."Plan" p ON p."id_Plan" = up."Plan_id"
+                    LEFT JOIN public."Grupos" g ON g."Id_Grupo" = p."Grupo_id"
                     WHERE up."Usuario_id" = %s
                       AND up."Confirmado" = true
-                      AND p."Fecha" < CURRENT_DATE
-                      AND p."Fecha" >= CURRENT_DATE - INTERVAL '3 months'
+                      AND (p."Estado" = 'archivado'
+                           OR (p."Grupo_id" IS NULL AND p."Fecha" < CURRENT_DATE))
                     ORDER BY p."Fecha" DESC, p."Hora" DESC
                     """,
                     (user_id,),
                 )
-                return self._armar_planes(cursor, cursor.fetchall())
+                return self._armar_planes(
+                    cursor, cursor.fetchall(),
+                    lambda fila: {"grupo": fila[6], "mi_puntaje": fila[7]},
+                )
+        except psycopg2.Error:
+            raise
+        finally:
+            connection.close()
+
+    def get_ideas_postulables(self, user_id):
+        """Lo que el usuario puede postular en un grupo: sus guardados y
+        sus archivados (sin repetir)."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
+                           up."Guardado", p."Descripcion",
+                           p."Precio_Min", p."Precio_Max"
+                    FROM public."Usuario-Plan" up
+                    JOIN public."Plan" p ON p."id_Plan" = up."Plan_id"
+                    WHERE up."Usuario_id" = %s
+                      AND (up."Guardado" = true
+                           OR (up."Confirmado" = true
+                               AND (p."Estado" = 'archivado'
+                                    OR (p."Grupo_id" IS NULL AND p."Fecha" < CURRENT_DATE))))
+                    ORDER BY up."Guardado" DESC, p."Nombre"
+                    """,
+                    (user_id,),
+                )
+                return self._armar_planes(
+                    cursor, cursor.fetchall(),
+                    lambda fila: {"guardado": bool(fila[6]), "descripcion": fila[7]},
+                )
         except psycopg2.Error:
             raise
         finally:
@@ -286,9 +398,10 @@ class PlanService:
 
     # --- Creación --------------------------------------------------------
 
-    def crear_plan(self, user_id, nombre, fecha, hora, descripcion, lugares,
-                   guardado=False, grupo_id=None):
-        """Crea un plan y lo deja confirmado para el usuario que lo creó.
+    def crear_idea(self, user_id, nombre, descripcion, lugares):
+        """Crea una IDEA: un plan sin fecha, sin hora y sin grupo, que queda
+        en los Guardados del usuario. Después se puede postular en un grupo
+        (ahí se elige la fecha y se vota).
 
         lugares: lista de dicts con las paradas, en orden:
                  {"id_lugar": uuid o None, "nombre": str,
@@ -299,10 +412,7 @@ class PlanService:
         El precio no lo elige el usuario: se estima sumando el rango de
         cada lugar según su Nivel_Precio (ver services/precio_lugar.py).
 
-        Al quedar Confirmado = true, el plan aparece automáticamente en
-        el calendario y en "Planes confirmados".
-
-        Devuelve el id del plan creado.
+        Devuelve el id de la idea creada.
         """
         rangos_por_lugar = [
             rango_de_nivel(lugar.get("nivel_precio")) for lugar in lugares
@@ -314,7 +424,7 @@ class PlanService:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                # Grupo_id y Lugar_id van en NULL explícito: así no se
+                # Fecha y Hora van en NULL (es una idea). Grupo_id y Lugar_id van en NULL explícito: así no se
                 # activa el DEFAULT gen_random_uuid() que tienen esas
                 # columnas (que generaría un uuid inexistente y rompería
                 # la foreign key). Las paradas van en "Plan_Lugar".
@@ -324,11 +434,11 @@ class PlanService:
                         ("Nombre", "Fecha", "Hora", "Descripcion",
                          "Precio_Min", "Precio_Max",
                          "Creado_Por", "Estado", "Grupo_id", "Lugar_id")
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'activo', %s, NULL)
+                    VALUES (%s, NULL, NULL, %s, %s, %s, %s, 'idea', NULL, NULL)
                     RETURNING "id_Plan"
                     """,
-                    (nombre, fecha, hora, descripcion,
-                     precio_min_total, precio_max_total, user_id, grupo_id),
+                    (nombre, descripcion,
+                     precio_min_total, precio_max_total, user_id),
                 )
                 plan_id = cursor.fetchone()[0]
 
@@ -354,9 +464,9 @@ class PlanService:
                     """
                     INSERT INTO public."Usuario-Plan"
                         ("Usuario_id", "Plan_id", "Confirmado", "Guardado")
-                    VALUES (%s, %s, true, %s)
+                    VALUES (%s, %s, false, true)
                     """,
-                    (user_id, plan_id, guardado),
+                    (user_id, plan_id),
                 )
 
             connection.commit()
@@ -395,7 +505,36 @@ class PlanService:
         finally:
             connection.close()
 
-    # --- Bajarse / eliminar --------------------------------------------------
+    # --- Sumarse / bajarse / eliminar ---------------------------------------
+
+    def sumarse_a_plan(self, plan_id, user_id):
+        """Un integrante del grupo que no había dicho que podía se suma a
+        un plan ya confirmado. Devuelve True si se pudo."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO public."Usuario-Plan" ("Usuario_id", "Plan_id", "Confirmado", "Guardado")
+                    SELECT %(uid)s, p."id_Plan", true, false
+                    FROM public."Plan" p
+                    JOIN public."Usuario-Grupo" ug
+                         ON ug."Id_Grupo" = p."Grupo_id" AND ug."Id_Usuario" = %(uid)s
+                    WHERE p."id_Plan" = %(pid)s AND p."Estado" = 'confirmado'
+                    ON CONFLICT ("Usuario_id", "Plan_id")
+                    DO UPDATE SET "Confirmado" = true
+                    """,
+                    {"uid": user_id, "pid": plan_id},
+                )
+                ok = cursor.rowcount > 0
+            connection.commit()
+            return ok
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
 
     def bajarse_de_plan(self, plan_id, user_id):
         """Saca al usuario de un plan (deja de estar confirmado). No
@@ -453,6 +592,134 @@ class PlanService:
         finally:
             connection.close()
 
+    # --- Social: planes de amigos -------------------------------------------
+
+    # Niveles de puntaje que se van probando, de mayor a menor. None = todos
+    # los planes (incluidos los que nadie puntuó todavía).
+    NIVELES_SOCIAL = [4, 3, 2, 1, None]
+
+    def _amigos_sql(self):
+        """Subconsulta con los ids de los amigos de %(uid)s."""
+        return """
+            SELECT CASE WHEN a."Id_Usuario1" = %(uid)s
+                        THEN a."Id_Usuario2" ELSE a."Id_Usuario1" END
+            FROM public."Amistades" a
+            WHERE %(uid)s IN (a."Id_Usuario1", a."Id_Usuario2")
+        """
+
+    def get_planes_amigos_semana(self, user_id):
+        """Planes archivados (ya hechos y publicados) de los últimos 7 días
+        en los que participó al menos un amigo y el usuario no. Cada plan trae el
+        promedio de puntaje de sus participantes y qué amigos fueron."""
+        amigos = self._amigos_sql()
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
+                           ROUND(AVG(up."Puntaje")::numeric, 1),
+                           COUNT(up."Puntaje"),
+                           ARRAY_AGG(DISTINCT u."Nombre")
+                               FILTER (WHERE up."Usuario_id" IN ({amigos})),
+                           p."Precio_Min", p."Precio_Max"
+                    FROM public."Plan" p
+                    JOIN public."Usuario-Plan" up
+                         ON up."Plan_id" = p."id_Plan" AND up."Confirmado" = true
+                    JOIN public."Usuarios" u ON u."Id_Usuario" = up."Usuario_id"
+                    WHERE p."Estado" = 'archivado'
+                      AND p."Fecha" BETWEEN CURRENT_DATE - 7 AND CURRENT_DATE
+                    GROUP BY p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio",
+                             p."Estado", p."Precio_Min", p."Precio_Max"
+                    HAVING BOOL_OR(up."Usuario_id" IN ({amigos}))
+                       AND NOT BOOL_OR(up."Usuario_id" = %(uid)s)
+                    ORDER BY AVG(up."Puntaje") DESC NULLS LAST,
+                             COUNT(up."Puntaje") DESC,
+                             p."Fecha" DESC
+                    """,
+                    {"uid": user_id},
+                )
+                return self._armar_planes(
+                    cursor,
+                    cursor.fetchall(),
+                    lambda fila: {
+                        "promedio": float(fila[6]) if fila[6] is not None else None,
+                        "votos": fila[7],
+                        "amigos": fila[8] or [],
+                    },
+                )
+        except psycopg2.Error:
+            raise
+        finally:
+            connection.close()
+
+    def _filtrar_por_nivel(self, planes, nivel):
+        if nivel is None:
+            return planes
+        return [p for p in planes if p["promedio"] is not None and p["promedio"] >= nivel]
+
+    def get_sugerencias_amigos(self, user_id, nivel=4):
+        """Arranca mostrando los planes con promedio >= nivel. Si no hay
+        ninguno, va bajando (4 -> 3 -> 2 -> 1 -> todos) hasta encontrar.
+
+        Devuelve el nivel que se terminó usando y cuál es el siguiente
+        nivel que agregaría planes nuevos (para el botón "Ver más")."""
+        planes = self.get_planes_amigos_semana(user_id)
+        niveles = self.NIVELES_SOCIAL
+        inicio = niveles.index(nivel) if nivel in niveles else 0
+
+        elegidos, nivel_usado = [], None
+        for nivel_usado in niveles[inicio:]:
+            elegidos = self._filtrar_por_nivel(planes, nivel_usado)
+            if elegidos:
+                break
+
+        siguiente = None
+        hay_siguiente = False
+        for otro in niveles[niveles.index(nivel_usado) + 1:]:
+            if len(self._filtrar_por_nivel(planes, otro)) > len(elegidos):
+                siguiente, hay_siguiente = otro, True
+                break
+
+        return {
+            "planes": elegidos,
+            "nivel": nivel_usado,
+            "hay_siguiente": hay_siguiente,
+            "siguiente_nivel": siguiente,
+            "total": len(planes),
+        }
+
+    # --- Puntaje ------------------------------------------------------------
+
+    def set_puntaje(self, plan_id, user_id, puntaje):
+        """Guarda el puntaje (0-5) del usuario para el plan. Solo se puede
+        si fue al plan (lo confirmó) y el plan ya está archivado, o sea,
+        pasaron 12 h desde que arrancó. Devuelve True si se guardó."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE public."Usuario-Plan" up
+                    SET "Puntaje" = %s
+                    FROM public."Plan" p
+                    WHERE p."id_Plan" = up."Plan_id"
+                      AND up."Plan_id" = %s
+                      AND up."Usuario_id" = %s
+                      AND up."Confirmado" = true
+                      AND p."Estado" = 'archivado'
+                    """,
+                    (puntaje, plan_id, user_id),
+                )
+                guardado = cursor.rowcount > 0
+            connection.commit()
+            return guardado
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
+
     # --- Detalle ----------------------------------------------------------
 
     def get_plan_detalle(self, plan_id, user_id):
@@ -465,7 +732,7 @@ class PlanService:
                 # Plan + relación del usuario + pertenencia al grupo, todo
                 # en una sola consulta (antes eran 3 viajes a la base).
                 cursor.execute(
-                    """
+                    f"""
                     SELECT
                         p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
                         p."Grupo_id", g."Nombre", p."Descripcion", p."Creado_Por",
@@ -473,16 +740,27 @@ class PlanService:
                         COALESCE(up."Guardado", false),
                         EXISTS (
                             SELECT 1 FROM public."Usuario-Grupo" ug
-                            WHERE ug."Id_Grupo" = p."Grupo_id" AND ug."Id_Usuario" = %s
+                            WHERE ug."Id_Grupo" = p."Grupo_id" AND ug."Id_Usuario" = %(uid)s
+                        ),
+                        up."Puntaje",
+                        (SELECT ROUND(AVG(x."Puntaje")::numeric, 1)
+                           FROM public."Usuario-Plan" x WHERE x."Plan_id" = p."id_Plan"),
+                        (SELECT COUNT(x."Puntaje")
+                           FROM public."Usuario-Plan" x WHERE x."Plan_id" = p."id_Plan"),
+                        EXISTS (
+                            SELECT 1 FROM public."Usuario-Plan" x
+                            WHERE x."Plan_id" = p."id_Plan"
+                              AND x."Confirmado" = true
+                              AND x."Usuario_id" IN ({self._amigos_sql()})
                         ),
                         p."Precio_Min", p."Precio_Max"
                     FROM public."Plan" p
                     LEFT JOIN public."Grupos" g ON g."Id_Grupo" = p."Grupo_id"
                     LEFT JOIN public."Usuario-Plan" up
-                           ON up."Plan_id" = p."id_Plan" AND up."Usuario_id" = %s
-                    WHERE p."id_Plan" = %s
+                           ON up."Plan_id" = p."id_Plan" AND up."Usuario_id" = %(uid)s
+                    WHERE p."id_Plan" = %(pid)s
                     """,
-                    (user_id, user_id, plan_id),
+                    {"uid": user_id, "pid": plan_id},
                 )
                 fila = cursor.fetchone()
                 if fila is None:
@@ -491,8 +769,9 @@ class PlanService:
                 confirmado = bool(fila[10])
                 guardado = bool(fila[11])
                 en_grupo = bool(fila[12])
+                fue_un_amigo = bool(fila[16])
 
-                if not (confirmado or guardado or en_grupo):
+                if not (confirmado or guardado or en_grupo or fue_un_amigo):
                     return None
 
                 return self._armar_plan(
@@ -504,6 +783,11 @@ class PlanService:
                         "es_creador": str(fila[9]) == str(user_id),
                         "confirmado": confirmado,
                         "guardado": guardado,
+                        "mi_puntaje": fila[13],
+                        "promedio": float(fila[14]) if fila[14] is not None else None,
+                        "votos": fila[15],
+                        "grupo_id": fila[6],
+                        "puede_puntuar": confirmado and fila[5] == "archivado",
                     },
                 )
         except psycopg2.Error:

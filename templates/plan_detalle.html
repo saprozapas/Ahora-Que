@@ -28,13 +28,18 @@
 
         <p>
 
-          {% if plan.fecha %}
-          {{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}
+          {% if plan.estado == 'idea' %}
+          Idea · sin fecha (se elige al postularla en un grupo)
           {% else %}
-          Sin fecha confirmada todavía.
+          <span class="plan-estado plan-estado-{{ plan.estado }}">{{ plan.estado_texto }}</span>
+          {% if plan.fecha %}
+          · {{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}
+          {% endif %}
           {% endif %}
 
-          {% if plan.grupo %} · Grupo: {{ plan.grupo }}{% endif %}
+          {% if plan.grupo %}
+          · Grupo: <a href="{{ url_for('group_auth.detalle_grupo', group_id=plan.grupo_id) }}">{{ plan.grupo }}</a>
+          {% endif %}
 
         </p>
 
@@ -89,19 +94,55 @@
 
       </div>
 
+      {% if plan.estado == 'archivado' %}
+      <div class="plan-puntaje">
+
+        <p class="plan-puntaje-promedio">
+          {% if plan.promedio is not none %}
+            <strong>★ {{ plan.promedio }}</strong> de 5 · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}
+          {% else %}
+            Este plan todavía no tiene puntaje.
+          {% endif %}
+        </p>
+
+        {% if plan.puede_puntuar %}
+        <form method="post" action="{{ url_for('planes.puntuar', plan_id=plan.id) }}">
+          <fieldset class="plan-puntaje-opciones">
+            <legend>{% if plan.mi_puntaje is not none %}Tu puntaje (podés cambiarlo){% else %}¿Qué tal estuvo?{% endif %}</legend>
+            {% for n in range(6) %}
+            <label>
+              <input type="radio" name="puntaje" value="{{ n }}" required
+                     {% if plan.mi_puntaje == n %}checked{% endif %} />
+              <span>{{ n }}★</span>
+            </label>
+            {% endfor %}
+          </fieldset>
+          <button class="plan-accion-secundaria" type="submit">Guardar puntaje</button>
+        </form>
+        {% endif %}
+
+      </div>
+      {% endif %}
+
       <div class="plan-detalle-acciones">
 
         {% if plan.guardado %}
         <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}">
-          <button class="plan-accion-secundaria" type="submit">Quitar de guardados</button>
+          <button class="plan-accion-secundaria" type="submit">Quitar de ideas guardadas</button>
         </form>
         {% else %}
         <form method="post" action="{{ url_for('planes.guardar', plan_id=plan.id) }}">
-          <button class="plan-accion-secundaria" type="submit">Guardar plan</button>
+          <button class="plan-accion-secundaria" type="submit">Guardar como idea</button>
         </form>
         {% endif %}
 
-        {% if plan.confirmado and not plan.es_creador %}
+        {% if plan.estado == 'confirmado' and plan.grupo_id and not plan.confirmado %}
+        <form method="post" action="{{ url_for('planes.sumarme', plan_id=plan.id) }}">
+          <button class="lime-button" type="submit">Me sumo</button>
+        </form>
+        {% endif %}
+
+        {% if plan.confirmado and not plan.es_creador and plan.estado != 'archivado' %}
         <form method="post" action="{{ url_for('planes.bajarme', plan_id=plan.id) }}"
               onsubmit="return confirm('¿Te querés bajar de este plan?')">
           <button class="plan-accion-secundaria" type="submit">Bajarme del plan</button>

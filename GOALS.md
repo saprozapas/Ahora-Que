@@ -14,17 +14,16 @@
 
 6. Funcionalidad de distancias: CUSTOM, NEARBY, FAR AWAY.
 
-7. Sistema de **PUNTAJES** de planes post-realizacion mediante 5 estrellas.
+7. Filtro de planes: SOLO, AMIGOS, FAMILIA, PAREJA, etc.
 
-8. Sistema de **HISTORIAL** de planes para que el usuario pueda ver los planes que 
-   realizó, qué puntajes le puso, etc.
+8. Abandonar grupos
 
-9. Sistema de **ENCUESTAS** para los planes grupales.
+9. Areglar que no todos tengar que poder el horario para que pase
 
-10. Filtro de planes: SOLO, AMIGOS, FAMILIA, PAREJA, etc.
+10. Agregar el chat al grupo
 
-Lalo:
-1-Agregar error al cambiar username
-2-cambiar description por descripcion
-3-cambiar la pagina de editar
-4-empezar con planes creados y calendario
+11. Agregar mensajes privados
+
+12. Agregar la parte de social para publicar planes
+
+13. Agregar el chatbot.

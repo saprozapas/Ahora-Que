@@ -1,3 +1,5 @@
+from datetime import date
+
 from flask import Blueprint, render_template, request, redirect, session, url_for, flash
 import psycopg2
 from models.group import Group
@@ -5,6 +7,8 @@ from services.invitation_service import InvitationService
 from services.group_auth_service import GroupAuthService
 from werkzeug.security import generate_password_hash
 from services.auth_service import AuthService
+from services.grupo_plan_service import GrupoPlanService
+from services.plan_service import PlanService
 from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, getUsersInGroupWithIds, isUserInGroup, getGroupById
 
 
@@ -12,6 +16,8 @@ group_auth = Blueprint("group_auth", __name__)
 group_auth_service = GroupAuthService()
 auth_service = AuthService()
 invitation_service = InvitationService()
+grupo_plan_service = GrupoPlanService()
+plan_service = PlanService()
 
 def _require_login():
     if not session.get("user_id"):
@@ -77,7 +83,10 @@ def detalle_grupo(group_id):
     group = getGroupById(group_id)
     group.set_user(getUser(session.get("user_id")))
     users = getUsersInGroupWithIds(group_id)
-    return render_template("grupo.html", group=group, groups_page=True, users = users)
+    plan_service.archivar_vencidos()
+    tablero = grupo_plan_service.get_tablero(group_id, session.get("user_id"))
+    return render_template("grupo.html", group=group, groups_page=True, users=users,
+                           tablero=tablero, hoy=date.today().isoformat())
 
 @group_auth.route("/grupos/<group_id>/invitar", methods=["POST"])
 def invitar_usuario(group_id):

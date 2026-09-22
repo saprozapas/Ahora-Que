@@ -72,9 +72,44 @@
 
     <div class="group-detail-actions">
 
-      <a class="lime-button" href="/explorar">
-        Proponer un plan <span aria-hidden="true">↗</span>
-      </a>
+      <details class="group-plus">
+
+        <summary class="lime-button" aria-label="Agregar una idea al grupo">
+          <span aria-hidden="true">+</span> Idea
+        </summary>
+
+        <div class="group-plus-menu">
+
+          <a class="group-plus-item"
+             href="{{ url_for('grupo_planes.postular', group_id=group.get_id()) }}">
+            <span class="group-plus-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M6 3.8h12v16.4l-6-4.2-6 4.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span>
+              <strong>Postular idea</strong>
+              <small>Elegí una de tus ideas guardadas</small>
+            </span>
+          </a>
+
+          <!-- El chatbot todavía no existe: queda el acceso visible pero deshabilitado. -->
+          <span class="group-plus-item is-disabled" aria-disabled="true">
+            <span class="group-plus-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <rect x="4" y="7" width="16" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8" />
+                <path d="M12 3.5V7M9 12.5h.01M15 12.5h.01M9.5 16h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+            </span>
+            <span>
+              <strong>Crear idea</strong>
+              <small>Con el asistente · próximamente</small>
+            </span>
+          </span>
+
+        </div>
+
+      </details>
 
       <button
         class="dark-button"
@@ -134,40 +169,230 @@
 
 
   <!-- =======================================================================
-       CONSULTA A LA IA
+       PLANES DEL GRUPO
 
-       Solo la maqueta visual: no manda nada a ningún lado todavía.
+       Separados por estado: primero lo que pide acción (puntuar, votar,
+       proponer horario) y después lo ya confirmado.
        ======================================================================= -->
 
-  <div class="group-ai-prompt">
+  {% macro cuando(plan) -%}
+    {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} a las {{ plan.hora.strftime('%H:%M') }}{% endif %}
+  {%- endmacro %}
 
-    <span class="group-ai-prompt-icon" aria-hidden="true">✳</span>
+  {% macro si_no(nombre, valor) %}
+    <label>
+      <input type="radio" name="{{ nombre }}" value="si" required {% if valor == true %}checked{% endif %} />
+      <span>Sí</span>
+    </label>
+    <label>
+      <input type="radio" name="{{ nombre }}" value="no" required {% if valor == false %}checked{% endif %} />
+      <span>No</span>
+    </label>
+  {% endmacro %}
+
+  <div class="group-board" id="planes-grupo">
+
+    {% set hay_planes = tablero.para_puntuar or tablero.votacion or tablero.esperando_horario or tablero.confirmados %}
+
+    {% if not hay_planes %}
+    <div class="group-board-empty">
+      <h2>Todavía no hay planes en este grupo.</h2>
+      <p>Tocá <strong>+ Idea</strong> para postular una de tus ideas guardadas y que el grupo la vote.</p>
+    </div>
+    {% endif %}
+
+
+    {# ------------------------------- PUNTUAR ------------------------------- #}
+    {% if tablero.para_puntuar %}
+    <h2 class="group-board-title">¿Qué tal estuvo?</h2>
+
+    {% for plan in tablero.para_puntuar %}
+    <article class="group-plan" id="plan-{{ plan.id }}">
+      <header class="group-plan-head">
+        <span class="plan-estado plan-estado-archivado">Para puntuar</span>
+        <h3><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+        <p>Fue el {{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
+      </header>
+
+      <form method="post" action="{{ url_for('planes.puntuar', plan_id=plan.id) }}">
+        <input type="hidden" name="volver" value="{{ request.path }}#planes-grupo" />
+        <fieldset class="plan-puntaje-opciones">
+          <legend>Tu puntaje</legend>
+          {% for n in range(6) %}
+          <label>
+            <input type="radio" name="puntaje" value="{{ n }}" required />
+            <span>{{ n }}★</span>
+          </label>
+          {% endfor %}
+        </fieldset>
+        <button class="plan-accion-secundaria" type="submit">Puntuar</button>
+      </form>
+    </article>
+    {% endfor %}
+    {% endif %}
+
+
+    {# ------------------------------- VOTACIÓN ------------------------------ #}
+    {% if tablero.votacion %}
+    <h2 class="group-board-title">En votación</h2>
+
+    {% for plan in tablero.votacion %}
+    <article class="group-plan" id="plan-{{ plan.id }}">
+      <header class="group-plan-head">
+        <span class="plan-estado plan-estado-votacion">En votación</span>
+        <h3><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+        <p>Postulada por {{ plan.creador }} para el {{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
+        {% if plan.descripcion %}<p>{{ plan.descripcion }}</p>{% endif %}
+      </header>
+
+      <p class="group-plan-conteo">
+        {{ plan.votos }} de {{ plan.miembros }} votaron · {{ plan.gustan }} les gusta · {{ plan.pueden }} pueden
+      </p>
+
+      <form class="group-plan-voto" method="post"
+            action="{{ url_for('grupo_planes.votar', group_id=group.get_id(), plan_id=plan.id) }}">
+        <fieldset class="plan-puntaje-opciones">
+          <legend>¿Te gusta la idea?</legend>
+          {{ si_no('me_gusta', plan.mi_gusta) }}
+        </fieldset>
+        <fieldset class="plan-puntaje-opciones">
+          <legend>¿Podés el {{ cuando(plan) }}?</legend>
+          {{ si_no('puedo', plan.mi_puedo) }}
+        </fieldset>
+        <button class="plan-accion-secundaria" type="submit">
+          {% if plan.mi_gusta is none %}Votar{% else %}Cambiar mi voto{% endif %}
+        </button>
+      </form>
+
+      {% if plan.es_creador %}
+      <form method="post"
+            action="{{ url_for('grupo_planes.cerrar', group_id=group.get_id(), plan_id=plan.id) }}"
+            onsubmit="return confirm('¿Cerrar la votación con los votos que hay hasta ahora?')">
+        <button class="group-plan-link" type="submit">Cerrar votación ahora</button>
+      </form>
+      {% endif %}
+    </article>
+    {% endfor %}
+    {% endif %}
+
+
+    {# --------------------------- ESPERANDO HORARIO -------------------------- #}
+    {% if tablero.esperando_horario %}
+    <h2 class="group-board-title">Buscando horario</h2>
+
+    {% for plan in tablero.esperando_horario %}
+    <article class="group-plan" id="plan-{{ plan.id }}">
+      <header class="group-plan-head">
+        <span class="plan-estado plan-estado-esperando_horario">Esperando horario</span>
+        <h3><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+        <p>Al grupo le gustó, pero no podían el {{ cuando(plan) }}. Propongan otro horario.</p>
+      </header>
+
+      {% if plan.horarios %}
+      <ul class="group-horarios">
+        {% for h in plan.horarios %}
+        <li>
+          <div>
+            <strong>{{ h.fecha.strftime('%d/%m') }} a las {{ h.hora.strftime('%H:%M') }}</strong>
+            <small>Propuesto por {{ h.propuesto_por }} · {{ h.pueden }} de {{ plan.miembros }} pueden ({{ h.votos }} votaron)</small>
+          </div>
+
+          <form method="post"
+                action="{{ url_for('grupo_planes.votar_horario', group_id=group.get_id(), horario_id=h.id) }}"
+                class="group-horario-voto">
+            <button type="submit" name="puedo" value="si"
+                    class="{{ 'is-elegido' if h.mi_puedo == true }}">Puedo</button>
+            <button type="submit" name="puedo" value="no"
+                    class="{{ 'is-elegido' if h.mi_puedo == false }}">No puedo</button>
+          </form>
+
+          {% if plan.es_creador %}
+          <form method="post"
+                action="{{ url_for('grupo_planes.cerrar_horario', group_id=group.get_id(), horario_id=h.id) }}"
+                onsubmit="return confirm('¿Cerrar la votación de este horario?')">
+            <button class="group-plan-link" type="submit">Cerrar</button>
+          </form>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <form class="group-horario-nuevo" method="post"
+            action="{{ url_for('grupo_planes.proponer_horario', group_id=group.get_id(), plan_id=plan.id) }}">
+        <label>
+          <span>Fecha</span>
+          <input type="date" name="fecha" min="{{ hoy }}" required />
+        </label>
+        <label>
+          <span>Hora</span>
+          <input type="time" name="hora" required />
+        </label>
+        <button class="plan-accion-secundaria" type="submit">Proponer horario</button>
+      </form>
+    </article>
+    {% endfor %}
+    {% endif %}
+
+
+    {# ------------------------------ CONFIRMADOS ------------------------------ #}
+    {% if tablero.confirmados %}
+    <h2 class="group-board-title">Confirmados</h2>
+
+    {% for plan in tablero.confirmados %}
+    <article class="group-plan" id="plan-{{ plan.id }}">
+      <header class="group-plan-head">
+        <span class="plan-estado plan-estado-confirmado">Confirmado</span>
+        <h3><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+        <p>{{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
+        <p>Van: {{ plan.van | join(', ') if plan.van else 'nadie todavía' }}</p>
+      </header>
+
+      {% if plan.confirmado %}
+      <p class="group-plan-conteo">✓ Vas a este plan</p>
+      {% else %}
+      <form method="post" action="{{ url_for('planes.sumarme', plan_id=plan.id) }}">
+        <input type="hidden" name="volver" value="{{ request.path }}#planes-grupo" />
+        <button class="lime-button" type="submit">Me sumo</button>
+      </form>
+      {% endif %}
+    </article>
+    {% endfor %}
+    {% endif %}
+
+  </div>
+
+
+  <!-- =======================================================================
+       CHAT DEL GRUPO
+
+       Solo la maqueta: queda la barra para implementar el chat interno
+       del grupo más adelante. Está deshabilitada a propósito.
+       ======================================================================= -->
+
+  <div class="group-ai-prompt group-chat" aria-disabled="true">
+
+    <span class="group-ai-prompt-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false" width="20" height="20">
+        <path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"
+              fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+      </svg>
+    </span>
 
     <textarea
       class="group-ai-prompt-input"
-      id="group-ai-prompt-input"
-      name="mensaje-ia"
+      id="group-chat-input"
+      name="mensaje"
       rows="1"
-      placeholder="Contale a la IA qué plan tenés en mente y organizalo con el grupo…"
-      aria-label="Escribile a la IA sobre el plan del grupo"
+      placeholder="Escribile al grupo… (el chat llega pronto)"
+      aria-label="Chat del grupo (todavía no disponible)"
+      disabled
     ></textarea>
 
-    <button class="group-ai-prompt-send" type="button" aria-label="Enviar">
+    <button class="group-ai-prompt-send" type="button" aria-label="Enviar" disabled>
       <svg viewBox="0 0 24 24" focusable="false">
-        <path
-          d="M22 2 11 13"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-        />
-        <path
-          d="M22 2 15 22 11 13 2 9 22 2"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linejoin="round"
-        />
+        <path d="M22 2 11 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <path d="M22 2 15 22 11 13 2 9 22 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
       </svg>
     </button>
 

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Crear plan — Ahora Qué{% endblock %}
+{% block title %}Crear idea — Ahora Qué{% endblock %}
 
 {% block content %}
 
@@ -15,38 +15,29 @@
       <a class="back-link" href="/planes">← Volver</a>
 
       <div class="auth-intro">
-        <h1>Crear<br /><em>plan.</em></h1>
-        <p>Armá el plan a mano: elegí fecha, hora y los lugares por los que van a pasar.</p>
+        <h1>Crear<br /><em>idea.</em></h1>
+        <p>Armá una idea de plan sin fecha: qué hacer y por qué lugares pasar. Queda en tus guardados y después la postulás en un grupo, donde se elige la fecha y se vota.</p>
       </div>
 
       {% if error %}
       <p class="form-message form-error" role="alert">{{ error }}</p>
       {% endif %}
 
-      <form class="auth-form" method="post" action="/planes/nuevo" id="form-plan">
+      <form class="auth-form" method="post" action="/planes/nueva-idea" id="form-plan">
 
-        <label for="nombre">Nombre del plan</label>
+        <label for="nombre">Nombre de la idea</label>
         <input id="nombre" name="nombre" type="text"
                value="{{ valores.get('nombre', '') }}"
                placeholder="Cena y pool" required />
 
-        <label for="fecha">Fecha</label>
-        <input id="fecha" name="fecha" type="date"
-               value="{{ valores.get('fecha', '') }}"
-               min="{{ hoy }}" required />
-
-        <label for="hora">Hora</label>
-        <input id="hora" name="hora" type="time"
-               value="{{ valores.get('hora', '') }}" required />
-
         <label for="descripcion">Descripción</label>
         <textarea id="descripcion" name="descripcion" rows="3"
-                  placeholder="Detalles del plan...">{{ valores.get('descripcion', '') }}</textarea>
+                  placeholder="De qué se trata la idea...">{{ valores.get('descripcion', '') }}</textarea>
 
         <!-- Los lugares elegidos van abajo. El precio se estima solo,
              a partir del nivel de precio de cada lugar. -->
         <h2 class="crear-plan-subtitulo">
-          Lugares del plan
+          Lugares de la idea
           <span class="crear-plan-contador" id="contador-lugares">0 elegidos</span>
         </h2>
 
@@ -55,16 +46,11 @@
         <ul class="crear-plan-elegidos" id="lista-elegidos"></ul>
 
         <p class="crear-plan-vacio" id="mensaje-sin-lugares">
-          Todavía no agregaste lugares. Buscalos abajo, o dejá el plan sin lugar específico.
+          Todavía no agregaste lugares. Buscalos abajo, o dejá la idea sin lugar específico.
         </p>
 
-        <label class="crear-plan-guardar">
-          <input type="checkbox" name="guardado" />
-          Guardar también en "Planes guardados"
-        </label>
-
         <button class="lime-button" type="submit">
-          Crear plan <span aria-hidden="true">→</span>
+          Guardar idea <span aria-hidden="true">→</span>
         </button>
 
       </form>

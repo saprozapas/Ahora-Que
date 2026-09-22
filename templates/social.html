@@ -2,6 +2,15 @@
 
 {% block title %}Social — Ahora Qué{% endblock %}
 
+{% macro estrellas(promedio) -%}
+  {%- if promedio is not none -%}
+    {%- set llenas = promedio | round | int -%}
+    <span class="rating-stars" aria-label="{{ promedio }} de 5 estrellas">
+      {%- for i in range(5) %}<span class="{{ 'is-on' if i < llenas }}" aria-hidden="true">★</span>{% endfor -%}
+    </span>
+  {%- endif -%}
+{%- endmacro %}
+
 {% block content %}
 
 {% if logueado %}
@@ -17,21 +26,28 @@
 
   <a class="back-link" href="/dashboard">← Volver</a>
 
-  <h1>Ideas que<br /><em>se comparten.</em></h1>
+  <h1>Lo que hicieron<br /><em>tus amigos.</em></h1>
 
-  <p>Descubrí, guardá y compartí planes.</p>
+  <p>Planes de tus amigos de la última semana, empezando por los mejor puntuados.</p>
 
 </section>
 
 
 <section
   class="social-feed section-shell"
-  aria-label="Publicaciones de la comunidad"
+  aria-label="Planes de tus amigos"
 >
 
   <div class="social-feed-heading">
 
-    <p class="section-tag">la comunidad propone</p>
+    <p class="section-tag">
+      {% if nivel is none %}
+        todos los planes de la semana
+      {% else %}
+        planes con {{ nivel }}★ o más
+      {% endif %}
+      · {{ planes | length }} de {{ total }}
+    </p>
 
     <a class="lime-button" href="/explorar">
       Encontrar un plan <span aria-hidden="true">↗</span>
@@ -40,51 +56,74 @@
   </div>
 
 
+  {% if planes %}
+
   <div class="social-feed-grid">
 
-    <article class="social-post">
+    {% for plan in planes %}
+    <article class="social-post{% if loop.index is even %} social-post-accent{% endif %}">
 
       <div class="social-post-author">
 
         <img src="{{ url_for('static', filename='favicon.svg') }}" alt="" />
 
         <div>
-          <strong>Ahora Qué</strong>
-          <small>plan sugerido · hoy</small>
+          <strong>
+            {% if plan.amigos | length == 1 %}
+              Fue {{ plan.amigos[0] }}
+            {% elif plan.amigos | length == 2 %}
+              Fueron {{ plan.amigos[0] }} y {{ plan.amigos[1] }}
+            {% else %}
+              Fueron {{ plan.amigos[0] }} y {{ plan.amigos | length - 1 }} amigos más
+            {% endif %}
+          </strong>
+          <small>
+            {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}
+          </small>
         </div>
 
       </div>
 
-      <h2>Una caminata sin apuro y algo rico al final.</h2>
+      <h2>{{ plan.nombre }}</h2>
 
-      <p>Ideas simples para salir de la rutina.</p>
+      <p>{{ plan.resumen_lugares }}</p>
 
       <div class="social-post-actions">
-        <span>♡ 12</span>
-        <span>3 comentarios</span>
-        <a href="/plan/{{ featured.slug }}">Ver plan ↗</a>
+        {% if plan.promedio is not none %}
+          <span>{{ estrellas(plan.promedio) }} {{ plan.promedio }} · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}</span>
+        {% else %}
+          <span>Sin puntaje todavía</span>
+        {% endif %}
+        <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">Ver plan ↗</a>
       </div>
 
     </article>
-
-
-    <article class="social-post social-post-accent">
-
-      <span class="social-post-number">02 — recomendación</span>
-
-      <h2>Una noche de preguntas sin pantallas.</h2>
-
-      <p>Armen equipos y dejen que las preguntas hagan el resto.</p>
-
-      <div class="social-post-actions">
-        <span>♡ 8</span>
-        <span>1 comentario</span>
-        <a href="/plan/noche-de-preguntas">Ver plan ↗</a>
-      </div>
-
-    </article>
+    {% endfor %}
 
   </div>
+
+  {% if hay_siguiente %}
+  <div class="social-ver-mas">
+    <a class="plan-accion-secundaria"
+       href="{{ url_for('social', nivel=(siguiente_nivel if siguiente_nivel is not none else 'todos')) }}">
+      {% if siguiente_nivel is none %}
+        Ver todos los planes de tus amigos
+      {% else %}
+        Ver también los de {{ siguiente_nivel }}★ o más
+      {% endif %}
+    </a>
+  </div>
+  {% endif %}
+
+  {% else %}
+
+  <div class="social-feed-empty">
+    <h2>Todavía no hay planes para mostrar.</h2>
+    <p>Cuando tus amigos confirmen planes, los de la última semana van a aparecer acá.</p>
+    <a class="plan-accion-secundaria" href="/amigos">Buscar amigos</a>
+  </div>
+
+  {% endif %}
 
 </section>
 

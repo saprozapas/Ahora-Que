@@ -3675,6 +3675,89 @@
       margin-left: 0;
     }
   }
+
+  .rating-stars span {
+    color: var(--line);
+  }
+
+  .rating-stars span.is-on {
+    color: var(--ink);
+  }
+
+  .social-ver-mas {
+    display: flex;
+    justify-content: center;
+    margin-top: 28px;
+  }
+
+  .social-feed-empty {
+    padding: 32px 26px;
+    background: var(--surface-1);
+  }
+
+  .social-feed-empty h2 {
+    margin: 0 0 10px;
+  }
+
+  .social-feed-empty p {
+    margin: 0 0 20px;
+    color: var(--muted);
+  }
+
+  /* Puntaje en el detalle del plan */
+  .plan-puntaje {
+    margin: 24px 0;
+    padding: 20px;
+    background: var(--surface-1);
+  }
+
+  .plan-puntaje-promedio {
+    margin: 0 0 14px;
+  }
+
+  .plan-puntaje-opciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding: 0;
+    border: 0;
+  }
+
+  .plan-puntaje-opciones legend {
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .plan-puntaje-opciones label {
+    cursor: pointer;
+  }
+
+  .plan-puntaje-opciones input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .plan-puntaje-opciones span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    min-height: 44px;
+    border: 1px solid var(--line);
+  }
+
+  .plan-puntaje-opciones input:checked + span {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--surface-1);
+  }
+
+  .plan-puntaje-opciones input:focus-visible + span {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
 }
 
 
@@ -5407,5 +5490,336 @@
   .friend-card-actions {
     width: 100%;
     justify-content: flex-end;
+  }
+}
+
+
+/* ==========================================================================
+   PLANES DE GRUPO — botón "+ Idea", tablero por estado, votaciones,
+   horarios, postular idea y la barra (todavía inactiva) del chat.
+   ========================================================================== */
+
+@layer pages {
+
+  /* --- Etiqueta de estado ------------------------------------------------ */
+
+  .plan-estado {
+    display: inline-block;
+    padding: 2px 10px;
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+
+    color: var(--ink);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .plan-estado-votacion,
+  .plan-estado-esperando_horario {
+    background: var(--surface-2);
+  }
+
+  .plan-estado-confirmado {
+    border-color: var(--ink);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  /* --- Botón "+ Idea" con su menú ------------------------------------------ */
+
+  .group-plus {
+    position: relative;
+  }
+
+  .group-plus > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .group-plus > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .group-plus-menu {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 8px);
+    left: 0;
+
+    display: grid;
+    gap: 4px;
+    width: min(290px, 80vw);
+    padding: 6px;
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-sm);
+    text-align: left;
+  }
+
+  .group-plus-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  a.group-plus-item:hover,
+  a.group-plus-item:focus-visible {
+    background: var(--surface-2);
+  }
+
+  .group-plus-item.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .group-plus-item strong,
+  .group-plus-item small {
+    display: block;
+  }
+
+  .group-plus-item small {
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+
+  .group-plus-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* --- Tablero ---------------------------------------------------------------- */
+
+  .group-board {
+    display: grid;
+    gap: 14px;
+    width: min(760px, 100%);
+    margin: clamp(36px, 5vw, 56px) auto 0;
+    text-align: left;
+    scroll-margin-top: 24px;
+  }
+
+  .group-board-title {
+    margin: 18px 0 0;
+    font-size: var(--text-lg, 1.25rem);
+  }
+
+  .group-board-empty {
+    padding: 28px 24px;
+    background: var(--surface-1);
+  }
+
+  .group-board-empty h2 {
+    margin: 0 0 8px;
+  }
+
+  .group-board-empty p {
+    margin: 0 0 16px;
+    color: var(--muted);
+  }
+
+  .group-plan {
+    display: grid;
+    gap: 14px;
+    padding: 22px;
+
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-1);
+    scroll-margin-top: 24px;
+  }
+
+  .group-plan-head h3 {
+    margin: 10px 0 6px;
+  }
+
+  .group-plan-head h3 a {
+    color: inherit;
+  }
+
+  .group-plan-head p {
+    margin: 0 0 4px;
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+
+  .group-plan-conteo {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .group-plan-voto {
+    display: grid;
+    gap: 6px;
+  }
+
+  .group-plan-voto .plan-puntaje-opciones {
+    margin-bottom: 4px;
+  }
+
+  .group-plan-link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-size: var(--text-sm);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  /* --- Horarios propuestos ---------------------------------------------------- */
+
+  .group-horarios {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .group-horarios li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    padding: 12px 14px;
+    background: var(--surface-2);
+  }
+
+  .group-horarios li > div {
+    flex: 1 1 200px;
+  }
+
+  .group-horarios strong,
+  .group-horarios small {
+    display: block;
+  }
+
+  .group-horarios small {
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+
+  .group-horario-voto {
+    display: flex;
+    gap: 6px;
+  }
+
+  .group-horario-voto button {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    background: var(--surface-1);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .group-horario-voto button.is-elegido {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--surface-1);
+  }
+
+  .group-horario-nuevo,
+  .postular-cuando {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 12px;
+  }
+
+  .group-horario-nuevo label,
+  .postular-cuando label {
+    display: grid;
+    gap: 4px;
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .group-horario-nuevo input,
+  .postular-cuando input {
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    background: var(--surface-1);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  /* --- Postular idea -------------------------------------------------------------- */
+
+  .postular-form {
+    display: grid;
+    gap: 24px;
+    max-width: 760px;
+  }
+
+  .postular-ideas {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .postular-ideas legend {
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .postular-idea input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .postular-idea-card {
+    display: grid;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    background: var(--surface-1);
+    cursor: pointer;
+  }
+
+  .postular-idea-card small {
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
+
+  .postular-idea input:checked + .postular-idea-card {
+    border-color: var(--ink);
+    box-shadow: inset 4px 0 0 var(--accent);
+  }
+
+  .postular-idea input:focus-visible + .postular-idea-card {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  /* --- Chat del grupo (maqueta, deshabilitado) ------------------------------------ */
+
+  .group-chat {
+    opacity: 0.7;
+  }
+
+  .group-chat .group-ai-prompt-input:disabled,
+  .group-chat .group-ai-prompt-send:disabled {
+    cursor: not-allowed;
+  }
+
+  .group-chat .group-ai-prompt-send:disabled {
+    box-shadow: none;
   }
 }

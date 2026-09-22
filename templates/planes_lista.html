@@ -61,6 +61,14 @@
               <span>{{ plan.grupo }}</span>
               {% endif %}
 
+              {% if plan.grupo and plan.estado not in ('confirmado', 'archivado') %}
+              <span class="plan-estado plan-estado-{{ plan.estado }}">{{ plan.estado_texto }}</span>
+              {% endif %}
+
+              {% if plan.estado == 'archivado' %}
+              <span>{% if plan.mi_puntaje is not none %}Tu puntaje: {{ plan.mi_puntaje }}★{% else %}Sin puntuar{% endif %}</span>
+              {% endif %}
+
             </div>
 
           </a>

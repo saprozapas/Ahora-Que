@@ -9,8 +9,10 @@ from datetime import timedelta
 from routes.calendario import calendario_bp
 from routes.planes import planes_bp
 from routes.friends import friends_bp
+from routes.grupo_planes import grupo_planes_bp
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
+from services.plan_service import PlanService
 
 
 app = Flask(__name__)
@@ -23,8 +25,10 @@ app.register_blueprint(calendario_bp)
 app.register_blueprint(planes_bp)
 app.register_blueprint(inbox_bp)
 app.register_blueprint(friends_bp)
+app.register_blueprint(grupo_planes_bp)
 invitation_service = InvitationService()
 friend_service = FriendService()
+plan_service = PlanService()
 
 
 PLANS = [
@@ -35,10 +39,21 @@ PLANS = [
 
 @app.context_processor
 def inject_user():
-    return {
+    datos = {
         "logueado": bool(session.get("user_id")),
         "current_user": session.get("user", {}),
     }
+    # El contador del Inbox tiene que verse en TODAS las páginas que usan la
+    # barra lateral, no solo en /dashboard. Se inyecta acá para cualquier
+    # template; como _inbox_guardado cachea 30 s, no suma viajes a la base
+    # en cada página.
+    if session.get("user_id"):
+        try:
+            _, datos["notificaciones_pendientes"] = _inbox_guardado(session["user_id"])
+        except Exception as e:
+            print(f"No se pudo contar las notificaciones: {e}")
+            datos["notificaciones_pendientes"] = 0
+    return datos
 
 
 # ---- Medición: imprime cuánto tardó cada request (sacar cuando no haga falta) ----
@@ -88,16 +103,28 @@ def home():
 def dashboard():
     if not session.get('user_id'):
         return redirect('/login')
-    invitaciones, cantidad = _inbox_guardado(session["user_id"])
+    invitaciones, _ = _inbox_guardado(session["user_id"])
     return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True,
-                           invitaciones=invitaciones,
-                           notificaciones_pendientes=cantidad)
+                           invitaciones=invitaciones)
 
 @app.route('/social')
 def social():
     if not session.get('user_id'):
         return redirect('/login')
-    return render_template('social.html', featured=PLANS[0])
+    nivel_pedido = request.args.get('nivel', '4')
+    if nivel_pedido == 'todos':
+        nivel = None
+    else:
+        try:
+            nivel = int(nivel_pedido)
+        except ValueError:
+            nivel = 4
+        if nivel not in PlanService.NIVELES_SOCIAL:
+            nivel = 4
+
+    plan_service.archivar_vencidos()
+    sugerencias = plan_service.get_sugerencias_amigos(session['user_id'], nivel)
+    return render_template('social.html', **sugerencias)
 
 @app.route('/explorar')
 def explorar():
