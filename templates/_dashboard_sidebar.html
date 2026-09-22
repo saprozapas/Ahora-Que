@@ -266,4 +266,27 @@
 
   </nav>
 
+  <!-- Aplica el orden que el usuario armó arrastrando (ver app.js). Va
+       acá y no en app.js para que la barra no se pinte primero en el
+       orden original y después salte. -->
+  <script>
+    (() => {
+      try {
+        const orden = JSON.parse(localStorage.getItem("ahoraque-orden-barra") || "null");
+        if (!Array.isArray(orden)) return;
+
+        const nav = document.currentScript.parentElement.querySelector(".dashboard-sidebar-nav");
+        const links = Array.from(nav.querySelectorAll(".dashboard-sidebar-link"));
+        const posicion = (link) => {
+          const indice = orden.indexOf(link.getAttribute("href"));
+          return indice === -1 ? orden.length + links.indexOf(link) : indice;
+        };
+
+        links.sort((a, b) => posicion(a) - posicion(b)).forEach((link) => nav.appendChild(link));
+      } catch (error) {
+        // Sin localStorage queda el orden original.
+      }
+    })();
+  </script>
+
 </aside>

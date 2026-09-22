@@ -807,14 +807,14 @@
       });
     };
 
-    // Nombre y username: alternan entre vista y edición.
+    // Nombre, username y descripción: alternan entre vista y edición.
     document.querySelectorAll(".field-editable").forEach((formulario) => {
 
       const vista = formulario.querySelector(".field-view");
       const edicion = formulario.querySelector(".field-edit");
       const botonEditar = formulario.querySelector(".field-edit-btn");
       const valorMostrado = formulario.querySelector('[data-role="value"]');
-      const campo = edicion ? edicion.querySelector("input") : null;
+      const campo = edicion ? edicion.querySelector("input, textarea") : null;
 
       if (!vista || !edicion || !botonEditar) return;
 
@@ -826,7 +826,10 @@
 
       manejarEnvio(formulario, (datos) => {
         if (datos.ok) {
-          if (valorMostrado) valorMostrado.textContent = datos.value;
+          if (valorMostrado) {
+            valorMostrado.textContent = datos.value || valorMostrado.dataset.empty || "";
+            valorMostrado.classList.toggle("is-empty", !datos.value);
+          }
           mostrarError(formulario, "");
           edicion.hidden = true;
           vista.hidden = false;
@@ -835,14 +838,6 @@
         }
       });
     });
-
-    // Descripcion: siempre editable, solo confirma o muestra error.
-    const formDescripcion = document.querySelector(".profile-descripcion");
-    if (formDescripcion) {
-      manejarEnvio(formDescripcion, (datos) => {
-        mostrarError(formDescripcion, datos.ok ? "" : datos.error);
-      });
-    }
   };
 
 
@@ -1084,6 +1079,245 @@
 
 
   /* ========================================================================
+     AVISOS (flash)
+
+     base.html los pinta en .flash-stack. Acá se les agrega la cruz y se
+     van solos; si el mouse está encima, esperan a que salga.
+     ======================================================================== */
+
+  const iniciarAvisos = () => {
+
+    const pila = $(".flash-stack");
+    if (!pila) return;
+
+    const cerrar = (aviso) => {
+
+      if (aviso.classList.contains("is-leaving")) return;
+      aviso.classList.add("is-leaving");
+
+      setTimeout(() => {
+        aviso.remove();
+        if (!pila.children.length) pila.remove();
+      }, prefiereMenosMovimiento ? 0 : 420);
+    };
+
+    $$(".flash-message", pila).forEach((aviso, indice) => {
+
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "flash-message-cerrar";
+      boton.setAttribute("aria-label", "Cerrar aviso");
+      boton.textContent = "×";
+      boton.addEventListener("click", () => cerrar(aviso));
+      aviso.appendChild(boton);
+
+      let temporizador = setTimeout(() => cerrar(aviso), 4500 + indice * 600);
+
+      aviso.addEventListener("mouseenter", () => clearTimeout(temporizador));
+      aviso.addEventListener("mouseleave", () => {
+        temporizador = setTimeout(() => cerrar(aviso), 2000);
+      });
+    });
+  };
+
+
+  /* ========================================================================
+     ORDEN DE LA BARRA LATERAL
+
+     Los links se arrastran para reordenarlos (en celular, manteniendo
+     apretado un momento, para no pelear con el scroll de la fila). Con
+     teclado: Alt + flechas. El orden queda en localStorage; el script
+     chico al final de _dashboard_sidebar.html lo aplica antes de pintar.
+     ======================================================================== */
+
+  const iniciarOrdenBarraLateral = () => {
+
+    const nav = $(".dashboard-sidebar-nav");
+    if (!nav) return;
+
+    const CLAVE = "ahoraque-orden-barra";
+    const UMBRAL = 6;
+    const ESPERA_TACTIL = 350;
+
+    const links = () => $$(".dashboard-sidebar-link", nav);
+
+    const esHorizontal = () => getComputedStyle(nav).display === "flex";
+
+    const guardar = () => {
+      try {
+        localStorage.setItem(
+          CLAVE,
+          JSON.stringify(links().map((link) => link.getAttribute("href")))
+        );
+      } catch (error) {
+        // Sin localStorage el orden dura hasta recargar.
+      }
+    };
+
+    // FLIP: cada link se anima desde donde estaba hasta su lugar nuevo.
+    const moverAnimado = (mover) => {
+
+      const antes = new Map(links().map((link) => [link, link.getBoundingClientRect()]));
+      mover();
+      if (prefiereMenosMovimiento) return;
+
+      links().forEach((link) => {
+        const previo = antes.get(link);
+        const actual = link.getBoundingClientRect();
+        const dx = previo.left - actual.left;
+        const dy = previo.top - actual.top;
+        if (!dx && !dy) return;
+        link.animate(
+          [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }],
+          { duration: 200, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }
+        );
+      });
+    };
+
+    // El centro de cada link sin contar la animación en curso: si no, un
+    // link que todavía se está moviendo hace que el arrastrado rebote.
+    const centro = (link, horizontal) => {
+      const caja = link.getBoundingClientRect();
+      const matriz = new DOMMatrixReadOnly(getComputedStyle(link).transform);
+      return horizontal
+        ? caja.left + caja.width / 2 - matriz.m41
+        : caja.top + caja.height / 2 - matriz.m42;
+    };
+
+    let arrastrado = null;
+    let activo = false;
+    let origen = null;
+    let ordenInicial = [];
+    let esperaTactil = null;
+    let recienArrastrado = false;
+
+    const empezar = () => {
+      activo = true;
+      ordenInicial = links();
+      arrastrado.classList.add("is-dragging");
+      nav.classList.add("is-reordering");
+      try {
+        arrastrado.setPointerCapture(origen.id);
+      } catch (error) {
+        // El puntero ya se soltó.
+      }
+    };
+
+    const terminar = (cancelar) => {
+
+      clearTimeout(esperaTactil);
+
+      if (activo) {
+        if (cancelar) {
+          moverAnimado(() => ordenInicial.forEach((link) => nav.appendChild(link)));
+        } else {
+          guardar();
+        }
+        arrastrado.classList.remove("is-dragging");
+        nav.classList.remove("is-reordering");
+        recienArrastrado = true;
+        setTimeout(() => { recienArrastrado = false; }, 0);
+      }
+
+      arrastrado = null;
+      activo = false;
+      origen = null;
+    };
+
+    nav.addEventListener("dragstart", (evento) => evento.preventDefault());
+
+    nav.addEventListener("pointerdown", (evento) => {
+
+      const link = evento.target.closest(".dashboard-sidebar-link");
+      if (!link || evento.button !== 0) return;
+
+      arrastrado = link;
+      origen = { id: evento.pointerId, x: evento.clientX, y: evento.clientY };
+
+      if (evento.pointerType === "touch") {
+        esperaTactil = setTimeout(empezar, ESPERA_TACTIL);
+      }
+    });
+
+    nav.addEventListener("pointermove", (evento) => {
+
+      if (!arrastrado || evento.pointerId !== origen.id) return;
+
+      const distancia = Math.hypot(evento.clientX - origen.x, evento.clientY - origen.y);
+
+      if (!activo) {
+        if (distancia < UMBRAL) return;
+        // En táctil, moverse antes de la espera es scroll, no arrastre.
+        if (evento.pointerType === "touch") {
+          terminar(true);
+          return;
+        }
+        empezar();
+      }
+
+      const horizontal = esHorizontal();
+      const puntero = horizontal ? evento.clientX : evento.clientY;
+      const siguiente = links().find(
+        (link) => link !== arrastrado && puntero < centro(link, horizontal)
+      ) || null;
+
+      if (arrastrado.nextElementSibling === siguiente) return;
+      if (!siguiente && arrastrado === nav.lastElementChild) return;
+
+      moverAnimado(() => nav.insertBefore(arrastrado, siguiente));
+    });
+
+    nav.addEventListener("pointerup", () => terminar(false));
+    nav.addEventListener("pointercancel", () => terminar(true));
+
+    // Mientras se arrastra con el dedo, la fila no tiene que scrollear.
+    nav.addEventListener("touchmove", (evento) => {
+      if (activo) evento.preventDefault();
+    }, { passive: false });
+
+    // Mantener apretado un link en celular abre el menú del navegador.
+    nav.addEventListener("contextmenu", (evento) => {
+      if (arrastrado) evento.preventDefault();
+    });
+
+    // Soltar después de arrastrar no tiene que navegar.
+    nav.addEventListener("click", (evento) => {
+      if (recienArrastrado) {
+        evento.preventDefault();
+        evento.stopPropagation();
+      }
+    }, true);
+
+    document.addEventListener("keydown", (evento) => {
+      if (evento.key === "Escape" && activo) terminar(true);
+    });
+
+    nav.addEventListener("keydown", (evento) => {
+
+      if (!evento.altKey) return;
+
+      const link = evento.target.closest(".dashboard-sidebar-link");
+      if (!link) return;
+
+      const antes = esHorizontal() ? "ArrowLeft" : "ArrowUp";
+      const despues = esHorizontal() ? "ArrowRight" : "ArrowDown";
+
+      if (evento.key === antes && link.previousElementSibling) {
+        moverAnimado(() => nav.insertBefore(link, link.previousElementSibling));
+      } else if (evento.key === despues && link.nextElementSibling) {
+        moverAnimado(() => nav.insertBefore(link.nextElementSibling, link));
+      } else {
+        return;
+      }
+
+      evento.preventDefault();
+      link.focus();
+      guardar();
+    });
+  };
+
+
+  /* ========================================================================
      ARRANQUE
      ======================================================================== */
 
@@ -1102,4 +1336,6 @@
   iniciarBuscarAmigos();
   iniciarInvitarAmigoAGrupo();
   iniciarEliminarAmigo();
+  iniciarAvisos();
+  iniciarOrdenBarraLateral();
 })();

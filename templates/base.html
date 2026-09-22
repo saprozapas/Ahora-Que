@@ -48,7 +48,7 @@
 
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='style.css', v='20260915-ajustes-v10') }}"
+      href="{{ url_for('static', filename='style.css', v='20260922-perfil-avisos-v11') }}"
     />
 
     <link
@@ -60,7 +60,7 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20260915-ajustes-v10') }}"
+      src="{{ url_for('static', filename='app.js', v='20260922-perfil-avisos-v11') }}"
     ></script>
 
   </head>
@@ -214,6 +214,23 @@
       </div>
 
     </header>
+
+
+    {# Avisos de cualquier página logueada. El login los muestra dentro de
+       su formulario, por eso acá no se pintan sin sesión. #}
+    {% if logueado %}
+      {% with mensajes = get_flashed_messages() %}
+        {% if mensajes %}
+        <div class="flash-stack" role="status" aria-live="polite">
+          {% for mensaje in mensajes %}
+          <div class="flash-message">
+            <span class="flash-message-texto">{{ mensaje }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+    {% endif %}
 
 
     <main id="contenido">

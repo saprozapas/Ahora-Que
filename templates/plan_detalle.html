@@ -12,14 +12,6 @@
 
     <section class="section-shell">
 
-      {% with mensajes = get_flashed_messages() %}
-        {% if mensajes %}
-          {% for mensaje in mensajes %}
-          <div class="flash-message">{{ mensaje }}</div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-
       <a class="back-link" href="/planes">← Volver</a>
 
       <div class="auth-intro">

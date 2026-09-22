@@ -13,21 +13,6 @@
 {% endif %}
 
 
-{% with mensajes = get_flashed_messages() %}
-  {% if mensajes %}
-
-    {% for mensaje in mensajes %}
-
-      <div class="flash-message">
-        {{ mensaje }}
-      </div>
-
-    {% endfor %}
-
-  {% endif %}
-{% endwith %}
-
-
 <section class="page-hero section-shell">
 
   <a class="back-link" href="/dashboard">← Volver</a>

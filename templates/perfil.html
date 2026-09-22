@@ -2,6 +2,12 @@
 
 {% block title %}Perfil — Ahora Qué{% endblock %}
 
+{% macro lapiz() %}
+<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+  <path d="M16.5 4.5a2.12 2.12 0 0 1 3 3L8 19l-4 1 1-4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" />
+</svg>
+{% endmacro %}
+
 {% block content %}
 
 {% if logueado %}
@@ -17,40 +23,18 @@
 
   <a class="back-link" href="/dashboard">← Volver</a>
 
-  <div class="profile-left">
+  <div class="auth-intro">
 
-    <div class="auth-intro">
+    <h1>Tu espacio<br /><em>personal.</em></h1>
 
-      <h1>Tu espacio<br /><em>personal.</em></h1>
-
-      <p>Tus datos, grupos y planes guardados.</p>
-
-    </div>
-
-    <form class="profile-descripcion" method="post" action="/perfil">
-
-      <input type="hidden" name="target" value="descripcion" />
-
-      <label for="descripcion">Descripción</label>
-
-      <textarea
-        id="descripcion"
-        name="descripcion"
-        placeholder="Contá qué tipo de planes te gustan, con quién salís y qué buscás en el grupo..."
-      >{{ user.descripcion | default('', true) }}</textarea>
-
-      <p class="form-message form-message-error" data-role="error" {% if not error_descripcion %}hidden{% endif %}>{{ error_descripcion }}</p>
-
-      <button class="lime-button" type="submit">Guardar</button>
-
-    </form>
+    <p>Tus datos, grupos y planes guardados.</p>
 
   </div>
 
 
   <div class="auth-form profile-card">
 
-        <form method="post" action="/perfil" class="field-editable">
+    <form method="post" action="/perfil" class="field-editable">
 
       <input type="hidden" name="target" value="name" />
 
@@ -59,7 +43,7 @@
 
         <span class="field-view" {% if error_name %}hidden{% endif %}>
           <span data-role="value">{{ user.name | default('Sin datos', true) }}</span>
-          <button type="button" class="field-edit-btn" aria-label="Editar nombre">✎</button>
+          <button type="button" class="field-edit-btn" aria-label="Editar nombre">{{ lapiz() }}</button>
         </span>
 
         <span class="field-edit" {% if not error_name %}hidden{% endif %}>
@@ -81,7 +65,7 @@
 
         <span class="field-view" {% if error_username %}hidden{% endif %}>
           <span data-role="value">{{ user.username | default('Sin datos', true) }}</span>
-          <button type="button" class="field-edit-btn" aria-label="Editar username">✎</button>
+          <button type="button" class="field-edit-btn" aria-label="Editar username">{{ lapiz() }}</button>
         </span>
 
         <span class="field-edit" {% if not error_username %}hidden{% endif %}>
@@ -93,7 +77,37 @@
       <p class="form-message form-message-error" data-role="error" {% if not error_username %}hidden{% endif %}>{{ error_username }}</p>
 
     </form>
-    
+
+    <form method="post" action="/perfil" class="field-editable field-editable-texto">
+
+      <input type="hidden" name="target" value="descripcion" />
+
+      <p>
+        <strong>Descripción</strong><br />
+
+        <span class="field-view" {% if error_descripcion %}hidden{% endif %}>
+          <span
+            class="{% if not user.descripcion %}is-empty{% endif %}"
+            data-role="value"
+            data-empty="Contá qué planes te gustan y con quién salís."
+          >{{ user.descripcion | default('Contá qué planes te gustan y con quién salís.', true) }}</span>
+          <button type="button" class="field-edit-btn" aria-label="Editar descripción">{{ lapiz() }}</button>
+        </span>
+
+        <span class="field-edit" {% if not error_descripcion %}hidden{% endif %}>
+          <textarea
+            name="descripcion"
+            rows="4"
+            placeholder="Contá qué tipo de planes te gustan, con quién salís y qué buscás en el grupo..."
+          >{{ user.descripcion | default('', true) }}</textarea>
+          <button type="submit" class="field-save-btn" aria-label="Guardar descripción">✓</button>
+        </span>
+      </p>
+
+      <p class="form-message form-message-error" data-role="error" {% if not error_descripcion %}hidden{% endif %}>{{ error_descripcion }}</p>
+
+    </form>
+
     {% if user.email %}
     <p>
       <strong>Email</strong><br />
