@@ -1,10 +1,9 @@
 <!--
   Navegación del dashboard.
 
-  En escritorio es una barra lateral que se puede contraer.
-  En celular el CSS la convierte en una fila de pestañas arriba del
-  contenido: antes era position:fixed y tapaba permanentemente los 220px
-  izquierdos de la pantalla.
+  En escritorio es una barra lateral que se puede contraer y reordenar
+  arrastrando (app.js). En celular el CSS la convierte en una fila de
+  pestañas arriba del contenido. Estilos en static/css/brand.css.
 -->
 
 <aside class="dashboard-sidebar" aria-label="Navegación del dashboard">
@@ -17,7 +16,9 @@
       aria-label="Contraer navegación"
       aria-expanded="true"
     >
-      ←
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
     </button>
 
   </div>
@@ -49,7 +50,7 @@
         </svg>
       </span>
 
-      <span>Inicio</span>
+      <span class="dashboard-sidebar-label">Inicio</span>
     </a>
 
 
@@ -79,12 +80,10 @@
         </svg>
       </span>
 
-      <span>Inbox</span>
+      <span class="dashboard-sidebar-label">Inbox</span>
 
       {% if notificaciones_pendientes and notificaciones_pendientes > 0 %}
-        <span class="inbox-notification">
-          {{ notificaciones_pendientes }}
-        </span>
+        <span class="badge dashboard-sidebar-badge" aria-label="{{ notificaciones_pendientes }} sin leer">{{ notificaciones_pendientes }}</span>
       {% endif %}
     </a>
 
@@ -122,7 +121,7 @@
         </svg>
       </span>
 
-      <span>Grupos</span>
+      <span class="dashboard-sidebar-label">Grupos</span>
     </a>
 
 
@@ -158,7 +157,7 @@
         </svg>
       </span>
 
-      <span>Amigos</span>
+      <span class="dashboard-sidebar-label">Amigos</span>
     </a>
 
 
@@ -203,7 +202,7 @@
         </svg>
       </span>
 
-      <span>Social</span>
+      <span class="dashboard-sidebar-label">Social</span>
     </a>
 
 
@@ -232,7 +231,7 @@
         </svg>
       </span>
 
-      <span>Perfil</span>
+      <span class="dashboard-sidebar-label">Perfil</span>
     </a>
         
     <a
@@ -249,7 +248,7 @@
         </svg>
       </span>
 
-      <span>Planes</span>
+      <span class="dashboard-sidebar-label">Planes</span>
     </a>
 
 
@@ -261,7 +260,7 @@
         </svg>
       </span>
 
-      <span>Calendario</span>
+      <span class="dashboard-sidebar-label">Calendario</span>
     </a>
 
   </nav>

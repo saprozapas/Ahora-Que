@@ -4,10 +4,8 @@
    ÍNDICE
 
      01. Utilidades
-     02. Barra de progreso de scroll
      03. Modo noche
      04. Menú de navegación en celular
-     05. Aparición de secciones al hacer scroll
      06. Barra lateral del dashboard
      07. Máscara de fecha de nacimiento
      08. Estado "enviando" en los formularios
@@ -52,51 +50,6 @@
 
 
   /* ========================================================================
-     02. BARRA DE PROGRESO DE SCROLL
-     ======================================================================== */
-
-  const iniciarBarraDeProgreso = () => {
-
-    const barra = $(".scroll-progress span");
-
-    if (!barra) {
-      return;
-    }
-
-    let pendiente = false;
-
-    const actualizar = () => {
-
-      const alturaScrollable =
-        document.documentElement.scrollHeight - window.innerHeight;
-
-      const avance =
-        alturaScrollable > 0 ? window.scrollY / alturaScrollable : 0;
-
-      barra.style.transform = "scaleX(" + avance + ")";
-
-      pendiente = false;
-    };
-
-    window.addEventListener(
-      "scroll",
-      () => {
-
-        if (pendiente) {
-          return;
-        }
-
-        pendiente = true;
-        window.requestAnimationFrame(actualizar);
-      },
-      { passive: true }
-    );
-
-    actualizar();
-  };
-
-
-  /* ========================================================================
      03. MODO NOCHE
 
      El tema vive en localStorage bajo la clave "ahoraque-theme" y se
@@ -108,14 +61,14 @@
 
   const iniciarModoNoche = () => {
 
-    const boton = $(".theme-toggle");
+    const boton = $("[data-theme-toggle]");
 
     if (!boton) {
       return;
     }
 
     const favicon = $("#theme-favicon");
-    const etiqueta = $(".theme-toggle-label", boton);
+    const etiqueta = $("[data-theme-label]", boton);
 
     /*
      * El tema vivo se guarda acá y no se lee del DOM en cada clic.
@@ -263,8 +216,8 @@
 
   const iniciarMenuMovil = () => {
 
-    const header = $(".site-header");
-    const boton = $(".nav-toggle");
+    const header = $("[data-header]");
+    const boton = $("[data-menu-toggle]");
 
     if (!header || !boton) {
       return;
@@ -315,57 +268,6 @@
     // colgado cuando el panel ya no existe.
 
     window.matchMedia("(min-width: 901px)").addEventListener("change", cerrar);
-  };
-
-
-  /* ========================================================================
-     05. APARICIÓN DE SECCIONES AL HACER SCROLL
-
-     Regla importante: el estado de reposo es VISIBLE. Solo se marca para
-     animar lo que arranca debajo del primer pantallazo. Así, si el
-     JavaScript no corre, la página se ve igual de completa.
-     ======================================================================== */
-
-  const iniciarAparicionAlScroll = () => {
-
-    if (prefiereMenosMovimiento || !("IntersectionObserver" in window)) {
-      return;
-    }
-
-    const candidatos = $$(
-      "main section, main article, .story-card, .contact-form, .auth-form"
-    );
-
-    const limiteVisible = window.innerHeight * 0.85;
-
-    const aAnimar = candidatos.filter(
-      (elemento) => elemento.getBoundingClientRect().top > limiteVisible
-    );
-
-    if (aAnimar.length === 0) {
-      return;
-    }
-
-    const observador = new IntersectionObserver(
-      (entradas) => {
-
-        entradas.forEach((entrada) => {
-
-          if (!entrada.isIntersecting) {
-            return;
-          }
-
-          entrada.target.classList.add("is-visible");
-          observador.unobserve(entrada.target);
-        });
-      },
-      { threshold: 0.12 }
-    );
-
-    aAnimar.forEach((elemento) => {
-      elemento.classList.add("scroll-reveal");
-      observador.observe(elemento);
-    });
   };
 
 
@@ -1321,10 +1223,8 @@
      ARRANQUE
      ======================================================================== */
 
-  iniciarBarraDeProgreso();
   iniciarModoNoche();
   iniciarMenuMovil();
-  iniciarAparicionAlScroll();
   iniciarBarraLateral();
   iniciarFechaDeNacimiento();
   iniciarEstadoDeEnvio();

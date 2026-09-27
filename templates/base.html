@@ -4,7 +4,7 @@
   <head>
 
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <meta
       name="description"
@@ -13,17 +13,8 @@
 
     <title>{% block title %}Ahora Qué{% endblock %}</title>
 
-    <!--
-      Este script tiene que correr ANTES de que se pinte la página:
-
-        1. Aplica el tema guardado, para que no haya un parpadeo en claro
-           antes de pasar a modo noche.
-
-        2. Marca el <html> con la clase "js". El CSS solo anima la
-           aparición de las secciones si esa clase está presente, así que
-           sin JavaScript la página se ve completa en vez de quedar en
-           blanco.
-    -->
+    <!-- Aplica el tema guardado ANTES de pintar, para que no haya un
+         parpadeo en claro antes de pasar a modo noche. -->
     <script>
       (() => {
         document.documentElement.classList.add("js");
@@ -51,12 +42,12 @@
          pierde contra estos) hasta que la fase 7 lo saque. -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='style.css', v='20260927-sereno-f1') }}"
+      href="{{ url_for('static', filename='style.css', v='20260927-sereno-f2') }}"
     />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20260927-sereno-f1') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20260927-sereno-f1') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20260927-sereno-f1') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20260927-sereno-f1') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20260927-sereno-f2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20260927-sereno-f2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20260927-sereno-f2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20260927-sereno-f2') }}" />
 
     <link
       rel="icon"
@@ -67,53 +58,43 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20260927-sereno-f1') }}"
+      src="{{ url_for('static', filename='app.js', v='20260927-sereno-f2') }}"
     ></script>
 
   </head>
 
   <body>
 
-    <a class="skip-link" href="#contenido">Ir al contenido</a>
-
-    <div class="scroll-progress" aria-hidden="true">
-      <span></span>
-    </div>
+    <a class="skip-link btn btn--primary" href="#contenido">Ir al contenido</a>
 
 
     <!-- =====================================================================
          HEADER
 
-         Estructura en tres bloques:
+           logo · navegación y cuenta (en celular, panel desplegable) ·
+           tema y menú
 
-           .brand            marca, siempre visible
-           .site-nav         navegación + acciones de cuenta
-                             (en celular se convierte en panel desplegable)
-           .header-controls  tema y hamburguesa, siempre visibles
-
-         Esta separación es lo que permite que el header entre en 320px.
+         El JS lo engancha por data-header, data-menu-toggle y
+         data-theme-toggle, no por clases.
          ===================================================================== -->
 
-    <header class="site-header">
+    <header class="nav app-header{% if logueado %} app-header--app{% endif %}" data-header>
 
-      <div class="site-header-inner">
+      <div class="container nav__inner app-header__inner">
 
-        <a class="brand" href="/" aria-label="Ahora Qué, inicio">
-
+        <a class="logo" href="/" aria-label="Ahora Qué, inicio">
           <img
-            class="brand-mark"
+            class="logo__mark"
             src="{{ url_for('static', filename='favicon.svg') }}"
             alt=""
           />
-
-          <span class="brand-name">Ahora <em>Qué</em></span>
-
+          Ahora Qué
         </a>
 
 
-        <div class="site-nav" id="menu-principal">
+        <div class="app-header__panel" id="menu-principal">
 
-          <nav class="main-nav" aria-label="Navegación principal">
+          <nav class="app-header__links" aria-label="Navegación principal">
 
             {% if logueado %}
 
@@ -132,29 +113,16 @@
           </nav>
 
 
-          <div class="header-actions">
+          <div class="app-header__actions">
 
             {% if logueado %}
 
-              <a
-                class="header-action header-action-ghost header-action-logout"
-                href="/logout"
-              >
-                Cerrar sesión
-              </a>
+              <a class="btn btn--ghost" href="/logout">Cerrar sesión</a>
 
             {% else %}
 
-              <a
-                class="header-action header-action-ghost header-action-login"
-                href="/login"
-              >
-                Iniciar sesión
-              </a>
-
-              <a class="header-action" href="/register">
-                Crear cuenta <span aria-hidden="true">↗</span>
-              </a>
+              <a class="btn btn--ghost" href="/login">Iniciar sesión</a>
+              <a class="btn btn--primary" href="/register">Crear cuenta</a>
 
             {% endif %}
 
@@ -163,57 +131,36 @@
         </div>
 
 
-        <div class="header-controls">
+        <div class="app-header__controls">
 
           <button
-            class="theme-toggle"
+            class="icon-btn"
             type="button"
+            data-theme-toggle
             aria-pressed="false"
             aria-label="Activar modo noche"
           >
-            <span class="theme-toggle-icon" aria-hidden="true">
-
-              <svg class="icon-moon" viewBox="0 0 24 24" focusable="false">
-                <path
-                  d="M20.3 14.6A8.6 8.6 0 0 1 9.4 3.7a8.6 8.6 0 1 0 10.9 10.9z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linejoin="round"
-                />
-              </svg>
-
-              <svg class="icon-sun" viewBox="0 0 24 24" focusable="false">
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="4.2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                />
-                <path
-                  d="M12 2.6v2.5M12 18.9v2.5M4.3 4.3l1.8 1.8M17.9 17.9l1.8 1.8M2.6 12h2.5M18.9 12h2.5M4.3 19.7l1.8-1.8M17.9 6.1l1.8-1.8"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                />
-              </svg>
-
-            </span>
-
-            <span class="theme-toggle-label visually-hidden">Modo noche</span>
+            <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M20.3 14.6A8.6 8.6 0 0 1 9.4 3.7a8.6 8.6 0 1 0 10.9 10.9z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+            </svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.7" />
+              <path d="M12 2.6v2.5M12 18.9v2.5M4.3 4.3l1.8 1.8M17.9 17.9l1.8 1.8M2.6 12h2.5M18.9 12h2.5M4.3 19.7l1.8-1.8M17.9 6.1l1.8-1.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+            <span class="visually-hidden" data-theme-label>Modo noche</span>
           </button>
 
           <button
-            class="nav-toggle"
+            class="icon-btn app-header__menu"
             type="button"
+            data-menu-toggle
             aria-expanded="false"
             aria-controls="menu-principal"
             aria-label="Abrir menú"
           >
-            <span class="nav-toggle-bars" aria-hidden="true"></span>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
           </button>
 
         </div>
@@ -247,38 +194,32 @@
 
     {% if not logueado %}
 
-    <footer class="site-footer section-shell">
+    <footer class="app-footer">
 
-      <div>
+      <div class="container app-footer__inner">
 
-        <a class="brand" href="/">
+        <div class="app-footer__brand">
+          <a class="logo" href="/">
+            <img
+              class="logo__mark"
+              src="{{ url_for('static', filename='favicon.svg') }}"
+              alt=""
+            />
+            Ahora Qué
+          </a>
+          <p class="meta">Una excusa para hacer algo.</p>
+        </div>
 
-          <img
-            class="brand-mark"
-            src="{{ url_for('static', filename='favicon.svg') }}"
-            alt=""
-          />
+        <nav class="app-footer__links" aria-label="Enlaces del pie">
+          <a href="/explorar">Explorar</a>
+          <a href="/grupos">Grupos</a>
+          <a href="/contacto">Contacto</a>
+          <a href="/login">Iniciar sesión</a>
+        </nav>
 
-          <span class="brand-name">Ahora <em>Qué</em></span>
-
-        </a>
-
-        <p class="footer-note">
-          Una excusa para hacer algo.
-        </p>
+        <span class="meta">© 2026 Ahora Qué</span>
 
       </div>
-
-      <nav class="footer-links" aria-label="Enlaces del pie">
-
-        <a href="/explorar">Explorar</a>
-        <a href="/grupos">Grupos</a>
-        <a href="/contacto">Contacto</a>
-        <a href="/login">Iniciar sesión</a>
-
-      </nav>
-
-      <span class="footer-year">© 2026 Ahora Qué</span>
 
     </footer>
 

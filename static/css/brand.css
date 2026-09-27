@@ -6,9 +6,33 @@
    la app (se van sumando fase a fase). Construido solo con tokens.
 
    ÍNDICE
+     00. Medidas del shell
      01. Puente con style.css (temporal, se borra en la fase 7)
      02. Topografía
+     03. Utilidades
+     04. Header
+     05. Botón de ícono
+     06. Footer
+     07. Layout del dashboard y barra lateral
+     08. Modales
+     09. Avisos
    ========================================================================== */
+
+
+/* ---------- 00. Medidas del shell ---------- */
+
+:root {
+  --header-h: 64px;
+  --sidebar-w: 232px;
+  --sidebar-w-min: 64px;
+  /* Velo de los modales: la tinta de Sereno al 60%. En noche la tinta es
+     clara, así que ahí el velo es negro. */
+  --scrim: rgb(21 21 21 / 0.6);
+}
+
+:root[data-theme="night"] {
+  --scrim: rgb(0 0 0 / 0.6);
+}
 
 
 /* ---------- 01. Puente con style.css ----------
@@ -67,3 +91,386 @@
 }
 
 .topo--sutil .topo__svg { opacity: 0.35; }
+
+
+/* ---------- 03. Utilidades ---------- */
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: fixed; top: var(--s-2); left: var(--s-2); z-index: 300;
+  transform: translateY(-160%);
+}
+
+.skip-link:focus-visible { transform: none; }
+
+
+/* ---------- 04. Header ----------
+   El .nav de Sereno (sticky, papel translúcido con blur, filete abajo)
+   con el alto fijo que usa el resto del layout. Con sesión va a todo el
+   ancho, para que el logo quede sobre la barra lateral. */
+
+.app-header { height: var(--header-h); }
+
+.app-header__inner { height: 100%; gap: var(--s-6); }
+
+.app-header--app .app-header__inner { max-width: none; padding-inline: var(--s-6); }
+
+.logo {
+  display: inline-flex; align-items: center; gap: 10px; flex: none;
+  color: var(--ink); text-decoration: none;
+  font-size: 1.125rem; font-weight: 650; letter-spacing: -0.03em;
+}
+
+.logo__mark { width: 26px; height: 26px; }
+
+.app-header__panel { display: flex; align-items: center; gap: var(--s-6); flex: 1; min-width: 0; }
+
+.app-header__links { display: flex; gap: var(--s-8); margin-inline: auto; }
+
+.app-header__links a {
+  color: var(--ink-3); text-decoration: none; font-size: var(--t-ui);
+  transition: color var(--d-fast) var(--ease-out);
+}
+
+.app-header__links a:hover { color: var(--ink); }
+
+.app-header__actions { display: flex; align-items: center; gap: var(--s-2); }
+
+.app-header__controls { display: flex; align-items: center; gap: var(--s-1); flex: none; }
+
+/* Doble clase: .icon-btn (más abajo) también define display. */
+.app-header .app-header__menu { display: none; }
+
+/* En celular la navegación y la cuenta van en un panel flotante que abre
+   el botón de menú (app.js pone data-menu="abierto" en el header). */
+@media (max-width: 900px) {
+  .app-header__inner { gap: var(--s-3); }
+  .app-header--app .app-header__inner { padding-inline: var(--gutter); }
+  .app-header__controls { margin-left: auto; }
+  .app-header .app-header__menu { display: inline-grid; }
+
+  .app-header__panel {
+    display: none;
+    position: absolute; top: calc(100% + var(--s-2)); left: var(--gutter); right: var(--gutter);
+    flex-direction: column; align-items: stretch; gap: var(--s-3);
+    padding: var(--s-3);
+    background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-float);
+  }
+
+  .app-header[data-menu="abierto"] .app-header__panel { display: flex; }
+
+  .app-header__links { flex-direction: column; gap: 0; margin: 0; }
+
+  .app-header__links a {
+    display: flex; align-items: center; min-height: 44px; padding-inline: var(--s-3);
+    border-radius: var(--r-sm); color: var(--ink); font-size: 1rem;
+  }
+
+  .app-header__links a:hover { background: var(--surface-2); }
+
+  .app-header__actions { flex-direction: column; align-items: stretch; }
+  .app-header__actions .btn { width: 100%; --h: 44px; }
+}
+
+
+/* ---------- 05. Botón de ícono ----------
+   Tema, menú: botones sin texto, 40px de lado. */
+
+.icon-btn {
+  display: inline-grid; place-items: center; flex: none;
+  width: 40px; height: 40px; padding: 0;
+  border: 0; border-radius: var(--r-md);
+  background: transparent; color: var(--ink-2); cursor: pointer;
+  transition: background-color var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out), transform var(--d-fast) var(--ease-out);
+}
+
+.icon-btn:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.icon-btn:active { transform: scale(0.98); }
+.icon-btn svg { width: 20px; height: 20px; }
+
+/* Luna en claro, sol en noche. */
+.icon-btn .icon-sun { display: none; }
+:root[data-theme="night"] .icon-btn .icon-moon { display: none; }
+:root[data-theme="night"] .icon-btn .icon-sun { display: block; }
+
+
+/* ---------- 06. Footer ---------- */
+
+.app-footer { border-top: 1px solid var(--line); padding-block: var(--s-10) var(--s-12); }
+
+.app-footer__inner {
+  display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
+  gap: var(--s-6) var(--s-10);
+}
+
+.app-footer__brand .meta { margin: var(--s-2) 0 0; }
+
+.app-footer__links { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); }
+
+.app-footer__links a {
+  color: var(--ink-3); text-decoration: none; font-size: var(--t-ui);
+  transition: color var(--d-fast) var(--ease-out);
+}
+
+.app-footer__links a:hover { color: var(--ink); }
+
+
+/* ---------- 07. Layout del dashboard y barra lateral ----------
+   Mantiene las clases de siempre (las usan todos los templates con sesión
+   y app.js: contraer y reordenar). Ítem activo como un .chip apretado:
+   superficie blanca con filete, ícono en el acento. */
+
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  min-height: calc(100svh - var(--header-h));
+  transition: grid-template-columns var(--d-base) var(--ease-out);
+}
+
+.dashboard-layout.is-collapsed { grid-template-columns: var(--sidebar-w-min) minmax(0, 1fr); }
+
+.dashboard-main { min-width: 0; }
+
+.dashboard-sidebar {
+  position: sticky; top: var(--header-h); z-index: 30;
+  display: flex; flex-direction: column;
+  height: calc(100svh - var(--header-h));
+  padding: var(--s-4) var(--s-3);
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.dashboard-sidebar-top { display: flex; justify-content: flex-end; margin-bottom: var(--s-3); }
+
+.dashboard-sidebar-toggle {
+  display: inline-grid; place-items: center;
+  width: 36px; height: 36px; padding: 0;
+  border: 0; border-radius: var(--r-md);
+  background: transparent; color: var(--ink-3); cursor: pointer;
+  transition: background-color var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out), transform var(--d-base) var(--ease-out);
+}
+
+.dashboard-sidebar-toggle:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+.dashboard-sidebar-toggle svg { width: 18px; height: 18px; }
+
+.dashboard-sidebar-nav { display: grid; gap: 2px; }
+
+.dashboard-sidebar-link {
+  position: relative;
+  display: flex; align-items: center; gap: var(--s-3);
+  height: 40px; min-height: 0; padding: 0 var(--s-3);
+  border: 0; border-radius: var(--r-sm);
+  color: var(--ink-2); text-decoration: none;
+  font-size: var(--t-ui); font-weight: 500; letter-spacing: var(--track-ui);
+  transition: background-color var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out), box-shadow var(--d-fast) var(--ease-out);
+}
+
+.dashboard-sidebar-link > span:first-child {
+  display: grid; place-items: center; flex: none;
+  width: 20px; height: 20px; color: var(--ink-3);
+}
+
+.dashboard-sidebar-link > span:first-child svg { width: 20px; height: 20px; }
+
+.dashboard-sidebar-link:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); }
+
+.dashboard-sidebar-link.is-active {
+  background: var(--surface); color: var(--ink);
+  box-shadow: var(--sh-hair), 0 1px 2px rgb(21 21 21 / 0.06);
+}
+
+.dashboard-sidebar-link.is-active > span:first-child { color: var(--accent); }
+
+.dashboard-sidebar-label {
+  min-width: 0; max-width: none; opacity: 1;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+
+.dashboard-sidebar-badge { margin-left: auto; max-width: none; opacity: 1; }
+
+.dashboard-sidebar-link.is-dragging {
+  z-index: 1; background: var(--surface); color: var(--ink); box-shadow: var(--sh-float);
+}
+
+/* Contraída: solo íconos; el contador queda como una pastilla sobre el ícono. */
+.dashboard-layout.is-collapsed .dashboard-sidebar { padding-inline: var(--s-2); }
+.dashboard-layout.is-collapsed .dashboard-sidebar-top { justify-content: center; }
+.dashboard-layout.is-collapsed .dashboard-sidebar-toggle { transform: rotate(180deg); }
+.dashboard-layout.is-collapsed .dashboard-sidebar-link { justify-content: center; gap: 0; padding: 0; }
+.dashboard-layout.is-collapsed .dashboard-sidebar-label { display: none; }
+
+.dashboard-layout.is-collapsed .dashboard-sidebar-badge {
+  display: inline-grid; position: absolute; top: 2px; right: 4px;
+  min-width: 16px; height: 16px; padding: 0 4px; margin: 0; font-size: 10px;
+}
+
+/* En celular la barra es una fila de pestañas con el look de .chips. */
+@media (max-width: 900px) {
+  .dashboard-layout,
+  .dashboard-layout.is-collapsed { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+
+  .dashboard-sidebar,
+  .dashboard-layout.is-collapsed .dashboard-sidebar {
+    position: static; flex-direction: row; align-items: center;
+    height: auto; padding: var(--s-2) var(--gutter); overflow: visible;
+    border-right: 0; border-bottom: 1px solid var(--line);
+  }
+
+  .dashboard-sidebar-top { display: none; }
+
+  .dashboard-sidebar-nav {
+    display: flex; gap: 2px; width: 100%; padding: 3px;
+    overflow-x: auto; scrollbar-width: none;
+    background: var(--paper-deep); border-radius: calc(var(--r-sm) + 3px);
+  }
+
+  .dashboard-sidebar-link,
+  .dashboard-layout.is-collapsed .dashboard-sidebar-link {
+    flex: none; justify-content: center; gap: var(--s-2); padding: 0 var(--s-3);
+  }
+
+  .dashboard-sidebar-link:hover { background: transparent; }
+  .dashboard-sidebar-link.is-active:hover { background: var(--surface); }
+
+  .dashboard-layout.is-collapsed .dashboard-sidebar-label { display: inline; }
+
+  .dashboard-layout.is-collapsed .dashboard-sidebar-badge {
+    position: static; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 2px; font-size: 11px;
+  }
+}
+
+
+/* ---------- 08. Modales ----------
+   <dialog class="modal">: .card--float con radio --r-xl y velo oscuro al
+   60%. Los campos siguen al .input de Sereno. */
+
+dialog.modal {
+  width: min(480px, calc(100% - 32px));
+  max-height: min(680px, calc(100% - 48px));
+  margin: auto; padding: 0; border: 0;
+  border-radius: var(--r-xl);
+  background: var(--surface); color: var(--ink);
+  box-shadow: var(--sh-float);
+}
+
+dialog.modal::backdrop { background: var(--scrim); }
+
+.modal-head {
+  gap: var(--s-4);
+  padding: var(--s-5) var(--s-4) var(--s-4) var(--s-6);
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-title {
+  margin: 0;
+  font-family: var(--font-sans); font-size: var(--t-h3); font-weight: 600;
+  line-height: 1.25; letter-spacing: var(--track-h3);
+}
+
+.modal-close {
+  width: 36px; height: 36px; border-radius: var(--r-md);
+  background: transparent; color: var(--ink-3);
+}
+
+.modal-close:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+
+.modal-body { gap: var(--s-5); padding: var(--s-6); }
+
+.modal-field { gap: var(--s-2); }
+
+.modal-field label,
+.modal-field-label {
+  color: var(--ink-2);
+  font-size: var(--t-ui); font-weight: 500; letter-spacing: var(--track-ui);
+}
+
+.modal-field input,
+.modal-field textarea,
+.modal-field select {
+  width: 100%; min-height: 50px; padding: 0 var(--s-4);
+  border: 1px solid var(--line-strong); border-radius: 12px;
+  background: var(--surface); color: var(--ink);
+  font: 400 1rem var(--font-sans); letter-spacing: var(--track-ui);
+  transition: border-color var(--d-fast) var(--ease-out), box-shadow var(--d-fast) var(--ease-out);
+}
+
+.modal-field textarea { min-height: 96px; padding: 14px var(--s-4); line-height: 1.5; resize: vertical; }
+
+.modal-field input::placeholder,
+.modal-field textarea::placeholder { color: var(--ink-4); }
+
+.modal-field input:focus,
+.modal-field textarea:focus,
+.modal-field select:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--ink) 40%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.modal-member-link { border-radius: var(--r-md); }
+.modal-member-link:hover,
+.modal-member-link:focus-visible { background: var(--surface-2); }
+
+.modal-member-avatar {
+  width: 36px; height: 36px;
+  background: var(--paper-deep); color: var(--ink-2);
+  font-family: var(--font-sans); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0;
+}
+
+.modal-member small {
+  color: var(--ink-4); font-size: var(--t-meta);
+  text-transform: none; letter-spacing: 0;
+}
+
+.modal-actions {
+  gap: var(--s-2);
+  padding: var(--s-4) var(--s-6) var(--s-6);
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 650px) {
+  .modal-head { padding: var(--s-4) var(--s-3) var(--s-3) var(--s-5); }
+  .modal-body { padding: var(--s-5); }
+  .modal-actions { padding: var(--s-3) var(--s-5) var(--s-5); }
+  .modal-actions .btn { width: 100%; }
+}
+
+
+/* ---------- 09. Avisos ----------
+   El .toast de Sereno: pastilla de tinta abajo al centro. base.html los
+   pinta en .flash-stack y app.js les agrega la cruz y los saca solos. */
+
+.flash-stack {
+  position: fixed; z-index: 200;
+  top: auto; right: auto; left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--s-6));
+  transform: translateX(-50%);
+  width: min(420px, calc(100vw - 32px));
+}
+
+.flash-message {
+  gap: var(--s-3);
+  padding: 8px 8px 8px 16px;
+  border: 0; border-radius: var(--r-md);
+  background: var(--ink); color: var(--on-ink);
+  box-shadow: var(--sh-float);
+  font-size: var(--t-ui); font-weight: 500; letter-spacing: var(--track-ui);
+}
+
+.flash-message-cerrar {
+  width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--r-sm);
+  background: transparent; color: color-mix(in srgb, var(--on-ink) 60%, transparent);
+  cursor: pointer;
+}
+
+.flash-message-cerrar:hover {
+  background: color-mix(in srgb, var(--on-ink) 12%, transparent);
+  color: var(--on-ink);
+}
+
+.flash-stack .flash-message.is-leaving { opacity: 0; transform: translateY(8px); }
