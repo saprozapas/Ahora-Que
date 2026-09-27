@@ -1,0 +1,69 @@
+/* ==========================================================================
+   AHORA QUÉ — marca y componentes propios (requiere tokens.css y components.css)
+
+   Las variables de marca están en tokens.css, sección 1. Acá va todo lo
+   que es de Ahora Qué y no de Sereno: la topografía y los componentes de
+   la app (se van sumando fase a fase). Construido solo con tokens.
+
+   ÍNDICE
+     01. Puente con style.css (temporal, se borra en la fase 7)
+     02. Topografía
+   ========================================================================== */
+
+
+/* ---------- 01. Puente con style.css ----------
+   Mientras style.css se siga cargando, sus tokens apuntan a los de Sereno:
+   así las pantallas que todavía no se rediseñaron ya usan el papel, la
+   tinta, los radios y las sombras nuevos, en claro y en noche. Va sin
+   @layer a propósito: le gana a las capas de style.css. */
+
+:root {
+  --page: var(--paper);
+  --surface-1: var(--surface);
+  --surface-3: var(--paper-deep);
+  --muted: var(--ink-3);
+
+  --font-display: var(--brand-headline);
+  --font-mono: var(--font-sans);
+
+  --radius: var(--r-lg);
+  --radius-sm: var(--r-md);
+  --radius-pill: var(--r-full);
+
+  --shadow-sm: var(--sh-card);
+  --shadow-md: var(--sh-float);
+  --lift: var(--sh-btn);
+  --lift-pressed: var(--sh-btn);
+
+  --ease: var(--ease-out);
+  --fast: var(--d-fast);
+}
+
+
+/* ---------- 02. Topografía ----------
+   Anillos concéntricos, el motivo de la marca. Reemplaza a la grilla de
+   puntos de Sereno: trazo de 1px en el gris-azul suave, enmascarado para
+   que se desvanezca hacia los bordes. Va solo en el hero de la landing y,
+   con .topo--sutil, en la cabecera del dashboard.
+
+   Markup: {% include '_topografia.html' %} dentro de un .topo. */
+
+.topo { position: relative; isolation: isolate; }
+
+.topo__svg {
+  position: absolute; inset: 0; z-index: -1;
+  width: 100%; height: 100%; max-width: none;
+  pointer-events: none;
+  opacity: 0.5;
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 85%);
+          mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 30%, transparent 85%);
+}
+
+.topo__svg circle {
+  fill: none;
+  stroke: var(--brand-accent-soft);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.topo--sutil .topo__svg { opacity: 0.35; }

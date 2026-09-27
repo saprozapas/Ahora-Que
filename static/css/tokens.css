@@ -1,0 +1,136 @@
+/* ==========================================================================
+   SERENO — design tokens v1.0, adaptado a Ahora Qué
+   Copia de sereno/tokens.css con dos cambios:
+     1. Variables de marca de Ahora Qué (sección 1).
+     2. Modo noche con el mecanismo de la app: html[data-theme="night"],
+        que pone el toggle del header (clave "ahoraque-theme" en
+        localStorage). Se sacaron los bloques de prefers-color-scheme y
+        [data-theme="dark"]: acá el tema lo elige la persona.
+   Fuentes: el <link> de Inter + Newsreader está en templates/base.html.
+   ========================================================================== */
+
+:root {
+  /* ---------- 1. VARIABLES DE MARCA ---------- */
+  --brand-accent: #5B6A74;        /* gris-azul niebla con contraste AA: texto e íconos */
+  --brand-accent-soft: #9AA6AE;   /* el gris-azul original: solo líneas decorativas */
+  --brand-paper-hue: 210;         /* papel neutro frío, en armonía con el gris-azul */
+  --brand-headline: var(--font-sans);
+
+  /* ---------- 2. COLOR ---------- */
+  --paper:        hsl(var(--brand-paper-hue) 9% 95.5%);  /* fondo de página */
+  --paper-deep:   hsl(var(--brand-paper-hue) 7% 92.5%);  /* bandas, chips inactivos */
+  --surface:      #FFFFFF;                               /* cards, ventanas, inputs */
+  --surface-2:    hsl(var(--brand-paper-hue) 10% 98%);   /* hover de fila, fondo de input */
+
+  --ink:          #151515;  /* titulares, texto principal, botón primario */
+  --ink-2:        #454542;  /* texto de cuerpo fuerte */
+  --ink-3:        #71706C;  /* párrafos secundarios, lead */
+  --ink-4:        #A3A29D;  /* metadata, horas, placeholders */
+  --on-ink:       #FFFFFF;  /* texto sobre botón negro */
+
+  --line:         rgb(21 21 21 / 0.08);  /* bordes de cards (casi invisibles) */
+  --line-strong:  rgb(21 21 21 / 0.14);  /* inputs, divisores que importan */
+  --dot:          rgb(21 21 21 / 0.13);
+
+  --accent:       var(--brand-accent);
+  --alert:       #C8372D;  /* solo para urgencia real ("hace 3 días") */
+  --focus:        color-mix(in srgb, var(--brand-accent) 55%, transparent);
+
+  /* ---------- 3. TIPOGRAFÍA ---------- */
+  --font-sans:  "Inter", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+
+  --t-display: clamp(2.75rem, 1.55rem + 4.4vw, 5.5rem);  /* un solo uso por página */
+  --t-h2:      clamp(2rem, 1.45rem + 2vw, 3.25rem);
+  --t-h3:      1.375rem;
+  --t-voice:   clamp(1.4rem, 1.15rem + 0.8vw, 1.9rem);   /* serif "voz humana" */
+  --t-lead:    clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
+  --t-body:    1rem;
+  --t-ui:      0.9375rem;  /* botones, nav, chips */
+  --t-meta:    0.8125rem;  /* horas, contadores, notas */
+
+  --track-display: -0.045em;
+  --track-h2:      -0.035em;
+  --track-h3:      -0.02em;
+  --track-ui:      -0.011em;
+
+  /* ---------- 4. ESPACIADO (base 4px) ---------- */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
+  --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px; --s-20: 80px; --s-24: 96px; --s-32: 128px;
+  --section-y: clamp(80px, 6vw + 48px, 144px);
+  --container: 1200px;
+  --gutter: clamp(20px, 4vw, 48px);
+
+  /* ---------- 5. RADIOS (cuanto más grande el objeto, más radio) ---------- */
+  --r-xs: 6px;    /* kbd, badges */
+  --r-sm: 9px;    /* chips, segmented */
+  --r-md: 11px;   /* botones, inputs */
+  --r-lg: 16px;   /* cards */
+  --r-xl: 20px;   /* ventanas, paneles grandes */
+  --r-full: 999px;
+
+  /* ---------- 6. SOMBRAS (siempre en capas) ---------- */
+  --sh-hair:  0 0 0 1px var(--line);
+  --sh-card:  0 0 0 1px var(--line), 0 1px 2px rgb(21 21 21 / 0.04), 0 6px 16px -6px rgb(21 21 21 / 0.08);
+  --sh-float: 0 0 0 1px var(--line), 0 2px 4px rgb(21 21 21 / 0.04), 0 16px 32px -12px rgb(21 21 21 / 0.16), 0 32px 64px -32px rgb(21 21 21 / 0.14);
+  --sh-btn:   inset 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 2px rgb(21 21 21 / 0.2);
+
+  /* ---------- 7. MOVIMIENTO ---------- */
+  --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --d-fast: 140ms;  /* hover, press */
+  --d-base: 220ms;  /* abrir, cambiar estado */
+  --d-slow: 700ms;  /* el único momento orquestado de la página */
+
+  color-scheme: light;
+}
+
+/* ---------- MODO NOCHE ---------- */
+:root[data-theme="night"] {
+  --paper: hsl(var(--brand-paper-hue) 4% 7.5%);
+  --paper-deep: hsl(var(--brand-paper-hue) 4% 10%);
+  --surface: hsl(var(--brand-paper-hue) 3% 11.5%);
+  --surface-2: hsl(var(--brand-paper-hue) 3% 14%);
+  --ink: #F1F0EC; --ink-2: #C9C8C3; --ink-3: #9C9B96; --ink-4: #6E6D69; --on-ink: #151515;
+  --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14); --dot: rgb(255 255 255 / 0.09);
+  --sh-card: 0 0 0 1px var(--line), 0 6px 16px -6px rgb(0 0 0 / 0.5);
+  --sh-float: 0 0 0 1px var(--line), 0 16px 32px -12px rgb(0 0 0 / 0.6), 0 32px 64px -32px rgb(0 0 0 / 0.5);
+  --sh-btn: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 1px 2px rgb(0 0 0 / 0.4);
+  /* Sereno usa un naranja en oscuro; acá sigue siendo el gris-azul, más
+     claro para que tenga contraste AA sobre el papel oscuro (7,4:1). */
+  --brand-accent: #9AA6AE;
+  --brand-accent-soft: #B7C2C9;
+
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  line-height: 1.6;
+  letter-spacing: var(--track-ui);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+/* En la capa "reset" (la de menor prioridad) y no suelta: sin capa le
+   ganaba a cualquier display:none de style.css, que va en capas, y por
+   ejemplo mostraba la luna y el sol del toggle de tema a la vez. */
+@layer reset {
+  img, svg, video { display: block; max-width: 100%; }
+}
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--r-xs); }
+::selection { background: color-mix(in srgb, var(--brand-accent) 22%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+}
