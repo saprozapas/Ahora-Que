@@ -100,6 +100,9 @@
      claro para que tenga contraste AA sobre el papel oscuro (7,4:1). */
   --brand-accent: #9AA6AE;
   --brand-accent-soft: #B7C2C9;
+  /* El rojo de Sereno queda en 3,6:1 sobre la superficie oscura; este
+     llega a AA (5,3:1). */
+  --alert: #E8695F;
 
   color-scheme: dark;
 }

@@ -126,7 +126,7 @@ def main():
             pagina.fill("#username", usuario)
             pagina.fill("#password", clave)
             with pagina.expect_navigation():
-                pagina.click("form.auth-form button[type=submit]")
+                pagina.click('form[action="/login"] button[type=submit]')
             if "/login" in pagina.url:
                 print("  El login falló: revisá AQ_USUARIO y AQ_CLAVE.")
                 sys.exit(1)

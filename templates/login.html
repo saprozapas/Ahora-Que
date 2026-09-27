@@ -4,64 +4,66 @@
 
 {% block content %}
 
-<section class="auth-page section-shell">
+<section class="auth container">
 
-  <a class="back-link" href="/">← Volver</a>
+  <div class="auth__inner">
 
-  <div class="auth-intro">
+    <header class="auth__head">
+      <h1 class="h2">Volvamos a hacer algo.</h1>
+      <p class="lead">Entrá para ver tus grupos y los planes que están votando.</p>
+    </header>
 
-    <h1>Volvamos a<br /><em>hacer algo.</em></h1>
 
-    <p>
-      Guardá tus planes, retomá un grupo y encontrá una idea que les cierre a
-      todos.
-    </p>
+    <form class="auth__form" action="/login" method="post">
+
+      {% for category, msg in get_flashed_messages(with_categories=true) %}
+      <p
+        class="notice{{ '' if category == 'success' else ' notice--error' }}"
+        role="{{ 'status' if category == 'success' else 'alert' }}"
+      >{{ msg }}</p>
+      {% endfor %}
+
+      {% if mensaje %}
+      <p class="notice notice--error" role="alert">{{ mensaje }}</p>
+      {% endif %}
+
+
+      <div class="field">
+        <label for="username">Usuario o email</label>
+        <input
+          class="input"
+          id="username"
+          name="username"
+          type="text"
+          autocomplete="username"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <input
+          class="input"
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+
+      <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">
+        Iniciar sesión <span class="btn__hint" aria-hidden="true">↵</span>
+      </button>
+
+    </form>
+
+
+    <p class="auth__alt">¿Todavía no tenés cuenta? <a href="/register">Creala acá</a></p>
+
+    {% include '_garantias.html' %}
 
   </div>
-
-
-  <form class="auth-form" action="/login" method="post">
-
-    {% for category, msg in get_flashed_messages(with_categories=true) %}
-    <p class="form-message form-{{ 'success' if category == 'success' else 'error' }}" role="alert">{{ msg }}</p>
-    {% endfor %}
-
-    {% if mensaje %}
-
-    <p class="form-message form-error" role="alert">{{ mensaje }}</p>
-
-    {% endif %}
-
-
-    <label for="username">Usuario o email</label>
-
-    <input
-      id="username"
-      name="username"
-      type="text"
-      autocomplete="username"
-      required
-    />
-
-
-    <label for="password">Contraseña</label>
-
-    <input
-      id="password"
-      name="password"
-      type="password"
-      autocomplete="current-password"
-      required
-    />
-
-
-    <button class="lime-button" type="submit">
-      Iniciar sesión <span aria-hidden="true">→</span>
-    </button>
-
-    <p>¿Todavía no tenés cuenta? <a href="/register">Creala acá</a></p>
-
-  </form>
 
 </section>
 

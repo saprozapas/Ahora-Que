@@ -79,236 +79,254 @@
 
 <!-- =========================================================================
      HOME PÚBLICA
+
+     Sereno: mostrar, no prometer. El hero muestra planes concretos (pila)
+     y debajo el planificador armando uno (ventana). Todo es markup
+     estático de demostración: no hay lógica ni datos del usuario.
      ========================================================================= -->
 
 
 <!-- HERO ------------------------------------------------------------------ -->
 
-<section class="hero-editorial">
+<section class="landing-hero topo">
 
-  <div class="hero-editorial-copy">
+  {% include '_topografia.html' %}
 
-    <h1>¿Qué hacemos?</h1>
+  <div class="container landing-hero__grid">
 
-    <p class="hero-text">Una idea que les cierre a todos.</p>
+    <div class="landing-hero__copy">
 
-    <div class="hero-actions">
+      <h1 class="display">
+        <span>Ustedes dicen cuántos son.</span>
+        <span>Nosotros, qué hacer.</span>
+      </h1>
 
-      <a class="lime-button" href="/explorar">Encontrar una idea</a>
+      <p class="lead">
+        Cuántos van, cuánto quieren gastar, cuándo pueden y qué tan lejos
+        están dispuestos a ir. Con eso les proponemos un plan concreto, y
+        el grupo lo vota.
+      </p>
 
-      <a class="text-button" href="#como-funciona">Ver cómo funciona</a>
+      <div class="landing-hero__actions">
+        <a class="btn btn--primary btn--lg" href="/register">Crear cuenta</a>
+        <a class="btn btn--secondary btn--lg" href="/login">Iniciar sesión</a>
+      </div>
 
-    </div>
-
-  </div>
-
-  <div class="hero-decision" aria-hidden="true">
-
-    <span class="decision-meta">01 / AHORA QUÉ</span>
-
-    <div class="decision-word">HOY</div>
-
-    <svg
-      class="hero-topography"
-      viewBox="0 0 1000 1000"
-      preserveAspectRatio="xMidYMid slice"
-      focusable="false"
-    >
-      <circle class="topo-ring" cx="500" cy="500" r="140" />
-      <circle class="topo-ring" cx="500" cy="500" r="220" />
-      <circle class="topo-ring" cx="500" cy="500" r="300" />
-      <circle class="topo-ring" cx="500" cy="500" r="380" />
-
-      <circle class="topo-mark" cx="769" cy="231" r="7" />
-      <circle class="topo-mark" cx="209" cy="744" r="7" />
-      <circle class="topo-mark" cx="434" cy="125" r="7" />
-    </svg>
-
-  </div>
-
-</section>
-
-
-<!-- BANDA DE REFUERZO ----------------------------------------------------- -->
-
-<section class="proof-band">
-
-  <div class="section-shell proof-inner">
-
-    <strong>Menos chat.</strong>
-    <span>Más planes.</span>
-    <span class="proof-mark" aria-hidden="true">✳</span>
-
-  </div>
-
-</section>
-
-
-<!-- MANIFIESTO ------------------------------------------------------------ -->
-
-<section class="manifesto section-shell">
-
-  <p class="section-tag">qué es ahora qué</p>
-
-  <div class="manifesto-content">
-
-    <h2>Un lugar común para<br /><em>ponerse de acuerdo.</em></h2>
-
-    <p>Una mesa común para decidir juntos.</p>
-
-    <a class="arrow-link" href="/grupos">
-      Conocé los grupos <span aria-hidden="true">↗</span>
-    </a>
-
-  </div>
-
-</section>
-
-
-<!-- PILARES --------------------------------------------------------------- -->
-
-<section class="pillars section-shell">
-
-  <div class="section-intro">
-
-    <div>
-      <p class="section-tag">01 — la base</p>
-      <h2>Todo lo que hace falta para que un plan <em>arranque.</em></h2>
-    </div>
-
-    <p>Contexto real, no preferencias sueltas.</p>
-
-  </div>
-
-  <div class="pillar-cards">
-
-    <article>
-      <span class="pillar-number">01</span>
-      <span class="pillar-icon" aria-hidden="true">◌</span>
-      <h3>Disponibilidad real</h3>
-      <p>Quiénes pueden sumarse.</p>
-      <a href="/grupos">Ver disponibilidad ↗</a>
-    </article>
-
-    <article>
-      <span class="pillar-number">02</span>
-      <span class="pillar-icon" aria-hidden="true">$</span>
-      <h3>Un presupuesto posible</h3>
-      <p>Opciones para cada bolsillo.</p>
-      <a href="/explorar">Ver opciones ↗</a>
-    </article>
-
-    <article>
-      <span class="pillar-number">03</span>
-      <span class="pillar-icon" aria-hidden="true">↗</span>
-      <h3>Una distancia razonable</h3>
-      <p>Ideas cerca y a tiempo.</p>
-      <a href="/explorar">Ver planes cerca ↗</a>
-    </article>
-
-  </div>
-
-</section>
-
-
-<!-- PLAN DESTACADO -------------------------------------------------------- -->
-
-<section class="featured-story section-shell">
-
-  <div class="story-heading">
-
-    <p class="section-tag">02 — una idea para hoy</p>
-
-    <a class="arrow-link" href="/explorar">
-      Explorar todos <span aria-hidden="true">↗</span>
-    </a>
-
-  </div>
-
-  <article class="story-card">
-
-    <div class="story-art tone-coral">
-
-      <div class="story-sun"></div>
-      <div class="story-land"></div>
-
-      <strong>caminar<br /><em>sin apuro</em></strong>
+      <p class="meta">Para salir con amigos, en familia, en pareja o solo.</p>
 
     </div>
 
-    <div class="story-copy">
 
-      <span class="story-type">{{ featured.type }}</span>
+    <ul class="pile landing-pile" aria-label="Planes de ejemplo">
 
-      <h2>{{ featured.title }}</h2>
+      <li class="card item">
+        <span class="avatar" style="--h: 15" aria-hidden="true">Ca</span>
+        <div class="item__body">
+          <div class="item__top">
+            <span class="item__name">Caminata al atardecer + café</span>
+            <span class="meta item__time">Hoy 18:30</span>
+          </div>
+          <p class="meta landing-pile__meta">3 personas · $ 250 c/u · 1,8 km · 1 h 40 min</p>
+        </div>
+      </li>
 
-      <p>{{ featured.description }}</p>
+      <li class="card item">
+        <span class="avatar" style="--h: 205" aria-hidden="true">Ra</span>
+        <div class="item__body">
+          <div class="item__top">
+            <span class="item__name">Rambla hasta el Parque Rodó</span>
+            <span class="meta item__time">Sáb 16:00</span>
+          </div>
+          <p class="meta landing-pile__meta">4 personas · Gratis · 1,2 km · 2 h</p>
+        </div>
+      </li>
 
-      <dl>
-        <div>
-          <dt>tiempo</dt>
-          <dd>{{ featured.time }}</dd>
+      <li class="card item">
+        <span class="avatar" style="--h: 140" aria-hidden="true">Fe</span>
+        <div class="item__body">
+          <div class="item__top">
+            <span class="item__name">Feria de Tristán Narvaja + bizcochos</span>
+            <span class="meta item__time">Dom 10:00</span>
+          </div>
+          <p class="meta landing-pile__meta">5 personas · $ 400 c/u · 2,4 km · 2 h 15 min</p>
+        </div>
+      </li>
+
+      <li class="card item">
+        <span class="avatar" style="--h: 270" aria-hidden="true">Ci</span>
+        <div class="item__body">
+          <div class="item__top">
+            <span class="item__name">Cine en Punta Carretas + pizza</span>
+            <span class="meta item__time">Vie 21:00</span>
+          </div>
+          <p class="meta landing-pile__meta">2 personas · $ 780 c/u · 2,8 km · 3 h</p>
+        </div>
+      </li>
+
+      <li class="card item">
+        <span class="avatar" style="--h: 40" aria-hidden="true">No</span>
+        <div class="item__body">
+          <div class="item__top">
+            <span class="item__name">Noche de preguntas sin pantallas</span>
+            <span class="meta item__time">Jue 20:30</span>
+          </div>
+          <p class="meta landing-pile__meta">6 personas · $ 200 c/u · En casa · 1 h 30 min</p>
+        </div>
+      </li>
+
+    </ul>
+
+  </div>
+
+</section>
+
+
+<!-- EL PLANIFICADOR EN ACCIÓN --------------------------------------------- -->
+
+<section class="container landing-demo" aria-labelledby="demo-titulo">
+
+  <p class="landing-demo__intro">
+    <span class="landing-demo__spark" aria-hidden="true">✦</span>
+    <span id="demo-titulo">Así se arma un plan para un grupo de cuatro.</span>
+  </p>
+
+  <div class="window">
+
+    <div class="window__bar">
+      <div class="lights" aria-hidden="true"><span></span><span></span><span></span></div>
+      <span class="window__tab" aria-current="true">Nuevo plan</span>
+      <span class="window__tab">Amigos de la facu</span>
+    </div>
+
+    <div class="window__body">
+
+      <div class="landing-demo__filters">
+
+        <div class="chips landing-demo__chips" aria-label="Condiciones del grupo">
+          <span class="chip is-on">Somos 4</span>
+          <span class="chip is-on">Hasta $ 800 c/u</span>
+          <span class="chip is-on">Sábado de tarde</span>
+          <span class="chip is-on">Cerca</span>
         </div>
 
-        <div>
-          <dt>costo</dt>
-          <dd>{{ featured.cost }}</dd>
+        <div class="seg landing-demo__seg" aria-label="Tipo de grupo">
+          <span class="is-on">Amigos</span>
+          <span>Familia</span>
+          <span>Pareja</span>
+          <span>Solo</span>
         </div>
 
-        <div>
-          <dt>cerca</dt>
-          <dd>{{ featured.distance }}</dd>
-        </div>
-      </dl>
+      </div>
 
-      <a class="dark-button" href="/plan/{{ featured.slug }}">
-        Abrir este plan <span aria-hidden="true">→</span>
-      </a>
+      <div class="landing-demo__brief">
+        <p class="voice">
+          <strong>Son cuatro y tienen la tarde libre.</strong>
+          Les recomiendo caminar la Rambla hasta el Parque Rodó y terminar
+          con algo en la feria.
+        </p>
+        <a class="btn btn--primary" href="/register">Proponerlo al grupo</a>
+      </div>
+
+      <div class="landing-demo__group">
+        <h3>Tres ideas para ustedes</h3>
+        <span class="meta">Ordenadas por distancia</span>
+      </div>
+
+      <div class="landing-demo__cards">
+
+        <article class="card plan-tile">
+          <h4 class="plan-tile__title">Rambla hasta el Parque Rodó</h4>
+          <p class="meta plan-tile__meta">2 h · Gratis · 1,2 km</p>
+          <p class="plan-tile__text">Salen desde Pocitos por la rambla y terminan mirando el agua en el Rodó.</p>
+        </article>
+
+        <article class="card plan-tile">
+          <h4 class="plan-tile__title">Merienda en el Mercado Agrícola</h4>
+          <p class="meta plan-tile__meta">1 h 30 min · $ 450 c/u · 3 km</p>
+          <p class="plan-tile__text">Algo dulce en los puestos del MAM y una vuelta por el barrio Goes.</p>
+        </article>
+
+        <article class="card plan-tile">
+          <h4 class="plan-tile__title">Cine en Punta Carretas</h4>
+          <p class="meta plan-tile__meta">2 h 30 min · $ 780 c/u · 2,8 km</p>
+          <p class="plan-tile__text">La función de las 19:30 y, si da el presupuesto, pizza a la salida.</p>
+        </article>
+
+      </div>
 
     </div>
 
-  </article>
+  </div>
 
 </section>
 
 
 <!-- CÓMO FUNCIONA --------------------------------------------------------- -->
 
-<section class="process section-shell" id="como-funciona">
+<section class="section landing-steps" id="como-funciona">
 
-  <div class="process-title">
+  <div class="container landing-split">
 
-    <p class="section-tag">03 — cómo funciona</p>
+    <div>
+      <h2 class="h2">Cómo funciona.</h2>
+      <p class="lead">Tres pasos, del chat eterno a un plan con día y hora.</p>
+    </div>
 
-    <h2>Cómo construimos<br />el próximo <em>plan.</em></h2>
+    <ol class="landing-steps__list">
+      <li>
+        <span class="meta">1</span>
+        <div>
+          <h3 class="h3">Armen el grupo.</h3>
+          <p class="body">Invitá a tus amigos, a tu familia o a tu pareja con su usuario. Cada uno acepta la invitación desde su inbox.</p>
+        </div>
+      </li>
+      <li>
+        <span class="meta">2</span>
+        <div>
+          <h3 class="h3">Propongan ideas.</h3>
+          <p class="body">Cada uno postula planes con lugar, costo y duración. El grupo los vota y elige cuándo.</p>
+        </div>
+      </li>
+      <li>
+        <span class="meta">3</span>
+        <div>
+          <h3 class="h3">Salgan.</h3>
+          <p class="body">El plan que gana queda confirmado en el calendario de todos. Después, cada uno lo puntúa.</p>
+        </div>
+      </li>
+    </ol>
 
   </div>
 
-  <div class="process-steps">
+</section>
 
-    <article>
-      <span>01</span>
-      <h3>Juntan el contexto</h3>
-      <p>Horarios, presupuesto y ganas.</p>
-    </article>
 
-    <article>
-      <span>02</span>
-      <h3>Ordenamos las opciones</h3>
-      <p>Cruzamos todo y proponemos opciones.</p>
-    </article>
+<!-- PREGUNTAS FRECUENTES --------------------------------------------------- -->
 
-    <article>
-      <span>03</span>
-      <h3>Eligen y salen</h3>
-      <p>Eligen una y salen.</p>
-    </article>
+<section class="section landing-faq">
 
-    <article>
-      <span>04</span>
-      <h3>Lo recuerdan</h3>
-      <p>Guardan lo que funcionó.</p>
-    </article>
+  <div class="container landing-split">
+
+    <h2 class="h2">Preguntas frecuentes.</h2>
+
+    <div class="faq">
+      <details>
+        <summary>¿Cómo invito a alguien a mi grupo?</summary>
+        <p>Desde el grupo, con su nombre de usuario. Le llega la invitación a su inbox y la acepta o la rechaza.</p>
+      </details>
+      <details>
+        <summary>¿Dónde veo los planes que ya están confirmados?</summary>
+        <p>En tu calendario, mes a mes, y en Planes, dentro de Confirmados.</p>
+      </details>
+      <details>
+        <summary>¿Puedo guardar una idea para más adelante?</summary>
+        <p>Sí. La guardás en tus ideas y la postulás en un grupo cuando quieras.</p>
+      </details>
+      <details>
+        <summary>¿Se puede puntuar un plan?</summary>
+        <p>Sí. Quienes fueron le ponen de 0 a 5 estrellas y el plan queda en su historial, en Planes archivados.</p>
+      </details>
+    </div>
 
   </div>
 
