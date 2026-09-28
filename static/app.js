@@ -474,12 +474,12 @@
       return;
     }
 
-    const tarjetas = $$(".group-card", grilla);
+    const tarjetas = $$("[data-grupo]", grilla);
     const anterior = $("#groupsPrev");
     const siguiente = $("#groupsNext");
     const paginaActual = $("#groupsCurrentPage");
     const totalDePaginas = $("#groupsTotalPages");
-    const navegacion = $(".groups-navigation");
+    const navegacion = $("[data-grupos-nav]");
 
     if (!anterior || !siguiente || !paginaActual || !totalDePaginas) {
       return;
@@ -487,7 +487,7 @@
 
     let pagina = 0;
 
-    // Los mismos cortes que .groups-grid en el CSS: 1 / 2 / 3 columnas.
+    // Los mismos cortes que .groups-list en el CSS: 1 / 2 / 3 columnas.
     const tarjetasPorPagina = () => {
 
       if (window.innerWidth <= 650) {

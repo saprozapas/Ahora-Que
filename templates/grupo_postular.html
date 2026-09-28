@@ -10,67 +10,67 @@
 
   <div class="dashboard-main">
 
-    <section class="section-shell">
+    <section class="container page">
 
-      <a class="back-link" href="{{ url_for('group_auth.detalle_grupo', group_id=group.get_id()) }}">← Volver a {{ group.get_name() }}</a>
+      <a class="back-link" href="{{ url_for('group_auth.detalle_grupo', group_id=group.get_id()) }}">← {{ group.get_name() }}</a>
 
-      <div class="auth-intro">
-        <h1>Postular<br /><em>una idea.</em></h1>
-        <p>Elegí una de tus ideas y cuándo harían el plan. El grupo vota si le gusta y si puede en ese horario.</p>
-      </div>
+      <header class="page-head">
+        <h1 class="h2">Postulá una idea.</h1>
+        <p class="lead">Elegí una de tus ideas y cuándo harían el plan. El grupo vota si le gusta y si puede en ese horario.</p>
+      </header>
 
       {% if error %}
-      <p class="form-message form-error" role="alert">{{ error }}</p>
+      <p class="notice notice--error postular__error" role="alert">{{ error }}</p>
       {% endif %}
 
       {% if ideas %}
 
-      <form class="postular-form" method="post">
+      <form class="postular" method="post">
 
-        <fieldset class="postular-ideas">
+        <fieldset class="field-group">
           <legend>Tus ideas</legend>
 
-          {% for idea in ideas %}
-          <label class="postular-idea">
-            <input type="radio" name="idea_id" value="{{ idea.id }}" required
-                   {% if valores.get('idea_id') == idea.id | string %}checked{% endif %} />
-            <span class="postular-idea-card">
-              <strong>{{ idea.nombre }}</strong>
-              <small>
+          <div class="postular__ideas">
+            {% for idea in ideas %}
+            <label class="card plan-tile pick-card">
+              <input type="radio" name="idea_id" value="{{ idea.id }}" required
+                     {% if valores.get('idea_id') == idea.id | string %}checked{% endif %} />
+              <span class="plan-tile__title">{{ idea.nombre }}</span>
+              <span class="meta">
                 {{ 'Guardada' if idea.guardado else 'Archivada' }} · {{ idea.resumen_lugares }}
                 {% if idea.precio_min is not none and idea.precio_max is not none %}
                   · ${{ idea.precio_min | int }}{% if idea.precio_min != idea.precio_max %} - ${{ idea.precio_max | int }}{% endif %}
                 {% endif %}
-              </small>
-              {% if idea.descripcion %}<small>{{ idea.descripcion }}</small>{% endif %}
-            </span>
-          </label>
-          {% endfor %}
+              </span>
+              {% if idea.descripcion %}<span class="plan-tile__text">{{ idea.descripcion }}</span>{% endif %}
+            </label>
+            {% endfor %}
+          </div>
         </fieldset>
 
-        <div class="postular-cuando">
-          <label>
-            <span>Fecha</span>
-            <input type="date" name="fecha" min="{{ hoy }}" value="{{ valores.get('fecha', '') }}" required />
-          </label>
-          <label>
-            <span>Hora</span>
-            <input type="time" name="hora" value="{{ valores.get('hora', '') }}" required />
-          </label>
-        </div>
+        <fieldset class="field-group">
+          <legend>Cuándo</legend>
+          <div class="postular__when">
+            <div class="field">
+              <label for="postular-fecha">Fecha</label>
+              <input class="input" id="postular-fecha" type="date" name="fecha" min="{{ hoy }}" value="{{ valores.get('fecha', '') }}" required />
+            </div>
+            <div class="field">
+              <label for="postular-hora">Hora</label>
+              <input class="input" id="postular-hora" type="time" name="hora" value="{{ valores.get('hora', '') }}" required />
+            </div>
+          </div>
+        </fieldset>
 
-        <button class="lime-button" type="submit">
-          Postular al grupo <span aria-hidden="true">→</span>
-        </button>
+        <button class="btn btn--primary btn--lg" type="submit">Postular al grupo</button>
 
       </form>
 
       {% else %}
 
-      <div class="group-board-empty">
-        <h2>No tenés ideas guardadas.</h2>
-        <p>Creá una idea o guardá alguna que veas en Social, y después volvé a postularla acá.</p>
-        <a class="lime-button" href="{{ url_for('planes.nueva_idea') }}">Crear idea</a>
+      <div class="empty-state">
+        <p>No tenés ideas guardadas. Creá una o guardá alguna que veas en Social, y después la postulás acá.</p>
+        <a class="btn btn--secondary" href="{{ url_for('planes.nueva_idea') }}">Crear idea</a>
       </div>
 
       {% endif %}

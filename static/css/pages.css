@@ -8,6 +8,9 @@
      01. Landing
      02. Planificador
      03. Explorar y listas de planes
+     04. Grupos (lista)
+     05. Grupo (detalle y tablero)
+     06. Postular una idea
    ========================================================================== */
 
 
@@ -208,3 +211,83 @@
 .page--public { padding-top: var(--s-6); }
 .explore-filters,
 .planes-tabs { margin-bottom: var(--s-6); }
+
+
+/* ---------- 04. Grupos (lista) ----------
+   Carrusel: app.js muestra de a 3, 2 o 1 según el ancho, con estos mismos
+   cortes. */
+
+.groups-list {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-4);
+  margin: 0; padding: 0; list-style: none;
+}
+
+.groups-list > li { display: grid; min-width: 0; }
+.group-tile { min-height: 176px; }
+.group-tile__avatar { margin-bottom: var(--s-2); }
+
+.groups-pager { display: flex; align-items: center; justify-content: flex-end; gap: var(--s-1); margin-top: var(--s-4); }
+.groups-pager .meta { margin-right: var(--s-2); }
+
+@media (max-width: 900px) { .groups-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 650px) { .groups-list { grid-template-columns: minmax(0, 1fr); } }
+
+
+/* ---------- 05. Grupo (detalle y tablero) ---------- */
+
+.group-page .group-members { margin-top: var(--s-2); }
+.group-actions { margin-top: var(--s-3); }
+
+.board { display: grid; gap: var(--s-10); max-width: 880px; }
+.board > .empty-state { padding-top: 0; }
+
+.board__section { display: grid; gap: var(--s-4); }
+
+.board__head { display: flex; align-items: baseline; gap: var(--s-3); padding-bottom: var(--s-3); border-bottom: 1px solid var(--line); }
+.board__head .h3 { margin: 0; }
+
+.board-plan { display: grid; gap: var(--s-4); padding: var(--s-5); }
+.board-plan__head { display: grid; justify-items: start; gap: 6px; }
+.board-plan__head .meta,
+.board-plan__head .plan-tile__text { margin: 0; }
+.board-plan__head .plan-tile__title a { color: inherit; text-decoration: none; }
+.board-plan__head .plan-tile__title a:hover { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 0.18em; }
+.board-plan__count { margin: 0; }
+
+.board-plan__form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-4); }
+.board-plan__votes { display: flex; flex-wrap: wrap; gap: var(--s-5); }
+
+.board-plan__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-3); }
+
+.board-slots { margin: 0; padding: 0; list-style: none; border-radius: var(--r-md); box-shadow: var(--sh-hair); }
+.board-slots > li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-top: 1px solid var(--line); }
+.board-slots > li:first-child { border-top: 0; }
+.board-slots__info { display: grid; gap: 2px; flex: 1 1 220px; min-width: 0; }
+.board-slots__info strong { color: var(--ink); font-weight: 550; }
+.board-slots__vote { margin: 0; }
+
+.board-plan__new-slot { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-3); }
+.board-plan__new-slot .field { flex: 1 1 150px; }
+
+/* La barra del chat que todavía no existe: queda visible, apagada. */
+.chat-bar { display: flex; align-items: center; gap: var(--s-2); max-width: 880px; margin-top: var(--s-12); }
+.chat-bar__input.input { flex: 1; height: 50px; min-height: 0; padding-top: 14px; line-height: 1.4; resize: none; }
+.chat-bar__input:disabled { background: var(--surface-2); color: var(--ink-4); cursor: not-allowed; }
+
+@media (max-width: 650px) {
+  .group-actions { width: 100%; }
+  .group-actions .idea-menu { flex: 1; }
+  .group-actions .idea-menu > summary,
+  .group-actions > .btn--secondary { width: 100%; }
+  .group-actions > .btn--secondary { flex: 1; }
+}
+
+
+/* ---------- 06. Postular una idea ---------- */
+
+.postular { display: grid; gap: var(--s-8); max-width: 880px; }
+.postular__error { max-width: 880px; margin-bottom: var(--s-6); }
+.postular__ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--s-3); }
+.postular__when { display: flex; flex-wrap: wrap; gap: var(--s-3); }
+.postular__when .field { flex: 1 1 180px; max-width: 260px; }
+.postular > .btn { justify-self: start; }
