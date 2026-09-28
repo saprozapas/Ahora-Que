@@ -4,149 +4,164 @@
 
 {% block content %}
 
+{% macro precio(desde, hasta) -%}
+  {%- if desde == hasta -%}${{ desde | int }}{%- else -%}${{ desde | int }} - ${{ hasta | int }}{%- endif -%}
+{%- endmacro %}
+
 <div class="dashboard-layout dashboard-layout-page">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
 
-    <section class="section-shell">
+    <section class="container page">
 
-      <a class="back-link" href="/planes">← Volver</a>
+      <a class="back-link" href="/planes">← Planes</a>
 
-      <div class="auth-intro">
+      <div class="plan-detail">
 
-        <h1>{{ plan.nombre }}</h1>
+        <header class="page-head">
 
-        <p>
+          <h1 class="h2">{{ plan.nombre }}</h1>
 
-          {% if plan.estado == 'idea' %}
-          Idea · sin fecha (se elige al postularla en un grupo)
-          {% else %}
-          <span class="plan-estado plan-estado-{{ plan.estado }}">{{ plan.estado_texto }}</span>
-          {% if plan.fecha %}
-          · {{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}
-          {% endif %}
-          {% endif %}
-
-          {% if plan.grupo %}
-          · Grupo: <a href="{{ url_for('group_auth.detalle_grupo', group_id=plan.grupo_id) }}">{{ plan.grupo }}</a>
-          {% endif %}
-
-        </p>
-
-      </div>
-
-      {% if plan.descripcion %}
-      <p>{{ plan.descripcion }}</p>
-      {% endif %}
-
-      {% if plan.precio_min is not none and plan.precio_max is not none %}
-      <p>
-        <strong>Precio estimado:</strong>
-        {% if plan.precio_min == plan.precio_max %}
-        ${{ plan.precio_min | int }}
-        {% else %}
-        ${{ plan.precio_min | int }} - ${{ plan.precio_max | int }}
-        {% endif %}
-      </p>
-      {% elif plan.precio %}
-      <p><strong>Precio:</strong> ${{ plan.precio }}</p>
-      {% endif %}
-
-      <div class="plan-detalle-paradas">
-
-        {% if plan.lugares %}
-
-          {% for lugar in plan.lugares %}
-          <div class="plan-detalle-parada">
-            <span>
-              {{ lugar.nombre }}
-              {% if lugar.hora %}<br /><small>{{ lugar.hora.strftime('%H:%M') }}</small>{% endif %}
-            </span>
-            {% if lugar.precio_min is not none and lugar.precio_max is not none %}
-            <span class="plan-detalle-parada-precio">
-              {% if lugar.precio_min == lugar.precio_max %}
-              ${{ lugar.precio_min | int }}
-              {% else %}
-              ${{ lugar.precio_min | int }} - ${{ lugar.precio_max | int }}
+          <p class="plan-detail__meta">
+            {% if plan.estado == 'idea' %}
+              <span class="tag">Idea</span>
+              <span class="meta">Sin fecha: se elige al postularla en un grupo.</span>
+            {% else %}
+              <span class="tag{% if plan.estado == 'confirmado' %} tag--ink{% endif %}">{{ plan.estado_texto }}</span>
+              {% if plan.fecha %}
+              <span class="meta">{{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
               {% endif %}
-            </span>
             {% endif %}
-          </div>
-          {% endfor %}
 
-        {% else %}
+            {% if plan.grupo %}
+            <span class="meta">Grupo: <a href="{{ url_for('group_auth.detalle_grupo', group_id=plan.grupo_id) }}">{{ plan.grupo }}</a></span>
+            {% endif %}
+          </p>
 
-          <div class="plan-detalle-parada">
-            <span>Sin lugar específico</span>
-          </div>
+        </header>
 
+
+        {% if plan.descripcion %}
+        <p class="body">{{ plan.descripcion }}</p>
         {% endif %}
 
-      </div>
+        {% if plan.precio_min is not none and plan.precio_max is not none %}
+        <dl class="facts">
+          <div>
+            <dt>Precio estimado</dt>
+            <dd>{{ precio(plan.precio_min, plan.precio_max) }}</dd>
+          </div>
+          <div>
+            <dt>Lugares</dt>
+            <dd>{{ plan.lugares | length }}</dd>
+          </div>
+        </dl>
+        {% elif plan.precio %}
+        <dl class="facts">
+          <div>
+            <dt>Precio</dt>
+            <dd>${{ plan.precio }}</dd>
+          </div>
+        </dl>
+        {% endif %}
 
-      {% if plan.estado == 'archivado' %}
-      <div class="plan-puntaje">
 
-        <p class="plan-puntaje-promedio">
-          {% if plan.promedio is not none %}
-            <strong>★ {{ plan.promedio }}</strong> de 5 · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}
-          {% else %}
-            Este plan todavía no tiene puntaje.
-          {% endif %}
-        </p>
+        <section class="plan-detail__block" aria-labelledby="recorrido">
 
-        {% if plan.puede_puntuar %}
-        <form method="post" action="{{ url_for('planes.puntuar', plan_id=plan.id) }}">
-          <fieldset class="plan-puntaje-opciones">
-            <legend>{% if plan.mi_puntaje is not none %}Tu puntaje (podés cambiarlo){% else %}¿Qué tal estuvo?{% endif %}</legend>
-            {% for n in range(6) %}
-            <label>
-              <input type="radio" name="puntaje" value="{{ n }}" required
-                     {% if plan.mi_puntaje == n %}checked{% endif %} />
-              <span>{{ n }}★</span>
-            </label>
+          <h2 class="h3" id="recorrido">Recorrido</h2>
+
+          {% if plan.lugares %}
+          <ol class="card stops">
+            {% for lugar in plan.lugares %}
+            <li>
+              <span class="stops__num">{{ loop.index }}</span>
+              <span class="stops__body">
+                <span class="stops__name">{{ lugar.nombre }}</span>
+                {% if lugar.hora %}<span class="meta">{{ lugar.hora.strftime('%H:%M') }}</span>{% endif %}
+              </span>
+              {% if lugar.precio_min is not none and lugar.precio_max is not none %}
+              <span class="meta stops__side">{{ precio(lugar.precio_min, lugar.precio_max) }}</span>
+              {% endif %}
+            </li>
             {% endfor %}
-          </fieldset>
-          <button class="plan-accion-secundaria" type="submit">Guardar puntaje</button>
-        </form>
+          </ol>
+          {% else %}
+          <p class="meta">Sin lugar específico.</p>
+          {% endif %}
+
+        </section>
+
+
+        {% if plan.estado == 'archivado' %}
+        <section class="plan-detail__block" aria-labelledby="puntaje">
+
+          <h2 class="h3" id="puntaje">Puntaje</h2>
+
+          <p class="body">
+            {% if plan.promedio is not none %}
+              <strong>★ {{ plan.promedio }}</strong> de 5 · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}
+            {% else %}
+              Este plan todavía no tiene puntaje.
+            {% endif %}
+          </p>
+
+          {% if plan.puede_puntuar %}
+          <form class="plan-detail__rating" method="post" action="{{ url_for('planes.puntuar', plan_id=plan.id) }}">
+            <fieldset class="field-group">
+              <legend>{% if plan.mi_puntaje is not none %}Tu puntaje (podés cambiarlo){% else %}¿Qué tal estuvo?{% endif %}</legend>
+              <div class="seg seg--lg">
+                {% for n in range(6) %}
+                <label>
+                  <input type="radio" name="puntaje" value="{{ n }}" required
+                         {% if plan.mi_puntaje == n %}checked{% endif %} />
+                  <span>{{ n }}★</span>
+                </label>
+                {% endfor %}
+              </div>
+            </fieldset>
+            <button class="btn btn--secondary" type="submit">Guardar puntaje</button>
+          </form>
+          {% endif %}
+
+        </section>
         {% endif %}
 
-      </div>
-      {% endif %}
 
-      <div class="plan-detalle-acciones">
+        <div class="actions plan-detail__actions">
 
-        {% if plan.guardado %}
-        <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}">
-          <button class="plan-accion-secundaria" type="submit">Quitar de ideas guardadas</button>
-        </form>
-        {% else %}
-        <form method="post" action="{{ url_for('planes.guardar', plan_id=plan.id) }}">
-          <button class="plan-accion-secundaria" type="submit">Guardar como idea</button>
-        </form>
-        {% endif %}
+          {% if plan.estado == 'confirmado' and plan.grupo_id and not plan.confirmado %}
+          <form method="post" action="{{ url_for('planes.sumarme', plan_id=plan.id) }}">
+            <button class="btn btn--primary btn--lg" type="submit">Me sumo</button>
+          </form>
+          {% endif %}
 
-        {% if plan.estado == 'confirmado' and plan.grupo_id and not plan.confirmado %}
-        <form method="post" action="{{ url_for('planes.sumarme', plan_id=plan.id) }}">
-          <button class="lime-button" type="submit">Me sumo</button>
-        </form>
-        {% endif %}
+          {% if plan.guardado %}
+          <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}">
+            <button class="btn btn--secondary btn--lg" type="submit">Quitar de ideas guardadas</button>
+          </form>
+          {% else %}
+          <form method="post" action="{{ url_for('planes.guardar', plan_id=plan.id) }}">
+            <button class="btn btn--secondary btn--lg" type="submit">Guardar como idea</button>
+          </form>
+          {% endif %}
 
-        {% if plan.confirmado and not plan.es_creador and plan.estado != 'archivado' %}
-        <form method="post" action="{{ url_for('planes.bajarme', plan_id=plan.id) }}"
-              onsubmit="return confirm('¿Te querés bajar de este plan?')">
-          <button class="plan-accion-secundaria" type="submit">Bajarme del plan</button>
-        </form>
-        {% endif %}
+          {% if plan.confirmado and not plan.es_creador and plan.estado != 'archivado' %}
+          <form method="post" action="{{ url_for('planes.bajarme', plan_id=plan.id) }}"
+                onsubmit="return confirm('¿Te querés bajar de este plan?')">
+            <button class="btn btn--ghost btn--lg" type="submit">Bajarme del plan</button>
+          </form>
+          {% endif %}
 
-        {% if plan.es_creador %}
-        <form method="post" action="{{ url_for('planes.eliminar', plan_id=plan.id) }}"
-              onsubmit="return confirm('¿Eliminar este plan? No se puede deshacer.')">
-          <button class="plan-accion-peligro" type="submit">Eliminar plan</button>
-        </form>
-        {% endif %}
+          {% if plan.es_creador %}
+          <form method="post" action="{{ url_for('planes.eliminar', plan_id=plan.id) }}"
+                onsubmit="return confirm('¿Eliminar este plan? No se puede deshacer.')">
+            <button class="btn btn--ghost btn--lg btn--danger" type="submit">Eliminar plan</button>
+          </form>
+          {% endif %}
+
+        </div>
 
       </div>
 

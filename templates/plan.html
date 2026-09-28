@@ -4,77 +4,47 @@
 
 {% block content %}
 
-<section class="detail-hero section-shell">
+{% set tonos = {'coral': 15, 'moss': 140, 'lilac': 270} %}
 
-  <a class="back-link" href="/explorar">← Volver a explorar</a>
+<section class="container page page--public">
 
-  <div class="detail-grid">
+  <a class="back-link" href="/explorar">← Explorar</a>
 
-    <div class="detail-art tone-{{ plan.tone }}">
+  <div class="plan-detail">
 
-      <span class="art-label">plan · {{ '%02d' | format(plan.id) }}</span>
+    <header class="page-head">
+      <span class="tag">
+        <span class="tag__dot" style="--h: {{ tonos.get(plan.tone, 30) }}" aria-hidden="true"></span>
+        {{ plan.type | capitalize }}
+      </span>
+      <h1 class="h2">{{ plan.title }}</h1>
+      <p class="lead">{{ plan.description }}</p>
+    </header>
 
-      <div class="detail-sun"></div>
-      <div class="detail-land"></div>
+    <dl class="facts">
+      <div>
+        <dt>Duración</dt>
+        <dd>{{ plan.time }}</dd>
+      </div>
+      <div>
+        <dt>Costo</dt>
+        <dd>{{ plan.cost }}</dd>
+      </div>
+      <div>
+        <dt>Distancia</dt>
+        <dd>{{ plan.distance }}</dd>
+      </div>
+    </dl>
 
-      <strong>{{ plan.mood }}<br /><em>para hoy</em></strong>
-
-    </div>
-
-    <div class="detail-copy">
-
-      <p class="story-type">{{ plan.type }}</p>
-
-      <h1>{{ plan.title }}</h1>
-
-      <p>{{ plan.description }}</p>
-
-      <dl>
-        <div>
-          <dt>tiempo</dt>
-          <dd>{{ plan.time }}</dd>
-        </div>
-
-        <div>
-          <dt>costo</dt>
-          <dd>{{ plan.cost }}</dd>
-        </div>
-
-        <div>
-          <dt>distancia</dt>
-          <dd>{{ plan.distance }}</dd>
-        </div>
-      </dl>
-
-      <a class="lime-button" href="/register">
-        Guardar y compartir <span aria-hidden="true">↗</span>
-      </a>
-
-    </div>
-
-  </div>
-
-</section>
-
-
-<section class="detail-notes section-shell">
-
-  <div>
-
-    <p class="section-tag">la idea</p>
-
-    <h2>Un plan simple<br />con lugar para que pase <em>algo.</em></h2>
-
-  </div>
-
-  <div>
-
-    <p>
-      No hace falta reservar todo. Salgan, miren y dejen espacio para la
-      sorpresa.
+    <p class="body">
+      No hace falta reservar todo: salgan, miren y dejen lugar para que pase
+      algo. Si les gustó, lo guardan y lo vuelven a proponer en el grupo.
     </p>
 
-    <p>Después, guárdenlo en el historial del grupo.</p>
+    <div class="actions">
+      <a class="btn btn--primary btn--lg" href="/register">Crear cuenta para guardarlo</a>
+      <a class="btn btn--ghost btn--lg" href="/explorar">Ver otros planes</a>
+    </div>
 
   </div>
 

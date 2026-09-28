@@ -10,68 +10,76 @@
 
   <div class="dashboard-main">
 
-    <section class="section-shell">
+    <section class="container page">
 
-      <a class="back-link" href="/dashboard">← Volver</a>
+      <a class="back-link" href="/dashboard">← Inicio</a>
 
-      <div class="auth-intro">
-        <h1>Tus<br /><em>planes.</em></h1>
-        <p>Tus ideas, lo que confirmaste con tus grupos y lo que ya hiciste.</p>
-      </div>
+      <header class="page-head">
+        <div class="page-head__row">
+          <div>
+            <h1 class="h2">Tus planes.</h1>
+            <p class="lead">Tus ideas, lo que confirmaste con tus grupos y lo que ya hiciste.</p>
+          </div>
+          <a class="btn btn--primary btn--lg" href="/planes/nueva-idea">Crear idea</a>
+        </div>
+      </header>
 
-      <div class="planes-menu-grid">
 
-        <a class="planes-menu-tile" href="/planes/nueva-idea">
-          <span aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false">
-              <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8" />
-              <path d="M12 8.2v7.6M8.2 12h7.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            </svg>
-          </span>
-          <span>Crear idea</span>
-        </a>
+      <ul class="menu-list">
 
-        <a class="planes-menu-tile" href="/planes/confirmados">
-          <span aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false">
-              <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8" />
-              <path d="m8.2 12.3 2.6 2.6 5-5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </span>
-          <span>Planes confirmados</span>
-        </a>
+        <li>
+          <a class="card item menu-item" href="/planes/confirmados">
+            <span class="menu-item__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="m8.2 12.3 2.6 2.6 5-5.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </span>
+            <span class="item__body">
+              <span class="item__name">Planes confirmados</span>
+              <span class="item__text">Los que ya tienen día y hora.</span>
+            </span>
+            <svg class="menu-item__chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+        </li>
 
-        <a class="planes-menu-tile" href="/planes/grupo">
-          <span aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false">
-              <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" />
-              <circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" />
-              <path d="M3.5 19c.6-3 2.4-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 15c2.7-.3 4.7 1 5.3 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            </svg>
-          </span>
-          <span>Planes de grupo</span>
-        </a>
+        <li>
+          <a class="card item menu-item" href="/planes/grupo">
+            <span class="menu-item__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M3.5 19c.6-3 2.4-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 15c2.7-.3 4.7 1 5.3 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+            </span>
+            <span class="item__body">
+              <span class="item__name">Planes de grupo</span>
+              <span class="item__text">En votación, buscando horario o confirmados por otros.</span>
+            </span>
+            <svg class="menu-item__chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+        </li>
 
-        <a class="planes-menu-tile" href="/planes/guardados">
-          <span aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false">
-              <path d="M6 3.8h12v16.4l-6-4.2-6 4.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
-            </svg>
-          </span>
-          <span>Ideas guardadas</span>
-        </a>
+        <li>
+          <a class="card item menu-item" href="/planes/guardados">
+            <span class="menu-item__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M6 3.8h12v16.4l-6-4.2-6 4.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>
+            </span>
+            <span class="item__body">
+              <span class="item__name">Ideas guardadas</span>
+              <span class="item__text">Las tuyas y las que guardaste desde Social.</span>
+            </span>
+            <svg class="menu-item__chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+        </li>
 
-        <a class="planes-menu-tile" href="/planes/archivados">
-          <span aria-hidden="true">
-            <svg viewBox="0 0 24 24" focusable="false">
-              <rect x="3.5" y="4" width="17" height="4.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.8" />
-              <path d="M5 8.5v10A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-10M10 12.5h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </span>
-          <span>Planes archivados</span>
-        </a>
+        <li>
+          <a class="card item menu-item" href="/planes/archivados">
+            <span class="menu-item__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><rect x="3.5" y="4" width="17" height="4.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M5 8.5v10A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-10M10 12.5h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </span>
+            <span class="item__body">
+              <span class="item__name">Planes archivados</span>
+              <span class="item__text">Los que ya pasaron, con su puntaje.</span>
+            </span>
+            <svg class="menu-item__chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+        </li>
 
-      </div>
+      </ul>
 
     </section>
 

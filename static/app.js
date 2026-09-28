@@ -408,16 +408,16 @@
 
   const iniciarFiltrosDePlanes = () => {
 
-    const barra = $(".filter-bar");
-    const grilla = $(".plan-index");
+    const barra = $("[data-filtros]");
+    const grilla = $("[data-planes]");
 
     if (!barra || !grilla) {
       return;
     }
 
-    const botones = $$(".filter-chip", barra);
-    const tarjetas = $$(".index-card", grilla);
-    const vacio = $(".plan-index-empty", grilla);
+    const botones = $$("[data-filtro]", barra);
+    const tarjetas = $$("[data-tipo]", grilla);
+    const vacio = $("[data-vacio]");
 
     if (botones.length === 0 || tarjetas.length === 0) {
       return;

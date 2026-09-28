@@ -4,81 +4,111 @@
 
 {% block content %}
 
+{# Pestañas entre las cuatro listas. Solo la actual muestra cuántos planes
+   tiene: es el único número que la ruta le pasa al template. #}
+{% set pestanas = [
+  ('/planes/confirmados', 'Confirmados'),
+  ('/planes/grupo', 'De grupo'),
+  ('/planes/guardados', 'Ideas guardadas'),
+  ('/planes/archivados', 'Archivados'),
+] %}
+
+{# Qué hacer cuando la lista está vacía, según cuál sea. #}
+{% set acciones_vacio = {
+  '/planes/confirmados': ('/planes/grupo', 'Ver planes de grupo'),
+  '/planes/grupo': ('/grupos', 'Ir a tus grupos'),
+  '/planes/guardados': ('/planes/nueva-idea', 'Crear una idea'),
+  '/planes/archivados': ('/planes/grupo', 'Ver planes de grupo'),
+} %}
+
 <div class="dashboard-layout dashboard-layout-page">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
 
-    <section class="section-shell">
+    <section class="container page">
 
-      <a class="back-link" href="/planes">← Volver</a>
+      <a class="back-link" href="/planes">← Planes</a>
 
-      <div class="auth-intro">
-        <h1>{{ titulo }}</h1>
-        <p>{{ subtitulo }}</p>
-      </div>
+      <header class="page-head">
+        <h1 class="h2">{{ titulo }}</h1>
+        <p class="lead">{{ subtitulo }}</p>
+      </header>
+
+      <nav class="chips planes-tabs" aria-label="Tus planes">
+        {% for href, etiqueta in pestanas %}
+        <a class="chip" href="{{ href }}" {% if request.path == href %}aria-current="page"{% endif %}>
+          {{ etiqueta }}
+          {% if request.path == href %}<span class="chip__count">{{ planes | length }}</span>{% endif %}
+        </a>
+        {% endfor %}
+      </nav>
+
 
       {% if planes %}
-      <ul class="plan-card-list">
+      <ul class="plan-list planes-list">
 
         {% for plan in planes %}
-        <li class="plan-card-fila">
+        <li>
+          <article class="card plan-tile">
 
-          <a class="plan-card" href="/planes/{{ plan.id }}">
+            {% set con_estado = plan.grupo and plan.estado not in ('confirmado', 'archivado') %}
 
-            <strong>{{ plan.nombre }}</strong>
-
-            <div class="plan-card-meta">
-
+            {% if con_estado or (mostrar_fecha and plan.fecha) %}
+            <div class="plan-tile__top">
+              {% if con_estado %}
+              <span class="tag">{{ plan.estado_texto }}</span>
+              {% endif %}
               {% if mostrar_fecha and plan.fecha %}
-              <span>{{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
+              <span class="meta">{{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
               {% endif %}
-
-              <span>{{ plan.resumen_lugares }}</span>
-
-              {% if plan.precio_min is not none and plan.precio_max is not none %}
-              <span>
-                {% if plan.precio_min == plan.precio_max %}
-                ${{ plan.precio_min | int }}
-                {% else %}
-                ${{ plan.precio_min | int }} - ${{ plan.precio_max | int }}
-                {% endif %}
-              </span>
-              {% elif plan.precio %}
-              <span>${{ plan.precio }}</span>
-              {% endif %}
-
-              {% if plan.grupo %}
-              <span>{{ plan.grupo }}</span>
-              {% endif %}
-
-              {% if plan.grupo and plan.estado not in ('confirmado', 'archivado') %}
-              <span class="plan-estado plan-estado-{{ plan.estado }}">{{ plan.estado_texto }}</span>
-              {% endif %}
-
-              {% if plan.estado == 'archivado' %}
-              <span>{% if plan.mi_puntaje is not none %}Tu puntaje: {{ plan.mi_puntaje }}★{% else %}Sin puntuar{% endif %}</span>
-              {% endif %}
-
             </div>
+            {% endif %}
 
-          </a>
+            <h2 class="plan-tile__title">
+              <a class="plan-tile__link" href="/planes/{{ plan.id }}">{{ plan.nombre }}</a>
+            </h2>
 
-          {% if mostrar_quitar_guardado %}
-          <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}"
-                class="plan-card-quitar"
-                onsubmit="return confirm('¿Quitar este plan de guardados?')">
-            <button type="submit">Quitar</button>
-          </form>
-          {% endif %}
+            <p class="meta plan-tile__meta">
+              {{ plan.resumen_lugares }}
+              {% if plan.precio_min is not none and plan.precio_max is not none %}
+                · {% if plan.precio_min == plan.precio_max %}${{ plan.precio_min | int }}{% else %}${{ plan.precio_min | int }} - ${{ plan.precio_max | int }}{% endif %}
+              {% elif plan.precio %}
+                · ${{ plan.precio }}
+              {% endif %}
+              {% if plan.grupo %} · {{ plan.grupo }}{% endif %}
+            </p>
 
+            {% if plan.estado == 'archivado' %}
+            <p class="meta">{% if plan.mi_puntaje is not none %}Tu puntaje: {{ plan.mi_puntaje }}★{% else %}Sin puntuar{% endif %}</p>
+            {% endif %}
+
+            {% if mostrar_quitar_guardado %}
+            <div class="plan-tile__foot">
+              <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}"
+                    onsubmit="return confirm('¿Quitar este plan de guardados?')">
+                <button class="btn btn--ghost btn--sm" type="submit">Quitar de guardados</button>
+              </form>
+            </div>
+            {% endif %}
+
+          </article>
         </li>
         {% endfor %}
 
       </ul>
+
       {% else %}
-      <p class="plan-index-empty-inline">{{ vacio }}</p>
+
+      {% set accion = acciones_vacio.get(request.path) %}
+      <div class="empty-state">
+        <p>{{ vacio }}</p>
+        {% if accion %}
+        <a class="btn btn--secondary" href="{{ accion[0] }}">{{ accion[1] }}</a>
+        {% endif %}
+      </div>
+
       {% endif %}
 
     </section>

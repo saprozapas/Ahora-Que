@@ -69,6 +69,9 @@ def preparar(pagina):
 def capturar(pagina, base, ruta, destino):
     respuesta = pagina.goto(base + ruta, wait_until="networkidle")
     preparar(pagina)
+    # El header es sticky: si la página quedó scrolleada, en la captura
+    # completa aparece en el medio.
+    pagina.evaluate("window.scrollTo(0, 0)")
     pagina.screenshot(path=str(destino), full_page=True)
     ancho_doc = pagina.evaluate("document.documentElement.scrollWidth")
     ancho_vista = pagina.viewport_size["width"]
