@@ -30,6 +30,7 @@
      21. Integrantes, card elegible y menú desplegable
      22. Perfil (propio y público) y estrellas
      23. Voz: resumen, citas y estados vacíos
+     24. Textura de cabecera
    ========================================================================== */
 
 
@@ -956,3 +957,36 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 }
 
 .quote--lg { font-size: var(--t-voice); line-height: 1.38; letter-spacing: -0.012em; color: var(--ink); }
+
+
+/* ---------- 24. Textura de cabecera ----------
+   La grilla de puntos de .dot-grid, detrás del título de cada pantalla
+   (y del "volver" de arriba). Llega hasta el borde del contenedor, sin
+   pasarlo, y se apaga antes del contenido: cards, listas y formularios
+   quedan sobre papel liso. El dashboard, la landing y las pantallas de
+   una sola acción públicas ya tienen su .dot-grid y no llevan esta. */
+
+.page-head,
+.profile__head,
+.cal__head,
+.auth--inline .auth__head { position: relative; isolation: isolate; }
+
+.page-head::before,
+.profile__head::before,
+.cal__head::before,
+.auth--inline .auth__head::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: -72px; bottom: -32px;
+  left: calc(var(--gutter) * -1); right: calc(var(--gutter) * -1);
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.3px);
+  background-size: 22px 22px;
+  background-position: -11px -11px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 80% at 30% 40%, #000 25%, transparent 78%);
+          mask-image: radial-gradient(ellipse 70% 80% at 30% 40%, #000 25%, transparent 78%);
+}
+
+/* Centrada (crear grupo, cambiar contraseña): la textura también. */
+.auth--inline .auth__head::before {
+  -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 40%, #000 25%, transparent 78%);
+          mask-image: radial-gradient(ellipse 60% 80% at 50% 40%, #000 25%, transparent 78%);
+}
