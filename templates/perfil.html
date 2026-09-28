@@ -10,6 +10,8 @@
 
 {% block content %}
 
+{% set nombre = user.name | default('', true) %}
+
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
 
@@ -19,123 +21,112 @@
 {% endif %}
 
 
-<section class="auth-page section-shell">
+<section class="container page profile">
 
-  <a class="back-link" href="/dashboard">← Volver</a>
+  <a class="back-link" href="/dashboard">← Inicio</a>
 
-  <div class="auth-intro">
+  <header class="profile__head">
+    <span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 64px" aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
+    <div>
+      <h1 class="h2">{{ nombre or 'Tu perfil' }}</h1>
+      {% if user.username %}<p class="meta">@{{ user.username }}</p>{% endif %}
+    </div>
+  </header>
 
-    <h1>Tu espacio<br /><em>personal.</em></h1>
 
-    <p>Tus datos, grupos y planes guardados.</p>
+  <!-- Cada dato editable es un form propio: app.js alterna entre la vista
+       (.field-view) y la edición (.field-edit) y guarda por fetch. -->
+  <div class="card profile__card">
 
-  </div>
-
-
-  <div class="auth-form profile-card">
-
-    <form method="post" action="/perfil" class="field-editable">
-
+    <form method="post" action="/perfil" class="field-editable profile-row">
       <input type="hidden" name="target" value="name" />
-
-      <p>
-        <strong>Nombre</strong><br />
-
+      <span class="profile-row__label">Nombre</span>
+      <div class="profile-row__value">
         <span class="field-view" {% if error_name %}hidden{% endif %}>
           <span data-role="value">{{ user.name | default('Sin datos', true) }}</span>
-          <button type="button" class="field-edit-btn" aria-label="Editar nombre">{{ lapiz() }}</button>
+          <button type="button" class="icon-btn field-edit-btn" aria-label="Editar nombre">{{ lapiz() }}</button>
         </span>
-
         <span class="field-edit" {% if not error_name %}hidden{% endif %}>
-          <input type="text" name="name" value="{{ user.name | default('', true) }}" />
-          <button type="submit" class="field-save-btn" aria-label="Guardar nombre">✓</button>
+          <input class="input" type="text" name="name" value="{{ user.name | default('', true) }}" aria-label="Nombre" />
+          <button type="submit" class="btn btn--primary">Guardar</button>
         </span>
-      </p>
-
-      <p class="form-message form-message-error" data-role="error" {% if not error_name %}hidden{% endif %}>{{ error_name }}</p>
-
+        <p class="notice notice--error" data-role="error" {% if not error_name %}hidden{% endif %}>{{ error_name }}</p>
+      </div>
     </form>
 
-    <form method="post" action="/perfil" class="field-editable">
-
+    <form method="post" action="/perfil" class="field-editable profile-row">
       <input type="hidden" name="target" value="username" />
-
-      <p>
-        <strong>Username</strong><br />
-
+      <span class="profile-row__label">Usuario</span>
+      <div class="profile-row__value">
         <span class="field-view" {% if error_username %}hidden{% endif %}>
           <span data-role="value">{{ user.username | default('Sin datos', true) }}</span>
-          <button type="button" class="field-edit-btn" aria-label="Editar username">{{ lapiz() }}</button>
+          <button type="button" class="icon-btn field-edit-btn" aria-label="Editar usuario">{{ lapiz() }}</button>
         </span>
-
         <span class="field-edit" {% if not error_username %}hidden{% endif %}>
-          <input type="text" name="username" value="{{ user.username | default('', true) }}" />
-          <button type="submit" class="field-save-btn" aria-label="Guardar username">✓</button>
+          <input class="input" type="text" name="username" value="{{ user.username | default('', true) }}" aria-label="Usuario" />
+          <button type="submit" class="btn btn--primary">Guardar</button>
         </span>
-      </p>
-
-      <p class="form-message form-message-error" data-role="error" {% if not error_username %}hidden{% endif %}>{{ error_username }}</p>
-
+        <p class="notice notice--error" data-role="error" {% if not error_username %}hidden{% endif %}>{{ error_username }}</p>
+      </div>
     </form>
 
-    <form method="post" action="/perfil" class="field-editable field-editable-texto">
-
+    <form method="post" action="/perfil" class="field-editable profile-row profile-row--texto">
       <input type="hidden" name="target" value="descripcion" />
-
-      <p>
-        <strong>Descripción</strong><br />
-
+      <span class="profile-row__label">Descripción</span>
+      <div class="profile-row__value">
         <span class="field-view" {% if error_descripcion %}hidden{% endif %}>
           <span
             class="{% if not user.descripcion %}is-empty{% endif %}"
             data-role="value"
             data-empty="Contá qué planes te gustan y con quién salís."
           >{{ user.descripcion | default('Contá qué planes te gustan y con quién salís.', true) }}</span>
-          <button type="button" class="field-edit-btn" aria-label="Editar descripción">{{ lapiz() }}</button>
+          <button type="button" class="icon-btn field-edit-btn" aria-label="Editar descripción">{{ lapiz() }}</button>
         </span>
-
         <span class="field-edit" {% if not error_descripcion %}hidden{% endif %}>
           <textarea
+            class="input"
             name="descripcion"
             rows="4"
+            aria-label="Descripción"
             placeholder="Contá qué tipo de planes te gustan, con quién salís y qué buscás en el grupo..."
           >{{ user.descripcion | default('', true) }}</textarea>
-          <button type="submit" class="field-save-btn" aria-label="Guardar descripción">✓</button>
+          <button type="submit" class="btn btn--primary">Guardar</button>
         </span>
-      </p>
-
-      <p class="form-message form-message-error" data-role="error" {% if not error_descripcion %}hidden{% endif %}>{{ error_descripcion }}</p>
-
+        <p class="notice notice--error" data-role="error" {% if not error_descripcion %}hidden{% endif %}>{{ error_descripcion }}</p>
+      </div>
     </form>
 
     {% if user.email %}
-    <p>
-      <strong>Email</strong><br />
-      {{ user.email }}
-    </p>
+    <div class="profile-row">
+      <span class="profile-row__label">Email</span>
+      <div class="profile-row__value"><span>{{ user.email }}</span></div>
+    </div>
     {% endif %}
 
-    <p>
-      <strong>Contraseña</strong><br />
-      <a href="/perfil/cambiar-contrasena">Cambiar contraseña →</a>
-    </p>
-
-    <p>
-      <strong>Grupos</strong><br />
-      {{ groups | length }} grupos
-    </p>
-
-    <p>
-      <strong>Planes publicados</strong><br />
-      {{ published_plans | length }} planes
-    </p>
-
-    <p>
-      <strong>Planes guardados</strong><br />
-      {{ saved_plans | length }} planes
-    </p>
+    <div class="profile-row">
+      <span class="profile-row__label">Contraseña</span>
+      <div class="profile-row__value">
+        <a class="btn btn--ghost btn--sm profile-row__link" href="/perfil/cambiar-contrasena">Cambiar contraseña</a>
+      </div>
+    </div>
 
   </div>
+
+
+  <dl class="facts profile__facts">
+    <div>
+      <dt>Grupos</dt>
+      <dd>{{ groups | length }}</dd>
+    </div>
+    <div>
+      <dt>Planes publicados</dt>
+      <dd>{{ published_plans | length }}</dd>
+    </div>
+    <div>
+      <dt>Planes guardados</dt>
+      <dd>{{ saved_plans | length }}</dd>
+    </div>
+  </dl>
 
 </section>
 

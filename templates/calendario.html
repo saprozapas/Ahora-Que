@@ -13,40 +13,45 @@
 {% endif %}
 
 
-<section class="section-shell calendario-page">
+<section class="container page cal">
 
-  <a class="back-link" href="/dashboard">← Volver</a>
+  <a class="back-link" href="/dashboard">← Inicio</a>
 
-  <div class="calendario-header">
+  <header class="cal__head">
 
-    <div class="auth-intro">
-      <h1>Tu calendario <em>de planes.</em></h1>
-      <p>Los planes que confirmaste, mes a mes.</p>
+    <div>
+      <h1 class="h2">Calendario.</h1>
+      <p class="lead">Los planes que confirmaste, mes a mes.</p>
     </div>
 
-    <div class="calendario-nav">
-      <a href="/calendario?mes={{ mes_anterior }}&anio={{ anio_anterior }}" aria-label="Mes anterior">←</a>
-      <span class="calendario-mes-actual">{{ nombre_mes }} {{ anio }}</span>
-      <a href="/calendario?mes={{ mes_siguiente }}&anio={{ anio_siguiente }}" aria-label="Mes siguiente">→</a>
-    </div>
+    <nav class="cal__nav" aria-label="Cambiar de mes">
+      <a class="icon-btn" href="/calendario?mes={{ mes_anterior }}&anio={{ anio_anterior }}" aria-label="Mes anterior">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </a>
+      <span class="cal__month">{{ nombre_mes }} {{ anio }}</span>
+      <a class="icon-btn" href="/calendario?mes={{ mes_siguiente }}&anio={{ anio_siguiente }}" aria-label="Mes siguiente">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </a>
+    </nav>
 
-  </div>
+  </header>
 
-  <div class="calendario-grid">
+
+  <div class="card cal__grid">
 
     {% for dia in dias_semana %}
-    <div class="calendario-dia-nombre">{{ dia }}</div>
+    <div class="cal__weekday">{{ dia }}</div>
     {% endfor %}
 
     {% for semana in semanas %}
       {% for dia in semana %}
-      <div class="calendario-celda{% if dia.numero == 0 %} calendario-celda-vacia{% endif %}{% if dia.es_hoy %} calendario-celda-hoy{% endif %}">
+      <div class="cal__day{% if dia.numero == 0 %} is-empty{% endif %}{% if dia.es_hoy %} is-today{% endif %}">
         {% if dia.numero != 0 %}
-        <span class="calendario-numero">{{ dia.numero }}</span>
+        <span class="cal__num"{% if dia.es_hoy %} aria-label="{{ dia.numero }}, hoy"{% endif %}>{{ dia.numero }}</span>
 
         {% for plan in dia.planes %}
-        <a class="calendario-plan" href="/planes/{{ plan.id }}" title="{{ plan.nombre }} — {{ plan.hora.strftime('%H:%M') }}">
-          {{ plan.nombre }}
+        <a class="cal__plan" href="/planes/{{ plan.id }}" title="{{ plan.nombre }} — {{ plan.hora.strftime('%H:%M') }}">
+          <span class="cal__dot" aria-hidden="true"></span>{{ plan.nombre }}
         </a>
         {% endfor %}
         {% endif %}

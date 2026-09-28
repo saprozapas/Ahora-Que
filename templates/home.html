@@ -8,65 +8,124 @@
 
 <!-- =========================================================================
      DASHBOARD — bienvenida del usuario logueado
+
+     El resumen se arma SOLO con lo que ya llega al template: el nombre
+     (current_user), las notificaciones pendientes y las invitaciones.
      ========================================================================= -->
 
-<div class="dashboard-layout">
+{% set nombre = current_user.name | default(current_user.username | default('', true), true) %}
+{% set pendientes = notificaciones_pendientes | default(0, true) %}
+{% set tonos = {'coral': 15, 'moss': 140, 'lilac': 270} %}
+
+<div class="dashboard-layout dashboard-layout-page">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
 
-    <!-- Las mismas curvas de nivel que el hero de la home pública. -->
+    <section class="topo topo--sutil dash-hero">
 
-    <div class="dashboard-topo" aria-hidden="true">
+      {% include '_topografia.html' %}
 
-      <svg
-        class="hero-topography"
-        viewBox="0 0 1000 1000"
-        preserveAspectRatio="xMidYMid slice"
-        focusable="false"
-      >
-        <circle class="topo-ring" cx="500" cy="500" r="140" />
-        <circle class="topo-ring" cx="500" cy="500" r="220" />
-        <circle class="topo-ring" cx="500" cy="500" r="300" />
-        <circle class="topo-ring" cx="500" cy="500" r="380" />
+      <div class="container page">
 
-        <circle class="topo-mark" cx="769" cy="231" r="7" />
-        <circle class="topo-mark" cx="209" cy="744" r="7" />
-        <circle class="topo-mark" cx="434" cy="125" r="7" />
-      </svg>
+        <div class="dash-brief">
 
-    </div>
+          <p class="dash-brief__label"><span aria-hidden="true">✦</span> Resumen</p>
 
-    <section class="dashboard-shell">
-
-      <div class="dashboard-heading" id="dashboard-welcome">
-
-        <div class="dashboard-welcome">
-
-          <div class="dashboard-title-row">
-
-            <img
-              class="dashboard-welcome-logo"
-              src="{{ url_for('static', filename='favicon.svg') }}"
-              alt=""
-            />
-
-            <h1>¿Qué hacemos <em>hoy?</em></h1>
-
-          </div>
-
-          <p class="dashboard-lead">
-            Hola, {{ current_user.name | default(current_user.username | default('ahí'), true) }}.
-            Todo lo que necesitan para decidir, en un mismo lugar.
+          <p class="voice">
+            <strong>Hola{% if nombre %}, {{ nombre.split(' ')[0] }}{% endif %}.</strong>
+            {% if invitaciones %}
+              Te invitaron a {{ invitaciones | length }} grupo{{ 's' if invitaciones | length != 1 }}:
+              <span class="ref">{{ invitaciones[0].get_nombre_grupo() }}</span>{% if invitaciones | length > 1 %} y {{ invitaciones | length - 1 }} más{% endif %}.
+            {% elif pendientes %}
+              Tenés {{ pendientes }} novedad{{ 'es' if pendientes != 1 }} en tu inbox.
+            {% else %}
+              Tu inbox está al día.
+            {% endif %}
+            Armá una idea y postulala en un grupo para que la voten.
           </p>
+
+          <div class="actions">
+            <a class="btn btn--primary btn--lg" href="/planes/nueva-idea">Crear idea</a>
+            {% if pendientes %}
+            <a class="btn btn--secondary btn--lg" href="/inbox">Ver inbox <span class="badge">{{ pendientes }}</span></a>
+            {% endif %}
+          </div>
 
         </div>
 
-        <a class="lime-button" href="/explorar">
-          Encontrar un plan <span aria-hidden="true">↗</span>
-        </a>
+      </div>
 
+    </section>
+
+
+    <section class="container page dash-body">
+
+      <div class="dash-section">
+        <h2 class="h3">Accesos</h2>
+
+        <ul class="menu-list dash-shortcuts">
+          <li>
+            <a class="card item menu-item" href="/grupos">
+              <span class="menu-item__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M3.5 19c.6-3 2.4-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 15c2.7-.3 4.7 1 5.3 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+              </span>
+              <span class="item__body">
+                <span class="item__name">Tus grupos</span>
+                <span class="item__text">Votaciones y planes de cada grupo.</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="card item menu-item" href="/planes/">
+              <span class="menu-item__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false"><rect x="4" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="13" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="4" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="13" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>
+              </span>
+              <span class="item__body">
+                <span class="item__name">Tus planes</span>
+                <span class="item__text">Ideas guardadas, confirmados y archivados.</span>
+              </span>
+            </a>
+          </li>
+          <li>
+            <a class="card item menu-item" href="/calendario">
+              <span class="menu-item__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false"><rect x="3.5" y="5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M3.5 9.5h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+              </span>
+              <span class="item__body">
+                <span class="item__name">Calendario</span>
+                <span class="item__text">Los planes confirmados, mes a mes.</span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+
+      <div class="dash-section">
+        <div class="board__head">
+          <h2 class="h3">Ideas para hoy</h2>
+          <a class="meta dash-more" href="/explorar">Ver todas</a>
+        </div>
+
+        <ul class="plan-list">
+          {% for plan in plans %}
+          <li>
+            <a class="card plan-tile" href="/plan/{{ plan.slug }}">
+              <div class="plan-tile__top">
+                <span class="tag">
+                  <span class="tag__dot" style="--h: {{ tonos.get(plan.tone, 30) }}" aria-hidden="true"></span>
+                  {{ plan.type | capitalize }}
+                </span>
+              </div>
+              <h3 class="plan-tile__title">{{ plan.title }}</h3>
+              <p class="plan-tile__text">{{ plan.description }}</p>
+              <p class="meta plan-tile__meta">{{ plan.time }} · {{ plan.cost }} · {{ plan.distance }}</p>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
       </div>
 
     </section>

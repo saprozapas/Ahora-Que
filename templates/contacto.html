@@ -4,56 +4,42 @@
 
 {% block content %}
 
-<section class="contact-page section-shell">
+<section class="auth container">
 
-  <a class="back-link" href="/">← Volver</a>
+  <div class="auth__inner auth__inner--wide">
 
-  <div class="contact-copy">
+    <header class="auth__head">
+      <h1 class="h2">Escribinos.</h1>
+      <p class="lead">¿Tenés una idea o encontraste algo que no anda? Contanos.</p>
+    </header>
 
-    <h1>Contanos qué<br />quieren <em>hacer.</em></h1>
 
-    <p>¿Tenés una idea o necesitás ayuda? Te leemos.</p>
+    <form class="auth__form" method="post">
 
-    <div class="contact-facts">
-      <span>respondemos pronto</span>
-      <span>sin respuestas automáticas</span>
-    </div>
+      {% if enviado %}
+      <p class="notice" role="status">Mensaje recibido. Gracias por escribirnos.</p>
+      {% endif %}
+
+      <div class="field">
+        <label for="nombre">Nombre</label>
+        <input class="input" id="nombre" name="nombre" type="text" autocomplete="name" required />
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input class="input" id="email" name="email" type="email" autocomplete="email" required />
+      </div>
+
+      <div class="field">
+        <label for="mensaje">Mensaje</label>
+        <textarea class="input" id="mensaje" name="mensaje" rows="6" required></textarea>
+      </div>
+
+      <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">Enviar mensaje</button>
+
+    </form>
 
   </div>
-
-
-  <form class="contact-form" method="post">
-
-    {# El mensaje va arriba del formulario, no entre el textarea y el botón. #}
-    {% if enviado %}
-
-    <p class="form-message form-success" role="status">
-      Mensaje recibido. Gracias por escribirnos.
-    </p>
-
-    {% endif %}
-
-
-    <label for="nombre">Nombre *</label>
-
-    <input id="nombre" name="nombre" type="text" autocomplete="name" required />
-
-
-    <label for="email">Email *</label>
-
-    <input id="email" name="email" type="email" autocomplete="email" required />
-
-
-    <label for="mensaje">Mensaje *</label>
-
-    <textarea id="mensaje" name="mensaje" rows="7" required></textarea>
-
-
-    <button class="lime-button" type="submit">
-      Enviar mensaje <span aria-hidden="true">→</span>
-    </button>
-
-  </form>
 
 </section>
 

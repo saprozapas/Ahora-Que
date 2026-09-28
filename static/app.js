@@ -788,7 +788,7 @@
 
       if (usuarios.length === 0) {
         const vacio = document.createElement("p");
-        vacio.className = "friend-search-empty";
+        vacio.className = "friend-result__empty";
         vacio.textContent = "No encontramos a nadie con ese nombre o usuario.";
         resultados.appendChild(vacio);
         resultados.hidden = false;
@@ -798,19 +798,22 @@
       usuarios.forEach((usuario) => {
 
         const fila = document.createElement("div");
-        fila.className = "friend-search-result";
+        fila.className = "friend-result";
 
         const identidad = document.createElement("a");
-        identidad.className = "friend-search-result-identity";
+        identidad.className = "friend-result__who";
         identidad.href = `/usuarios/${usuario.id}`;
 
         const avatar = document.createElement("span");
-        avatar.className = "friend-avatar";
+        avatar.className = "avatar";
+        // El mismo tono que en el resto de la app: sale del largo del nombre.
+        avatar.style.setProperty("--h", String(((usuario.nombre || "").length * 47) % 360));
+        avatar.style.setProperty("--size", "36px");
         avatar.setAttribute("aria-hidden", "true");
         avatar.textContent = (usuario.nombre || "?").slice(0, 1).toUpperCase();
 
         const nombres = document.createElement("span");
-        nombres.className = "friend-search-result-names";
+        nombres.className = "friend-result__names";
 
         const nombre = document.createElement("strong");
         nombre.textContent = usuario.nombre;
@@ -829,7 +832,7 @@
 
         const boton = document.createElement("button");
         boton.type = "button";
-        boton.className = "friend-search-add";
+        boton.className = "btn btn--secondary btn--sm";
         boton.textContent = estado.texto;
         boton.disabled = estado.deshabilitado;
 

@@ -11,6 +11,10 @@
      04. Grupos (lista)
      05. Grupo (detalle y tablero)
      06. Postular una idea
+     07. Dashboard
+     08. Inbox y amigos
+     09. Social
+     10. Calendario
    ========================================================================== */
 
 
@@ -291,3 +295,138 @@
 .postular__when { display: flex; flex-wrap: wrap; gap: var(--s-3); }
 .postular__when .field { flex: 1 1 180px; max-width: 260px; }
 .postular > .btn { justify-self: start; }
+
+
+/* ---------- 07. Dashboard ----------
+   Cabecera con la topografía sutil y el resumen en .voice; debajo,
+   accesos e ideas. */
+
+.dash-hero { border-bottom: 1px solid var(--line); }
+.dash-hero .page { padding-bottom: var(--s-12); }
+
+.dash-brief { display: grid; justify-items: start; gap: var(--s-5); max-width: 720px; padding-top: var(--s-10); }
+.dash-brief__label { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: var(--accent); font-size: var(--t-meta); font-weight: 600; }
+.dash-brief .voice { max-width: 40ch; }
+.dash-brief .btn .badge { margin-left: 2px; }
+
+.dash-body { display: grid; gap: var(--s-12); padding-top: var(--s-10); }
+.dash-section { display: grid; gap: var(--s-4); }
+.dash-section > .h3 { margin: 0; }
+.dash-shortcuts { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); max-width: none; }
+
+.dash-more { margin-left: auto; text-decoration: none; }
+.dash-more:hover { color: var(--ink); }
+
+
+/* ---------- 08. Inbox y amigos ----------
+   Listas de .item con avatar, como la pila de la referencia. */
+
+.inbox__section { display: grid; gap: var(--s-4); max-width: 880px; margin-bottom: var(--s-10); }
+.inbox > .empty-state { max-width: 880px; padding-top: 0; }
+
+.inbox__list,
+.friends__list { display: grid; gap: var(--s-3); max-width: 880px; margin: 0; padding: 0; list-style: none; }
+
+.inbox-item__text { margin: 2px 0 0; color: var(--ink-2); font-size: var(--t-ui); line-height: 1.45; }
+
+.inbox-item__actions,
+.friend-row__actions { display: flex; align-items: center; gap: var(--s-1); flex: none; }
+.friend-row__actions form { margin: 0; }
+
+.friend-row__who { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; color: inherit; text-decoration: none; }
+.friend-row__who:hover .item__name { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 0.18em; }
+.friend-row .item__body .meta { display: block; }
+
+.friends__head { max-width: 880px; margin: var(--s-10) 0 var(--s-4); }
+.friends > .empty-state { max-width: 880px; }
+
+@media (max-width: 640px) {
+  .inbox-item,
+  .friend-row { flex-wrap: wrap; }
+  .inbox-item__actions,
+  .friend-row__actions { width: 100%; justify-content: flex-end; }
+}
+
+/* Buscador de personas: los resultados flotan debajo del campo. */
+.friend-search { position: relative; max-width: 560px; }
+.friend-search__icon { position: absolute; top: 15px; left: 16px; width: 20px; height: 20px; color: var(--ink-4); pointer-events: none; }
+.friend-search__input.input { padding-left: 46px; }
+
+.friend-search__results {
+  position: absolute; top: calc(100% + var(--s-2)); left: 0; right: 0; z-index: 20;
+  display: grid; max-height: 360px; overflow: auto; padding: var(--s-2);
+  background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-float);
+}
+
+.friend-result { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2); border-radius: var(--r-md); }
+.friend-result:hover { background: var(--surface-2); }
+.friend-result__who { display: flex; align-items: center; gap: var(--s-3); flex: 1; min-width: 0; color: inherit; text-decoration: none; }
+.friend-result__names { display: grid; min-width: 0; }
+.friend-result__names strong { color: var(--ink); font-weight: 550; }
+.friend-result__names small { color: var(--ink-4); font-size: var(--t-meta); }
+.friend-result__empty { margin: 0; padding: var(--s-3); color: var(--ink-3); font-size: var(--t-ui); }
+
+
+/* ---------- 09. Social ---------- */
+
+.social__levels { margin-bottom: var(--s-6); }
+.social-post__who { display: flex; align-items: center; gap: var(--s-3); }
+.social-post__names { color: var(--ink-2); font-size: var(--t-ui); }
+.social-post__score { display: flex; align-items: center; gap: var(--s-2); margin: auto 0 0; padding-top: var(--s-2); }
+.social__more { margin-top: var(--s-6); }
+
+
+/* ---------- 10. Calendario ----------
+   Grilla limpia: hoy con el número en tinta, cada plan con un punto de
+   acento. En escritorio entra entero en la pantalla, sin scroll: la
+   sección mide lo que queda bajo el header y las semanas se reparten ese
+   alto (sean 4, 5 o 6). */
+
+.cal { display: flex; flex-direction: column; gap: var(--s-5); }
+.cal > .back-link { align-self: flex-start; }
+
+.cal__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-4); }
+.cal__head .h2 { margin: 0; }
+.cal__head .lead { margin-top: var(--s-2); }
+
+.cal__nav { display: flex; align-items: center; gap: var(--s-1); }
+.cal__month { min-width: 150px; font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.015em; text-align: center; }
+
+.cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; overflow: hidden; background: var(--line); }
+
+.cal__weekday { padding: 10px 8px; background: var(--surface); color: var(--ink-4); font-size: var(--t-meta); text-align: center; }
+
+.cal__day { display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 96px; padding: 8px; background: var(--surface); }
+.cal__day.is-empty { background: var(--surface-2); }
+
+.cal__num {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  color: var(--ink-3); font-size: var(--t-meta); font-weight: 600; font-variant-numeric: tabular-nums;
+}
+
+.cal__day.is-today .cal__num { background: var(--ink); color: var(--on-ink); }
+
+.cal__plan {
+  display: flex; align-items: center; gap: 6px; min-width: 0; padding: 2px 4px;
+  border-radius: var(--r-xs);
+  color: var(--ink-2); font-size: var(--t-meta); font-weight: 500; text-decoration: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.cal__plan:hover { background: var(--surface-2); color: var(--ink); }
+.cal__dot { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+@media (min-width: 901px) and (min-height: 600px) {
+  .cal { height: calc(100svh - var(--header-h)); padding-bottom: var(--s-6); }
+  .cal__grid { flex: 1 1 auto; min-height: 0; grid-template-rows: auto; grid-auto-rows: minmax(0, 1fr); }
+  .cal__day { min-height: 0; overflow: hidden; padding: 6px 8px; }
+}
+
+/* En celular las celdas son angostas: queda solo el punto (el nombre
+   sigue en el link para lectores de pantalla y en el title). */
+@media (max-width: 700px) {
+  .cal__weekday { padding: 6px 2px; font-size: 11px; }
+  .cal__day { min-height: 60px; padding: 4px; }
+  .cal__plan { padding: 2px; font-size: 0; }
+  .cal__dot { width: 8px; height: 8px; }
+}

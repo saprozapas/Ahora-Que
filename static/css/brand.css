@@ -28,6 +28,7 @@
      19. Detalle de plan y datos clave
      20. Lista de accesos (menú de planes)
      21. Integrantes, card elegible y menú desplegable
+     22. Perfil (propio y público) y estrellas
    ========================================================================== */
 
 
@@ -207,6 +208,7 @@
 .icon-btn:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
 .icon-btn:active { transform: scale(0.98); }
 .icon-btn svg { width: 20px; height: 20px; }
+.icon-btn--danger:hover { color: var(--alert); background: color-mix(in srgb, var(--alert) 8%, transparent); }
 .icon-btn:disabled { opacity: 0.35; cursor: default; background: transparent; transform: none; }
 
 /* Luna en claro, sol en noche. */
@@ -503,6 +505,7 @@ dialog.modal::backdrop { background: var(--scrim); }
   margin: 0;
   font-family: var(--font-sans); font-size: 1.0625rem; font-weight: 600;
   line-height: 1.3; letter-spacing: -0.015em; color: var(--ink);
+  text-wrap: pretty;
 }
 
 .plan-tile__meta { margin: 0; }
@@ -534,6 +537,8 @@ a.plan-tile:hover { box-shadow: var(--sh-float); }
 
 .auth__inner { width: min(400px, 100%); }
 
+.auth__inner--wide { width: min(480px, 100%); }
+
 /* Dentro del dashboard, sin ocupar toda la altura de la ventana. */
 .auth--inline { min-height: 0; padding-block: var(--s-6) var(--s-12); }
 .notice a { color: inherit; font-weight: 550; text-underline-offset: 0.18em; }
@@ -562,6 +567,7 @@ a.plan-tile:hover { box-shadow: var(--sh-float); }
 .auth__trust { margin-top: var(--s-12); }
 
 .btn[aria-busy="true"] { opacity: 0.7; pointer-events: none; }
+.btn:disabled { opacity: 0.5; cursor: default; transform: none; }
 
 
 /* ---------- 12. Mensajes de formulario ---------- */
@@ -841,3 +847,52 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 .idea-menu__item .menu-item__icon { width: 40px; height: 40px; }
 .idea-menu__item.is-disabled { opacity: 0.5; cursor: not-allowed; }
 .idea-menu__item.is-disabled:hover { background: transparent; }
+
+
+/* ---------- 22. Perfil (propio y público) y estrellas ----------
+   Una card con una fila por dato: etiqueta en ink-3 a la izquierda, valor
+   a la derecha y, si se puede editar, el lápiz al final de la fila. */
+
+.profile__head { display: flex; align-items: center; gap: var(--s-5); margin: var(--s-6) 0 var(--s-8); }
+.profile__head .h2 { margin: 0; }
+.profile__head .meta { margin: 4px 0 0; }
+
+.profile__card { max-width: 720px; }
+
+.profile-row {
+  display: grid; grid-template-columns: 160px minmax(0, 1fr); align-items: center;
+  gap: var(--s-2) var(--s-6);
+  margin: 0; padding: var(--s-4) var(--s-6);
+  border-top: 1px solid var(--line);
+}
+
+.profile-row:first-child { border-top: 0; }
+.profile-row__label { color: var(--ink-3); font-size: var(--t-ui); }
+.profile-row__value { display: grid; gap: var(--s-2); min-width: 0; color: var(--ink); }
+
+.profile-row .field-view,
+.profile-row .field-edit { display: flex; align-items: center; gap: var(--s-2); margin: 0; }
+
+.profile-row .field-view [data-role="value"] { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.profile-row .field-edit .input { flex: 1; min-width: 0; font-family: var(--font-sans); }
+.profile-row .is-empty { color: var(--ink-4); }
+
+.profile-row--texto { align-items: start; }
+.profile-row--texto .profile-row__label { padding-top: 9px; }
+.profile-row--texto .field-view,
+.profile-row--texto .field-edit { align-items: flex-start; }
+.profile-row--texto .field-view [data-role="value"] { padding-top: 8px; line-height: 1.5; }
+
+.profile-row__link { justify-self: start; margin-left: calc(var(--s-3) * -1); }
+
+.profile__facts { max-width: 720px; margin-top: var(--s-8); }
+
+@media (max-width: 640px) {
+  .profile-row { grid-template-columns: minmax(0, 1fr); padding: var(--s-4); }
+  .profile-row--texto .profile-row__label { padding-top: 0; }
+}
+
+/* Puntaje en estrellas: llenas en tinta, vacías en ink-4. */
+.stars { display: inline-flex; gap: 1px; font-size: var(--t-ui); line-height: 1; }
+.stars span { color: var(--ink-4); }
+.stars .is-on { color: var(--ink); }

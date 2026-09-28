@@ -5,13 +5,20 @@
 {% macro estrellas(promedio) -%}
   {%- if promedio is not none -%}
     {%- set llenas = promedio | round | int -%}
-    <span class="rating-stars" aria-label="{{ promedio }} de 5 estrellas">
+    <span class="stars" aria-label="{{ promedio }} de 5 estrellas">
       {%- for i in range(5) %}<span class="{{ 'is-on' if i < llenas }}" aria-hidden="true">★</span>{% endfor -%}
     </span>
   {%- endif -%}
 {%- endmacro %}
 
+{% macro avatar(nombre) -%}
+  <span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 28px" aria-hidden="true">{{ nombre[:1] | upper }}</span>
+{%- endmacro %}
+
 {% block content %}
+
+{# Los niveles que acepta la ruta /social (PlanService.NIVELES_SOCIAL). #}
+{% set niveles = [(4, '4★ o más'), (3, '3★ o más'), (2, '2★ o más'), (1, '1★ o más'), (none, 'Todos')] %}
 
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
@@ -22,53 +29,47 @@
 {% endif %}
 
 
-<section class="page-hero section-shell">
+<section class="container page social">
 
-  <a class="back-link" href="/dashboard">← Volver</a>
+  <a class="back-link" href="/dashboard">← Inicio</a>
 
-  <h1>Lo que hicieron<br /><em>tus amigos.</em></h1>
+  <header class="page-head">
+    <div class="page-head__row">
+      <div>
+        <h1 class="h2">Lo que hicieron tus amigos.</h1>
+        <p class="lead">Sus planes de la última semana, primero los mejor puntuados.</p>
+      </div>
+      <a class="btn btn--secondary btn--lg" href="/explorar">Explorar planes</a>
+    </div>
+  </header>
 
-  <p>Planes de tus amigos de la última semana, empezando por los mejor puntuados.</p>
 
-</section>
-
-
-<section
-  class="social-feed section-shell"
-  aria-label="Planes de tus amigos"
->
-
-  <div class="social-feed-heading">
-
-    <p class="section-tag">
-      {% if nivel is none %}
-        todos los planes de la semana
-      {% else %}
-        planes con {{ nivel }}★ o más
-      {% endif %}
-      · {{ planes | length }} de {{ total }}
-    </p>
-
-    <a class="lime-button" href="/explorar">
-      Encontrar un plan <span aria-hidden="true">↗</span>
+  <nav class="chips social__levels" aria-label="Filtrar por puntaje">
+    {% for valor, etiqueta in niveles %}
+    {% set actual = (nivel == valor) %}
+    <a class="chip"
+       href="{{ url_for('social', nivel=(valor if valor is not none else 'todos')) }}"
+       {% if actual %}aria-current="page"{% endif %}>
+      {{ etiqueta }}
+      {% if actual %}<span class="chip__count">{{ planes | length }} de {{ total }}</span>{% endif %}
     </a>
-
-  </div>
+    {% endfor %}
+  </nav>
 
 
   {% if planes %}
 
-  <div class="social-feed-grid">
+  <ul class="plan-list social__feed">
 
     {% for plan in planes %}
-    <article class="social-post{% if loop.index is even %} social-post-accent{% endif %}">
+    <li>
+      <article class="card plan-tile social-post">
 
-      <div class="social-post-author">
-
-        <img src="{{ url_for('static', filename='favicon.svg') }}" alt="" />
-
-        <div>
-          <strong>
+        <div class="social-post__who">
+          <span class="group-members__faces">
+            {% for amigo in plan.amigos[:3] %}{{ avatar(amigo) }}{% endfor %}
+          </span>
+          <span class="social-post__names">
             {% if plan.amigos | length == 1 %}
               Fue {{ plan.amigos[0] }}
             {% elif plan.amigos | length == 2 %}
@@ -76,35 +77,35 @@
             {% else %}
               Fueron {{ plan.amigos[0] }} y {{ plan.amigos | length - 1 }} amigos más
             {% endif %}
-          </strong>
-          <small>
-            {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}
-          </small>
+          </span>
         </div>
 
-      </div>
+        <h2 class="plan-tile__title">
+          <a class="plan-tile__link" href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a>
+        </h2>
 
-      <h2>{{ plan.nombre }}</h2>
+        <p class="meta plan-tile__meta">
+          {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %} · {{ plan.resumen_lugares }}
+        </p>
 
-      <p>{{ plan.resumen_lugares }}</p>
+        <p class="social-post__score">
+          {% if plan.promedio is not none %}
+            {{ estrellas(plan.promedio) }}
+            <span class="meta">{{ plan.promedio }} · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}</span>
+          {% else %}
+            <span class="meta">Sin puntaje todavía</span>
+          {% endif %}
+        </p>
 
-      <div class="social-post-actions">
-        {% if plan.promedio is not none %}
-          <span>{{ estrellas(plan.promedio) }} {{ plan.promedio }} · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}</span>
-        {% else %}
-          <span>Sin puntaje todavía</span>
-        {% endif %}
-        <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">Ver plan ↗</a>
-      </div>
-
-    </article>
+      </article>
+    </li>
     {% endfor %}
 
-  </div>
+  </ul>
 
   {% if hay_siguiente %}
-  <div class="social-ver-mas">
-    <a class="plan-accion-secundaria"
+  <div class="social__more">
+    <a class="btn btn--ghost"
        href="{{ url_for('social', nivel=(siguiente_nivel if siguiente_nivel is not none else 'todos')) }}">
       {% if siguiente_nivel is none %}
         Ver todos los planes de tus amigos
@@ -117,10 +118,9 @@
 
   {% else %}
 
-  <div class="social-feed-empty">
-    <h2>Todavía no hay planes para mostrar.</h2>
-    <p>Cuando tus amigos confirmen planes, los de la última semana van a aparecer acá.</p>
-    <a class="plan-accion-secundaria" href="/amigos">Buscar amigos</a>
+  <div class="empty-state">
+    <p>Todavía no hay planes para mostrar. Cuando tus amigos confirmen planes, los de la última semana aparecen acá.</p>
+    <a class="btn btn--secondary" href="/amigos">Buscar amigos</a>
   </div>
 
   {% endif %}

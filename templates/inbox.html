@@ -2,6 +2,10 @@
 
 {% block title %}Bandeja de entrada — Ahora Qué{% endblock %}
 
+{% macro avatar(nombre) -%}
+  <span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 40px" aria-hidden="true">{{ nombre[:1] | upper }}</span>
+{%- endmacro %}
+
 {% block content %}
 
 {% if logueado %}
@@ -12,235 +16,112 @@
 
   <div class="dashboard-main">
 
-<section class="inbox-section section-shell">
+<section class="container page inbox">
+
+  <header class="page-head">
+    <h1 class="h2">Inbox.</h1>
+    <p class="lead">Invitaciones a grupos y solicitudes de amistad.</p>
+  </header>
+
 
   {% if invitaciones %}
+  <section class="inbox__section" aria-labelledby="inbox-invitaciones">
 
-    <div class="inbox-list">
+    <div class="board__head">
+      <h2 class="h3" id="inbox-invitaciones">Invitaciones a grupos</h2>
+      <span class="meta">{{ invitaciones | length }}</span>
+    </div>
+
+    <ul class="inbox__list">
 
       {% for invitacion in invitaciones %}
+      <li class="card item inbox-item">
 
-        <article class="invitation-card">
+        {{ avatar(invitacion.get_nombre_grupo()) }}
 
-          <div class="invitation-card-content">
-
-            <div class="invitation-group">
-
-              <span class="invitation-label">
-                Invitación a grupo
-              </span>
-
-              <h2>
-                {{ invitacion.get_nombre_grupo() }}
-              </h2>
-
-            </div>
-
-
-            <div class="invitation-details">
-
-              <div class="invitation-inviter">
-
-                <span class="invitation-label">
-                  Invitado por
-                </span>
-
-                <p>
-                  {{ invitacion.get_nombre_invitante() }}
-                </p>
-
-              </div>
-
-
-              {% if invitacion.get_mensaje() %}
-
-                <div class="invitation-description">
-
-                  <span class="invitation-label">
-                    Mensaje
-                  </span>
-
-                  <p>
-                    {{ invitacion.get_mensaje() }}
-                  </p>
-
-                </div>
-
-              {% endif %}
-
-            </div>
-
+        <div class="item__body">
+          <div class="item__top">
+            <span class="item__name">{{ invitacion.get_nombre_grupo() }}</span>
           </div>
+          <p class="inbox-item__text">
+            Te invitó {{ invitacion.get_nombre_invitante() }}{% if invitacion.get_mensaje() %}: “{{ invitacion.get_mensaje() }}”{% endif %}
+          </p>
+        </div>
 
+        <div class="inbox-item__actions">
 
-          <div class="invitation-actions">
+          <form action="/invitaciones/{{ invitacion.get_group_id() }}/aceptar" method="POST">
+            <button class="btn btn--secondary btn--sm" type="submit">Aceptar</button>
+          </form>
 
-            <!-- ACEPTAR INVITACIÓN -->
+          <form action="/invitaciones/{{ invitacion.get_group_id() }}/rechazar" method="POST">
+            <button class="btn btn--ghost btn--sm" type="submit" aria-label="Rechazar invitación a {{ invitacion.get_nombre_grupo() }}">Rechazar</button>
+          </form>
 
-            <form
-              action="/invitaciones/{{ invitacion.get_group_id() }}/aceptar"
-              method="POST"
-            >
+        </div>
 
-              <button
-                class="invitation-action invitation-accept"
-                type="submit"
-                aria-label="Aceptar invitación"
-                title="Aceptar invitación"
-              >
-                ✓
-              </button>
-
-            </form>
-
-
-            <!-- RECHAZAR INVITACIÓN -->
-
-            <form
-              action="/invitaciones/{{ invitacion.get_group_id() }}/rechazar"
-              method="POST"
-            >
-
-              <button
-                class="invitation-action invitation-reject"
-                type="submit"
-                aria-label="Rechazar invitación"
-                title="Rechazar invitación"
-              >
-                ×
-              </button>
-
-            </form>
-
-          </div>
-
-        </article>
-
+      </li>
       {% endfor %}
 
+    </ul>
+
+  </section>
+  {% endif %}
+
+
+  {% if solicitudes_amistad %}
+  <section class="inbox__section" aria-labelledby="inbox-solicitudes">
+
+    <div class="board__head">
+      <h2 class="h3" id="inbox-solicitudes">Solicitudes de amistad</h2>
+      <span class="meta">{{ solicitudes_amistad | length }}</span>
     </div>
 
-  {% elif not solicitudes_amistad %}
+    <ul class="inbox__list">
 
-    <div class="inbox-empty">
+      {% for solicitud in solicitudes_amistad %}
+      <li class="card item inbox-item">
 
-      <div class="empty-symbol" aria-hidden="true">
-        ✦
-      </div>
+        {{ avatar(solicitud.get_nombre_solicitante()) }}
 
-      <h2>
-        No tenés invitaciones pendientes.
-      </h2>
+        <div class="item__body">
+          <div class="item__top">
+            <span class="item__name">{{ solicitud.get_nombre_solicitante() }}</span>
+          </div>
+          <p class="inbox-item__text">
+            Quiere ser tu amigo{% if solicitud.get_username_solicitante() %} · @{{ solicitud.get_username_solicitante() }}{% endif %}
+          </p>
+        </div>
 
-      <p>
-        Cuando alguien te invite a un grupo, vas a encontrarla acá.
-      </p>
+        <div class="inbox-item__actions">
 
-    </div>
+          <form action="{{ url_for('friends.aceptar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}" method="POST">
+            <button class="btn btn--secondary btn--sm" type="submit">Aceptar</button>
+          </form>
 
+          <form action="{{ url_for('friends.rechazar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}" method="POST">
+            <button class="btn btn--ghost btn--sm" type="submit" aria-label="Rechazar solicitud de {{ solicitud.get_nombre_solicitante() }}">Rechazar</button>
+          </form>
+
+        </div>
+
+      </li>
+      {% endfor %}
+
+    </ul>
+
+  </section>
+  {% endif %}
+
+
+  {% if not invitaciones and not solicitudes_amistad %}
+  <div class="empty-state">
+    <p>Tu inbox está al día. Cuando alguien te invite a un grupo o te mande una solicitud, aparece acá.</p>
+    <a class="btn btn--secondary" href="/amigos">Buscar amigos</a>
+  </div>
   {% endif %}
 
 </section>
-
-
-{% if solicitudes_amistad %}
-
-<section class="inbox-section section-shell">
-
-  <div class="inbox-list">
-
-    {% for solicitud in solicitudes_amistad %}
-
-      <article class="invitation-card">
-
-        <div class="invitation-card-content">
-
-          <div class="invitation-group">
-
-            <span class="invitation-label">
-              Solicitud de amistad
-            </span>
-
-            <h2>
-              {{ solicitud.get_nombre_solicitante() }}
-            </h2>
-
-          </div>
-
-
-          <div class="invitation-details">
-
-            {% if solicitud.get_username_solicitante() %}
-
-              <div class="invitation-inviter">
-
-                <span class="invitation-label">
-                  Usuario
-                </span>
-
-                <p>
-                  @{{ solicitud.get_username_solicitante() }}
-                </p>
-
-              </div>
-
-            {% endif %}
-
-          </div>
-
-        </div>
-
-
-        <div class="invitation-actions">
-
-          <!-- ACEPTAR SOLICITUD -->
-
-          <form
-            action="{{ url_for('friends.aceptar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}"
-            method="POST"
-          >
-
-            <button
-              class="invitation-action invitation-accept"
-              type="submit"
-              aria-label="Aceptar solicitud de amistad"
-              title="Aceptar solicitud de amistad"
-            >
-              ✓
-            </button>
-
-          </form>
-
-
-          <!-- RECHAZAR SOLICITUD -->
-
-          <form
-            action="{{ url_for('friends.rechazar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}"
-            method="POST"
-          >
-
-            <button
-              class="invitation-action invitation-reject"
-              type="submit"
-              aria-label="Rechazar solicitud de amistad"
-              title="Rechazar solicitud de amistad"
-            >
-              ×
-            </button>
-
-          </form>
-
-        </div>
-
-      </article>
-
-    {% endfor %}
-
-  </div>
-
-</section>
-
-{% endif %}
 
   </div>
 
