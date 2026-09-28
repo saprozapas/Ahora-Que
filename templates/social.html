@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import chispa %}
 
 {% block title %}Social — Ahora Qué{% endblock %}
 
@@ -37,7 +38,10 @@
     <div class="page-head__row">
       <div>
         <h1 class="h2">Lo que hicieron tus amigos.</h1>
-        <p class="lead">Sus planes de la última semana, primero los mejor puntuados.</p>
+        <p class="voice">
+          <strong>{% if total %}{{ total }} plan{{ 'es' if total != 1 }} en la última semana.{% else %}Esta semana, nada todavía.{% endif %}</strong>
+          Te mostramos primero los mejor puntuados.
+        </p>
       </div>
       <a class="btn btn--secondary btn--lg" href="/explorar">Explorar planes</a>
     </div>

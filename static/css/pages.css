@@ -15,6 +15,7 @@
      08. Inbox y amigos
      09. Social
      10. Calendario
+     11. Resúmenes y citas por pantalla
    ========================================================================== */
 
 
@@ -304,8 +305,7 @@
 .dash-hero { border-bottom: 1px solid var(--line); }
 .dash-hero .page { padding-bottom: var(--s-12); }
 
-.dash-brief { display: grid; justify-items: start; gap: var(--s-5); max-width: 720px; padding-top: var(--s-10); }
-.dash-brief__label { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: var(--accent); font-size: var(--t-meta); font-weight: 600; }
+.dash-brief { gap: var(--s-5); max-width: 720px; padding-top: var(--s-10); }
 .dash-brief .voice { max-width: 40ch; }
 .dash-brief .btn .badge { margin-left: 2px; }
 
@@ -430,3 +430,14 @@
   .cal__plan { padding: 2px; font-size: 0; }
   .cal__dot { width: 8px; height: 8px; }
 }
+
+
+/* ---------- 11. Resúmenes y citas por pantalla ---------- */
+
+.group-brief { max-width: 880px; margin-bottom: var(--s-10); }
+.inbox-item__quote { margin-top: 6px; }
+.page-head .brief { margin-top: var(--s-1); }
+
+/* En el calendario el resumen va un poco más chico que .voice: la grilla
+   tiene que seguir entrando entera en la pantalla. */
+.cal__voice { margin-top: var(--s-2); font-size: clamp(1.25rem, 1.1rem + 0.45vw, 1.5rem); }

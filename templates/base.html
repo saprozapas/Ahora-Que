@@ -42,12 +42,12 @@
          pierde contra estos) hasta que la fase 7 lo saque. -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='style.css', v='20260927-sereno-f6') }}"
+      href="{{ url_for('static', filename='style.css', v='20260927-sereno-f6b') }}"
     />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20260927-sereno-f6') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20260927-sereno-f6') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20260927-sereno-f6') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20260927-sereno-f6') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20260927-sereno-f6b') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20260927-sereno-f6b') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20260927-sereno-f6b') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20260927-sereno-f6b') }}" />
 
     <link
       rel="icon"
@@ -58,7 +58,7 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20260927-sereno-f6') }}"
+      src="{{ url_for('static', filename='app.js', v='20260927-sereno-f6b') }}"
     ></script>
 
   </head>
@@ -192,7 +192,9 @@
     </main>
 
 
-    {% if not logueado %}
+    {# Sin sesión, en todas las páginas. Con sesión, solo donde el template
+       lo pide con mostrar_footer (la landing): en el dashboard no va. #}
+    {% if not logueado or mostrar_footer %}
 
     <footer class="app-footer">
 
@@ -207,18 +209,41 @@
             />
             Ahora Qué
           </a>
-          <p class="meta">Una excusa para hacer algo.</p>
+          <p class="body app-footer__note">Una excusa para hacer algo. Ustedes dicen cuántos son; nosotros, qué hacer.</p>
         </div>
 
-        <nav class="app-footer__links" aria-label="Enlaces del pie">
-          <a href="/explorar">Explorar</a>
+        <nav class="app-footer__col" aria-labelledby="pie-producto">
+          <h2 class="app-footer__title" id="pie-producto">Producto</h2>
+          <a href="/explorar">Explorar planes</a>
           <a href="/grupos">Grupos</a>
-          <a href="/contacto">Contacto</a>
-          <a href="/login">Iniciar sesión</a>
+          <a href="/#como-funciona">Cómo funciona</a>
         </nav>
 
-        <span class="meta">© 2026 Ahora Qué</span>
+        <nav class="app-footer__col" aria-labelledby="pie-cuenta">
+          <h2 class="app-footer__title" id="pie-cuenta">Tu cuenta</h2>
+          {% if logueado %}
+          <a href="/dashboard">Dashboard</a>
+          <a href="/perfil">Perfil</a>
+          <a href="/logout">Cerrar sesión</a>
+          {% else %}
+          <a href="/login">Iniciar sesión</a>
+          <a href="/register">Crear cuenta</a>
+          {% endif %}
+        </nav>
 
+        <nav class="app-footer__col" aria-labelledby="pie-ayuda">
+          <h2 class="app-footer__title" id="pie-ayuda">Ayuda</h2>
+          <a href="/#preguntas">Preguntas frecuentes</a>
+          <a href="/contacto">Contacto</a>
+        </nav>
+
+      </div>
+
+      <div class="container">
+        <div class="app-footer__bottom">
+          <span class="meta">© 2026 Ahora Qué</span>
+          <span class="meta">Hecho con Inter y Newsreader</span>
+        </div>
       </div>
 
     </footer>

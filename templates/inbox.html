@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import chispa %}
 
 {% block title %}Bandeja de entrada — Ahora Qué{% endblock %}
 
@@ -18,9 +19,24 @@
 
 <section class="container page inbox">
 
+  {% set n_inv = invitaciones | length if invitaciones else 0 %}
+  {% set n_sol = solicitudes_amistad | length if solicitudes_amistad else 0 %}
+
   <header class="page-head">
     <h1 class="h2">Inbox.</h1>
+    {% if n_inv or n_sol %}
+    <div class="brief">
+      <p class="brief__label">{{ chispa() }} Resumen</p>
+      <p class="voice">
+        <strong>
+          {% if n_inv %}{{ n_inv }} invitaci{{ 'ones' if n_inv != 1 else 'ón' }} a grupo{{ 's' if n_inv != 1 }}{% endif %}{% if n_inv and n_sol %} y {% endif %}{% if n_sol %}{{ n_sol }} solicitud{{ 'es' if n_sol != 1 }} de amistad{% endif %}.
+        </strong>
+        Aceptalas y aparecen en tus grupos y tus amigos.
+      </p>
+    </div>
+    {% else %}
     <p class="lead">Invitaciones a grupos y solicitudes de amistad.</p>
+    {% endif %}
   </header>
 
 
@@ -43,9 +59,10 @@
           <div class="item__top">
             <span class="item__name">{{ invitacion.get_nombre_grupo() }}</span>
           </div>
-          <p class="inbox-item__text">
-            Te invitó {{ invitacion.get_nombre_invitante() }}{% if invitacion.get_mensaje() %}: “{{ invitacion.get_mensaje() }}”{% endif %}
-          </p>
+          <p class="inbox-item__text">Te invitó {{ invitacion.get_nombre_invitante() }}</p>
+          {% if invitacion.get_mensaje() %}
+          <p class="quote inbox-item__quote">“{{ invitacion.get_mensaje() }}”</p>
+          {% endif %}
         </div>
 
         <div class="inbox-item__actions">

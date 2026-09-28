@@ -21,7 +21,13 @@
 
     <div>
       <h1 class="h2">Calendario.</h1>
-      <p class="lead">Los planes que confirmaste, mes a mes.</p>
+      {# Cuántos planes hay en el mes que se está mirando. #}
+      {% set cuenta = namespace(n=0) %}
+      {% for semana in semanas %}{% for dia in semana %}{% set cuenta.n = cuenta.n + dia.planes | length %}{% endfor %}{% endfor %}
+      <p class="voice cal__voice">
+        <strong>{% if cuenta.n %}{{ cuenta.n }} plan{{ 'es' if cuenta.n != 1 }} en {{ nombre_mes | lower }}.{% else %}{{ nombre_mes }}, sin planes todavía.{% endif %}</strong>
+        Los que confirmás con tus grupos aparecen acá.
+      </p>
     </div>
 
     <nav class="cal__nav" aria-label="Cambiar de mes">

@@ -1,4 +1,8 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import chispa %}
+
+{# El footer va en la landing siempre, con o sin sesión (no en el dashboard). #}
+{% set mostrar_footer = not (dashboard and logueado) %}
 
 {% block title %}Ahora Qué{% endblock %}
 
@@ -23,15 +27,15 @@
 
   <div class="dashboard-main">
 
-    <section class="topo topo--sutil dash-hero">
+    <section class="topo topo--sutil dot-grid dash-hero">
 
       {% include '_topografia.html' %}
 
       <div class="container page">
 
-        <div class="dash-brief">
+        <div class="brief dash-brief">
 
-          <p class="dash-brief__label"><span aria-hidden="true">✦</span> Resumen</p>
+          <p class="brief__label">{{ chispa() }} Resumen</p>
 
           <p class="voice">
             <strong>Hola{% if nombre %}, {{ nombre.split(' ')[0] }}{% endif %}.</strong>
@@ -147,7 +151,7 @@
 
 <!-- HERO ------------------------------------------------------------------ -->
 
-<section class="landing-hero topo">
+<section class="landing-hero topo dot-grid">
 
   {% include '_topografia.html' %}
 
@@ -362,7 +366,7 @@
 
 <!-- PREGUNTAS FRECUENTES --------------------------------------------------- -->
 
-<section class="section landing-faq">
+<section class="section landing-faq" id="preguntas">
 
   <div class="container landing-split">
 

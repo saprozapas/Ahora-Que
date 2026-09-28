@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import chispa %}
 
 {% block title %}{{ group.get_name() }} — Ahora Qué{% endblock %}
 
@@ -123,6 +124,29 @@
   </header>
 
 
+  <!-- Resumen del tablero en la voz de la marca: solo cuentas de lo que ya
+       viene en `tablero`. -->
+  {% set n_puntuar = tablero.para_puntuar | length %}
+  {% set n_votacion = tablero.votacion | length %}
+  {% set n_horario = tablero.esperando_horario | length %}
+  {% set n_confirmados = tablero.confirmados | length %}
+  {% set sin_votar = tablero.votacion | selectattr('mi_gusta', 'none') | list | length %}
+  {% set activos = n_votacion + n_horario + n_confirmados %}
+
+  {% if activos or n_puntuar %}
+  <div class="brief group-brief">
+    <p class="brief__label">{{ chispa() }} Resumen</p>
+    <p class="voice">
+      <strong>{% if activos %}{{ activos }} plan{{ 'es' if activos != 1 }} en marcha.{% else %}Nada en marcha por ahora.{% endif %}</strong>
+      {% if sin_votar %}Te falta votar {{ sin_votar }} idea{{ 's' if sin_votar != 1 }}.{% endif %}
+      {% if n_horario %}{{ n_horario }} {{ 'busca' if n_horario == 1 else 'buscan' }} horario.{% endif %}
+      {% if n_confirmados %}{{ n_confirmados }} ya {{ 'está confirmado' if n_confirmados == 1 else 'están confirmados' }}.{% endif %}
+      {% if n_puntuar %}Y {{ 'queda' if n_puntuar == 1 else 'quedan' }} {{ n_puntuar }} para puntuar.{% endif %}
+    </p>
+  </div>
+  {% endif %}
+
+
   <!-- =======================================================================
        TABLERO DEL GRUPO
 
@@ -199,7 +223,7 @@
           <span class="tag">En votación</span>
           <h3 class="plan-tile__title"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
           <p class="meta">Postulada por {{ plan.creador }} para el {{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
-          {% if plan.descripcion %}<p class="plan-tile__text">{{ plan.descripcion }}</p>{% endif %}
+          {% if plan.descripcion %}<p class="quote">“{{ plan.descripcion }}”</p>{% endif %}
         </header>
 
         <p class="meta board-plan__count">
