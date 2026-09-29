@@ -2,15 +2,9 @@ import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from models.group import Group
 from models.user import User
-from database import get_db_connection
+from database import get_db_connection, release_db_connection
 import psycopg2
-import psycopg2.extras
 
-
-####################################################
-##   IMPLEMENTAR LALO, TODO POSIBLE GET DE LA BASE DE DATOS QUE SE PUEDA QUERER HACER.
-##   TENES EJEMPLO DE COMO SE USA LA CONEXION EN EL ARCHIVO DE AUTH_SERVICES.PY
-##################################################
 
 def getUser(uid):
     connection = get_db_connection()
@@ -51,7 +45,7 @@ def getUser(uid):
         raise
 
     finally:
-        connection.close()
+        release_db_connection(connection)
 
 def getGroupsForUser(uid):
     connection = get_db_connection()
@@ -82,7 +76,7 @@ def getGroupsForUser(uid):
         raise
 
     finally:
-        connection.close()
+        release_db_connection(connection)
 
 def getGroupById(group_id):
     connection = get_db_connection()
@@ -117,7 +111,7 @@ def getGroupById(group_id):
         raise
 
     finally:
-        connection.close()
+        release_db_connection(connection)
 
 def getUsersInGroup(group_id):
     connection = get_db_connection()
@@ -145,7 +139,7 @@ def getUsersInGroup(group_id):
         raise
 
     finally:
-        connection.close()
+        release_db_connection(connection)
 
 def getUsersInGroupWithIds(group_id):
     """Como getUsersInGroup, pero devuelve también el Id_Usuario de cada
@@ -179,7 +173,7 @@ def getUsersInGroupWithIds(group_id):
         raise
 
     finally:
-        connection.close()
+        release_db_connection(connection)
 
 def getFriendsForUser(uid):
     """Amigos ya confirmados de un usuario, con su Id_Usuario incluido
@@ -217,7 +211,7 @@ def getFriendsForUser(uid):
         raise
 
     finally:
-        connection.close()
+        release_db_connection(connection)
 
 
 def buscarUsuarios(query, uid_actual, limite=8):
@@ -277,7 +271,7 @@ def buscarUsuarios(query, uid_actual, limite=8):
         raise
 
     finally:
-        connection.close()
+        release_db_connection(connection)
 
 
 def isUserInGroup(uid, group_id):
@@ -305,5 +299,5 @@ def isUserInGroup(uid, group_id):
         raise
 
     finally:
-        connection.close()
+        release_db_connection(connection)
         

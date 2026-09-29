@@ -1,6 +1,7 @@
 import os
 
 from psycopg2 import pool
+import psycopg2
 
 # ---- CONEXIÓN A LA BASE DE DATOS (Supabase / PostgreSQL) ----
 DB_URL = os.environ.get(
