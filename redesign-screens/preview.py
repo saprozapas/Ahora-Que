@@ -12,9 +12,10 @@ Uso (desde la raíz del repo):
     python redesign-screens/preview.py
 o doble clic en redesign-screens/ver-rediseno.bat.
 
-Después entrá a http://127.0.0.1:5058/demo, que inicia una sesión de
-ejemplo (Valentina Sosa) y te lleva al dashboard. Las páginas públicas
-(landing, login, registro, explorar) se ven en http://127.0.0.1:5058/.
+Después entrá a http://127.0.0.1:5058/dashboard (o a cualquier pantalla
+con sesión): la demo entra sola con un usuario de ejemplo (Valentina
+Sosa). El login y el registro también funcionan con cualquier dato. Las
+páginas públicas (landing, explorar) se ven en http://127.0.0.1:5058/.
 
 No cambia ningún archivo del backend: solo reemplaza funciones en memoria
 mientras corre este proceso.
@@ -57,8 +58,28 @@ app.jinja_env.auto_reload = True
 
 AVISO = "Vista de demo: no se guarda nada."
 
+# Pantallas que piden sesión. Si se entra sin sesión (por ejemplo, abriendo
+# /dashboard directo), la demo inicia sola la sesión de ejemplo.
+CON_SESION = ("/dashboard", "/inbox", "/grupos", "/amigos", "/social", "/perfil",
+              "/planes", "/calendario", "/usuarios", "/invitaciones")
+
+
+def _iniciar_sesion_de_ejemplo():
+    session["user_id"] = "u1"
+    session["user"] = {"name": "Valentina Sosa", "username": "valen", "email": "valen@ejemplo.com",
+                       "descripcion": "Me gustan los planes al aire libre y las juntadas tranquilas."}
+
 
 def _no_guardar():
+    # Login y registro no consultan la base: con cualquier dato se entra
+    # con el usuario de ejemplo.
+    if request.method == "POST" and request.path in ("/login", "/register"):
+        _iniciar_sesion_de_ejemplo()
+        return redirect("/dashboard")
+
+    if request.method == "GET" and not session.get("user_id") and request.path.startswith(CON_SESION):
+        _iniciar_sesion_de_ejemplo()
+
     if request.method == "POST":
         if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.path.startswith("/amigos/solicitar"):
             return jsonify(ok=False, error=AVISO, estado=None)
@@ -223,9 +244,7 @@ calendario.plan_service.get_planes_confirmados_calendario = lambda uid: [
 
 @app.route("/demo")
 def entrar_a_la_demo():
-    session["user_id"] = "u1"
-    session["user"] = {"name": "Valentina Sosa", "username": "valen", "email": "valen@ejemplo.com",
-                       "descripcion": "Me gustan los planes al aire libre y las juntadas tranquilas."}
+    _iniciar_sesion_de_ejemplo()
     return redirect("/dashboard")
 
 
