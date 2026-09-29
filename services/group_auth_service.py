@@ -80,4 +80,21 @@ class GroupAuthService:
         cursor.close()
         conn.close()
 
+    def delete_user_from_group(self, group_id, user_id):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            DELETE FROM public."Usuario-Grupo"
+            WHERE "Id_Usuario" = %s AND "Id_Grupo" = %s
+            """,
+            (user_id, group_id)
+        )
+
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+
     

@@ -131,3 +131,13 @@ def editar_grupo(group_id):
         flash("Error al actualizar el grupo.")
 
     return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
+@group_auth.route("/grupos/<group_id>/eliminar-grupo", methods=["POST"])
+def abandonar_grupo(group_id):
+    try:
+        group_auth_service.delete_user_from_group(group_id, session.get("user_id"))
+        flash("Grupo abandonado exitosamente.")
+    except Exception as e:
+        flash("Error al abandonar el grupo.")
+
+    return redirect(url_for("group_auth.grupos"))

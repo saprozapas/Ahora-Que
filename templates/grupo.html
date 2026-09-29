@@ -5,23 +5,22 @@
 {% block content %}
 
 {% if logueado %}
+
 <div class="dashboard-layout dashboard-layout-page">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
+
 {% endif %}
 
 
 <!-- =========================================================================
      CABECERA DEL GRUPO
-
-     Centrada arriba de la ventana: nombre, el lápiz de editar debajo de
-     ese, descripción, y los dos botones más abajo, como una unidad.
-     ========================================================================= -->
+     ========================================================================== -->
 
 <section class="group-detail section-shell">
-  
+
   <a class="back-link" href="/grupos">← Volver a grupos</a>
 
   <header class="group-detail-head">
@@ -50,7 +49,9 @@
 
     {% if group.get_description() %}
 
-    <p class="group-detail-lead">{{ group.get_description() }}</p>
+    <p class="group-detail-lead">
+      {{ group.get_description() }}
+    </p>
 
     {% else %}
 
@@ -60,54 +61,103 @@
 
     {% endif %}
 
+
     <div class="group-detail-actions">
 
       <details class="group-plus">
 
-        <summary class="lime-button" aria-label="Agregar una idea al grupo">
+        <summary
+          class="lime-button"
+          aria-label="Agregar una idea al grupo"
+        >
           <span aria-hidden="true">+</span> Idea
         </summary>
 
         <div class="group-plus-menu">
 
-          <a class="group-plus-item"
-             href="{{ url_for('grupo_planes.postular', group_id=group.get_id()) }}">
+          <a
+            class="group-plus-item"
+            href="{{ url_for('grupo_planes.postular', group_id=group.get_id()) }}"
+          >
+
             <span class="group-plus-icon" aria-hidden="true">
+
               <svg viewBox="0 0 24 24" focusable="false">
-                <path d="M6 3.8h12v16.4l-6-4.2-6 4.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+                <path
+                  d="M6 3.8h12v16.4l-6-4.2-6 4.2Z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linejoin="round"
+                />
               </svg>
+
             </span>
+
             <span>
               <strong>Postular idea</strong>
               <small>Elegí una de tus ideas guardadas</small>
             </span>
+
           </a>
 
-          <!-- El chatbot todavía no existe: queda el acceso visible pero deshabilitado. -->
-          <span class="group-plus-item is-disabled" aria-disabled="true">
+
+          <!-- El chatbot todavía no existe -->
+
+          <span
+            class="group-plus-item is-disabled"
+            aria-disabled="true"
+          >
+
             <span class="group-plus-icon" aria-hidden="true">
+
               <svg viewBox="0 0 24 24" focusable="false">
-                <rect x="4" y="7" width="16" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8" />
-                <path d="M12 3.5V7M9 12.5h.01M15 12.5h.01M9.5 16h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+
+                <rect
+                  x="4"
+                  y="7"
+                  width="16"
+                  height="12"
+                  rx="3"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                />
+
+                <path
+                  d="M12 3.5V7M9 12.5h.01M15 12.5h.01M9.5 16h5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                />
+
               </svg>
+
             </span>
+
             <span>
               <strong>Crear idea</strong>
               <small>Con el asistente · próximamente</small>
             </span>
+
           </span>
 
         </div>
 
       </details>
 
+
       <button
         class="dark-button"
         type="button"
         data-modal-open="modal-invitar"
       >
+
         <span aria-hidden="true">
+
           <svg viewBox="0 0 24 24" focusable="false">
+
             <path
               d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
               fill="none"
@@ -116,6 +166,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             />
+
             <path
               d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
               fill="none"
@@ -124,14 +175,31 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             />
+
           </svg>
+
         </span>
+
         <span>Invitar</span>
+
       </button>
 
-      <a class="logout-button" href="/abandonar_grupo">
+
+      <!-- ================================================================
+           ABANDONAR GRUPO
+           Ahora abre una confirmación en vez de ir directamente a la ruta.
+           ================================================================ -->
+
+      <button
+        class="logout-button"
+        type="button"
+        data-modal-open="modal-abandonar-grupo"
+      >
+
         <span aria-hidden="true">
+
           <svg viewBox="0 0 24 24" focusable="false">
+
             <path
               d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"
               fill="none"
@@ -140,6 +208,7 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             />
+
             <path
               d="M10 12h11m0 0-3.5-3.5M21 12l-3.5 3.5"
               fill="none"
@@ -148,10 +217,14 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             />
+
           </svg>
+
         </span>
+
         <span>Abandonar</span>
-      </a>
+
+      </button>
 
     </div>
 
@@ -160,194 +233,547 @@
 
   <!-- =======================================================================
        PLANES DEL GRUPO
-
-       Separados por estado: primero lo que pide acción (puntuar, votar,
-       proponer horario) y después lo ya confirmado.
        ======================================================================= -->
 
   {% macro cuando(plan) -%}
-    {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} a las {{ plan.hora.strftime('%H:%M') }}{% endif %}
+
+    {{ plan.fecha.strftime('%d/%m') }}
+
+    {% if plan.hora %}
+      a las {{ plan.hora.strftime('%H:%M') }}
+    {% endif %}
+
   {%- endmacro %}
 
+
   {% macro si_no(nombre, valor) %}
+
     <label>
-      <input type="radio" name="{{ nombre }}" value="si" required {% if valor == true %}checked{% endif %} />
+
+      <input
+        type="radio"
+        name="{{ nombre }}"
+        value="si"
+        required
+        {% if valor == true %}checked{% endif %}
+      />
+
       <span>Sí</span>
+
     </label>
+
+
     <label>
-      <input type="radio" name="{{ nombre }}" value="no" required {% if valor == false %}checked{% endif %} />
+
+      <input
+        type="radio"
+        name="{{ nombre }}"
+        value="no"
+        required
+        {% if valor == false %}checked{% endif %}
+      />
+
       <span>No</span>
+
     </label>
+
   {% endmacro %}
+
 
   <div class="group-board" id="planes-grupo">
 
-    {% set hay_planes = tablero.para_puntuar or tablero.votacion or tablero.esperando_horario or tablero.confirmados %}
+    {% set hay_planes =
+      tablero.para_puntuar
+      or tablero.votacion
+      or tablero.esperando_horario
+      or tablero.confirmados
+    %}
+
 
     {% if not hay_planes %}
+
     <div class="group-board-empty">
+
       <h2>Todavía no hay planes en este grupo.</h2>
-      <p>Tocá <strong>+ Idea</strong> para postular una de tus ideas guardadas y que el grupo la vote.</p>
+
+      <p>
+        Tocá <strong>+ Idea</strong> para postular una de tus ideas
+        guardadas y que el grupo la vote.
+      </p>
+
     </div>
+
     {% endif %}
 
 
     {# ------------------------------- PUNTUAR ------------------------------- #}
+
     {% if tablero.para_puntuar %}
-    <h2 class="group-board-title">¿Qué tal estuvo?</h2>
+
+    <h2 class="group-board-title">
+      ¿Qué tal estuvo?
+    </h2>
 
     {% for plan in tablero.para_puntuar %}
-    <article class="group-plan" id="plan-{{ plan.id }}">
+
+    <article
+      class="group-plan"
+      id="plan-{{ plan.id }}"
+    >
+
       <header class="group-plan-head">
-        <span class="plan-estado plan-estado-archivado">Para puntuar</span>
-        <h3><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
-        <p>Fue el {{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
+
+        <span class="plan-estado plan-estado-archivado">
+          Para puntuar
+        </span>
+
+        <h3>
+          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">
+            {{ plan.nombre }}
+          </a>
+        </h3>
+
+        <p>
+          Fue el {{ cuando(plan) }} · {{ plan.resumen_lugares }}
+        </p>
+
       </header>
 
-      <form method="post" action="{{ url_for('planes.puntuar', plan_id=plan.id) }}">
-        <input type="hidden" name="volver" value="{{ request.path }}#planes-grupo" />
+
+      <form
+        method="post"
+        action="{{ url_for('planes.puntuar', plan_id=plan.id) }}"
+      >
+
+        <input
+          type="hidden"
+          name="volver"
+          value="{{ request.path }}#planes-grupo"
+        />
+
         <fieldset class="plan-puntaje-opciones">
+
           <legend>Tu puntaje</legend>
+
           {% for n in range(6) %}
+
           <label>
-            <input type="radio" name="puntaje" value="{{ n }}" required />
+
+            <input
+              type="radio"
+              name="puntaje"
+              value="{{ n }}"
+              required
+            />
+
             <span>{{ n }}★</span>
+
           </label>
+
           {% endfor %}
+
         </fieldset>
-        <button class="plan-accion-secundaria" type="submit">Puntuar</button>
+
+
+        <button
+          class="plan-accion-secundaria"
+          type="submit"
+        >
+          Puntuar
+        </button>
+
       </form>
+
     </article>
+
     {% endfor %}
+
     {% endif %}
 
 
     {# ------------------------------- VOTACIÓN ------------------------------ #}
+
     {% if tablero.votacion %}
-    <h2 class="group-board-title">En votación</h2>
+
+    <h2 class="group-board-title">
+      En votación
+    </h2>
 
     {% for plan in tablero.votacion %}
-    <article class="group-plan" id="plan-{{ plan.id }}">
+
+    <article
+      class="group-plan"
+      id="plan-{{ plan.id }}"
+    >
+
       <header class="group-plan-head">
-        <span class="plan-estado plan-estado-votacion">En votación</span>
-        <h3><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
-        <p>Postulada por {{ plan.creador }} para el {{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
-        {% if plan.descripcion %}<p>{{ plan.descripcion }}</p>{% endif %}
+
+        <span class="plan-estado plan-estado-votacion">
+          En votación
+        </span>
+
+        <h3>
+          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">
+            {{ plan.nombre }}
+          </a>
+        </h3>
+
+        <p>
+          Postulada por {{ plan.creador }}
+          para el {{ cuando(plan) }}
+          · {{ plan.resumen_lugares }}
+        </p>
+
+        {% if plan.descripcion %}
+
+        <p>
+          {{ plan.descripcion }}
+        </p>
+
+        {% endif %}
+
       </header>
 
+
       <p class="group-plan-conteo">
-        {{ plan.votos }} de {{ plan.miembros }} votaron · {{ plan.gustan }} les gusta · {{ plan.pueden }} pueden
+
+        {{ plan.votos }} de {{ plan.miembros }} votaron
+        · {{ plan.gustan }} les gusta
+        · {{ plan.pueden }} pueden
+
       </p>
 
-      <form class="group-plan-voto" method="post"
-            action="{{ url_for('grupo_planes.votar', group_id=group.get_id(), plan_id=plan.id) }}">
+
+      <form
+        class="group-plan-voto"
+        method="post"
+        action="{{ url_for(
+          'grupo_planes.votar',
+          group_id=group.get_id(),
+          plan_id=plan.id
+        ) }}"
+      >
+
         <fieldset class="plan-puntaje-opciones">
+
           <legend>¿Te gusta la idea?</legend>
+
           {{ si_no('me_gusta', plan.mi_gusta) }}
+
         </fieldset>
+
+
         <fieldset class="plan-puntaje-opciones">
-          <legend>¿Podés el {{ cuando(plan) }}?</legend>
+
+          <legend>
+            ¿Podés el {{ cuando(plan) }}?
+          </legend>
+
           {{ si_no('puedo', plan.mi_puedo) }}
+
         </fieldset>
-        <button class="plan-accion-secundaria" type="submit">
-          {% if plan.mi_gusta is none %}Votar{% else %}Cambiar mi voto{% endif %}
+
+
+        <button
+          class="plan-accion-secundaria"
+          type="submit"
+        >
+
+          {% if plan.mi_gusta is none %}
+            Votar
+          {% else %}
+            Cambiar mi voto
+          {% endif %}
+
         </button>
+
       </form>
 
+
       {% if plan.es_creador %}
-      <form method="post"
-            action="{{ url_for('grupo_planes.cerrar', group_id=group.get_id(), plan_id=plan.id) }}"
-            onsubmit="return confirm('¿Cerrar la votación con los votos que hay hasta ahora?')">
-        <button class="group-plan-link" type="submit">Cerrar votación ahora</button>
+
+      <form
+        method="post"
+        action="{{ url_for(
+          'grupo_planes.cerrar',
+          group_id=group.get_id(),
+          plan_id=plan.id
+        ) }}"
+        onsubmit="return confirm(
+          '¿Cerrar la votación con los votos que hay hasta ahora?'
+        )"
+      >
+
+        <button
+          class="group-plan-link"
+          type="submit"
+        >
+          Cerrar votación ahora
+        </button>
+
       </form>
+
       {% endif %}
+
     </article>
+
     {% endfor %}
+
     {% endif %}
 
 
     {# --------------------------- ESPERANDO HORARIO -------------------------- #}
+
     {% if tablero.esperando_horario %}
-    <h2 class="group-board-title">Buscando horario</h2>
+
+    <h2 class="group-board-title">
+      Buscando horario
+    </h2>
 
     {% for plan in tablero.esperando_horario %}
-    <article class="group-plan" id="plan-{{ plan.id }}">
+
+    <article
+      class="group-plan"
+      id="plan-{{ plan.id }}"
+    >
+
       <header class="group-plan-head">
-        <span class="plan-estado plan-estado-esperando_horario">Esperando horario</span>
-        <h3><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
-        <p>Al grupo le gustó, pero no podían el {{ cuando(plan) }}. Propongan otro horario.</p>
+
+        <span class="plan-estado plan-estado-esperando_horario">
+          Esperando horario
+        </span>
+
+        <h3>
+          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">
+            {{ plan.nombre }}
+          </a>
+        </h3>
+
+        <p>
+          Al grupo le gustó, pero no podían el
+          {{ cuando(plan) }}.
+          Propongan otro horario.
+        </p>
+
       </header>
 
+
       {% if plan.horarios %}
+
       <ul class="group-horarios">
+
         {% for h in plan.horarios %}
+
         <li>
+
           <div>
-            <strong>{{ h.fecha.strftime('%d/%m') }} a las {{ h.hora.strftime('%H:%M') }}</strong>
-            <small>Propuesto por {{ h.propuesto_por }} · {{ h.pueden }} de {{ plan.miembros }} pueden ({{ h.votos }} votaron)</small>
+
+            <strong>
+              {{ h.fecha.strftime('%d/%m') }}
+              a las {{ h.hora.strftime('%H:%M') }}
+            </strong>
+
+            <small>
+              Propuesto por {{ h.propuesto_por }}
+              · {{ h.pueden }} de {{ plan.miembros }} pueden
+              ({{ h.votos }} votaron)
+            </small>
+
           </div>
 
-          <form method="post"
-                action="{{ url_for('grupo_planes.votar_horario', group_id=group.get_id(), horario_id=h.id) }}"
-                class="group-horario-voto">
-            <button type="submit" name="puedo" value="si"
-                    class="{{ 'is-elegido' if h.mi_puedo == true }}">Puedo</button>
-            <button type="submit" name="puedo" value="no"
-                    class="{{ 'is-elegido' if h.mi_puedo == false }}">No puedo</button>
+
+          <form
+            method="post"
+            action="{{ url_for(
+              'grupo_planes.votar_horario',
+              group_id=group.get_id(),
+              horario_id=h.id
+            ) }}"
+            class="group-horario-voto"
+          >
+
+            <button
+              type="submit"
+              name="puedo"
+              value="si"
+              class="{{ 'is-elegido' if h.mi_puedo == true }}"
+            >
+              Puedo
+            </button>
+
+            <button
+              type="submit"
+              name="puedo"
+              value="no"
+              class="{{ 'is-elegido' if h.mi_puedo == false }}"
+            >
+              No puedo
+            </button>
+
           </form>
+
 
           {% if plan.es_creador %}
-          <form method="post"
-                action="{{ url_for('grupo_planes.cerrar_horario', group_id=group.get_id(), horario_id=h.id) }}"
-                onsubmit="return confirm('¿Cerrar la votación de este horario?')">
-            <button class="group-plan-link" type="submit">Cerrar</button>
+
+          <form
+            method="post"
+            action="{{ url_for(
+              'grupo_planes.cerrar_horario',
+              group_id=group.get_id(),
+              horario_id=h.id
+            ) }}"
+            onsubmit="return confirm(
+              '¿Cerrar la votación de este horario?'
+            )"
+          >
+
+            <button
+              class="group-plan-link"
+              type="submit"
+            >
+              Cerrar
+            </button>
+
           </form>
+
           {% endif %}
+
         </li>
+
         {% endfor %}
+
       </ul>
+
       {% endif %}
 
-      <form class="group-horario-nuevo" method="post"
-            action="{{ url_for('grupo_planes.proponer_horario', group_id=group.get_id(), plan_id=plan.id) }}">
+
+      <form
+        class="group-horario-nuevo"
+        method="post"
+        action="{{ url_for(
+          'grupo_planes.proponer_horario',
+          group_id=group.get_id(),
+          plan_id=plan.id
+        ) }}"
+      >
+
         <label>
+
           <span>Fecha</span>
-          <input type="date" name="fecha" min="{{ hoy }}" required />
+
+          <input
+            type="date"
+            name="fecha"
+            min="{{ hoy }}"
+            required
+          />
+
         </label>
+
+
         <label>
+
           <span>Hora</span>
-          <input type="time" name="hora" required />
+
+          <input
+            type="time"
+            name="hora"
+            required
+          />
+
         </label>
-        <button class="plan-accion-secundaria" type="submit">Proponer horario</button>
+
+
+        <button
+          class="plan-accion-secundaria"
+          type="submit"
+        >
+          Proponer horario
+        </button>
+
       </form>
+
     </article>
+
     {% endfor %}
+
     {% endif %}
 
 
     {# ------------------------------ CONFIRMADOS ------------------------------ #}
+
     {% if tablero.confirmados %}
-    <h2 class="group-board-title">Confirmados</h2>
+
+    <h2 class="group-board-title">
+      Confirmados
+    </h2>
 
     {% for plan in tablero.confirmados %}
-    <article class="group-plan" id="plan-{{ plan.id }}">
+
+    <article
+      class="group-plan"
+      id="plan-{{ plan.id }}"
+    >
+
       <header class="group-plan-head">
-        <span class="plan-estado plan-estado-confirmado">Confirmado</span>
-        <h3><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
-        <p>{{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
-        <p>Van: {{ plan.van | join(', ') if plan.van else 'nadie todavía' }}</p>
+
+        <span class="plan-estado plan-estado-confirmado">
+          Confirmado
+        </span>
+
+        <h3>
+          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">
+            {{ plan.nombre }}
+          </a>
+        </h3>
+
+        <p>
+          {{ cuando(plan) }}
+          · {{ plan.resumen_lugares }}
+        </p>
+
+        <p>
+          Van:
+          {{ plan.van | join(', ') if plan.van else 'nadie todavía' }}
+        </p>
+
       </header>
 
+
       {% if plan.confirmado %}
-      <p class="group-plan-conteo">✓ Vas a este plan</p>
+
+      <p class="group-plan-conteo">
+        ✓ Vas a este plan
+      </p>
+
       {% else %}
-      <form method="post" action="{{ url_for('planes.sumarme', plan_id=plan.id) }}">
-        <input type="hidden" name="volver" value="{{ request.path }}#planes-grupo" />
-        <button class="lime-button" type="submit">Me sumo</button>
+
+      <form
+        method="post"
+        action="{{ url_for('planes.sumarme', plan_id=plan.id) }}"
+      >
+
+        <input
+          type="hidden"
+          name="volver"
+          value="{{ request.path }}#planes-grupo"
+        />
+
+        <button
+          class="lime-button"
+          type="submit"
+        >
+          Me sumo
+        </button>
+
       </form>
+
       {% endif %}
+
     </article>
+
     {% endfor %}
+
     {% endif %}
 
   </div>
@@ -355,19 +781,37 @@
 
   <!-- =======================================================================
        CHAT DEL GRUPO
-
-       Solo la maqueta: queda la barra para implementar el chat interno
-       del grupo más adelante. Está deshabilitada a propósito.
        ======================================================================= -->
 
-  <div class="group-ai-prompt group-chat" aria-disabled="true">
+  <div
+    class="group-ai-prompt group-chat"
+    aria-disabled="true"
+  >
 
-    <span class="group-ai-prompt-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" focusable="false" width="20" height="20">
-        <path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"
-              fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+    <span
+      class="group-ai-prompt-icon"
+      aria-hidden="true"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        focusable="false"
+        width="20"
+        height="20"
+      >
+
+        <path
+          d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
+
       </svg>
+
     </span>
+
 
     <textarea
       class="group-ai-prompt-input"
@@ -379,11 +823,37 @@
       disabled
     ></textarea>
 
-    <button class="group-ai-prompt-send" type="button" aria-label="Enviar" disabled>
-      <svg viewBox="0 0 24 24" focusable="false">
-        <path d="M22 2 11 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-        <path d="M22 2 15 22 11 13 2 9 22 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+
+    <button
+      class="group-ai-prompt-send"
+      type="button"
+      aria-label="Enviar"
+      disabled
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        focusable="false"
+      >
+
+        <path
+          d="M22 2 11 13"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+
+        <path
+          d="M22 2 15 22 11 13 2 9 22 2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linejoin="round"
+        />
+
       </svg>
+
     </button>
 
   </div>
@@ -393,16 +863,31 @@
 
 <!-- =========================================================================
      MODAL — INVITAR
-     ========================================================================= -->
+     ========================================================================== -->
 
-<dialog class="modal" id="modal-invitar" aria-labelledby="modal-invitar-title">
+<dialog
+  class="modal"
+  id="modal-invitar"
+  aria-labelledby="modal-invitar-title"
+>
 
-  <form method="POST"
-        action="{{ url_for('group_auth.invitar_usuario', group_id=group.get_id()) }}">
+  <form
+    method="POST"
+    action="{{ url_for(
+      'group_auth.invitar_usuario',
+      group_id=group.get_id()
+    ) }}"
+  >
 
     <div class="modal-head">
 
-      <h2 class="modal-title" id="modal-invitar-title">Invitar a alguien</h2>
+      <h2
+        class="modal-title"
+        id="modal-invitar-title"
+      >
+        Invitar a alguien
+      </h2>
+
 
       <button
         class="modal-close"
@@ -410,7 +895,12 @@
         onclick="document.getElementById('modal-invitar').close()"
         aria-label="Cerrar"
       >
-        <svg viewBox="0 0 24 24" focusable="false">
+
+        <svg
+          viewBox="0 0 24 24"
+          focusable="false"
+        >
+
           <path
             d="M18 6 6 18"
             fill="none"
@@ -426,15 +916,22 @@
             stroke-width="1.8"
             stroke-linecap="round"
           />
+
         </svg>
+
       </button>
 
     </div>
 
+
     <div class="modal-body">
 
       <div class="modal-field">
-        <label for="invitar-username">Usuario</label>
+
+        <label for="invitar-username">
+          Usuario
+        </label>
+
         <input
           id="invitar-username"
           name="username"
@@ -442,21 +939,30 @@
           placeholder="Ej. pepe123"
           autocomplete="off"
         />
+
       </div>
 
+
       <div class="modal-field">
-        <label for="invitar-mensaje">Mensaje</label>
+
+        <label for="invitar-mensaje">
+          Mensaje
+        </label>
+
         <textarea
           id="invitar-mensaje"
           name="mensaje"
           rows="3"
           placeholder="Sumate al grupo, estamos armando un plan…"
         ></textarea>
+
       </div>
 
     </div>
 
+
     <div class="modal-actions">
+
       <button
         class="header-action header-action-ghost"
         type="button"
@@ -464,7 +970,15 @@
       >
         Cancelar
       </button>
-      <button class="lime-button" type="submit">Enviar invitación</button>
+
+
+      <button
+        class="lime-button"
+        type="submit"
+      >
+        Enviar invitación
+      </button>
+
     </div>
 
   </form>
@@ -474,20 +988,31 @@
 
 <!-- =========================================================================
      MODAL — EDITAR GRUPO
+     ========================================================================== -->
 
-     Igual que arriba: guardar no persiste nada todavía. Los integrantes
-     se muestran acá en vez de en una tarjeta aparte, porque hoy la app
-     solo sabe quién sos vos dentro del grupo.
-     ========================================================================= -->
+<dialog
+  class="modal"
+  id="modal-editar-grupo"
+  aria-labelledby="modal-editar-grupo-title"
+>
 
-<dialog class="modal" id="modal-editar-grupo" aria-labelledby="modal-editar-grupo-title">
-
-  <form method="POST"
-        action="{{ url_for('group_auth.editar_grupo', group_id=group.get_id()) }}">
+  <form
+    method="POST"
+    action="{{ url_for(
+      'group_auth.editar_grupo',
+      group_id=group.get_id()
+    ) }}"
+  >
 
     <div class="modal-head">
 
-      <h2 class="modal-title" id="modal-editar-grupo-title">Editar grupo</h2>
+      <h2
+        class="modal-title"
+        id="modal-editar-grupo-title"
+      >
+        Editar grupo
+      </h2>
+
 
       <button
         class="modal-close"
@@ -495,7 +1020,12 @@
         onclick="document.getElementById('modal-editar-grupo').close()"
         aria-label="Cerrar"
       >
-        <svg viewBox="0 0 24 24" focusable="false">
+
+        <svg
+          viewBox="0 0 24 24"
+          focusable="false"
+        >
+
           <path
             d="M18 6 6 18"
             fill="none"
@@ -511,56 +1041,82 @@
             stroke-width="1.8"
             stroke-linecap="round"
           />
+
         </svg>
+
       </button>
 
     </div>
 
+
     <div class="modal-body">
 
       <div class="modal-field">
-        <label for="editar-nombre">Nombre del grupo</label>
+
+        <label for="editar-nombre">
+          Nombre del grupo
+        </label>
+
         <input
           id="editar-nombre"
           name="nombre"
           type="text"
           value="{{ group.get_name() }}"
         />
+
       </div>
 
+
       <div class="modal-field">
-        <label for="editar-descripcion">Descripción</label>
+
+        <label for="editar-descripcion">
+          Descripción
+        </label>
+
         <textarea
           id="editar-descripcion"
           name="descripcion"
           rows="3"
         >{{ group.get_description() }}</textarea>
+
       </div>
+
 
       <div class="modal-field">
 
-        <span class="modal-field-label">Integrantes</span>
+        <span class="modal-field-label">
+          Integrantes
+        </span>
+
 
         <ul class="modal-members">
 
           {% for integrante in users %}
 
-            <li>
+          <li>
 
-              <a class="modal-member modal-member-link"
-                 href="{{ url_for('profile.perfil_publico', user_id=integrante.id) }}">
+            <a
+              class="modal-member modal-member-link"
+              href="{{ url_for(
+                'profile.perfil_publico',
+                user_id=integrante.id
+              ) }}"
+            >
 
-                <span class="modal-member-avatar" aria-hidden="true">
-                  {{ integrante.user.get_name()[:1] | upper }}
-                </span>
+              <span
+                class="modal-member-avatar"
+                aria-hidden="true"
+              >
+                {{ integrante.user.get_name()[:1] | upper }}
+              </span>
 
-                <span>
-                  {{ integrante.user.get_name() }}
-                </span>
+              <span>
+                {{ integrante.user.get_name() }}
+              </span>
 
-              </a>
+            </a>
 
-            </li>
+          </li>
 
           {% endfor %}
 
@@ -570,7 +1126,9 @@
 
     </div>
 
+
     <div class="modal-actions">
+
       <button
         class="header-action header-action-ghost"
         type="button"
@@ -578,12 +1136,119 @@
       >
         Cancelar
       </button>
+
+
       <button
         class="lime-button"
         type="submit"
       >
         Guardar cambios
       </button>
+
+    </div>
+
+  </form>
+
+</dialog>
+
+
+<!-- =========================================================================
+     MODAL — ABANDONAR GRUPO
+     ========================================================================== -->
+
+<dialog
+  class="modal"
+  id="modal-abandonar-grupo"
+  aria-labelledby="modal-abandonar-grupo-title"
+>
+
+  <form
+    method="POST"
+    action="{{ url_for(
+      'group_auth.abandonar_grupo',
+      group_id=group.get_id()
+    ) }}"
+  >
+
+    <div class="modal-head">
+
+      <h2
+        class="modal-title"
+        id="modal-abandonar-grupo-title"
+      >
+        Abandonar grupo
+      </h2>
+
+
+      <button
+        class="modal-close"
+        type="button"
+        onclick="document.getElementById('modal-abandonar-grupo').close()"
+        aria-label="Cerrar"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          focusable="false"
+        >
+
+          <path
+            d="M18 6 6 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M6 6 18 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+        </svg>
+
+      </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+      <p>
+        ¿Seguro que querés abandonar
+        <strong>{{ group.get_name() }}</strong>?
+      </p>
+
+      <p>
+        Vas a dejar de formar parte de este grupo.
+      </p>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+      <!-- NO: simplemente cierra la tarjeta -->
+      <button
+        class="header-action header-action-ghost"
+        type="button"
+        onclick="document.getElementById('modal-abandonar-grupo').close()"
+      >
+        No
+      </button>
+
+
+      <!-- SÍ: recién acá se hace el POST a Flask -->
+      <button
+        class="lime-button"
+        type="submit"
+      >
+        Sí, abandonar
+      </button>
+
     </div>
 
   </form>
@@ -592,9 +1257,12 @@
 
 
 {% if logueado %}
+
   </div>
 
 </div>
+
 {% endif %}
 
 {% endblock %}
+
