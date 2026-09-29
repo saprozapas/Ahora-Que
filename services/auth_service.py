@@ -1,6 +1,6 @@
 import psycopg2
 
-from database import get_db_connection
+from database import get_db_connection, release_db_connection
 from models.user import User
 
 
@@ -29,7 +29,7 @@ class AuthService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def getUserAndId(self, username_or_email):
         connection = get_db_connection()
@@ -92,7 +92,7 @@ class AuthService:
             raise
 
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def update_name(self, user_id, name):
         connection = get_db_connection()
@@ -108,7 +108,7 @@ class AuthService:
             connection.rollback()
             return False, "Hubo un error al guardar el nombre. Intentá de nuevo."
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def update_username(self, user_id, username):
         connection = get_db_connection()
@@ -134,7 +134,7 @@ class AuthService:
             connection.rollback()
             return False, "Hubo un error al guardar el usuario. Intentá de nuevo."
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def get_password_hash_by_id(self, user_id):
         connection = get_db_connection()
@@ -149,7 +149,7 @@ class AuthService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def update_password(self, user_id, password_hash):
         connection = get_db_connection()
@@ -165,7 +165,7 @@ class AuthService:
             connection.rollback()
             return False, "Hubo un error al guardar la contraseña. Intentá de nuevo."
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def update_descripcion(self, user_id, descripcion):
         connection = get_db_connection()
@@ -181,4 +181,4 @@ class AuthService:
             connection.rollback()
             return False, "Hubo un error al guardar la descripción. Intentá de nuevo."
         finally:
-            connection.close()
+            release_db_connection(connection)

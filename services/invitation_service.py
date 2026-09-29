@@ -1,4 +1,4 @@
-from database import get_db_connection
+from database import get_db_connection, release_db_connection
 from models.invitacion import Invitacion
 
 
@@ -20,7 +20,7 @@ class InvitationService:
             conn.commit()
     
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
 
     def get_invitations_for_user(self, user_id, conn=None):
 
@@ -59,7 +59,7 @@ class InvitationService:
 
         cursor.close()
 
-        conn.close()
+        release_db_connection(conn)
 
         return invitations
 
@@ -79,7 +79,7 @@ class InvitationService:
 
         conn.commit()
         cursor.close()
-        conn.close()
+        release_db_connection(conn)
 
     def accept_invitation(self, user_id, group_id, conn=None):
         if conn is None:
@@ -107,4 +107,4 @@ class InvitationService:
 
         conn.commit()
         cursor.close()
-        conn.close()
+        release_db_connection(conn)

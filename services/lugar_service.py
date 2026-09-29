@@ -1,6 +1,6 @@
 import psycopg2
 
-from database import get_db_connection
+from database import get_db_connection, release_db_connection
 from services.lugar_filtros import construir_condiciones
 
 
@@ -24,7 +24,7 @@ class LugarService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def buscar(self, texto="", tipo_id="", filtros=None, limite=30):
         """Busca lugares por nombre o por tipo, aplicando los filtros.
@@ -82,4 +82,4 @@ class LugarService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)

@@ -21,7 +21,7 @@ Los porcentajes se calculan sobre los votos emitidos.
 
 import psycopg2
 
-from database import get_db_connection
+from database import get_db_connection, release_db_connection
 from services.plan_service import PlanService
 
 # Mínimo de "me gusta" para que la idea pase (se puede cambiar más adelante).
@@ -261,7 +261,7 @@ class GrupoPlanService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     # --- Postular -------------------------------------------------------------
 
@@ -330,7 +330,7 @@ class GrupoPlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     # --- Votar el plan ----------------------------------------------------------
 
@@ -361,7 +361,7 @@ class GrupoPlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def cerrar_votacion(self, group_id, plan_id, user_id):
         """El creador cierra la votación sin esperar a que voten todos."""
@@ -380,7 +380,7 @@ class GrupoPlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     # --- Horarios -----------------------------------------------------------------
 
@@ -416,7 +416,7 @@ class GrupoPlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def _horario_del_grupo(self, cursor, horario_id, group_id, user_id):
         cursor.execute(
@@ -450,7 +450,7 @@ class GrupoPlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def cerrar_horario(self, group_id, horario_id, user_id):
         """El creador del plan cierra la votación de un horario."""
@@ -467,4 +467,4 @@ class GrupoPlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)

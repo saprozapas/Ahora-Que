@@ -1,6 +1,6 @@
 import psycopg2
 
-from database import get_db_connection
+from database import get_db_connection, release_db_connection
 from models.solicitud_amistad import SolicitudAmistad
 
 
@@ -58,7 +58,7 @@ class FriendService:
             raise
         finally:
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
 
     def get_requests_for_user(self, user_id, conn=None):
         cerrar_conexion = conn is None
@@ -87,7 +87,7 @@ class FriendService:
 
         cursor.close()
         if cerrar_conexion:
-            conn.close()
+            release_db_connection(conn)
 
         return solicitudes
 
@@ -114,7 +114,7 @@ class FriendService:
             raise
         finally:
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
 
     def reject_request(self, from_id, to_id):
         conn = get_db_connection()
@@ -131,7 +131,7 @@ class FriendService:
             raise
         finally:
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
 
     def remove_friend(self, uid1, uid2):
         conn = get_db_connection()
@@ -149,4 +149,4 @@ class FriendService:
             raise
         finally:
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
