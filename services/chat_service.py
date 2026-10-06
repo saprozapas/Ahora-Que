@@ -5,24 +5,44 @@ class ChatService:
 
     def obtener_mensajes(self, group_id):
         conn = get_db_connection()
+
         try:
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    SELECT c.Id_Grupo, c.Id_Usuario, u.Id_Usuario, c.Contenido, c.Fecha_Envio
+                    SELECT
+                        c."Id_Mensaje",
+                        c."Id_Usuario",
+                        u."Username",
+                        c."Contenido",
+                        c."Fecha_Envio"
                     FROM public."Mensajes" c
-                    JOIN public."Usuarios" u ON c.Id_Usuario = u.Id_Usuario
-                    WHERE c.Id_Grupo = %s
-                    ORDER BY c.Fecha_Envio ASC
+                    JOIN public."Usuarios" u
+                        ON c."Id_Usuario" = u."Id_Usuario"
+                    WHERE c."Id_Grupo" = %s
+                    ORDER BY c."Fecha_Envio" ASC
                 """, (group_id,))
-                mensajes = cursor.fetchall()
-                conn.commit()
+
+                filas = cursor.fetchall()
+
+                mensajes = []
+
+                for fila in filas:
+                    mensajes.append({
+                        "id": str(fila[0]),
+                        "user_id": str(fila[1]),
+                        "username": fila[2],
+                        "message": fila[3],
+                        "created_at": fila[4].isoformat()
+                    })
+
+                return mensajes
+
         except Exception as e:
             print(f"Error al obtener mensajes: {e}")
-            mensajes = []
+            return []
+
         finally:
             release_db_connection(conn)
-        
-        return mensajes
 
 
     def crear_mensaje(self, group_id, user_id, mensaje):
@@ -30,7 +50,7 @@ class ChatService:
         try:
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO public."Mensajes" (Id_Grupo, Id_Usuario, Contenido)
+                    INSERT INTO public."Mensajes" ("Id_Grupo", "Id_Usuario", "Contenido")
                     VALUES (%s, %s, %s)
                 """, (group_id, user_id, mensaje))
                 conn.commit()

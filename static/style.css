@@ -5921,4 +5921,125 @@
 
     border-radius: 12px;
 }
+
+/* =========================================================================
+   CHAT DEL GRUPO — burbujas
+   ========================================================================= */
+
+/* Contenedor común: mensajes e input miden lo mismo */
+.group-chat-box {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 24px;
+}
+
+/* Fuerza a la barra de escribir a ocupar todo el contenedor,
+   así los mensajes nunca se pasan de sus bordes */
+.group-chat-box .group-ai-prompt {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+}
+
+.group-chat-messages {
+  display: flex;
+  flex-direction: column;
+  height: 420px;
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 0;           /* sin padding lateral: alinea con la barra */
+}
+
+/* Cada mensaje: nombre arriba + (burbuja y hora) abajo */
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: flex-start;    /* los de otros, a la izquierda */
+  max-width: 85%;
+  margin-top: 12px;
+}
+
+.chat-message:first-child {
+  margin-top: 0;
+}
+
+/* Mensajes seguidos del mismo usuario: más pegados */
+.chat-message.is-grouped {
+  margin-top: 3px;
+}
+
+/* Mis mensajes, a la derecha */
+.chat-message.is-own {
+  align-items: flex-end;
+  align-self: flex-end;
+}
+
+/* Nombre chico */
+.chat-message-author {
+  margin: 0 0 3px 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.65;
+}
+
+/* Fila burbuja + hora */
+.chat-message-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* En mis mensajes la hora queda a la izquierda de la burbuja */
+.chat-message.is-own .chat-message-line {
+  flex-direction: row-reverse;
+}
+
+/* Burbuja */
+.chat-bubble {
+  min-width: 0;
+  max-width: 100%;
+  padding: 8px 14px;
+  border-radius: 18px 18px 18px 6px;
+  background: var(--chat-bubble-bg, #efefec);
+  color: var(--chat-bubble-text, #1a1a1a);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.chat-bubble p {
+  margin: 0;
+}
+
+.chat-message.is-own .chat-bubble {
+  border-radius: 18px 18px 6px 18px;
+  background: var(--chat-bubble-own-bg, #d4f55a);
+  color: var(--chat-bubble-own-text, #1a1a1a);
+}
+
+/* Mensajes agrupados: esquinas redondeadas parejas */
+.chat-message.is-grouped .chat-bubble {
+  border-radius: 18px;
+}
+
+/* Hora al lado de la burbuja */
+.chat-message-time {
+  flex-shrink: 0;
+  padding-bottom: 3px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  opacity: 0.55;
+}
+
+
 }
