@@ -783,82 +783,89 @@
        CHAT DEL GRUPO
        ======================================================================= -->
 
-  <div
-    class="group-ai-prompt group-chat"
-    aria-disabled="true"
+  <!-- MENSAJES DEL CHAT -->
+<div
+  class="group-chat-messages"
+  id="group-chat-messages"
+  aria-live="polite"
+>
+  <!-- Los mensajes aparecen acá -->
+</div>
+
+
+<!-- INPUT DEL CHAT -->
+<div
+  class="group-ai-prompt group-chat"
+>
+
+  <span
+    class="group-ai-prompt-icon"
+    aria-hidden="true"
   >
 
-    <span
-      class="group-ai-prompt-icon"
-      aria-hidden="true"
+    <svg
+      viewBox="0 0 24 24"
+      focusable="false"
+      width="20"
+      height="20"
     >
 
-      <svg
-        viewBox="0 0 24 24"
-        focusable="false"
-        width="20"
-        height="20"
-      >
+      <path
+        d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linejoin="round"
+      />
 
-        <path
-          d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linejoin="round"
-        />
+    </svg>
 
-      </svg>
-
-    </span>
+  </span>
 
 
-    <textarea
-      class="group-ai-prompt-input"
-      id="group-chat-input"
-      name="mensaje"
-      rows="1"
-      placeholder="Escribile al grupo… (el chat llega pronto)"
-      aria-label="Chat del grupo (todavía no disponible)"
-      disabled
-    ></textarea>
+  <textarea
+    class="group-ai-prompt-input"
+    id="group-chat-input"
+    name="mensaje"
+    rows="1"
+    placeholder="Escribile al grupo…"
+    aria-label="Escribir mensaje"
+  ></textarea>
 
 
-    <button
-      class="group-ai-prompt-send"
-      type="button"
-      aria-label="Enviar"
-      disabled
+  <button
+    class="group-ai-prompt-send"
+    id="group-chat-send"
+    type="button"
+    aria-label="Enviar"
+  >
+
+    <svg
+      viewBox="0 0 24 24"
+      focusable="false"
     >
 
-      <svg
-        viewBox="0 0 24 24"
-        focusable="false"
-      >
+      <path
+        d="M22 2 11 13"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+      />
 
-        <path
-          d="M22 2 11 13"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-        />
+      <path
+        d="M22 2 15 22 11 13 2 9 22 2"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linejoin="round"
+      />
 
-        <path
-          d="M22 2 15 22 11 13 2 9 22 2"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linejoin="round"
-        />
+    </svg>
 
-      </svg>
+  </button>
 
-    </button>
-
-  </div>
-
-</section>
+</div>
 
 
 <!-- =========================================================================
@@ -1266,3 +1273,136 @@
 
 {% endblock %}
 
+<script>
+
+const chatMessages = document.getElementById("group-chat-messages");
+const chatInput = document.getElementById("group-chat-input");
+const chatSend = document.getElementById("group-chat-send");
+
+
+async function cargarMensajes() {
+
+    try {
+
+        const respuesta = await fetch(
+            "{{ url_for('chat.obtener_mensajes', group_id=group.get_id()) }}"
+        );
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron cargar los mensajes");
+        }
+
+        const datos = await respuesta.json();
+
+        chatMessages.innerHTML = "";
+
+        datos.mensajes.forEach(mensaje => {
+
+            agregarMensaje(
+                mensaje.username,
+                mensaje.message
+            );
+
+        });
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    } catch (error) {
+
+        console.error("Error cargando mensajes:", error);
+
+    }
+}
+
+
+function agregarMensaje(username, texto) {
+
+    const mensajeDiv = document.createElement("div");
+
+    mensajeDiv.classList.add("chat-message");
+
+    const nombre = document.createElement("strong");
+    nombre.textContent = username;
+
+    const contenido = document.createElement("p");
+    contenido.textContent = texto;
+
+    mensajeDiv.appendChild(nombre);
+    mensajeDiv.appendChild(contenido);
+
+    chatMessages.appendChild(mensajeDiv);
+}
+
+
+async function enviarMensaje() {
+
+    const mensaje = chatInput.value.trim();
+
+    if (!mensaje) {
+        return;
+    }
+
+    chatSend.disabled = true;
+
+    try {
+
+        const respuesta = await fetch(
+            "{{ url_for('chat.enviar_mensaje', group_id=group.get_id()) }}",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    mensaje: mensaje
+                })
+            }
+        );
+
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok) {
+            alert(datos.error || "No se pudo enviar el mensaje.");
+            return;
+        }
+
+        chatInput.value = "";
+
+        await cargarMensajes();
+
+    } catch (error) {
+
+        console.error("Error enviando mensaje:", error);
+
+        alert("No se pudo enviar el mensaje.");
+
+    } finally {
+
+        chatSend.disabled = false;
+        chatInput.focus();
+
+    }
+}
+
+
+chatSend.addEventListener("click", enviarMensaje);
+
+
+chatInput.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter" && !event.shiftKey) {
+
+        event.preventDefault();
+
+        enviarMensaje();
+
+    }
+
+});
+
+
+cargarMensajes();
+
+</script>
