@@ -1,11 +1,32 @@
-{% extends 'base.html' %} {% block title %}Crear idea con el asistente — Ahora Qué{% endblock %} {% block content %}
-{% include '_dashboard_sidebar.html' %}
-← Volver
-Crear idea
-con el asistente.
-Contale qué tenés ganas de hacer y te propone una idea con lugares reales. Queda en tus guardados y después la postulás en un grupo.
+{% extends 'base.html' %}
 
-{% include '_chatbot_panel.html' %}
-¿Preferís crearla a mano? →
+{% block title %}Crear idea con el asistente — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="section-shell">
+
+      <a class="back-link" href="/planes">← Volver</a>
+
+      <div class="auth-intro">
+        <h1>Crear idea<br /><em>con el asistente.</em></h1>
+        <p>Contale qué tenés ganas de hacer y te propone una idea con lugares reales. Queda en tus guardados y después la postulás en un grupo.</p>
+      </div>
+
+      {% include '_chatbot_panel.html' %}
+
+      <p><a href="{{ url_for('planes.nueva_idea') }}">¿Preferís crearla a mano? →</a></p>
+
+    </section>
+
+  </div>
+
+</div>
 
 {% endblock %}
