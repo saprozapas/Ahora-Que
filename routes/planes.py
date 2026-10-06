@@ -1,4 +1,3 @@
-
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from services.plan_service import PlanService
 from services.lugar_service import LugarService
@@ -108,6 +107,13 @@ def historial():
 def nuevo():
     # Ya no se crean planes individuales con fecha: solo ideas.
     return redirect(url_for("planes.nueva_idea"))
+
+
+@planes_bp.route("/nueva-idea/asistente")
+def nueva_idea_asistente():
+    if _sin_sesion():
+        return redirect(url_for("auth.login"))
+    return render_template("planes_asistente.html")
 
 
 @planes_bp.route("/nueva-idea", methods=["GET", "POST"])

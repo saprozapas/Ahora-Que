@@ -89,8 +89,21 @@ def postular(group_id):
         group=getGroupById(group_id),
         ideas=plan_service.get_ideas_postulables(user_id),
         error=error,
-        valores=request.form,
+        valores=request.form if request.method == "POST" else request.args,
         hoy=datetime.now().date().isoformat(),
+        groups_page=True,
+    )
+
+
+@grupo_planes_bp.route("/asistente")
+def asistente(group_id):
+    """Crear una idea con el asistente para postularla en este grupo."""
+    user_id = session["user_id"]
+    if not isUserInGroup(user_id, group_id):
+        return redirect(url_for("group_auth.grupos"))
+    return render_template(
+        "grupo_asistente.html",
+        group=getGroupById(group_id),
         groups_page=True,
     )
 

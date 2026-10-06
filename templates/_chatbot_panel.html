@@ -1,0 +1,40 @@
+{# Panel del asistente IA para armar ideas de plan.
+   Se incluye con {% include '_chatbot_panel.html' %}. Los estilos y el
+   JavaScript van en archivos propios para no tocar style.css ni app.js.
+   Si la página define window.crearIdeaCargarBorrador (planes_nuevo.html),
+   los borradores muestran además el botón "Pasar al formulario". #}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css', v='20260929-chatbot-v1') }}" />
+
+<section class="chatbot" id="chatbot" aria-labelledby="chatbot-titulo"
+         data-grupo-id="{{ chatbot_grupo_id or '' }}">
+
+  <header class="chatbot-cabecera">
+    <div>
+      {% if chatbot_grupo_nombre %}
+      <h2 class="chatbot-titulo" id="chatbot-titulo">Armá el plan de {{ chatbot_grupo_nombre }} con el asistente</h2>
+      <p class="chatbot-bajada">Contale qué quieren hacer y te propone un plan con lugares reales. Al guardarlo, lo postulás al grupo.</p>
+      {% else %}
+      <h2 class="chatbot-titulo" id="chatbot-titulo">Armala con el asistente</h2>
+      <p class="chatbot-bajada">Contale qué tenés ganas de hacer y te propone un plan con lugares reales de la app.</p>
+      {% endif %}
+    </div>
+    <button type="button" class="chatbot-nueva" id="chatbot-nueva">Nueva conversación</button>
+  </header>
+
+  <div class="chatbot-mensajes" id="chatbot-mensajes" role="log" aria-live="polite">
+    <p class="chatbot-vacio" id="chatbot-vacio">
+      Por ejemplo: «Quiero cenar cerca del centro con opciones veganas y después ir a tomar algo».
+    </p>
+  </div>
+
+  <form class="chatbot-entrada" id="chatbot-form" autocomplete="off">
+    <label class="chatbot-oculto" for="chatbot-input">Mensaje para el asistente</label>
+    <input type="text" id="chatbot-input" maxlength="1000"
+           placeholder="Escribí lo que buscás..." />
+    <button class="lime-button chatbot-enviar" type="submit" id="chatbot-enviar">Enviar</button>
+  </form>
+
+</section>
+
+<script defer src="{{ url_for('static', filename='chatbot.js', v='20260929-chatbot-v1') }}"></script>

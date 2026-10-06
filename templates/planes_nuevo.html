@@ -23,6 +23,8 @@
       <p class="form-message form-error" role="alert">{{ error }}</p>
       {% endif %}
 
+      <p><a href="{{ url_for('planes.nueva_idea_asistente') }}">¿Preferís armarla con el asistente? →</a></p>
+
       <form class="auth-form" method="post" action="/planes/nueva-idea" id="form-plan">
 
         <label for="nombre">Nombre de la idea</label>
@@ -192,7 +194,7 @@
 
   // --- Agregar una parada al plan -----------------------------------------
 
-  function agregarLugar(idLugar, nombre, nivelPrecio) {
+  function agregarLugar(idLugar, nombre, nivelPrecio, hora) {
     if (idLugar && idsElegidos().indexOf(idLugar) !== -1) {
       alert("Ese lugar ya está en el plan.");
       return;
@@ -225,6 +227,7 @@
     inputHora.type = "time";
     inputHora.name = "lugar_hora";
     inputHora.className = "crear-plan-elegido-campo";
+    if (hora) { inputHora.value = hora; }
     inputHora.setAttribute("aria-label", "Hora en " + nombre);
 
     var quitar = document.createElement("button");

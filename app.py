@@ -9,8 +9,8 @@ from datetime import timedelta
 from routes.calendario import calendario_bp
 from routes.planes import planes_bp
 from routes.friends import friends_bp
-from routes.chat import chat
 from routes.grupo_planes import grupo_planes_bp
+from routes.chatbot import chatbot_bp
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
 from services.plan_service import PlanService
@@ -27,7 +27,7 @@ app.register_blueprint(planes_bp)
 app.register_blueprint(inbox_bp)
 app.register_blueprint(friends_bp)
 app.register_blueprint(grupo_planes_bp)
-app.register_blueprint(chat)
+app.register_blueprint(chatbot_bp)
 invitation_service = InvitationService()
 friend_service = FriendService()
 plan_service = PlanService()

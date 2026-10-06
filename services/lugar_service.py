@@ -26,11 +26,15 @@ class LugarService:
         finally:
             release_db_connection(connection)
 
-    def buscar(self, texto="", tipo_id="", filtros=None, limite=30):
+    def buscar(self, texto="", tipo_id="", filtros=None, limite=30, aleatorio=False):
         """Busca lugares por nombre o por tipo, aplicando los filtros.
 
         Los filtros salen de services/lugar_filtros.py: para agregar o
         sacar uno no hace falta tocar esta función.
+
+        aleatorio=True mezcla los resultados en vez de ordenarlos por
+        nombre (lo usa el chatbot, para que no proponga siempre los
+        primeros lugares del abecedario).
         """
         condiciones = []
         parametros = []
@@ -52,15 +56,20 @@ class LugarService:
 
         where = ("WHERE " + " AND ".join(condiciones)) if condiciones else ""
 
+        orden = "random()" if aleatorio else 'u."Nombre"'
+        # Subconsulta: SELECT DISTINCT no permite ORDER BY random().
         consulta = f"""
-            SELECT DISTINCT
-                l."Id_Lugar", l."Nombre", l."Direccion",
-                l."Nivel_Precio", l."Ambiente"
-            FROM public."Lugar" l
-            LEFT JOIN public."Lugar_Tipo" lt ON lt."Lugar_id" = l."Id_Lugar"
-            LEFT JOIN public."Tipo" t ON t."Id_Tipo" = lt."Tipo_id"
-            {where}
-            ORDER BY l."Nombre"
+            SELECT u."Id_Lugar", u."Nombre", u."Direccion", u."Nivel_Precio", u."Ambiente"
+            FROM (
+                SELECT DISTINCT
+                    l."Id_Lugar", l."Nombre", l."Direccion",
+                    l."Nivel_Precio", l."Ambiente"
+                FROM public."Lugar" l
+                LEFT JOIN public."Lugar_Tipo" lt ON lt."Lugar_id" = l."Id_Lugar"
+                LEFT JOIN public."Tipo" t ON t."Id_Tipo" = lt."Tipo_id"
+                {where}
+            ) u
+            ORDER BY {orden}
             LIMIT %s
         """
         parametros.append(limite)

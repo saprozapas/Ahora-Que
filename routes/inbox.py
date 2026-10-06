@@ -38,7 +38,3 @@ def aceptar_invitacion(group_id):
         flash("Error al aceptar la invitación.")
 
     return redirect(url_for("inbox.inbox"))
-
-
-
-#####       ACEPTAR FRIENDS ESTA EN friends.py         ##########

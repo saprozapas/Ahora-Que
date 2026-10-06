@@ -16,7 +16,7 @@
 
       <div class="auth-intro">
         <h1>Postular<br /><em>una idea.</em></h1>
-        <p>Elegí una de tus ideas y cuándo harían el plan. El grupo vota si le gusta y si puede en ese horario.</p>
+        <p>Elegí una de tus ideas guardadas y cuándo harían el plan. El grupo vota si le gusta y si puede en ese horario.</p>
       </div>
 
       {% if error %}
@@ -70,7 +70,8 @@
       <div class="group-board-empty">
         <h2>No tenés ideas guardadas.</h2>
         <p>Creá una idea o guardá alguna que veas en Social, y después volvé a postularla acá.</p>
-        <a class="lime-button" href="{{ url_for('planes.nueva_idea') }}">Crear idea</a>
+        <a class="lime-button" href="{{ url_for('grupo_planes.asistente', group_id=group.get_id()) }}">Crear con el asistente</a>
+        <a class="dark-button" href="{{ url_for('planes.nueva_idea') }}">Crear a mano</a>
       </div>
 
       {% endif %}
