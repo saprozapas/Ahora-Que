@@ -781,9 +781,22 @@
        CHAT DEL GRUPO
        ======================================================================= -->
 
+  <!-- CONTENEDOR COMÚN: mensajes e input comparten el mismo ancho -->
+  <div class="group-chat-box">
+
+  <!-- MENSAJES DEL CHAT -->
+  <div
+    class="group-chat-messages"
+    id="group-chat-messages"
+    aria-live="polite"
+  >
+    <!-- Los mensajes aparecen acá (burbujas generadas por el script de abajo) -->
+  </div>
+
+
+  <!-- INPUT DEL CHAT -->
   <div
     class="group-ai-prompt group-chat"
-    aria-disabled="true"
   >
 
     <span
@@ -816,17 +829,16 @@
       id="group-chat-input"
       name="mensaje"
       rows="1"
-      placeholder="Escribile al grupo… (el chat llega pronto)"
-      aria-label="Chat del grupo (todavía no disponible)"
-      disabled
+      placeholder="Escribile al grupo…"
+      aria-label="Escribir mensaje"
     ></textarea>
 
 
     <button
       class="group-ai-prompt-send"
+      id="group-chat-send"
       type="button"
       aria-label="Enviar"
-      disabled
     >
 
       <svg
@@ -855,6 +867,8 @@
     </button>
 
   </div>
+
+  </div><!-- /group-chat-box -->
 
 </section>
 
