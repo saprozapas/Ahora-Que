@@ -1326,7 +1326,11 @@ function formatearHora(fecha) {
 }
 
 
-async function cargarMensajes() {
+let ultimoIdVisto = null;
+let cantidadVista = 0;
+
+
+async function cargarMensajes(forzar = false) {
 
     try {
 
@@ -1339,20 +1343,33 @@ async function cargarMensajes() {
         }
 
         const datos = await respuesta.json();
+        const mensajes = datos.mensajes;
 
-        // Se arma todo en un fragmento y se reemplaza de una sola vez,
-        // así el contenedor nunca queda vacío (evita saltos de layout)
+        const ultimo = mensajes.length ? mensajes[mensajes.length - 1].id : null;
+
+        // Si no hay nada nuevo, no se redibuja nada
+        if (!forzar && ultimo === ultimoIdVisto && mensajes.length === cantidadVista) {
+            return;
+        }
+
+        ultimoIdVisto = ultimo;
+        cantidadVista = mensajes.length;
+
+        // ¿Estaba leyendo abajo? Solo en ese caso bajamos solos
+        const estabaAbajo =
+            chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 60;
+
         const fragmento = document.createDocumentFragment();
 
-        datos.mensajes.forEach((mensaje, i) => {
-
-            agregarMensaje(mensaje, datos.mensajes[i - 1], fragmento);
-
+        mensajes.forEach((mensaje, i) => {
+            agregarMensaje(mensaje, mensajes[i - 1], fragmento);
         });
 
         chatMessages.replaceChildren(fragmento);
 
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        if (estabaAbajo || forzar) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
 
     } catch (error) {
 
@@ -1511,7 +1528,21 @@ chatInput.addEventListener("keydown", function(event) {
 });
 
 
-cargarMensajes();
+cargarMensajes(true);
+
+// Actualiza cada 3 segundos, pero no mientras la pestaña está oculta
+setInterval(() => {
+    if (!document.hidden) {
+        cargarMensajes();
+    }
+}, 3000);
+
+// Al volver a la pestaña, se actualiza al instante
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        cargarMensajes();
+    }
+});
 
 </script>
 
