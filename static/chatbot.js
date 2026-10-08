@@ -206,16 +206,18 @@
 
   function nuevaConversacion() {
     if (ocupado) { return; }
-    if (!confirm("¿Borrar esta conversación y empezar de cero?")) { return; }
-    bloquear(true);
-    postJSON("/chatbot/nueva")
-      .then(function () {
-        var viejos = caja.querySelectorAll(".chatbot-mensaje, .chatbot-borrador");
-        for (var i = 0; i < viejos.length; i++) { viejos[i].remove(); }
-        mostrarVacio();
-      })
-      .catch(function (error) { agregarMensaje("error", error.message); })
-      .then(function () { bloquear(false); });
+    preguntar("¿Borrar esta conversación y empezar de cero?").then(function (si) {
+      if (!si) { return; }
+      bloquear(true);
+      postJSON("/chatbot/nueva")
+        .then(function () {
+          var viejos = caja.querySelectorAll(".chatbot-mensaje, .chatbot-borrador");
+          for (var i = 0; i < viejos.length; i++) { viejos[i].remove(); }
+          mostrarVacio();
+        })
+        .catch(function (error) { agregarMensaje("error", error.message); })
+        .then(function () { bloquear(false); });
+    });
   }
 
   function cargarHistorial() {

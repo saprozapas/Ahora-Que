@@ -497,9 +497,7 @@
           group_id=group.get_id(),
           plan_id=plan.id
         ) }}"
-        onsubmit="return confirm(
-          '¿Cerrar la votación con los votos que hay hasta ahora?'
-        )"
+        data-confirmar="¿Cerrar la votación con los votos que hay hasta ahora?"
       >
 
         <button
@@ -620,9 +618,7 @@
               group_id=group.get_id(),
               horario_id=h.id
             ) }}"
-            onsubmit="return confirm(
-              '¿Cerrar la votación de este horario?'
-            )"
+            data-confirmar="¿Cerrar la votación de este horario?"
           >
 
             <button
@@ -1470,7 +1466,7 @@ async function enviarMensaje() {
         const datos = await respuesta.json();
 
         if (!respuesta.ok) {
-            alert(datos.error || "No se pudo enviar el mensaje.");
+            preguntar(datos.error || "No se pudo enviar el mensaje.", false);
             return;
         }
 
@@ -1482,7 +1478,7 @@ async function enviarMensaje() {
 
         console.error("Error enviando mensaje:", error);
 
-        alert("No se pudo enviar el mensaje.");
+        preguntar("No se pudo enviar el mensaje.", false);
 
     } finally {
 
