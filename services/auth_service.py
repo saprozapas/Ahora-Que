@@ -21,7 +21,7 @@ class AuthService:
                         user.get_birth_date(),
                         user.get_password_hash(),
                         user.get_username(),
-                        user.get_Descripcion(),
+                        user.get_descripcion(),
                     ),
                 )
             connection.commit()
