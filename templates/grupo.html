@@ -1505,7 +1505,21 @@ chatInput.addEventListener("keydown", function(event) {
 });
 
 
-cargarMensajes();
+cargarMensajes(true);
+
+// Actualiza cada 3 segundos, pero no mientras la pestaña está oculta
+setInterval(() => {
+    if (!document.hidden) {
+        cargarMensajes();
+    }
+}, 3000);
+
+// Al volver a la pestaña, se actualiza al instante
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        cargarMensajes();
+    }
+});
 
 </script>
 
