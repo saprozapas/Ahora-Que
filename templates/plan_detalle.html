@@ -136,14 +136,14 @@
 
         {% if plan.confirmado and not plan.es_creador and plan.estado != 'archivado' %}
         <form method="post" action="{{ url_for('planes.bajarme', plan_id=plan.id) }}"
-              onsubmit="return confirm('¿Te querés bajar de este plan?')">
+              data-confirmar="¿Te querés bajar de este plan?">
           <button class="plan-accion-secundaria" type="submit">Bajarme del plan</button>
         </form>
         {% endif %}
 
         {% if plan.es_creador %}
         <form method="post" action="{{ url_for('planes.eliminar', plan_id=plan.id) }}"
-              onsubmit="return confirm('¿Eliminar este plan? No se puede deshacer.')">
+              data-confirmar="¿Eliminar este plan? No se puede deshacer.">
           <button class="plan-accion-peligro" type="submit">Eliminar plan</button>
         </form>
         {% endif %}

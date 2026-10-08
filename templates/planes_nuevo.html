@@ -196,7 +196,7 @@
 
   function agregarLugar(idLugar, nombre, nivelPrecio, hora) {
     if (idLugar && idsElegidos().indexOf(idLugar) !== -1) {
-      alert("Ese lugar ya está en el plan.");
+      preguntar("Ese lugar ya está en el plan.", false);
       return;
     }
 

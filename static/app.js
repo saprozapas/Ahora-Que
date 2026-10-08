@@ -770,6 +770,42 @@
     });
   };
 
+  /* Reemplazo de confirm() y alert() con el mismo <dialog class="modal".
+     preguntar(msg) -> Promise<boolean>; preguntar(msg, false) es un aviso
+     con solo "Aceptar". Escape o tocar afuera cuentan como cancelar.      */
+
+  const preguntar = (mensaje, conCancelar = true) => new Promise((resolver) => {
+
+    const dialogo = document.createElement("dialog");
+    dialogo.className = "modal";
+    dialogo.setAttribute("aria-labelledby", "preguntar-texto");
+    dialogo.innerHTML = `
+      <form method="dialog">
+        <div class="modal-body"><p id="preguntar-texto"></p></div>
+        <div class="modal-actions">
+          ${conCancelar
+            ? '<button class="header-action header-action-ghost" value="no">Cancelar</button>'
+            : ""}
+          <button class="lime-button" value="si" autofocus>Aceptar</button>
+        </div>
+      </form>`;
+    $("p", dialogo).textContent = mensaje;
+
+    dialogo.addEventListener("click", (evento) => {
+      if (evento.target === dialogo) { dialogo.close(); }
+    });
+    dialogo.addEventListener("close", () => {
+      dialogo.remove();
+      resolver(dialogo.returnValue === "si" || !conCancelar);
+    });
+
+    document.body.append(dialogo);
+    dialogo.showModal();
+  });
+
+  window.preguntar = preguntar;
+
+
       /* ========================================================================
      13. CAMPOS EDITABLES DEL PERFIL
      ======================================================================== */
@@ -1062,16 +1098,24 @@
      el propio form en data-confirmar.
      ======================================================================== */
 
-  const iniciarEliminarAmigo = () => {
+  const iniciarConfirmaciones = () => {
 
-    $$(".form-eliminar-amigo").forEach((formulario) => {
+    $$("form[data-confirmar]").forEach((formulario) => {
 
-      formulario.addEventListener("submit", (evento) => {
+      formulario.addEventListener("submit", async (evento) => {
 
-        const mensaje = formulario.dataset.confirmar || "¿Eliminar de tus amigos?";
+        if (formulario.dataset.ok) {
+          return;
+        }
 
-        if (!window.confirm(mensaje)) {
-          evento.preventDefault();
+        evento.preventDefault();
+
+        if (await preguntar(formulario.dataset.confirmar)) {
+          formulario.dataset.ok = "1";
+          formulario.requestSubmit(evento.submitter);
+        } else {
+          // El estado "enviando" (08) ya marcó el botón antes de preguntar.
+          $("[aria-busy]", formulario)?.removeAttribute("aria-busy");
         }
       });
     });
@@ -1335,7 +1379,7 @@
   iniciarModales();
   iniciarBuscarAmigos();
   iniciarInvitarAmigoAGrupo();
-  iniciarEliminarAmigo();
+  iniciarConfirmaciones();
   iniciarAvisos();
   iniciarOrdenBarraLateral();
 })();
