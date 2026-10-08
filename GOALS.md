@@ -1,29 +1,28 @@
-# README FILE
+# README 
+Cosas Grandes(COMO LA QUE ME CUELGA):
 
-1. Funcionalidad de Log In y creacion de cuenta.
+1. Agregar la parte de social para publicar planes
 
-2. Funcionalidad para crear grupos entre usuarios para determinar automaticamente  
-   cuanta gente hay disponible para un plan.
+2. Agregar el tema de deudas entre personas
 
-3. El usuario puede proponer sus propios planes.
+3. Agregar creacion de planes en el grupo dado los filtros de los usuarios(Lalo)
 
-4. La IA decide en base a cuanta gente hay, cuanto presupuesto, horarios y cantidad 
-   de tiempo.
+4. Agregar controles y terminos y servicios
 
-5. Funcionalidad de precios: CUSTOM, FREE, LOW, MID, HIGH.
+5. Agregar Seguridad
 
-6. Funcionalidad de distancias: CUSTOM, NEARBY, FAR AWAY.
+6. Cambiar la facha
 
-7. Filtro de planes: SOLO, AMIGOS, FAMILIA, PAREJA, etc.
+Cosas Chicas o Bugs:
 
-8. Abandonar grupos
+1. Hacer que los planes que ocurrieron no se vayan del calendario
 
-9. Areglar que no todos tengar que poder el horario para que pase
+2. Cambiar el tema de invitaciones a grupo para que te deje elegir el usuario y no tengas que buscarlo a mano
 
-10. Agregar el chat al grupo
+3. si elegis el usuario mal te saca de la pestaña de invitaciones
 
-11. Agregar mensajes privados
+4. Agregar un boton para ver los integrantes de un grupo
 
-12. Agregar la parte de social para publicar planes
+5. Cuando creas un grupo te deja en la pagina de creacion y no te manda a la pagina del grupo nuevo o grupos
 
-13. Agregar el chatbot.
+6. Si salgo de un grupo y estoy en un plan se me mantiene en el plan
