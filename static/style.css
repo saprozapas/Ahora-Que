@@ -5544,10 +5544,6 @@
   transform: translateY(-1px);
 }
 
-.friend-action:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
 
 .friend-action-danger:hover:not(:disabled) {
   border-color: #b91c1c;
