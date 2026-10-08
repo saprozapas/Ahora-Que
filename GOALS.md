@@ -5,9 +5,7 @@ Cosas Grandes(COMO LA QUE ME CUELGA):
 
 2. Agregar el tema de deudas entre personas
 
-3. Agregar creacion de planes en el grupo dado los filtros de los usuarios(Lalo)
-
-4. Agregar controles y terminos y servicios
+4. Agregar controles, terminos y servicios
 
 5. Agregar Seguridad
 
@@ -20,8 +18,6 @@ Cosas Chicas o Bugs:
 2. Cambiar el tema de invitaciones a grupo para que te deje elegir el usuario y no tengas que buscarlo a mano
 
 3. si elegis el usuario mal te saca de la pestaña de invitaciones
-
-4. Agregar un boton para ver los integrantes de un grupo
 
 5. Cuando creas un grupo te deja en la pagina de creacion y no te manda a la pagina del grupo nuevo o grupos
 

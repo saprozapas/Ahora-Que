@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat — {{ group.get_name() }} — Ahora Qué{% endblock %}
+
+{% block content %}
+
+{% if logueado %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+{% endif %}
+
+
+<section class="group-detail section-shell">
+
+  {% include 'grupo_cabecera.html' %}
+
+       CHAT DEL GRUPO
+       ======================================================================= -->
+
+  <!-- CONTENEDOR COMÚN: mensajes e input comparten el mismo ancho -->
+  <div class="group-chat-box">
+
+  <!-- MENSAJES DEL CHAT -->
+  <div
+    class="group-chat-messages"
+    id="group-chat-messages"
+    aria-live="polite"
+  >
+    <!-- Los mensajes aparecen acá (burbujas generadas por el script de abajo) -->
+  </div>
+
+
+  <!-- INPUT DEL CHAT -->
+  <div
+    class="group-ai-prompt group-chat"
+  >
+
+    <span
+      class="group-ai-prompt-icon"
+      aria-hidden="true"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        focusable="false"
+        width="20"
+        height="20"
+      >
+
+        <path
+          d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
+
+      </svg>
+
+    </span>
+
+
+    <textarea
+      class="group-ai-prompt-input"
+      id="group-chat-input"
+      name="mensaje"
+      rows="1"
+      placeholder="Escribile al grupo…"
+      aria-label="Escribir mensaje"
+    ></textarea>
+
+
+    <button
+      class="group-ai-prompt-send"
+      id="group-chat-send"
+      type="button"
+      aria-label="Enviar"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        focusable="false"
+      >
+
+        <path
+          d="M22 2 11 13"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+
+        <path
+          d="M22 2 15 22 11 13 2 9 22 2"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linejoin="round"
+        />
+
+      </svg>
+
+    </button>
+
+  </div>
+
+  </div><!-- /group-chat-box -->
+
+</section>
+
+
+{% include 'grupo_modales.html' %}
+
+
+{% if logueado %}
+
+  </div>
+
+</div>
+
+{% endif %}
+
+
+<script>
+
+const chatMessages = document.getElementById("group-chat-messages");
+const chatInput = document.getElementById("group-chat-input");
+const chatSend = document.getElementById("group-chat-send");
+
+// Id del usuario logueado, para alinear a la derecha sus propios mensajes
+const MI_USER_ID = "{{ session.get('user_id', '') }}";
+
+// Si pasan más de 30 min entre dos mensajes, se muestra la hora al lado
+const GAP_HORA_MS = 30 * 60 * 1000;
+
+// Si el mismo usuario escribe de nuevo dentro de 5 min, se agrupa
+// (burbujas pegadas y sin repetir el nombre)
+const GAP_GRUPO_MS = 5 * 60 * 1000;
+
+
+function dosDigitos(n) {
+    return String(n).padStart(2, "0");
+}
+
+
+function formatearHora(fecha) {
+
+    const hora = dosDigitos(fecha.getHours()) + ":" + dosDigitos(fecha.getMinutes());
+
+    const hoy = new Date();
+    const ayer = new Date();
+    ayer.setDate(hoy.getDate() - 1);
+
+    if (fecha.toDateString() === hoy.toDateString()) {
+        return hora;
+    }
+
+    if (fecha.toDateString() === ayer.toDateString()) {
+        return "ayer " + hora;
+    }
+
+    return dosDigitos(fecha.getDate()) + "/" + dosDigitos(fecha.getMonth() + 1) + " " + hora;
+}
+
+
+async function cargarMensajes() {
+
+    try {
+
+        const respuesta = await fetch(
+            "{{ url_for('chat.obtener_mensajes', group_id=group.get_id()) }}"
+        );
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudieron cargar los mensajes");
+        }
+
+        const datos = await respuesta.json();
+
+        // Se arma todo en un fragmento y se reemplaza de una sola vez,
+        // así el contenedor nunca queda vacío (evita saltos de layout)
+        const fragmento = document.createDocumentFragment();
+
+        datos.mensajes.forEach((mensaje, i) => {
+
+            agregarMensaje(mensaje, datos.mensajes[i - 1], fragmento);
+
+        });
+
+        chatMessages.replaceChildren(fragmento);
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    } catch (error) {
+
+        console.error("Error cargando mensajes:", error);
+
+    }
+}
+
+
+function agregarMensaje(mensaje, anterior, destino = chatMessages) {
+
+    const fecha = new Date(mensaje.created_at);
+    const fechaAnterior = anterior ? new Date(anterior.created_at) : null;
+
+    const diferencia = fechaAnterior ? fecha - fechaAnterior : Infinity;
+
+    const esMio = MI_USER_ID !== "" && String(mensaje.user_id) === MI_USER_ID;
+
+    const mismoAutor = anterior && String(anterior.user_id) === String(mensaje.user_id);
+    const agrupado = mismoAutor && diferencia < GAP_GRUPO_MS;
+
+    const mostrarHora = diferencia >= GAP_HORA_MS;
+
+
+    // Contenedor del mensaje
+    const mensajeDiv = document.createElement("div");
+
+    mensajeDiv.classList.add("chat-message");
+
+    if (esMio) {
+        mensajeDiv.classList.add("is-own");
+    }
+
+    if (agrupado) {
+        mensajeDiv.classList.add("is-grouped");
+    }
+
+
+    // Nombre (chico, solo en el primer mensaje de cada tanda y de otros usuarios)
+    if (!esMio && !agrupado) {
+
+        const nombre = document.createElement("span");
+
+        nombre.classList.add("chat-message-author");
+        nombre.textContent = mensaje.username;
+
+        mensajeDiv.appendChild(nombre);
+    }
+
+
+    // Fila: burbuja + hora
+    const linea = document.createElement("div");
+
+    linea.classList.add("chat-message-line");
+
+
+    const burbuja = document.createElement("div");
+
+    burbuja.classList.add("chat-bubble");
+
+    // Al pasar el mouse (o mantener apretado en el celu) se ve la fecha completa
+    burbuja.title = fecha.toLocaleString("es-UY");
+
+    const contenido = document.createElement("p");
+
+    contenido.textContent = mensaje.message;
+
+    burbuja.appendChild(contenido);
+    linea.appendChild(burbuja);
+
+
+    if (mostrarHora) {
+
+        const hora = document.createElement("time");
+
+        hora.classList.add("chat-message-time");
+        hora.dateTime = mensaje.created_at;
+        hora.textContent = formatearHora(fecha);
+
+        linea.appendChild(hora);
+    }
+
+
+    mensajeDiv.appendChild(linea);
+
+    destino.appendChild(mensajeDiv);
+}
+
+
+async function enviarMensaje() {
+
+    const mensaje = chatInput.value.trim();
+
+    if (!mensaje) {
+        return;
+    }
+
+    chatSend.disabled = true;
+
+    try {
+
+        const respuesta = await fetch(
+            "{{ url_for('chat.enviar_mensaje', group_id=group.get_id()) }}",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    mensaje: mensaje
+                })
+            }
+        );
+
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok) {
+            preguntar(datos.error || "No se pudo enviar el mensaje.", false);
+            return;
+        }
+
+        chatInput.value = "";
+
+        await cargarMensajes();
+
+    } catch (error) {
+
+        console.error("Error enviando mensaje:", error);
+
+        preguntar("No se pudo enviar el mensaje.", false);
+
+    } finally {
+
+        chatSend.disabled = false;
+        chatInput.focus({ preventScroll: true });
+
+    }
+}
+
+
+chatSend.addEventListener("click", enviarMensaje);
+
+
+chatInput.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter" && !event.shiftKey) {
+
+        event.preventDefault();
+
+        enviarMensaje();
+
+    }
+
+});
+
+
+cargarMensajes(true);
+
+// Actualiza cada 3 segundos, pero no mientras la pestaña está oculta
+setInterval(() => {
+    if (!document.hidden) {
+        cargarMensajes();
+    }
+}, 3000);
+
+// Al volver a la pestaña, se actualiza al instante
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+        cargarMensajes();
+    }
+});
+
+</script>
+
+{% endblock %}

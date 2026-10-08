@@ -1,0 +1,456 @@
+<!-- =========================================================================
+     MODAL — INVITAR
+     ========================================================================== -->
+
+<dialog
+  class="modal"
+  id="modal-invitar"
+  aria-labelledby="modal-invitar-title"
+>
+
+  <form
+    method="POST"
+    action="{{ url_for(
+      'group_auth.invitar_usuario',
+      group_id=group.get_id()
+    ) }}"
+  >
+
+    <div class="modal-head">
+
+      <h2
+        class="modal-title"
+        id="modal-invitar-title"
+      >
+        Invitar a alguien
+      </h2>
+
+
+      <button
+        class="modal-close"
+        type="button"
+        onclick="document.getElementById('modal-invitar').close()"
+        aria-label="Cerrar"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          focusable="false"
+        >
+
+          <path
+            d="M18 6 6 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M6 6 18 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+        </svg>
+
+      </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+      <div class="modal-field">
+
+        <label for="invitar-username">
+          Usuario
+        </label>
+
+        <input
+          id="invitar-username"
+          name="username"
+          type="text"
+          placeholder="Ej. pepe123"
+          autocomplete="off"
+        />
+
+      </div>
+
+
+      <div class="modal-field">
+
+        <label for="invitar-mensaje">
+          Mensaje
+        </label>
+
+        <textarea
+          id="invitar-mensaje"
+          name="mensaje"
+          rows="3"
+          placeholder="Sumate al grupo, estamos armando un plan…"
+        ></textarea>
+
+      </div>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+      <button
+        class="header-action header-action-ghost"
+        type="button"
+        onclick="document.getElementById('modal-invitar').close()"
+      >
+        Cancelar
+      </button>
+
+
+      <button
+        class="lime-button"
+        type="submit"
+      >
+        Enviar invitación
+      </button>
+
+    </div>
+
+  </form>
+
+</dialog>
+
+
+<!-- =========================================================================
+     MODAL — EDITAR GRUPO
+     ========================================================================== -->
+
+<dialog
+  class="modal"
+  id="modal-editar-grupo"
+  aria-labelledby="modal-editar-grupo-title"
+>
+
+  <form
+    method="POST"
+    action="{{ url_for(
+      'group_auth.editar_grupo',
+      group_id=group.get_id()
+    ) }}"
+  >
+
+    <div class="modal-head">
+
+      <h2
+        class="modal-title"
+        id="modal-editar-grupo-title"
+      >
+        Editar grupo
+      </h2>
+
+
+      <button
+        class="modal-close"
+        type="button"
+        onclick="document.getElementById('modal-editar-grupo').close()"
+        aria-label="Cerrar"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          focusable="false"
+        >
+
+          <path
+            d="M18 6 6 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M6 6 18 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+        </svg>
+
+      </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+      <div class="modal-field">
+
+        <label for="editar-nombre">
+          Nombre del grupo
+        </label>
+
+        <input
+          id="editar-nombre"
+          name="nombre"
+          type="text"
+          value="{{ group.get_name() }}"
+        />
+
+      </div>
+
+
+      <div class="modal-field">
+
+        <label for="editar-descripcion">
+          Descripción
+        </label>
+
+        <textarea
+          id="editar-descripcion"
+          name="descripcion"
+          rows="3"
+        >{{ group.get_description() }}</textarea>
+
+      </div>
+
+
+      <div class="modal-field">
+
+        <span class="modal-field-label">
+          Integrantes
+        </span>
+
+
+        <ul class="modal-members">
+
+          {% for integrante in users %}
+
+          <li>
+
+            <a
+              class="modal-member modal-member-link"
+              href="{{ url_for(
+                'profile.perfil_publico',
+                user_id=integrante.id
+              ) }}"
+            >
+
+              <span
+                class="modal-member-avatar"
+                aria-hidden="true"
+              >
+                {{ integrante.user.get_name()[:1] | upper }}
+              </span>
+
+              <span>
+                {{ integrante.user.get_name() }}
+              </span>
+
+            </a>
+
+          </li>
+
+          {% endfor %}
+
+        </ul>
+
+      </div>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+      <button
+        class="header-action header-action-ghost"
+        type="button"
+        onclick="document.getElementById('modal-editar-grupo').close()"
+      >
+        Cancelar
+      </button>
+
+
+      <button
+        class="lime-button"
+        type="submit"
+      >
+        Guardar cambios
+      </button>
+
+    </div>
+
+  </form>
+
+</dialog>
+
+
+<!-- =========================================================================
+     MODAL — ABANDONAR GRUPO
+     ========================================================================== -->
+
+<dialog
+  class="modal"
+  id="modal-abandonar-grupo"
+  aria-labelledby="modal-abandonar-grupo-title"
+>
+
+  <form
+    method="POST"
+    action="{{ url_for(
+      'group_auth.abandonar_grupo',
+      group_id=group.get_id()
+    ) }}"
+  >
+
+    <div class="modal-head">
+
+      <h2
+        class="modal-title"
+        id="modal-abandonar-grupo-title"
+      >
+        Abandonar grupo
+      </h2>
+
+
+      <button
+        class="modal-close"
+        type="button"
+        onclick="document.getElementById('modal-abandonar-grupo').close()"
+        aria-label="Cerrar"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          focusable="false"
+        >
+
+          <path
+            d="M18 6 6 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+          <path
+            d="M6 6 18 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          />
+
+        </svg>
+
+      </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+      <p>
+        ¿Seguro que querés abandonar
+        <strong>{{ group.get_name() }}</strong>?
+      </p>
+
+      <p>
+        Vas a dejar de formar parte de este grupo.
+      </p>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+      <!-- NO: simplemente cierra la tarjeta -->
+      <button
+        class="header-action header-action-ghost"
+        type="button"
+        onclick="document.getElementById('modal-abandonar-grupo').close()"
+      >
+        No
+      </button>
+
+
+      <!-- SÍ: recién acá se hace el POST a Flask -->
+      <button
+        class="lime-button"
+        type="submit"
+      >
+        Sí, abandonar
+      </button>
+
+    </div>
+
+  </form>
+
+</dialog>
+
+
+<!-- =========================================================================
+     MODAL — INTEGRANTES
+     ========================================================================== -->
+
+<dialog
+  class="modal"
+  id="modal-integrantes"
+  aria-labelledby="modal-integrantes-title"
+>
+
+  <div class="modal-head">
+
+    <h2 class="modal-title" id="modal-integrantes-title">
+      Integrantes ({{ users | length }})
+    </h2>
+
+    <button
+      class="modal-close"
+      type="button"
+      onclick="document.getElementById('modal-integrantes').close()"
+      aria-label="Cerrar"
+    >
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+
+  </div>
+
+  <div class="modal-body">
+
+    <ul class="modal-members">
+      {% for integrante in users %}
+      <li>
+        <a
+          class="modal-member modal-member-link"
+          href="{{ url_for('profile.perfil_publico', user_id=integrante.id) }}"
+        >
+          <span class="modal-member-avatar" aria-hidden="true">
+            {{ integrante.user.get_name()[:1] | upper }}
+          </span>
+          <span>{{ integrante.user.get_name() }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+
+  </div>
+
+  <div class="modal-actions">
+    <button
+      class="header-action header-action-ghost"
+      type="button"
+      onclick="document.getElementById('modal-integrantes').close()"
+    >
+      Cerrar
+    </button>
+  </div>
+
+</dialog>

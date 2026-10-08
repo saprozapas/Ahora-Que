@@ -9,6 +9,8 @@ from werkzeug.security import generate_password_hash
 from services.auth_service import AuthService
 from services.grupo_plan_service import GrupoPlanService
 from services.plan_service import PlanService
+from services.grupo_encuesta_service import GrupoEncuestaService, MAX_FRANJAS, opciones_de_precio
+from services.lugar_service import LugarService
 from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, getUsersInGroupWithIds, isUserInGroup, getGroupById
 
 
@@ -18,6 +20,8 @@ auth_service = AuthService()
 invitation_service = InvitationService()
 grupo_plan_service = GrupoPlanService()
 plan_service = PlanService()
+grupo_encuesta_service = GrupoEncuestaService()
+lugar_service = LugarService()
 
 def _require_login():
     if not session.get("user_id"):
@@ -85,8 +89,29 @@ def detalle_grupo(group_id):
     users = getUsersInGroupWithIds(group_id)
     plan_service.archivar_vencidos()
     tablero = grupo_plan_service.get_tablero(group_id, session.get("user_id"))
+    encuestas = grupo_encuesta_service.get_abiertas(group_id, session.get("user_id"))
     return render_template("grupo.html", group=group, groups_page=True, users=users,
-                           tablero=tablero, hoy=date.today().isoformat())
+                           seccion="planes", tablero=tablero, hoy=date.today().isoformat(),
+                           encuestas=encuestas,
+                           tipos=lugar_service.listar_tipos() if encuestas else [],
+                           opciones_precio=opciones_de_precio(), max_franjas=MAX_FRANJAS)
+
+
+@group_auth.route("/grupos/<group_id>/chat")
+def chat_grupo(group_id):
+    """Página del chat del grupo (los mensajes en sí los sirve routes/chat.py)."""
+    redirect_response = _require_login()
+    if redirect_response:
+        return redirect_response
+
+    if not isUserInGroup(session.get("user_id"), group_id):
+        return redirect(url_for("group_auth.grupos"))
+
+    group = getGroupById(group_id)
+    group.set_user(getUser(session.get("user_id")))
+    return render_template("grupo_chat.html", group=group, groups_page=True,
+                           users=getUsersInGroupWithIds(group_id), seccion="chat")
+
 
 @group_auth.route("/grupos/<group_id>/invitar", methods=["POST"])
 def invitar_usuario(group_id):

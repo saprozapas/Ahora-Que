@@ -374,6 +374,10 @@ class GrupoPlanService:
                 if estado != "votacion":
                     raise GrupoPlanError("La votación de este plan ya se cerró.")
                 resultado = self._resolver_votacion(cursor, plan_id, forzar=True)
+                if resultado is None:
+                    # Sin votos no hay con qué decidir: antes no pasaba nada y
+                    # parecía que el botón no funcionaba.
+                    raise GrupoPlanError("Todavía nadie votó este plan: votá vos primero para poder cerrarlo.")
             connection.commit()
             return resultado
         except Exception:

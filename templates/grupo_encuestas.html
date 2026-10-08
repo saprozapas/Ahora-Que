@@ -1,0 +1,186 @@
+{#
+  Encuestas en curso del grupo. Dos etapas:
+    - abierta:   cada integrante responde sus filtros y cuándo puede.
+    - eligiendo: se votan las opciones armadas (o "ninguna me convence").
+  Usa `encuestas`, `tipos`, `opciones_precio`, `max_franjas` y `hoy`
+  (los pasa routes/group_auth.py).
+#}
+{% if encuestas %}
+
+<div class="group-board" id="encuestas-grupo">
+
+  <h2 class="group-board-title">Armando un plan entre todos</h2>
+
+  {% for e in encuestas %}
+
+  <article class="group-plan" id="encuesta-{{ e.id }}">
+
+    <header class="group-plan-head">
+
+      {% if e.estado == 'abierta' %}
+      <span class="plan-estado plan-estado-votacion">Respondiendo</span>
+      {% else %}
+      <span class="plan-estado plan-estado-votacion">Eligiendo plan</span>
+      {% endif %}
+
+      <h3>{{ e.titulo }}</h3>
+
+      <p>
+        Creada por {{ e.creador }}
+        {% if e.estado == 'eligiendo' and e.fecha %}
+        · el {{ e.fecha.strftime('%d/%m') }} a las {{ e.hora.strftime('%H:%M') }}
+        {% endif %}
+      </p>
+
+    </header>
+
+
+    {% if e.estado == 'abierta' %}
+
+    <p class="group-plan-conteo">
+      {{ e.respondieron }} de {{ e.miembros }} respondieron
+      {% if e.yo_respondi %}· ya respondiste (podés cambiar tu respuesta){% endif %}
+    </p>
+
+    <form
+      class="encuesta-form"
+      method="post"
+      action="{{ url_for('grupo_planes.responder_encuesta', group_id=group.get_id(), encuesta_id=e.id) }}"
+    >
+
+      <label class="encuesta-campo">
+        <span>Precio máximo por lugar</span>
+        <select name="nivel_precio">
+          <option value="">Cualquiera</option>
+          {% for nivel, etiqueta in opciones_precio %}
+          <option value="{{ nivel }}" {% if e.mi_nivel == nivel %}selected{% endif %}>{{ etiqueta }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <fieldset class="encuesta-chips">
+        <legend>Restricciones (si alguien las pide, valen para todos)</legend>
+        <label><input type="checkbox" name="apto_menores" value="1" {% if e.mi_menores %}checked{% endif %}> <span>Apto menores</span></label>
+        <label><input type="checkbox" name="opcion_celiacos" value="1" {% if e.mi_celiaco %}checked{% endif %}> <span>Opción celíaca</span></label>
+        <label><input type="checkbox" name="opcion_vegana" value="1" {% if e.mi_vegano %}checked{% endif %}> <span>Opción vegana</span></label>
+      </fieldset>
+
+      {% if tipos %}
+      <fieldset class="encuesta-chips">
+        <legend>¿Qué tipo de lugares te gustan? (elegí los que quieras)</legend>
+        {% for t in tipos %}
+        <label>
+          <input type="checkbox" name="tipos" value="{{ t.id }}" {% if t.id | string in e.mis_tipos %}checked{% endif %}>
+          <span>{{ t.nombre }}</span>
+        </label>
+        {% endfor %}
+      </fieldset>
+      {% endif %}
+
+      <fieldset class="encuesta-franjas">
+        <legend>¿Cuándo podés? (cargá hasta {{ max_franjas }} horarios)</legend>
+        <p class="encuesta-ayuda">El plan se arma en el horario en que puede más gente.</p>
+
+        {% for i in range(max_franjas) %}
+        {% set f = e.franjas[i] if i < e.franjas | length else none %}
+        <div class="encuesta-franja">
+          <label class="encuesta-campo">
+            <span>Día</span>
+            <input type="date" name="disp_fecha" min="{{ hoy }}"
+                   value="{{ f.fecha.isoformat() if f else '' }}" {% if i == 0 %}required{% endif %}>
+          </label>
+          <label class="encuesta-campo">
+            <span>Desde</span>
+            <input type="time" name="disp_desde"
+                   value="{{ f.desde.strftime('%H:%M') if f else '' }}" {% if i == 0 %}required{% endif %}>
+          </label>
+          <label class="encuesta-campo">
+            <span>Hasta</span>
+            <input type="time" name="disp_hasta"
+                   value="{{ f.hasta.strftime('%H:%M') if f else '' }}" {% if i == 0 %}required{% endif %}>
+          </label>
+        </div>
+        {% endfor %}
+      </fieldset>
+
+      <button class="lime-button" type="submit">
+        {{ 'Cambiar mi respuesta' if e.yo_respondi else 'Responder' }}
+      </button>
+
+    </form>
+
+    {% else %}
+
+    <p class="group-plan-conteo">
+      {{ e.votaron }} de {{ e.miembros }} votaron
+      {% if e.desempate %}· desempate entre las más votadas{% elif e.ronda > 1 %}· nueva tanda de planes{% endif %}
+    </p>
+
+    <form
+      class="encuesta-form"
+      method="post"
+      action="{{ url_for('grupo_planes.elegir_opcion', group_id=group.get_id(), encuesta_id=e.id) }}"
+    >
+
+      <fieldset class="postular-ideas">
+        <legend>Elegí el plan que más te guste</legend>
+
+        {% for o in e.opciones %}
+        <label class="postular-idea">
+          <input type="radio" name="opcion" value="{{ o.id }}" required
+                 {% if e.mi_voto == o.id %}checked{% endif %} />
+          <span class="postular-idea-card">
+            <strong>{{ o.nombre }}</strong>
+            <small>
+              {{ o.lugares | length }} parada{{ 's' if o.lugares | length != 1 }}
+              {% if o.precio_min is not none and o.precio_max is not none %}
+              · ${{ o.precio_min | int }}{% if o.precio_min != o.precio_max %} - ${{ o.precio_max | int }}{% endif %}
+              {% endif %}
+              · {{ o.votos }} voto{{ 's' if o.votos != 1 }}
+            </small>
+          </span>
+        </label>
+        {% endfor %}
+
+        <label class="postular-idea">
+          <input type="radio" name="opcion" value="ninguna" required
+                 {% if e.mi_voto == 'ninguna' %}checked{% endif %} />
+          <span class="postular-idea-card">
+            <strong>Ninguna me convence</strong>
+            <small>Si gana, se arman otros planes · {{ e.votos_ninguna }} voto{{ 's' if e.votos_ninguna != 1 }}</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <button class="lime-button" type="submit">
+        {{ 'Cambiar mi voto' if e.mi_voto else 'Votar' }}
+      </button>
+
+    </form>
+
+    {% endif %}
+
+
+    {% if e.es_creador %}
+    <div class="encuesta-acciones">
+
+      <form method="post" action="{{ url_for('grupo_planes.cerrar_encuesta', group_id=group.get_id(), encuesta_id=e.id) }}">
+        <button class="dark-button" type="submit">
+          {{ 'Cerrar y armar opciones ahora' if e.estado == 'abierta' else 'Cerrar la elección ahora' }}
+        </button>
+      </form>
+
+      <form method="post" action="{{ url_for('grupo_planes.cancelar_encuesta', group_id=group.get_id(), encuesta_id=e.id) }}">
+        <button class="header-action header-action-ghost" type="submit">Cancelar encuesta</button>
+      </form>
+
+    </div>
+    {% endif %}
+
+  </article>
+
+  {% endfor %}
+
+</div>
+
+{% endif %}

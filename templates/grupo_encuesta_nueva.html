@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Armar plan entre todos — {{ group.get_name() }} — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="auth-page section-shell">
+
+      <a class="back-link" href="{{ url_for('group_auth.detalle_grupo', group_id=group.get_id()) }}">← Volver a {{ group.get_name() }}</a>
+
+      <div class="auth-intro">
+        <h1>Armar un plan<br /><em>entre todos.</em></h1>
+        <p>
+          Cada integrante dice qué precio, qué tipo de lugares y cuándo puede.
+          Con eso se arman varias opciones de plan y el grupo elige una.
+        </p>
+      </div>
+
+      <form class="auth-form" method="post">
+
+        {% if error %}
+        <p class="form-message form-error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        <label for="titulo">Nombre del plan</label>
+
+        <input
+          id="titulo"
+          name="titulo"
+          type="text"
+          maxlength="80"
+          placeholder="Ej. Salida del sábado"
+          value="{{ valores.get('titulo', '') }}"
+          required
+        />
+
+        <button class="lime-button" type="submit">
+          Crear encuesta <span aria-hidden="true">↗</span>
+        </button>
+
+      </form>
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

@@ -6039,3 +6039,173 @@
 
 
 }
+
+
+/* ==========================================================================
+   Grupo: pestañas (planes / chat / integrantes) y encuestas
+   ========================================================================== */
+
+.group-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: clamp(24px, 4vw, 40px) auto 0;
+}
+
+.group-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.group-tab:hover {
+  background: var(--surface-1);
+}
+
+.group-tab.is-active {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.group-tab-count {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.2);
+  font-size: 0.8em;
+  text-align: center;
+}
+
+.encuesta-form {
+  display: grid;
+  gap: 18px;
+}
+
+/* Campos con el mismo aspecto que los de los formularios del sitio. */
+.encuesta-campo {
+  display: grid;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.encuesta-campo input,
+.encuesta-campo select {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--text-base);
+  font-weight: 400;
+  transition:
+    border-color var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease);
+}
+
+.encuesta-campo input:focus,
+.encuesta-campo select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+  outline: none;
+}
+
+.encuesta-franjas {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.encuesta-franjas legend {
+  margin-bottom: 4px;
+  padding: 0;
+  font-weight: 700;
+}
+
+.encuesta-ayuda {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.encuesta-franja {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .encuesta-franja {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .encuesta-franja > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+.encuesta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+}
+
+.encuesta-chips legend {
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.encuesta-chips label {
+  cursor: pointer;
+}
+
+.encuesta-chips input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.encuesta-chips span {
+  display: inline-block;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.encuesta-chips input:checked + span {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.encuesta-chips input:focus-visible + span {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.encuesta-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
