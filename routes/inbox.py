@@ -33,6 +33,8 @@ def aceptar_invitacion(group_id):
     try:
         invitation_service.accept_invitation(session["user_id"], group_id)
         flash("Te has unido al grupo.")
+    except ValueError as e:
+        flash(str(e))
     except Exception as e:
         print(f"Error occurred while accepting invitation: {e}")
         flash("Error al aceptar la invitación.")

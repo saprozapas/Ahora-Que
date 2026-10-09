@@ -8,119 +8,235 @@
   aria-labelledby="modal-invitar-title"
 >
 
-  <form
-    method="POST"
-    action="{{ url_for(
-      'group_auth.invitar_usuario',
-      group_id=group.get_id()
-    ) }}"
+  <div class="modal-head">
+
+    <h2 class="modal-title" id="modal-invitar-title">
+      Invitar a alguien
+    </h2>
+
+    <button
+      class="modal-close"
+      type="button"
+      onclick="document.getElementById('modal-invitar').close()"
+      aria-label="Cerrar"
+    >
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+
+  </div>
+
+  <div
+    class="modal-body"
+    id="invitar-panel"
+    data-buscar-url="{{ url_for('group_auth.usuarios_invitables', group_id=group.get_id()) }}"
+    data-invitar-url="{{ url_for('group_auth.invitar_usuario', group_id=group.get_id()) }}"
   >
 
-    <div class="modal-head">
+    <div class="modal-field">
 
-      <h2
-        class="modal-title"
-        id="modal-invitar-title"
-      >
-        Invitar a alguien
-      </h2>
+      <label for="invitar-buscar">Buscar por nombre o usuario</label>
 
-
-      <button
-        class="modal-close"
-        type="button"
-        onclick="document.getElementById('modal-invitar').close()"
-        aria-label="Cerrar"
-      >
-
-        <svg
-          viewBox="0 0 24 24"
-          focusable="false"
-        >
-
-          <path
-            d="M18 6 6 18"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-          />
-
-          <path
-            d="M6 6 18 18"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-          />
-
-        </svg>
-
-      </button>
+      <input
+        id="invitar-buscar"
+        type="search"
+        placeholder="Escribí para buscar…"
+        autocomplete="off"
+      />
 
     </div>
 
+    <div class="modal-field">
 
-    <div class="modal-body">
+      <label for="invitar-mensaje">Mensaje (opcional)</label>
 
-      <div class="modal-field">
-
-        <label for="invitar-username">
-          Usuario
-        </label>
-
-        <input
-          id="invitar-username"
-          name="username"
-          type="text"
-          placeholder="Ej. pepe123"
-          autocomplete="off"
-        />
-
-      </div>
-
-
-      <div class="modal-field">
-
-        <label for="invitar-mensaje">
-          Mensaje
-        </label>
-
-        <textarea
-          id="invitar-mensaje"
-          name="mensaje"
-          rows="3"
-          placeholder="Sumate al grupo, estamos armando un plan…"
-        ></textarea>
-
-      </div>
+      <textarea
+        id="invitar-mensaje"
+        rows="2"
+        placeholder="Sumate al grupo, estamos armando un plan…"
+      ></textarea>
 
     </div>
 
+    <p class="invitar-estado" id="invitar-estado" role="status" aria-live="polite"></p>
 
-    <div class="modal-actions">
+    <p class="invitar-titulo" id="invitar-titulo">Tus amigos</p>
 
-      <button
-        class="header-action header-action-ghost"
-        type="button"
-        onclick="document.getElementById('modal-invitar').close()"
-      >
-        Cancelar
-      </button>
+    <div class="invitar-lista" id="invitar-lista"></div>
 
+  </div>
 
-      <button
-        class="lime-button"
-        type="submit"
-      >
-        Enviar invitación
-      </button>
-
-    </div>
-
-  </form>
+  <div class="modal-actions">
+    <button
+      class="header-action header-action-ghost"
+      type="button"
+      onclick="document.getElementById('modal-invitar').close()"
+    >
+      Cerrar
+    </button>
+  </div>
 
 </dialog>
+
+<script>
+(function () {
+
+  const panel = document.getElementById("invitar-panel");
+  if (!panel) return;
+
+  const buscador = document.getElementById("invitar-buscar");
+  const lista = document.getElementById("invitar-lista");
+  const titulo = document.getElementById("invitar-titulo");
+  const estado = document.getElementById("invitar-estado");
+  const mensaje = document.getElementById("invitar-mensaje");
+
+  let temporizador = null;
+  let controlador = null;
+  let cargadoUnaVez = false;
+
+  function avisar(texto, esError) {
+    estado.textContent = texto || "";
+    estado.classList.toggle("is-error", !!esError);
+    estado.classList.toggle("is-ok", !!texto && !esError);
+  }
+
+  function etiqueta(usuario) {
+    if (usuario.es_miembro) return { texto: "Ya es miembro", off: true };
+    if (usuario.invitado) return { texto: "Invitación enviada", off: true };
+    return { texto: "Invitar", off: false };
+  }
+
+  function dibujar(usuarios, hayTexto) {
+
+    lista.innerHTML = "";
+    titulo.textContent = hayTexto ? "Resultados" : "Tus amigos";
+
+    if (!usuarios.length) {
+      const vacio = document.createElement("p");
+      vacio.className = "friend-search-empty";
+      vacio.textContent = hayTexto
+        ? "No encontramos a nadie con ese nombre o usuario."
+        : "Todavía no tenés amigos agregados: buscá por nombre o usuario.";
+      lista.appendChild(vacio);
+      return;
+    }
+
+    usuarios.forEach(function (usuario) {
+
+      const fila = document.createElement("div");
+      fila.className = "friend-search-result";
+
+      const avatar = document.createElement("span");
+      avatar.className = "friend-avatar";
+      avatar.setAttribute("aria-hidden", "true");
+      avatar.textContent = (usuario.nombre || "?").slice(0, 1).toUpperCase();
+
+      const nombres = document.createElement("span");
+      nombres.className = "friend-search-result-names";
+      const nombre = document.createElement("strong");
+      nombre.textContent = usuario.nombre;
+      nombres.appendChild(nombre);
+      if (usuario.username) {
+        const username = document.createElement("small");
+        username.textContent = "@" + usuario.username;
+        nombres.appendChild(username);
+      }
+
+      const identidad = document.createElement("span");
+      identidad.className = "friend-search-result-identity";
+      identidad.appendChild(avatar);
+      identidad.appendChild(nombres);
+
+      const e = etiqueta(usuario);
+      const boton = document.createElement("button");
+      boton.type = "button";
+      boton.className = "friend-search-add";
+      boton.textContent = e.texto;
+      boton.disabled = e.off;
+
+      if (!e.off) {
+        boton.addEventListener("click", function () { invitar(usuario, boton); });
+      }
+
+      fila.appendChild(identidad);
+      fila.appendChild(boton);
+      lista.appendChild(fila);
+    });
+  }
+
+  async function buscar(consulta) {
+
+    if (controlador) controlador.abort();
+    controlador = new AbortController();
+
+    try {
+      const respuesta = await fetch(
+        panel.dataset.buscarUrl + "?q=" + encodeURIComponent(consulta),
+        { signal: controlador.signal }
+      );
+      const datos = await respuesta.json();
+      dibujar(datos.resultados || [], consulta.length > 0);
+      cargadoUnaVez = true;
+    } catch (error) {
+      // Cancelada por una búsqueda más nueva, o error de red: no hacemos nada.
+    }
+  }
+
+  async function invitar(usuario, boton) {
+
+    boton.disabled = true;
+    boton.textContent = "Enviando…";
+    avisar("");
+
+    try {
+      const respuesta = await fetch(panel.dataset.invitarUrl, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "user_id=" + encodeURIComponent(usuario.id)
+            + "&mensaje=" + encodeURIComponent(mensaje.value.trim())
+      });
+      const datos = await respuesta.json();
+
+      // Un error se muestra acá mismo: el modal no se cierra ni se recarga la página.
+      if (datos.ok) {
+        boton.textContent = "Invitación enviada";
+        avisar(usuario.nombre + ": " + datos.mensaje, false);
+      } else {
+        boton.disabled = false;
+        boton.textContent = "Invitar";
+        avisar(datos.mensaje || "No se pudo invitar.", true);
+      }
+    } catch (error) {
+      boton.disabled = false;
+      boton.textContent = "Invitar";
+      avisar("No se pudo invitar. Revisá tu conexión e intentá de nuevo.", true);
+    }
+  }
+
+  buscador.addEventListener("input", function () {
+
+    const consulta = buscador.value.trim();
+    clearTimeout(temporizador);
+
+    if (consulta.length === 1) return;     // el servidor pide al menos 2 letras
+    temporizador = setTimeout(function () { buscar(consulta); }, 300);
+  });
+
+  // Al abrir el modal se muestran los amigos, sin escribir nada.
+  document.querySelectorAll('[data-modal-open="modal-invitar"]').forEach(function (disparador) {
+    disparador.addEventListener("click", function () {
+      avisar("");
+      if (!cargadoUnaVez || buscador.value.trim() === "") buscar(buscador.value.trim());
+    });
+  });
+
+})();
+</script>
 
 
 <!-- =========================================================================

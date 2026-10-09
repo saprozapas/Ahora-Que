@@ -65,31 +65,25 @@ class FriendService:
         if conn is None:
             conn = get_db_connection()
 
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            SELECT s."Id_Solicitante", u."Nombre", u."Username", s."Fecha"
-            FROM public."Solicitudes_Amistad" s
-            JOIN public."Usuarios" u ON u."Id_Usuario" = s."Id_Solicitante"
-            WHERE s."Id_Destinatario" = %s
-            ORDER BY s."Fecha" DESC
-            """,
-            (user_id,)
-        )
-
-        rows = cursor.fetchall()
-
-        solicitudes = [
-            SolicitudAmistad(row[0], row[1], row[2], row[3])
-            for row in rows
-        ]
-
-        cursor.close()
-        if cerrar_conexion:
-            release_db_connection(conn)
-
-        return solicitudes
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT s."Id_Solicitante", u."Nombre", u."Username", s."Fecha"
+                    FROM public."Solicitudes_Amistad" s
+                    JOIN public."Usuarios" u ON u."Id_Usuario" = s."Id_Solicitante"
+                    WHERE s."Id_Destinatario" = %s
+                    ORDER BY s."Fecha" DESC
+                    """,
+                    (user_id,)
+                )
+                return [
+                    SolicitudAmistad(row[0], row[1], row[2], row[3])
+                    for row in cursor.fetchall()
+                ]
+        finally:
+            if cerrar_conexion:
+                release_db_connection(conn)
 
     def accept_request(self, from_id, to_id):
         conn = get_db_connection()

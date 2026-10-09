@@ -47,7 +47,7 @@ class LugarService:
 
         tipo_id = (tipo_id or "").strip()
         if tipo_id:
-            condiciones.append('t."Id_Tipo" = %s')
+            condiciones.append('t."Id_Tipo"::text = %s')
             parametros.append(tipo_id)
 
         condiciones_filtros, parametros_filtros = construir_condiciones(filtros or {})

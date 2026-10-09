@@ -33,6 +33,9 @@ def ver_calendario():
     elif mes > 12:
         mes, anio = 1, anio + 1
 
+    # date() solo admite 1-9999: se acota a un rango razonable.
+    anio = min(max(anio, 2000), 2100)
+
     planes = plan_service.get_planes_confirmados_calendario(session["user_id"])
 
     planes_por_dia = {}

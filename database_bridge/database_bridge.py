@@ -301,3 +301,58 @@ def isUserInGroup(uid, group_id):
     finally:
         release_db_connection(connection)
         
+
+
+def buscarUsuariosInvitables(group_id, uid_actual, query="", limite=8):
+    """Usuarios para invitar a un grupo. Sin texto devuelve los amigos del
+    usuario (así no hay que saberse el nombre de memoria); con texto busca
+    por nombre o username entre todos. Cada resultado indica si ya es
+    miembro del grupo o ya tiene una invitación pendiente."""
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            query = (query or "").strip()
+            cursor.execute(
+                """
+                SELECT id, nombre, username, es_amigo, es_miembro, invitado
+                FROM (
+                    SELECT
+                        u."Id_Usuario" AS id,
+                        u."Nombre" AS nombre,
+                        u."Username" AS username,
+                        EXISTS (
+                            SELECT 1 FROM public."Amistades" a
+                            WHERE a."Id_Usuario1" = LEAST(u."Id_Usuario", %(uid)s)
+                              AND a."Id_Usuario2" = GREATEST(u."Id_Usuario", %(uid)s)
+                        ) AS es_amigo,
+                        EXISTS (
+                            SELECT 1 FROM public."Usuario-Grupo" g
+                            WHERE g."Id_Grupo" = %(gid)s AND g."Id_Usuario" = u."Id_Usuario"
+                        ) AS es_miembro,
+                        EXISTS (
+                            SELECT 1 FROM public."Invitaciones" i
+                            WHERE i."Id_Grupo" = %(gid)s AND i."Id_Usuario" = u."Id_Usuario"
+                        ) AS invitado
+                    FROM public."Usuarios" u
+                    WHERE u."Id_Usuario" != %(uid)s
+                ) t
+                WHERE (%(q)s <> '' AND (t.nombre ILIKE %(patron)s OR t.username ILIKE %(patron)s))
+                   OR (%(q)s = '' AND t.es_amigo)
+                ORDER BY t.es_amigo DESC, t.nombre
+                LIMIT %(limite)s
+                """,
+                {"uid": uid_actual, "gid": group_id, "q": query,
+                 "patron": f"%{query}%", "limite": limite},
+            )
+            return [
+                {"id": str(f[0]), "nombre": f[1], "username": f[2],
+                 "es_amigo": f[3], "es_miembro": f[4], "invitado": f[5]}
+                for f in cursor.fetchall()
+            ]
+
+    except psycopg2.Error:
+        raise
+
+    finally:
+        release_db_connection(connection)

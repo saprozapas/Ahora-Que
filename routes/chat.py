@@ -4,6 +4,9 @@ from database_bridge.database_bridge import isUserInGroup
 
 
 chat = Blueprint("chat", __name__)
+
+# Mismo tope que el chatbot (routes/chatbot.py).
+MAX_LARGO_MENSAJE = 1000
 chat_service = ChatService()
 
 
@@ -43,18 +46,28 @@ def enviar_mensaje(group_id):
 
     datos = request.get_json(silent=True) or {}
 
-    mensaje = datos.get("mensaje", "").strip()
+    mensaje = str(datos.get("mensaje", "")).strip()
 
     if not mensaje:
         return jsonify({
             "error": "El mensaje está vacío."
         }), 400
 
-    chat_service.crear_mensaje(
-        group_id,
-        user_id,
-        mensaje
-    )
+    if len(mensaje) > MAX_LARGO_MENSAJE:
+        return jsonify({
+            "error": f"El mensaje puede tener hasta {MAX_LARGO_MENSAJE} caracteres."
+        }), 400
+
+    try:
+        chat_service.crear_mensaje(
+            group_id,
+            user_id,
+            mensaje
+        )
+    except Exception:
+        return jsonify({
+            "error": "No se pudo enviar el mensaje. Intentá de nuevo."
+        }), 500
 
     return jsonify({
         "ok": True

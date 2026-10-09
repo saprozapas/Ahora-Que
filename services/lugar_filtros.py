@@ -91,6 +91,11 @@ def construir_condiciones(valores):
 
         valor = str(valor).strip()
 
+        # Un select solo acepta los valores de su lista: así un valor
+        # inventado en la URL (?nivel_precio=abc) no llega a la consulta.
+        if filtro["tipo"] == "select" and valor not in {v for v, _ in filtro["opciones"]}:
+            continue
+
         transformar = filtro.get("transformar")
         if transformar:
             valor = transformar(valor)
