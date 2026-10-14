@@ -61,6 +61,7 @@ Esta es la base de datos del proyecto
 | `Nombre` | `text` |  |
 | `Id_Grupo` | `uuid` | Primary |
 | `Descripcion` | `text` |  Nullable |
+| `Todos_Admin` | `boolean` | Default `false`. Si está activo, todo el que entra al grupo es admin |
 
 ## Table `Usuario-Grupo`
 
@@ -72,6 +73,8 @@ Conecto Usuarios con Grupos
 |------|------|-------------|
 | `Id_Usuario` | `uuid` | Primary |
 | `Id_Grupo` | `uuid` | Primary |
+| `Es_Admin` | `boolean` | Default `false`. Lo pone el trigger `usuario_grupo_es_admin` al insertar |
+| `Fecha_Union` | `timestamptz` | Default `now()`. Desempata la sucesión de admin |
 
 ## Table `horario_lugar`
 
@@ -390,4 +393,3 @@ Conecto Usuarios con Grupos
 |--------|---------|-------|--------|-------|------------|
 | `usuario_edita_su_perfil` | UPDATE | public | PERMISSIVE | `(auth.uid() = "Id_Usuario")` | — |
 | `usuario_ve_su_perfil` | SELECT | public | PERMISSIVE | `(auth.uid() = "Id_Usuario")` | — |
-

@@ -281,7 +281,7 @@
       </form>
 
 
-      {% if plan.es_creador %}
+      {% if plan.es_creador or es_admin %}
 
       <form
         method="post"
@@ -402,7 +402,7 @@
           </form>
 
 
-          {% if plan.es_creador %}
+          {% if plan.es_creador or es_admin %}
 
           <form
             method="post"

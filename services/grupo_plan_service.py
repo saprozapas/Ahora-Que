@@ -5,7 +5,7 @@ Flujo de un plan de grupo (columna "Plan"."Estado"):
     idea guardada --postular--> votacion
         votacion: cada integrante vota "¿me gusta?" y "¿puedo en esa fecha?".
         La votación se resuelve cuando votaron TODOS los integrantes, o
-        antes si el creador del plan la cierra a mano:
+        antes si el creador del plan o un admin del grupo la cierra a mano:
           - me gusta < UMBRAL_GUSTA          -> rechazado
           - me gusta ok y puedo >= UMBRAL    -> confirmado (se confirma a
                                                  los que votaron "puedo")
@@ -59,6 +59,14 @@ class GrupoPlanService:
         if fila is None:
             raise GrupoPlanError("Ese plan no es de este grupo.")
         return fila[0], fila[1], fila[2]
+
+    def _es_admin(self, cursor, group_id, user_id):
+        cursor.execute(
+            'SELECT "Es_Admin" FROM public."Usuario-Grupo" WHERE "Id_Usuario" = %s AND "Id_Grupo" = %s',
+            (user_id, group_id),
+        )
+        fila = cursor.fetchone()
+        return bool(fila and fila[0])
 
     def _confirmar_usuarios(self, cursor, plan_id, user_ids):
         for uid in user_ids:
@@ -364,13 +372,13 @@ class GrupoPlanService:
             release_db_connection(connection)
 
     def cerrar_votacion(self, group_id, plan_id, user_id):
-        """El creador cierra la votación sin esperar a que voten todos."""
+        """El creador del plan o un admin cierra la votación sin esperar a que voten todos."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 estado, creado_por, _ = self._plan_del_grupo(cursor, plan_id, group_id, user_id)
-                if str(creado_por) != str(user_id):
-                    raise GrupoPlanError("Solo quien postuló el plan puede cerrar la votación.")
+                if str(creado_por) != str(user_id) and not self._es_admin(cursor, group_id, user_id):
+                    raise GrupoPlanError("Solo quien postuló el plan o un admin del grupo puede cerrar la votación.")
                 if estado != "votacion":
                     raise GrupoPlanError("La votación de este plan ya se cerró.")
                 resultado = self._resolver_votacion(cursor, plan_id, forzar=True)
@@ -457,13 +465,13 @@ class GrupoPlanService:
             release_db_connection(connection)
 
     def cerrar_horario(self, group_id, horario_id, user_id):
-        """El creador del plan cierra la votación de un horario."""
+        """El creador del plan o un admin cierra la votación de un horario."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 _, (estado, creado_por, _) = self._horario_del_grupo(cursor, horario_id, group_id, user_id)
-                if str(creado_por) != str(user_id):
-                    raise GrupoPlanError("Solo quien postuló el plan puede cerrar la votación.")
+                if str(creado_por) != str(user_id) and not self._es_admin(cursor, group_id, user_id):
+                    raise GrupoPlanError("Solo quien postuló el plan o un admin del grupo puede cerrar la votación.")
                 resultado = self._resolver_horario(cursor, horario_id, forzar=True)
             connection.commit()
             return resultado

@@ -1531,6 +1531,28 @@
     border-color: var(--danger);
   }
 
+  /* Casilla con el texto al costado (ej. "Que todos los integrantes sean
+     admins" al crear un grupo). Sin esto hereda el ancho 100% y el alto
+     de los campos de texto de arriba. */
+
+  .auth-form .check-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+  }
+
+  .auth-form .check-row input[type="checkbox"] {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    min-height: 0;
+    padding: 0;
+
+    accent-color: var(--accent);
+  }
+
   /* La regla de arriba solo cubre <input>: sin esto, los <textarea> y
      <select> dentro de .auth-form (como "Descripción" al crear un
      plan) quedan con el estilo por defecto del navegador. */
@@ -4595,6 +4617,23 @@
   .modal-member-link:hover,
   .modal-member-link:focus-visible {
     background: var(--surface-1);
+  }
+
+  /* Fila con acciones de admin (nombrar admin / sacar) a la derecha. */
+
+  .modal-member-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-member-row > .modal-member-link {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .modal-member-row form {
+    margin: 0;
   }
 
   .modal-member-avatar {

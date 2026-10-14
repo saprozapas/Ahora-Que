@@ -335,6 +335,18 @@
       </div>
 
 
+      {% if es_admin %}
+      <label>
+        <input
+          type="checkbox"
+          name="todos_admin"
+          {% if todos_admin %}checked{% endif %}
+        />
+        Que todos los integrantes sean admins
+      </label>
+      {% endif %}
+
+
       <div class="modal-field">
 
         <span class="modal-field-label">
@@ -543,7 +555,7 @@
 
     <ul class="modal-members">
       {% for integrante in users %}
-      <li>
+      <li class="modal-member-row">
         <a
           class="modal-member modal-member-link"
           href="{{ url_for('profile.perfil_publico', user_id=integrante.id) }}"
@@ -551,8 +563,48 @@
           <span class="modal-member-avatar" aria-hidden="true">
             {{ integrante.user.get_name()[:1] | upper }}
           </span>
-          <span>{{ integrante.user.get_name() }}</span>
+          <span>
+            {{ integrante.user.get_name() }}
+            {% if integrante.es_admin %}<small>Admin</small>{% endif %}
+          </span>
         </a>
+
+        {% if es_admin and integrante.id | string != session.get('user_id') | string %}
+
+        {% if not integrante.es_admin %}
+        <form method="post" action="{{ url_for('group_auth.hacer_admin', group_id=group.get_id(), user_id=integrante.id) }}">
+          <button
+            class="friend-action"
+            type="submit"
+            title="Hacer admin"
+            aria-label="Hacer admin a {{ integrante.user.get_name() }}"
+          >
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </form>
+        {% endif %}
+
+        <form
+          method="post"
+          action="{{ url_for('group_auth.sacar_integrante', group_id=group.get_id(), user_id=integrante.id) }}"
+          data-confirmar="¿Sacar a {{ integrante.user.get_name() }} del grupo?"
+        >
+          <button
+            class="friend-action friend-action-danger"
+            type="submit"
+            title="Sacar del grupo"
+            aria-label="Sacar a {{ integrante.user.get_name() }} del grupo"
+          >
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </button>
+        </form>
+
+        {% endif %}
       </li>
       {% endfor %}
     </ul>

@@ -29,6 +29,14 @@ def _require_login():
     return None
 
 
+def _solo_admin(group_id):
+    """Redirect si el usuario no es admin del grupo; None si lo es."""
+    if not group_auth_service.is_admin(session.get("user_id"), group_id):
+        flash("Solo un admin del grupo puede hacer eso.")
+        return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+    return None
+
+
 @group_auth.route("/grupos")
 def grupos():
     redirect_response = _require_login()
@@ -54,6 +62,7 @@ def nuevo_grupo():
         user_id = session.get("user_id")
         name = form_data["name"]
         description = form_data["description"]
+        todos_admin = "todos_admin" in request.form  # el checkbox solo viaja si está tildado
         try:
             user = getUser(user_id)
         except Exception as e:
@@ -62,7 +71,7 @@ def nuevo_grupo():
         try:
             if name.strip() == "":
                 raise psycopg2.errors.NotNullViolation("El nombre del grupo no puede estar vacío.")
-            group_id = group_auth_service.register(Group(user, name, description), user_id)
+            group_id = group_auth_service.register(Group(user, name, description), user_id, todos_admin)
         except psycopg2.errors.NotNullViolation as e:
             return render_template("crear_grupos.html", error="Debes ingresar el nombre del grupo.", form_data=form_data)
         except Exception as e:
@@ -91,7 +100,9 @@ def detalle_grupo(group_id):
     plan_service.archivar_vencidos()
     tablero = grupo_plan_service.get_tablero(group_id, session.get("user_id"))
     encuestas = grupo_encuesta_service.get_abiertas(group_id, session.get("user_id"))
+    es_admin, todos_admin = group_auth_service.get_rol(session.get("user_id"), group_id)
     return render_template("grupo.html", group=group, groups_page=True, users=users,
+                           es_admin=es_admin, todos_admin=todos_admin,
                            seccion="planes", tablero=tablero, hoy=date.today().isoformat(),
                            encuestas=encuestas,
                            tipos=lugar_service.listar_tipos() if encuestas else [],
@@ -110,8 +121,10 @@ def chat_grupo(group_id):
 
     group = getGroupById(group_id)
     group.set_user(getUser(session.get("user_id")))
+    es_admin, todos_admin = group_auth_service.get_rol(session.get("user_id"), group_id)
     return render_template("grupo_chat.html", group=group, groups_page=True,
-                           users=getUsersInGroupWithIds(group_id), seccion="chat")
+                           users=getUsersInGroupWithIds(group_id), seccion="chat",
+                           es_admin=es_admin, todos_admin=todos_admin)
 
 
 @group_auth.route("/grupos/<group_id>/invitables")
@@ -195,12 +208,47 @@ def editar_grupo(group_id):
 
     try:
         group_auth_service.update_group(group_id, nombre, descripcion)
+        # Solo un admin cambia "todos admin": sin esto un integrante común lo apagaría al guardar.
+        if group_auth_service.is_admin(session.get("user_id"), group_id):
+            group_auth_service.set_todos_admin(group_id, "todos_admin" in request.form)
         flash("Grupo actualizado exitosamente.")
     except Exception as e:
         print(f"Error al actualizar el grupo: {e}")
         flash("Error al actualizar el grupo.")
 
     return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
+@group_auth.route("/grupos/<group_id>/integrantes/<user_id>/admin", methods=["POST"])
+def hacer_admin(group_id, user_id):
+    redirect_response = _require_login() or _solo_admin(group_id)
+    if redirect_response:
+        return redirect_response
+
+    try:
+        group_auth_service.make_admin(group_id, user_id)
+        flash("Ahora es admin del grupo.")
+    except Exception as e:
+        print(f"Error al nombrar admin: {e}")
+        flash("Error al nombrar admin.")
+
+    return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
+
+@group_auth.route("/grupos/<group_id>/integrantes/<user_id>/sacar", methods=["POST"])
+def sacar_integrante(group_id, user_id):
+    redirect_response = _require_login() or _solo_admin(group_id)
+    if redirect_response:
+        return redirect_response
+
+    try:
+        group_auth_service.delete_user_from_group(group_id, user_id)
+        flash("Integrante eliminado del grupo.")
+    except Exception as e:
+        print(f"Error al eliminar al integrante: {e}")
+        flash("Error al eliminar al integrante.")
+
+    return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
 
 @group_auth.route("/grupos/<group_id>/eliminar-grupo", methods=["POST"])
 def abandonar_grupo(group_id):

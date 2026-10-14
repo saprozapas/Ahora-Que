@@ -143,14 +143,14 @@ def getUsersInGroup(group_id):
 
 def getUsersInGroupWithIds(group_id):
     """Como getUsersInGroup, pero devuelve también el Id_Usuario de cada
-    integrante (necesario para linkear a su perfil) y su Descripcion."""
+    integrante (necesario para linkear a su perfil), su Descripcion y si es admin."""
     connection = get_db_connection()
 
     try:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash", u."Descripcion"
+                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash", u."Descripcion", ug."Es_Admin"
                 FROM public."Usuarios" u
                 JOIN public."Usuario-Grupo" ug ON u."Id_Usuario" = ug."Id_Usuario"
                 WHERE ug."Id_Grupo" = %s
@@ -166,6 +166,7 @@ def getUsersInGroupWithIds(group_id):
                 users.append({
                     "id": result[0],
                     "user": User(result[1], result[2], result[3], result[4], result[5], result[6]),
+                    "es_admin": result[7],
                 })
             return users
 
