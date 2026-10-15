@@ -29,7 +29,7 @@ class ClaveMaestraFaltante(RuntimeError):
 def _get_kek():
     global _kek
     if _kek is None:
-        valor = os.environ.get("CHAT_MASTER_KEY", "e/ZlK4BYeAvdLMhh4EHab+gESeNNKrzhVHLRWl1AGcg=").strip()
+        valor = os.environ.get("CHAT_MASTER_KEY", "").strip()
         if not valor:
             raise ClaveMaestraFaltante(
                 "Falta la variable de entorno CHAT_MASTER_KEY (32 bytes en base64)."

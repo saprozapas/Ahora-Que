@@ -17,7 +17,7 @@ class LLMNoConfigurado(RuntimeError):
 def _get_client():
     global _client
     if _client is None:
-        api_key = os.environ.get("GROQ_API_KEY", "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").strip()
+        api_key = os.environ.get("GROQ_API_KEY", "").strip()
         if not api_key:
             raise LLMNoConfigurado("Falta la variable de entorno GROQ_API_KEY.")
         from groq import Groq

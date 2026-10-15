@@ -11,10 +11,7 @@ from psycopg2 import extensions
 # ---- CONEXIÓN A LA BASE DE DATOS (Supabase / PostgreSQL) ----
 # Reemplazar esto con el connection string que da Supabase
 # (Project Settings -> Database -> Connection String)
-DB_URL = os.environ.get(
-    "AHORAQUE_DB_URL",
-    "postgresql://postgres.kmeggurdtvyvtyhpanox:AhoraQue2026@aws-0-us-east-2.pooler.supabase.com:6543/postgres",
-)
+DB_URL = os.environ.get("AHORAQUE_DB_URL")
 
 # =============================================================================
 # POR QUÉ ESTE ARCHIVO ES ASÍ
