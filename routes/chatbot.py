@@ -2,6 +2,7 @@
 
   GET  /chatbot/historial       mensajes de la conversación activa
   POST /chatbot/mensaje         {"mensaje": str, "grupo_id"?: str} -> respuesta del bot (+ borrador)
+  POST /chatbot/mensaje_stream  igual, pero la respuesta llega de a pedazos (SSE)
   POST /chatbot/confirmar_plan  {"mensaje_id": str, "grupo_id"?: str} -> guarda el borrador como idea
 
 Con "grupo_id" (el chat usado desde un grupo) el bot sabe cuántos son, y al
@@ -9,13 +10,14 @@ guardar devuelve el link para postular la idea en ese grupo.
   POST /chatbot/nueva           borra la conversación y arranca de cero
 """
 import json
+import time
 
 import psycopg2
 from cryptography.exceptions import InvalidTag
-from flask import Blueprint, jsonify, request, session, url_for
+from flask import Blueprint, Response, jsonify, request, session, stream_with_context, url_for
 
 import ia_bridge
-from services.chatbot_service import historial_para_llm, procesar_mensaje_bot
+from services.chatbot_service import historial_para_llm, procesar_mensaje_bot, procesar_mensaje_bot_stream
 from services.crypto_service import ClaveMaestraFaltante
 from services.llm_service import LLMNoConfigurado
 from services.plan_service import PlanService
@@ -80,18 +82,14 @@ def historial():
     return jsonify(mensajes=[_mensaje_para_cliente(m) for m in mensajes])
 
 
-@chatbot_bp.route("/mensaje", methods=["POST"])
-def enviar_mensaje():
-    user_id = session.get("user_id")
-    if not user_id:
-        return _no_autorizado()
-
-    datos = request.get_json(silent=True) or {}
+def _preparar_turno(user_id, datos):
+    """Valida el pedido y arma lo que el bot necesita (lo comparten /mensaje
+    y /mensaje_stream). Devuelve (turno, None), o (None, respuesta_de_error)."""
     texto_usuario = str(datos.get("mensaje") or "").strip()
     if not texto_usuario:
-        return _error("El mensaje está vacío.", 400)
+        return None, _error("El mensaje está vacío.", 400)
     if len(texto_usuario) > MAX_LARGO_MENSAJE:
-        return _error(f"El mensaje puede tener hasta {MAX_LARGO_MENSAJE} caracteres.", 400)
+        return None, _error(f"El mensaje puede tener hasta {MAX_LARGO_MENSAJE} caracteres.", 400)
 
     # Si el chat se usa desde un grupo, se verifica que sea miembro y se le
     # cuenta al bot cuántos son.
@@ -100,7 +98,7 @@ def enviar_mensaje():
     if grupo_id:
         grupo = ia_bridge.contexto_grupo(user_id, grupo_id)
         if grupo is None:
-            return _error("No sos parte de ese grupo.", 403)
+            return None, _error("No sos parte de ese grupo.", 403)
 
     conv_id, dek = ia_bridge.obtener_o_crear_conversacion_bot(user_id)
     historial_guardado = ia_bridge.obtener_historial_desencriptado(conv_id, dek, limite=LIMITE_HISTORIAL)
@@ -112,18 +110,22 @@ def enviar_mensaje():
     hay_borrador = any(m["tipo"] == "borrador" for m in historial_guardado)
     forzar_plan = not hay_borrador and len(texto_usuario.split()) >= 4
 
-    try:
-        respuesta, borrador = procesar_mensaje_bot(mensajes_llm, forzar_plan=forzar_plan)
-    except (ClaveMaestraFaltante, LLMNoConfigurado):
-        raise
-    except Exception as e:
-        print(f"Error del chatbot: {e}")
-        return _error("El asistente no pudo responder. Probá de nuevo en un rato.", 502)
+    return {
+        "user_id": user_id,
+        "texto_usuario": texto_usuario,
+        "conv_id": conv_id,
+        "dek": dek,
+        "mensajes_llm": mensajes_llm,
+        "forzar_plan": forzar_plan,
+    }, None
 
-    # Se guarda todo junto recién cuando el bot respondió bien: así no
-    # quedan mensajes del usuario sin respuesta en el historial.
+
+def _guardar_turno(turno, respuesta, borrador):
+    """Se guarda todo junto recién cuando el bot respondió bien: así no
+    quedan mensajes del usuario sin respuesta en el historial.
+    Devuelve el borrador con su mensaje_id (o None)."""
     nuevos = [
-        {"remitente": user_id, "rol": "user", "texto": texto_usuario, "tipo": "texto"},
+        {"remitente": turno["user_id"], "rol": "user", "texto": turno["texto_usuario"], "tipo": "texto"},
         {"remitente": None, "rol": "assistant", "texto": respuesta, "tipo": "texto"},
     ]
     if borrador:
@@ -133,11 +135,79 @@ def enviar_mensaje():
             "texto": json.dumps(borrador, ensure_ascii=False, default=str),
             "tipo": "borrador",
         })
-    ids = ia_bridge.guardar_mensajes(conv_id, dek, nuevos)
+    ids = ia_bridge.guardar_mensajes(turno["conv_id"], turno["dek"], nuevos)
+    return dict(borrador, mensaje_id=ids[2]) if borrador else None
 
-    return jsonify(
-        respuesta=respuesta,
-        borrador=dict(borrador, mensaje_id=ids[2]) if borrador else None,
+
+@chatbot_bp.route("/mensaje", methods=["POST"])
+def enviar_mensaje():
+    user_id = session.get("user_id")
+    if not user_id:
+        return _no_autorizado()
+
+    turno, error = _preparar_turno(user_id, request.get_json(silent=True) or {})
+    if error:
+        return error
+
+    try:
+        respuesta, borrador = procesar_mensaje_bot(turno["mensajes_llm"], forzar_plan=turno["forzar_plan"])
+    except (ClaveMaestraFaltante, LLMNoConfigurado):
+        raise
+    except Exception as e:
+        print(f"Error del chatbot: {e}")
+        return _error("El asistente no pudo responder. Probá de nuevo en un rato.", 502)
+
+    return jsonify(respuesta=respuesta, borrador=_guardar_turno(turno, respuesta, borrador))
+
+
+def _evento_sse(datos):
+    return "data: " + json.dumps(datos, ensure_ascii=False, default=str) + "\n\n"
+
+
+@chatbot_bp.route("/mensaje_stream", methods=["POST"])
+def enviar_mensaje_stream():
+    """Igual que /mensaje, pero la respuesta va llegando como Server-Sent
+    Events (una línea "data: {json}" por evento; ver procesar_mensaje_bot_stream).
+    Los errores de validación salen como JSON normal con su código HTTP; los
+    que pasan ya empezada la respuesta, como evento {"tipo": "error"}."""
+    user_id = session.get("user_id")
+    if not user_id:
+        return _no_autorizado()
+
+    turno, error = _preparar_turno(user_id, request.get_json(silent=True) or {})
+    if error:
+        return error
+
+    def generar():
+        inicio = time.monotonic()
+        primer_texto = False
+        try:
+            for evento in procesar_mensaje_bot_stream(turno["mensajes_llm"], forzar_plan=turno["forzar_plan"]):
+                if evento["tipo"] == "texto" and not primer_texto:
+                    primer_texto = True
+                    print(f"[chatbot] primer texto a los {time.monotonic() - inicio:.1f}s", flush=True)
+                if evento["tipo"] == "fin":
+                    borrador = _guardar_turno(turno, evento["respuesta"], evento["borrador"])
+                    yield _evento_sse({"tipo": "fin", "respuesta": evento["respuesta"], "borrador": borrador})
+                else:
+                    yield _evento_sse(evento)
+        except LLMNoConfigurado as e:
+            print(f"Chatbot sin configurar: {e}")
+            yield _evento_sse({"tipo": "error", "error": "El asistente no está configurado en este servidor."})
+        except psycopg2.Error as e:
+            print(f"Chatbot, error de base de datos: {e}")
+            yield _evento_sse({"tipo": "error", "error": "El chat no puede acceder a la base de datos."})
+        except Exception as e:
+            print(f"Error del chatbot: {e}")
+            yield _evento_sse({"tipo": "error", "error": "El asistente no pudo responder. Probá de nuevo en un rato."})
+
+    return Response(
+        stream_with_context(generar()),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # que nginx y similares no acumulen la respuesta
+        },
     )
 
 

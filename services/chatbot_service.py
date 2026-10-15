@@ -15,10 +15,11 @@ sale de los mensajes de la conversación activa.
 """
 import json
 import re
+import time
 
 import ia_bridge
 from services import plan_reglas
-from services.llm_service import chat_completion
+from services.llm_service import chat_completion_stream
 from services.lugar_filtros import FILTROS_LUGAR
 from services.lugar_service import LugarService
 from services.precio_lugar import RANGOS_POR_NIVEL
@@ -26,7 +27,9 @@ from services.precio_lugar import RANGOS_POR_NIVEL
 lugar_service = LugarService()
 
 MAX_ITERACIONES = 8
-MAX_RESULTADOS_BUSQUEDA = 10
+MAX_RESULTADOS_BUSQUEDA = 6
+MAX_MENSAJES_HISTORIAL_LLM = 10  # cuántos mensajes viejos se le mandan al modelo
+MAX_AMBIENTE = 50
 MAX_LUGARES_BORRADOR = 5
 MAX_NOMBRE = 120
 MAX_DESCRIPCION = 600
@@ -38,41 +41,36 @@ _PRECIOS = "; ".join(
 
 SYSTEM_PROMPT = (
     "Sos el asistente de 'Ahora Qué', una app para armar planes y salidas en Montevideo. "
-    "Hablás en español rioplatense, con tono cercano y respuestas cortas.\n"
+    "Hablás en español rioplatense, tono cercano y respuestas cortas.\n"
     "Tu trabajo es armar una IDEA de plan: qué hacer y por qué lugares pasar (la fecha se elige "
     "después, en el grupo).\n"
     "\n"
     "Cómo trabajás:\n"
-    "1. Apenas el usuario te cuenta qué quiere, aunque falten datos, armá el plan EN ESE MISMO TURNO: "
-    "usá buscar_lugares (una búsqueda por cada parada) y después llamá a proponer_borrador. "
-    "No hagas preguntas antes de proponer.\n"
-    "2. Lo que falte lo asumís con criterio (una salida común, zona céntrica, presupuesto medio, "
-    "sin restricciones) y lo aclarás en una frase, por ejemplo: \"Asumí un presupuesto medio\".\n"
-    "3. Terminá SIEMPRE tu respuesta preguntando si le cierra o si quiere cambiar algo "
-    "(presupuesto, zona, tipo de lugar, restricciones de comida).\n"
+    "1. Apenas el usuario cuenta qué quiere, aunque falten datos, armá el plan EN ESE MISMO TURNO: "
+    "hacé todas las búsquedas con buscar_lugares juntas (una por parada, en la misma vuelta) y "
+    "después llamá a proponer_borrador. No hagas preguntas antes de proponer.\n"
+    "2. Lo que falte asumilo con criterio (salida común, zona céntrica, presupuesto medio, sin "
+    "restricciones) y aclaralo en una frase.\n"
+    "3. Terminá SIEMPRE preguntando si le cierra o si quiere cambiar algo (presupuesto, zona, "
+    "tipo de lugar, restricciones de comida).\n"
     "4. Si pide cambios, buscá de nuevo y proponé un borrador nuevo y completo.\n"
-    "5. Solo si el mensaje no da ninguna pista (un saludo, por ejemplo), hacé UNA pregunta corta "
-    "en lugar de proponer.\n"
+    "5. Solo si el mensaje no da ninguna pista (un saludo), hacé UNA pregunta corta en vez de proponer.\n"
     "\n"
-    "Reglas del plan:\n"
-    "- Usá SIEMPRE buscar_lugares. Nunca inventes lugares, direcciones ni precios: solo podés "
-    "mencionar lugares que devolvió la herramienta. Si una búsqueda no trae resultados, probá con "
-    "menos filtros o con otra palabra clave.\n"
-    "- Un plan tiene de 1 a 3 paradas y tiene que tener sentido: como máximo UN lugar para comer "
-    "(restaurante, parrilla, pizzería...), un café y un postre. Para armar una salida completa "
-    "combiná comida con bar, paseo, actividad o postre. Cada lugar trae su 'rol' para que lo controles.\n"
-    "- Todos los lugares de la base están en Montevideo: NUNCA pongas 'Montevideo' en el parámetro texto. \n"
-    "Usá una sola palabra clave corta (ej: 'restaurante', 'parrilla', 'bar'), no frases.\n"
-    "- Si el usuario dice cuánto quiere gastar por persona, pasalo en pesos uruguayos en "
-    "presupuesto_por_persona (ej: 430). El servidor lo convierte al nivel de precio (" + _PRECIOS + "); "
-    "no uses nivel_precio.\n"
-    "- No uses el filtro 'ambiente' salvo que el usuario pida un ambiente concreto: es texto libre y "
-    "casi siempre devuelve 0 resultados.\n"
-    "- Si el usuario pide algo tranquilo, proponé 1 o 2 paradas (no hace falta llegar a 3).\n"
-    "- Si te dicen la cantidad de personas o el grupo, tenelo en cuenta.\n"
-    "- Al proponer, elegí los lugares que mejor cumplan lo que pidió el usuario.\n"
-    "- Nunca muestres ids, JSON ni detalles técnicos al usuario. Después de proponer el borrador, "
-    "contá en una o dos frases qué armaste y avisá que puede guardarlo con el botón."
+    "Reglas:\n"
+    "- Usá SIEMPRE buscar_lugares. Nunca inventes lugares, direcciones ni precios. Si una búsqueda "
+    "no trae resultados, probá con menos filtros u otra palabra clave.\n"
+    "- Un plan tiene de 1 a 3 paradas con sentido: como máximo UN lugar para comer (restaurante, "
+    "parrilla, pizzería...), un café y un postre. Combiná comida con bar, paseo, actividad o postre. "
+    "Cada lugar trae su 'rol' para que lo controles. Si pide algo tranquilo, 1 o 2 paradas.\n"
+    "- En 'texto' va UNA palabra clave corta (ej: 'restaurante', 'parrilla', 'bar'), nunca frases "
+    "ni 'Montevideo' (todo está en Montevideo).\n"
+    "- Si dice cuánto quiere gastar por persona, pasalo en pesos uruguayos en "
+    "presupuesto_por_persona (ej: 430); el servidor lo convierte al nivel de precio (" + _PRECIOS + "). "
+    "No uses nivel_precio.\n"
+    "- No uses el filtro 'ambiente' salvo que pida un ambiente concreto (casi siempre da 0 resultados).\n"
+    "- Tené en cuenta la cantidad de personas o el grupo, y elegí los lugares que mejor cumplan lo pedido.\n"
+    "- Nunca muestres ids, JSON ni detalles técnicos. Después de proponer el borrador, contá en una "
+    "o dos frases qué armaste y avisá que puede guardarlo con el botón."
 )
 
 EMPUJON = (
@@ -282,18 +280,32 @@ def ejecutar_proponer_borrador(args):
 
 # --- Conversación ------------------------------------------------------------
 
+def _borrador_para_llm(contenido):
+    """Borrador guardado (JSON) -> una línea corta con lo que el modelo necesita
+    para ajustarlo (nombre, descripción y los ids de los lugares). Se dejan
+    afuera la dirección y el precio: el servidor los vuelve a leer de la base."""
+    try:
+        b = json.loads(contenido)
+        lugares = ", ".join(
+            f"{l['nombre']} (id {l['id_lugar']}" + (f", {l['hora']}" if l.get("hora") else "") + ")"
+            for l in b.get("lugares", [])
+        )
+        return f"[Borrador propuesto al usuario] {b.get('nombre', '')}: {b.get('descripcion', '')} | Lugares: {lugares}"
+    except (ValueError, TypeError, KeyError, AttributeError):
+        return "[Borrador propuesto al usuario] " + contenido
+
+
 def historial_para_llm(historial, grupo=None):
     """Convierte el historial guardado al formato del modelo. Los borradores
-    se le pasan como texto (con los ids), así puede ajustarlos si el
+    se le pasan como texto corto (con los ids), así puede ajustarlos si el
     usuario pide cambios. `grupo` ({"nombre", "integrantes"}) es el grupo
-    para el que se arma el plan, si el chat se usa desde un grupo."""
+    para el que se arma el plan, si el chat se usa desde un grupo.
+
+    Para gastar menos tokens solo se mandan los últimos
+    MAX_MENSAJES_HISTORIAL_LLM mensajes. Lo que NO cambia entre usuarios (el
+    prompt y los tipos) va primero y lo que sí cambia (el grupo) al final:
+    Groq reutiliza el inicio repetido de un pedido y no lo vuelve a procesar."""
     prompt = SYSTEM_PROMPT
-    if grupo:
-        prompt += (
-            f"\n\nContexto: este plan es para el grupo «{grupo['nombre']}», que tiene "
-            f"{grupo['integrantes']} integrantes. Si el usuario no dice otra cosa, "
-            f"asumí que van {grupo['integrantes']} personas."
-        )
     tipos = tipos_disponibles()
     if tipos:
         prompt += (
@@ -301,10 +313,16 @@ def historial_para_llm(historial, grupo=None):
             "busca por el nombre del lugar o por estos tipos; usá estos nombres, no sinónimos): "
             + ", ".join(tipos) + "."
         )
+    if grupo:
+        prompt += (
+            f"\n\nContexto: este plan es para el grupo «{grupo['nombre']}», que tiene "
+            f"{grupo['integrantes']} integrantes. Si el usuario no dice otra cosa, "
+            f"asumí que van {grupo['integrantes']} personas."
+        )
     mensajes = [{"role": "system", "content": prompt}]
-    for mensaje in historial:
+    for mensaje in historial[-MAX_MENSAJES_HISTORIAL_LLM:]:
         if mensaje["tipo"] == "borrador":
-            contenido = "[Borrador propuesto al usuario] " + mensaje["content"]
+            contenido = _borrador_para_llm(mensaje["content"])
         else:
             contenido = mensaje["content"]
         mensajes.append({"role": mensaje["role"], "content": contenido})
@@ -319,6 +337,21 @@ def _tool_call_a_dict(tool_call):
     }
 
 
+def _lugar_para_llm(lugar):
+    """Solo lo que el modelo necesita para elegir. La dirección y el resto de
+    los datos no hacen falta: el borrador los toma de la base de datos."""
+    datos = {
+        "id": lugar["id"],
+        "nombre": lugar["nombre"],
+        "precio": lugar.get("nivel_precio"),
+        "tipos": lugar.get("tipos") or [],
+        "rol": lugar.get("rol"),
+    }
+    if lugar.get("ambiente"):
+        datos["ambiente"] = str(lugar["ambiente"])[:MAX_AMBIENTE]
+    return datos
+
+
 def _ejecutar_tool(tool_call):
     """Devuelve (borrador o None, contenido_para_el_modelo)."""
     nombre = tool_call.function.name
@@ -331,7 +364,7 @@ def _ejecutar_tool(tool_call):
 
     if nombre == "buscar_lugares":
         resultados = ejecutar_buscar_lugares(args)
-        respuesta = {"cantidad": len(resultados), "lugares": resultados}
+        respuesta = {"cantidad": len(resultados), "lugares": [_lugar_para_llm(l) for l in resultados]}
         if not resultados:
             respuesta["aviso"] = ("Sin resultados. Probá con otro de estos tipos o sin filtros: "
                                   + ", ".join(tipos_disponibles()) + ". No repitas la misma búsqueda.")
@@ -357,32 +390,89 @@ def _log(*partes):
     print("[chatbot]", *partes, flush=True)
 
 
-def _llamar_modelo(mensajes, tools, tool_choice):
+ESTADOS_HERRAMIENTA = {
+    "buscar_lugares": "Buscando lugares...",
+    "proponer_borrador": "Armando el plan...",
+}
+
+
+def _texto_progreso(tool_call, resultado):
+    """Frase corta con el resultado de una búsqueda, para mostrar mientras el
+    modelo decide el siguiente paso. Solo para buscar_lugares."""
+    if tool_call.function.name != "buscar_lugares" or not isinstance(resultado, dict) or "cantidad" not in resultado:
+        return None
+    try:
+        args = json.loads(tool_call.function.arguments or "{}")
+        texto = str(args.get("texto") or "").strip() if isinstance(args, dict) else ""
+    except ValueError:
+        texto = ""
+    cantidad = resultado["cantidad"]
+    if not cantidad:
+        return "No encontré resultados, pruebo otra búsqueda..."
+    sufijo = f" para «{texto}»" if texto else ""
+    return f"Encontré {cantidad} lugar{'es' if cantidad != 1 else ''}{sufijo}..."
+
+
+def _evento_fin(respuesta, borrador, inicio):
+    _log(f"respuesta completa lista en {time.monotonic() - inicio:.1f}s")
+    return {"tipo": "fin", "respuesta": respuesta, "borrador": borrador}
+
+
+def _reenviar_stream(stream, estado):
+    """Pasa los fragmentos del modelo como eventos y devuelve el mensaje
+    completo. Cada fragmento llega como (tipo, texto) con tipo "razonamiento"
+    o "texto". `estado["hubo_texto"]` queda en True si ya salió texto de la
+    respuesta (para saber si hay que borrarlo antes de reintentar)."""
+    while True:
+        try:
+            tipo, fragmento = next(stream)
+        except StopIteration as fin:
+            return fin.value
+        if tipo == "texto":
+            estado["hubo_texto"] = True
+        yield {"tipo": tipo, "texto": fragmento}
+
+
+def _llamar_modelo_stream(mensajes, tools, tool_choice):
     """Groq a veces rechaza (400 tool_use_failed) cuando el modelo llama a una
     herramienta distinta de la que se le forzó, o genera mal la llamada.
     En ese caso se reintenta una vez dejando que elija solo."""
+    estado = {"hubo_texto": False}
     try:
-        return chat_completion(mensajes, tools=tools, tool_choice=tool_choice)
+        return (yield from _reenviar_stream(
+            chat_completion_stream(mensajes, tools=tools, tool_choice=tool_choice), estado))
     except Exception as e:
         if "tool_use_failed" not in str(e):
             raise
         _log("tool_use_failed, reintento con tool_choice=auto:", str(e)[:200])
-        return chat_completion(mensajes, tools=tools, tool_choice="auto")
+        if estado["hubo_texto"]:
+            yield {"tipo": "reiniciar"}
+        return (yield from _reenviar_stream(
+            chat_completion_stream(mensajes, tools=tools, tool_choice="auto"), {"hubo_texto": False}))
 
 
-def procesar_mensaje_bot(mensajes, forzar_plan=False):
-    """Corre el ciclo de Tool Calling. `mensajes` ya incluye el system
-    prompt y el último mensaje del usuario (ver historial_para_llm).
+def procesar_mensaje_bot_stream(mensajes, forzar_plan=False):
+    """Corre el ciclo de Tool Calling emitiendo eventos (dicts) a medida que
+    pasan cosas, para que la pantalla se vaya llenando en vez de esperar al
+    final. `mensajes` ya incluye el system prompt y el último mensaje del
+    usuario (ver historial_para_llm).
+
+    Eventos:
+      {"tipo": "estado", "texto": ...}     el bot está usando una herramienta
+      {"tipo": "razonamiento", "texto": ...} un fragmento de lo que el modelo "piensa"
+      {"tipo": "texto", "texto": ...}      un fragmento más de la respuesta
+      {"tipo": "reiniciar"}                descartar el texto mostrado hasta ahora
+      {"tipo": "fin", "respuesta": ..., "borrador": ...}   siempre el último;
+                                           "respuesta" es el texto definitivo
 
     forzar_plan: si el modelo contesta sin armar un borrador (por ejemplo,
     porque se puso a preguntar), se le pide una vez que lo arme ya.
-
-    Devuelve (texto_respuesta, borrador o None).
     """
     tools = schema_tools()
     borrador = None
     empujado = False
     cierre_forzado = False
+    inicio = time.monotonic()
 
     for i in range(MAX_ITERACIONES):
         tool_choice = "auto"
@@ -396,13 +486,24 @@ def procesar_mensaje_bot(mensajes, forzar_plan=False):
                     "con los lugares que ya encontraste (ids exactos).")})
             tool_choice = {"type": "function", "function": {"name": "proponer_borrador"}}
 
-        msg = _llamar_modelo(mensajes, tools, tool_choice)
+        t_modelo = time.monotonic()
+        msg = yield from _llamar_modelo_stream(mensajes, tools, tool_choice)
+        _log(f"vuelta {i + 1}: el modelo tardó {time.monotonic() - t_modelo:.1f}s")
         if not msg.tool_calls:
             if forzar_plan and borrador is None and not empujado:
                 empujado = True
                 mensajes.append({"role": "user", "content": EMPUJON})
+                if (msg.content or "").strip():
+                    yield {"tipo": "reiniciar"}  # ya se mostró una pregunta que se descarta
                 continue
-            return _cerrar_respuesta((msg.content or "").strip(), borrador), borrador
+            respuesta = _cerrar_respuesta((msg.content or "").strip(), borrador)
+            yield _evento_fin(respuesta, borrador, inicio)
+            return
+
+        # Si antes de llamar a una herramienta el modelo escribió algo, ese
+        # texto ya se mostró: se descarta para que la respuesta final no quede duplicada.
+        if (msg.content or "").strip():
+            yield {"tipo": "reiniciar"}
 
         mensajes.append({
             "role": "assistant",
@@ -410,29 +511,54 @@ def procesar_mensaje_bot(mensajes, forzar_plan=False):
             "tool_calls": [_tool_call_a_dict(tc) for tc in msg.tool_calls],
         })
         for tool_call in msg.tool_calls:
+            yield {"tipo": "estado", "texto": ESTADOS_HERRAMIENTA.get(tool_call.function.name, "Pensando...")}
+            t_tool = time.monotonic()
             nuevo_borrador, resultado = _ejecutar_tool(tool_call)
             if nuevo_borrador:
                 borrador = nuevo_borrador
             _log(f"vuelta {i + 1}:", tool_call.function.name, tool_call.function.arguments,
                  "->", (resultado.get("cantidad") if isinstance(resultado, dict) and "cantidad" in resultado
-                        else resultado.get("error") or resultado.get("mensaje") if isinstance(resultado, dict) else ""))
+                        else resultado.get("error") or resultado.get("mensaje") if isinstance(resultado, dict) else ""),
+                 f"({time.monotonic() - t_tool:.1f}s)")
+            # Mientras el modelo piensa el próximo paso, la pantalla muestra
+            # lo que acaba de pasar de verdad.
+            progreso = _texto_progreso(tool_call, resultado)
+            if progreso:
+                yield {"tipo": "estado", "texto": progreso}
             mensajes.append({
                 "role": "tool",
                 "tool_call_id": tool_call.id,
-                "content": json.dumps(resultado, ensure_ascii=False, default=str),
+                "content": json.dumps(resultado, ensure_ascii=False, default=str, separators=(",", ":")),
             })
         if borrador:
             # Ya hay borrador: una vuelta más, sin permitir más herramientas,
             # para que redacte la respuesta final.
+            yield {"tipo": "estado", "texto": "Escribiendo la respuesta..."}
+            t_cierre = time.monotonic()
             try:
-                msg = chat_completion(mensajes, tools=tools, tool_choice="none")
-                return _cerrar_respuesta((msg.content or "").strip(), borrador), borrador
+                msg = yield from _reenviar_stream(
+                    chat_completion_stream(mensajes, tools=tools, tool_choice="none"),
+                    {"hubo_texto": False})
+                respuesta = _cerrar_respuesta((msg.content or "").strip(), borrador)
             except Exception as e:  # el modelo insistió con una tool: igual hay borrador
                 _log("cierre sin herramientas falló:", e)
-                return _cerrar_respuesta("", borrador), borrador
+                respuesta = _cerrar_respuesta("", borrador)
+            _log(f"cierre: el modelo tardó {time.monotonic() - t_cierre:.1f}s")
+            yield _evento_fin(respuesta, borrador, inicio)
+            return
 
     # Se pasó de iteraciones sin borrador. Nunca se llama al modelo sin
     # `tools` con historial de tool calls: Groq rechaza (400) si intenta usar una.
     _log("se agotaron las vueltas sin borrador")
-    return ("Perdón, no logré armar el plan con los lugares que encontré. "
-            "¿Me das un poco más de detalle (tipo de comida, zona o presupuesto)?"), None
+    yield _evento_fin(
+        "Perdón, no logré armar el plan con los lugares que encontré. "
+        "¿Me das un poco más de detalle (tipo de comida, zona o presupuesto)?",
+        None, inicio)
+
+
+def procesar_mensaje_bot(mensajes, forzar_plan=False):
+    """Versión sin streaming: espera a que termine y devuelve
+    (texto_respuesta, borrador o None)."""
+    for evento in procesar_mensaje_bot_stream(mensajes, forzar_plan=forzar_plan):
+        if evento["tipo"] == "fin":
+            return evento["respuesta"], evento["borrador"]

@@ -126,9 +126,72 @@
   color: var(--danger);
 }
 
-.chatbot-escribiendo {
+/* Lo que se ve mientras el bot trabaja (antes de que empiece la respuesta).
+   No es una burbuja: es texto apagado con una línea al costado. */
+.chatbot-pensamiento {
+  align-self: flex-start;
+  max-width: 82%;
+  padding: 2px 0 2px 12px;
+
+  border-left: 2px solid var(--line);
   color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.chatbot-pensamiento p {
+  margin: 0;
+}
+
+/* Qué está haciendo; mientras no llega nada, solo muestra el cursor. */
+.chatbot-pensamiento-estado {
   font-style: italic;
+}
+
+.chatbot-pensamiento-estado::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: chatbot-cursor 1s steps(1) infinite;
+}
+
+/* El razonamiento, en vivo: se limitan las líneas y se ve siempre lo último. */
+.chatbot-pensamiento-texto {
+  max-height: 4.2em;
+  overflow: hidden;
+  font-size: var(--text-xs, 0.8rem);
+  opacity: 0.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chatbot-pensamiento-texto:empty {
+  display: none;
+}
+
+/* Mientras la respuesta va llegando: cursor parpadeando al final del texto. */
+.chatbot-transmitiendo::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: chatbot-cursor 1s steps(1) infinite;
+}
+
+@keyframes chatbot-cursor {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chatbot-transmitiendo::after,
+  .chatbot-pensamiento-estado::after { animation: none; }
 }
 
 /* --- Tarjeta de borrador ------------------------------------------------- */
@@ -267,7 +330,8 @@
     padding: 14px;
   }
 
-  .chatbot-mensaje {
+  .chatbot-mensaje,
+  .chatbot-pensamiento {
     max-width: 92%;
   }
 }

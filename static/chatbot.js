@@ -23,6 +23,12 @@
     caja.scrollTop = caja.scrollHeight;
   }
 
+  // Durante el streaming solo se baja solo si la persona ya estaba abajo: si
+  // subió a leer algo, no se la arrastra de vuelta con cada fragmento.
+  function bajarSiEstaAbajo() {
+    if (caja.scrollHeight - caja.scrollTop - caja.clientHeight < 80) { bajarAlFinal(); }
+  }
+
   function mostrarVacio() {
     vacio.hidden = caja.querySelectorAll(".chatbot-mensaje, .chatbot-borrador").length > 0;
   }
@@ -174,6 +180,201 @@
     enviar.setAttribute("aria-busy", valor ? "true" : "false");
   }
 
+  // --- Respuesta en vivo (streaming) -----------------------------------------
+  // /chatbot/mensaje_stream manda Server-Sent Events: una línea "data: {json}"
+  // por evento. Tipos: estado (usando una herramienta), razonamiento (un pedazo
+  // de lo que el modelo "piensa"), texto (un pedazo de la respuesta),
+  // reiniciar (borrar lo mostrado), fin y error.
+
+  function hayStreaming() {
+    return !!(window.fetch && window.ReadableStream && window.TextDecoder);
+  }
+
+  function leerEventos(respuesta, alEvento) {
+    var lector = respuesta.body.getReader();
+    var decoder = new TextDecoder("utf-8");
+    var pendiente = "";
+
+    function procesarBloque(bloque) {
+      var datos = "";
+      bloque.split("\n").forEach(function (linea) {
+        if (linea.indexOf("data: ") === 0) { datos += linea.slice(6); }
+      });
+      if (!datos) { return; }
+      var evento;
+      try { evento = JSON.parse(datos); } catch (e) { return; }
+      alEvento(evento);
+    }
+
+    function leer() {
+      return lector.read().then(function (lectura) {
+        if (lectura.done) {
+          if (pendiente.trim()) { procesarBloque(pendiente); }
+          return;
+        }
+        pendiente += decoder.decode(lectura.value, { stream: true });
+        var bloques = pendiente.split("\n\n");
+        pendiente = bloques.pop();  // lo último puede estar incompleto
+        bloques.forEach(procesarBloque);
+        return leer();
+      });
+    }
+    return leer();
+  }
+
+  // Lo que se ve mientras el bot trabaja. NO es una burbuja: es un bloque
+  // chico y apagado con dos líneas, y desaparece cuando empieza la respuesta.
+  //   estado:  qué está haciendo ("Buscando lugares...")
+  //   pensar:  el razonamiento del modelo, que se va escribiendo en vivo
+  // La burbuja de la respuesta recién se crea cuando llega el primer texto.
+  function crearVista() {
+    var pensamiento = null, lineaEstado = null, lineaTexto = null, nodoPensar = null;
+    var burbuja = null, nodoTexto = null;
+    var colaPensar = "", colaTexto = "", programado = false;
+
+    function mostrarPensamiento() {
+      if (pensamiento) { return; }
+      pensamiento = document.createElement("div");
+      pensamiento.className = "chatbot-pensamiento";
+      pensamiento.setAttribute("aria-hidden", "true");
+      lineaEstado = document.createElement("p");
+      lineaEstado.className = "chatbot-pensamiento-estado";
+      lineaTexto = document.createElement("p");
+      lineaTexto.className = "chatbot-pensamiento-texto";
+      nodoPensar = document.createTextNode("");
+      lineaTexto.appendChild(nodoPensar);
+      pensamiento.appendChild(lineaEstado);
+      pensamiento.appendChild(lineaTexto);
+      caja.appendChild(pensamiento);
+      mostrarVacio();
+      bajarAlFinal();
+    }
+
+    function ocultarPensamiento() {
+      if (pensamiento) { pensamiento.remove(); }
+      pensamiento = lineaEstado = lineaTexto = nodoPensar = null;
+      colaPensar = "";
+    }
+
+    function crearBurbuja() {
+      if (burbuja) { return; }
+      ocultarPensamiento();
+      burbuja = agregarMensaje("assistant", "");
+      nodoTexto = document.createTextNode("");
+      burbuja.appendChild(nodoTexto);
+      burbuja.classList.add("chatbot-transmitiendo");
+    }
+
+    // Los fragmentos llegan muy seguidos: en vez de tocar la página con cada
+    // uno, se juntan y se pintan una sola vez por cuadro (requestAnimationFrame).
+    function volcar() {
+      programado = false;
+      if (colaPensar && nodoPensar) {
+        nodoPensar.appendData(colaPensar);
+        lineaTexto.scrollTop = lineaTexto.scrollHeight;  // se ve siempre lo último
+      }
+      colaPensar = "";
+      if (colaTexto && nodoTexto) { nodoTexto.appendData(colaTexto); }
+      colaTexto = "";
+      bajarSiEstaAbajo();
+    }
+
+    function programar() {
+      if (programado) { return; }
+      programado = true;
+      window.requestAnimationFrame(volcar);
+    }
+
+    return {
+      // Qué está haciendo el bot. Empieza una "vuelta" nueva: se borra el
+      // razonamiento anterior para que el bloque no crezca sin parar.
+      estado: function (texto) {
+        if (burbuja) { return; }
+        mostrarPensamiento();
+        lineaEstado.textContent = texto;
+        nodoPensar.data = "";
+        colaPensar = "";
+      },
+      pensar: function (fragmento) {
+        if (burbuja) { return; }
+        mostrarPensamiento();
+        colaPensar += fragmento;
+        programar();
+      },
+      escribir: function (fragmento) {
+        crearBurbuja();
+        colaTexto += fragmento;
+        programar();
+      },
+      // El servidor descartó lo escrito (por ejemplo, el modelo iba a llamar a
+      // una herramienta): se vuelve al estado de "trabajando".
+      reiniciar: function () {
+        if (burbuja) { burbuja.remove(); }
+        burbuja = nodoTexto = null;
+        colaTexto = "";
+        mostrarPensamiento();
+      },
+      // Texto definitivo: el que guardó el servidor (puede tener la pregunta
+      // final agregada).
+      terminar: function (respuesta) {
+        crearBurbuja();
+        nodoTexto.data = respuesta;
+        colaTexto = "";
+        burbuja.classList.remove("chatbot-transmitiendo");
+        bajarAlFinal();
+      },
+      cancelar: function () {
+        ocultarPensamiento();
+        if (burbuja) { burbuja.remove(); }
+        burbuja = nodoTexto = null;
+        colaTexto = "";
+      },
+      arrancar: mostrarPensamiento
+    };
+  }
+
+  // Va llenando la vista a medida que llegan los eventos. Devuelve una promesa
+  // con {respuesta, borrador}; falla si el servidor avisa un error o si la
+  // conexión se corta antes del final (en ese caso el servidor no guardó nada).
+  function pedirRespuestaEnVivo(texto, vista) {
+    var fin = null;
+    var errorServidor = null;
+
+    function alEvento(evento) {
+      if (evento.tipo === "estado") {
+        vista.estado(evento.texto);
+      } else if (evento.tipo === "razonamiento") {
+        vista.pensar(evento.texto);
+      } else if (evento.tipo === "texto") {
+        vista.escribir(evento.texto);
+      } else if (evento.tipo === "reiniciar") {
+        vista.reiniciar();
+      } else if (evento.tipo === "fin") {
+        fin = evento;
+      } else if (evento.tipo === "error") {
+        errorServidor = evento.error;
+      }
+    }
+
+    return fetch("/chatbot/mensaje_stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mensaje: texto, grupo_id: grupoId })
+    }).then(function (respuesta) {
+      if (!respuesta.ok) {
+        // Errores de validación o de sesión: llegan como JSON normal.
+        return respuesta.json().catch(function () { return {}; }).then(function (datos) {
+          throw new Error(datos.error || "Algo salió mal. Probá de nuevo.");
+        });
+      }
+      return leerEventos(respuesta, alEvento);
+    }).then(function () {
+      if (errorServidor) { throw new Error(errorServidor); }
+      if (!fin) { throw new Error("Se cortó la conexión con el asistente. Probá de nuevo."); }
+      return { respuesta: fin.respuesta, borrador: fin.borrador };
+    });
+  }
+
   function enviarMensaje(evento) {
     evento.preventDefault();
     var texto = input.value.trim();
@@ -183,22 +384,32 @@
     input.value = "";
     bloquear(true);
 
-    var escribiendo = agregarMensaje("assistant", "Pensando...");
-    escribiendo.classList.add("chatbot-escribiendo");
+    // No hay burbuja de espera: la vista muestra un bloque apagado con lo que
+    // el bot está haciendo, y la burbuja de la respuesta aparece con el primer
+    // texto. Mientras se escribe, los lectores de pantalla esperan al final
+    // en vez de leer cada pedazo.
+    var vista = crearVista();
+    vista.arrancar();
+    caja.setAttribute("aria-busy", "true");
 
-    postJSON("/chatbot/mensaje", { mensaje: texto, grupo_id: grupoId })
+    var pedido = hayStreaming()
+      ? pedirRespuestaEnVivo(texto, vista)
+      : postJSON("/chatbot/mensaje", { mensaje: texto, grupo_id: grupoId });
+
+    pedido
       .then(function (datos) {
-        escribiendo.remove();
-        agregarMensaje("assistant", datos.respuesta);
+        vista.terminar(datos.respuesta);  // el texto definitivo que guardó el servidor
         if (datos.borrador) { agregarBorrador(datos.borrador); }
       })
       .catch(function (error) {
-        escribiendo.remove();
+        vista.cancelar();
         agregarMensaje("error", error.message);
         // Se devuelve el texto al campo para poder reintentar.
         if (!input.value) { input.value = texto; }
       })
       .then(function () {
+        caja.setAttribute("aria-busy", "false");
+        bajarAlFinal();
         bloquear(false);
         input.focus();
       });
