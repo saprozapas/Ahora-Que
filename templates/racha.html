@@ -262,8 +262,14 @@
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: var(--surface-1);
+    color: var(--ink);
     text-align: center;
+    cursor: pointer;
+    transition: border-color var(--fast) var(--ease), transform var(--fast) var(--ease);
   }
+
+  .racha-hito:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .racha-hito:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
   .racha-hito strong {
     font-family: var(--font-display);
@@ -276,6 +282,21 @@
   .racha-hito.is-logrado { border-color: var(--accent); background: var(--accent-soft); }
 
   .racha-hito.is-bloqueado { opacity: 0.5; border-style: dashed; }
+
+  .racha-hito-modal-body > p { line-height: 1.55; }
+
+  .racha-premio {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-2);
+  }
+
+  .racha-premio span,
+  .racha-hito-modal-estado { color: var(--muted); font-size: var(--text-sm); }
 
   .racha-nota {
     padding-top: 18px;
@@ -310,7 +331,7 @@
 
       <div class="auth-intro">
         <h1>La racha<br /><em>del grupo.</em></h1>
-        <p>Cada semana que hacen un plan juntos, la racha sigue. Si una semana se pasa sin salir, vuelve a cero.</p>
+        <p>La racha cuenta las semanas en las que el grupo se reunió. Una semana sin plan da margen; dos semanas sin reunirse la reinician.</p>
       </div>
 
 
@@ -318,28 +339,36 @@
 
       <div class="racha-hero">
 
-        <div class="racha-numero" aria-label="7 semanas de racha">
+        <div class="racha-numero" aria-label="{{ racha.semanas }} semanas de racha">
           <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
             <path
               d="M12 3c.5 3-1.5 4.5-3 6.5S6.5 13.5 8 16.5c1 2 3 3.5 5 3.5 3 0 5-2.4 5-5.5 0-2.2-1-3.8-2.2-5.2-.4 1.2-1.1 2-2 2.3.6-3.2-.3-6.700-1.800-8.600Z"
               fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"
             />
           </svg>
-          <strong>7</strong>
+          <strong>{{ racha.semanas }}</strong>
           <span>semanas</span>
         </div>
 
         <div class="racha-hero-copy">
-          <h2>¡Van 7 semanas seguidas con plan!</h2>
-          <p>Para mantener la racha tienen que hacer un plan antes del domingo.</p>
+          {% if racha.activa %}
+            <h2>¡La racha está activa!</h2>
+            <p>{{ racha.semanas }} semanas con reuniones. Para mantenerla, junten otro plan dentro de los próximos 7 días.</p>
+          {% elif racha.semanas > 0 %}
+            <h2>La racha está en pausa</h2>
+            <p>Pasó una semana sin reunión. Si se juntan antes de cumplir 14 días, conservan la racha.</p>
+          {% else %}
+            <h2>Empiecen una nueva racha</h2>
+            <p>La racha comienza cuando el grupo completa un plan.</p>
+          {% endif %}
 
           <div class="racha-progreso">
             <div class="racha-progreso-info">
-              <span>Próximo hito: 10 semanas</span>
-              <span>7 / 10</span>
+              <span>Próximo hito: {{ racha.proximo_hito }} semanas</span>
+              <span>{{ racha.semanas }} / {{ racha.proximo_hito }}</span>
             </div>
-            <div class="racha-barra" role="progressbar" aria-valuenow="7" aria-valuemin="0" aria-valuemax="10">
-              <span></span>
+            <div class="racha-barra" role="progressbar" aria-valuenow="{{ racha.semanas }}" aria-valuemin="0" aria-valuemax="{{ racha.proximo_hito }}">
+              <span style="width: {{ racha.progreso_hito }}%"></span>
             </div>
           </div>
         </div>
@@ -354,13 +383,11 @@
         <h2 class="racha-titulo">Esta semana</h2>
 
         <div class="racha-semana">
-          <div class="racha-dia is-hecho"><span>L</span><span>✓</span></div>
-          <div class="racha-dia"><span>M</span><span>·</span></div>
-          <div class="racha-dia is-hecho"><span>X</span><span>✓</span></div>
-          <div class="racha-dia is-hoy"><span>J</span><span>·</span></div>
-          <div class="racha-dia is-futuro"><span>V</span><span>·</span></div>
-          <div class="racha-dia is-futuro"><span>S</span><span>·</span></div>
-          <div class="racha-dia is-futuro"><span>D</span><span>·</span></div>
+          {% for dia in racha.calendario %}
+          <div class="racha-dia{% if dia.hecho %} is-hecho{% endif %}{% if dia.hoy %} is-hoy{% endif %}{% if dia.futuro %} is-futuro{% endif %}">
+            <span>{{ dia.dia }}</span><span>{% if dia.hecho %}✓{% else %}·{% endif %}</span>
+          </div>
+          {% endfor %}
         </div>
 
       </div>
@@ -371,58 +398,32 @@
       <div class="racha-stats">
 
         <div class="racha-stat">
-          <small>Mejor racha</small>
-          <strong>12</strong>
-          <span>semanas seguidas</span>
+          <small>Semanas de racha</small>
+          <strong>{{ racha.semanas }}</strong>
+          <span>con una reunión cada 14 días</span>
         </div>
 
         <div class="racha-stat">
           <small>Planes hechos</small>
-          <strong>23</strong>
-          <span>desde que armaron el grupo</span>
+          <strong>{{ racha.planes_hechos }}</strong>
+          <span>planes grupales realizados</span>
         </div>
 
         <div class="racha-stat">
           <small>Último plan</small>
-          <strong>Hace 3 días</strong>
-          <span>Cena y pool</span>
-        </div>
-
-      </div>
-
-
-      <!-- ================= INTEGRANTES ================= -->
-
-      <div>
-
-        <h2 class="racha-titulo">Quién fue esta semana</h2>
-
-        <div class="racha-integrantes">
-
-          <div class="racha-integrante">
-            <span class="friend-avatar" aria-hidden="true">M</span>
-            <span class="racha-integrante-nombre">Martina <small>@martu</small></span>
-            <span class="racha-estado is-ok">Fue</span>
-          </div>
-
-          <div class="racha-integrante">
-            <span class="friend-avatar" aria-hidden="true">J</span>
-            <span class="racha-integrante-nombre">Juan <small>@juani</small></span>
-            <span class="racha-estado is-ok">Fue</span>
-          </div>
-
-          <div class="racha-integrante">
-            <span class="friend-avatar" aria-hidden="true">S</span>
-            <span class="racha-integrante-nombre">Sofía <small>@sofi</small></span>
-            <span class="racha-estado">Todavía no</span>
-          </div>
-
-          <div class="racha-integrante">
-            <span class="friend-avatar" aria-hidden="true">L</span>
-            <span class="racha-integrante-nombre">Lucas <small>@lucas</small></span>
-            <span class="racha-estado">Todavía no</span>
-          </div>
-
+          {% if racha.dias_desde_ultima is none %}
+            <strong>—</strong>
+            <span>Todavía no hubo reuniones</span>
+          {% elif racha.dias_desde_ultima == 0 %}
+            <strong>Hoy</strong>
+            <span>{{ racha.ultimo_plan or 'Plan del grupo' }}</span>
+          {% elif racha.dias_desde_ultima == 1 %}
+            <strong>Ayer</strong>
+            <span>{{ racha.ultimo_plan or 'Plan del grupo' }}</span>
+          {% else %}
+            <strong>Hace {{ racha.dias_desde_ultima }} días</strong>
+            <span>{{ racha.ultimo_plan or 'Plan del grupo' }}</span>
+          {% endif %}
         </div>
 
       </div>
@@ -436,25 +437,49 @@
 
         <div class="racha-hitos">
 
-          <div class="racha-hito is-logrado">
-            <strong>3</strong>
-            <span>semanas · logrado</span>
-          </div>
+          {% for hito in racha.hitos %}
+          <button
+            class="racha-hito{% if hito.logrado %} is-logrado{% elif not hito.proximo %} is-bloqueado{% endif %}"
+            type="button"
+            data-modal-open="modal-hito-{{ hito.semanas }}"
+            aria-haspopup="dialog"
+          >
+            <strong>{{ hito.semanas }}</strong>
+            <span>semanas · {% if hito.logrado %}logrado{% elif hito.proximo %}próximo{% else %}bloqueado{% endif %}</span>
+          </button>
 
-          <div class="racha-hito is-logrado">
-            <strong>5</strong>
-            <span>semanas · logrado</span>
-          </div>
-
-          <div class="racha-hito">
-            <strong>10</strong>
-            <span>semanas · próximo</span>
-          </div>
-
-          <div class="racha-hito is-bloqueado">
-            <strong>20</strong>
-            <span>semanas · bloqueado</span>
-          </div>
+          <dialog class="modal" id="modal-hito-{{ hito.semanas }}" aria-labelledby="modal-hito-{{ hito.semanas }}-title">
+            <form method="dialog">
+              <div class="modal-head">
+                <h2 class="modal-title" id="modal-hito-{{ hito.semanas }}-title">Hito de {{ hito.semanas }} semanas</h2>
+                <button class="modal-close" type="submit" aria-label="Cerrar">
+                  <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                    <path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body racha-hito-modal-body">
+                {% if hito.semanas == 3 %}
+                  <p>¡Ya encontraron el ritmo! Tres semanas con planes compartidos son el primer paso para convertirlo en costumbre.</p>
+                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Buena chispa”</strong><span>Una insignia para mostrar en el grupo y un fondo especial para su tarjeta.</span></div>
+                {% elif hito.semanas == 5 %}
+                  <p>Cinco semanas con encuentros: el grupo está sosteniendo la racha con constancia.</p>
+                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Equipo constante”</strong><span>Un color exclusivo para el nombre del grupo y una insignia nueva.</span></div>
+                {% elif hito.semanas == 10 %}
+                  <p>Diez semanas es un gran logro. ¡Ya tienen un montón de planes compartidos!</p>
+                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Diez en marcha”</strong><span>Un marco especial para la foto del grupo y una insignia destacada.</span></div>
+                {% elif hito.semanas == 20 %}
+                  <p>Veinte semanas con encuentros compartidos es una racha extraordinaria.</p>
+                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Leyendas del plan”</strong><span>Un tema visual exclusivo para el grupo y una insignia legendaria.</span></div>
+                {% else %}
+                  <p>¡Alcanzaron {{ hito.semanas }} semanas de racha! Cada encuentro los acerca a un nuevo hito.</p>
+                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Racha {{ hito.semanas }}”</strong><span>Una insignia conmemorativa para celebrar el logro del grupo.</span></div>
+                {% endif %}
+                <p class="racha-hito-modal-estado">Estado: {% if hito.logrado %}hito alcanzado{% elif hito.proximo %}próximo hito{% else %}todavía bloqueado{% endif %}.</p>
+              </div>
+            </form>
+          </dialog>
+          {% endfor %}
 
         </div>
 
@@ -462,7 +487,7 @@
 
 
       <p class="racha-nota">
-        Un plan cuenta para la racha cuando queda confirmado y pasa a archivado.
+        Cuentan los planes del grupo archivados o confirmados cuya fecha ya pasó.
       </p>
 
     </section>

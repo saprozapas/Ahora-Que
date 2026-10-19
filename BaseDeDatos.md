@@ -63,6 +63,21 @@ Esta es la base de datos del proyecto
 | `Descripcion` | `text` |  Nullable |
 | `Todos_Admin` | `boolean` | Default `false`. Si está activo, todo el que entra al grupo es admin |
 
+## Table `Rachas`
+
+Una fila por grupo. Se actualiza al abrir el grupo, usando los planes grupales
+que ya ocurrieron. `Semanas` cuenta las semanas con reunión dentro de la racha;
+una semana sin reunión la pausa, y 14 días sin reunirse la reinician.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Grupo` | `uuid` | Primary, Foreign Key → `Grupos.Id_Grupo` (`ON DELETE CASCADE`) |
+| `Activa` | `boolean` | Not Null, Default `false` |
+| `Semanas` | `int4` | Not Null, Default `0` |
+| `Ultima_Reunion` | `date` | Nullable |
+
 ## Table `Usuario-Grupo`
 
 Conecto Usuarios con Grupos
