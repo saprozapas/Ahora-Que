@@ -13,6 +13,8 @@
 
 {% block content %}
 
+<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261019-social-v1') }}" />
+
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
 
@@ -26,12 +28,33 @@
 
   <a class="back-link" href="/dashboard">← Volver</a>
 
-  <h1>Lo que hicieron<br /><em>tus amigos.</em></h1>
+  <h1>Social</h1>
 
-  <p>Planes de tus amigos.</p>
+  <p>Planes que comparten tus amigos y la comunidad.</p>
 
 </section>
 
+
+<nav class="group-tabs soc-tabs section-shell" aria-label="Secciones de social">
+
+  <a class="group-tab{% if pestana == 'amigos' %} is-active{% endif %}"
+     href="{{ url_for('social', tab='amigos') }}"
+     {% if pestana == 'amigos' %}aria-current="page"{% endif %}>Amigos</a>
+
+  <a class="group-tab{% if pestana == 'descubrir' %} is-active{% endif %}"
+     href="{{ url_for('social', tab='descubrir') }}"
+     {% if pestana == 'descubrir' %}aria-current="page"{% endif %}>Descubrir</a>
+
+  <a class="group-tab{% if pestana == 'actividad' %} is-active{% endif %}"
+     href="{{ url_for('social', tab='actividad') }}"
+     {% if pestana == 'actividad' %}aria-current="page"{% endif %}>Actividad</a>
+
+</nav>
+
+
+{% if pestana == 'actividad' %}
+
+{# ======================= ACTIVIDAD: lo que hicieron los amigos ======================= #}
 
 <section
   class="social-feed section-shell"
@@ -105,7 +128,7 @@
   {% if hay_siguiente %}
   <div class="social-ver-mas">
     <a class="plan-accion-secundaria"
-       href="{{ url_for('social', nivel=(siguiente_nivel if siguiente_nivel is not none else 'todos')) }}">
+       href="{{ url_for('social', tab='actividad', nivel=(siguiente_nivel if siguiente_nivel is not none else 'todos')) }}">
       {% if siguiente_nivel is none %}
         Ver todos los planes de tus amigos
       {% else %}
@@ -126,6 +149,247 @@
   {% endif %}
 
 </section>
+
+{% else %}
+
+{# ============================ AMIGOS / DESCUBRIR: el feed ============================ #}
+
+<section
+  class="soc-feed section-shell"
+  id="soc-feed"
+  aria-label="{{ 'Publicaciones de tus amigos' if pestana == 'amigos' else 'Publicaciones de la comunidad' }}"
+  data-pestana="{{ pestana }}"
+  data-url-feed="{{ url_for('social_api.feed') }}"
+  data-url-publicables="{{ url_for('social_api.publicables') }}"
+  data-url-publicar="{{ url_for('social_api.publicar') }}"
+  data-url-reportes="{{ url_for('social_api.reportar') }}"
+  data-url-raiz="{{ url_for('social') }}"
+  data-url-detalle="{{ url_for('planes.detalle', plan_id='__ID__') }}"
+>
+
+  <div class="soc-barra">
+
+    <p class="section-tag">
+      {% if pestana == 'amigos' %}lo que comparten tus amigos{% else %}lo que comparte la comunidad{% endif %}
+    </p>
+
+    <button class="lime-button" type="button" data-modal-open="soc-modal-publicar" data-soc-abrir-publicar>
+      Compartir un plan <span aria-hidden="true">+</span>
+    </button>
+
+  </div>
+
+  <p class="soc-aviso" data-soc-error role="alert" hidden></p>
+
+  <div class="soc-lista" data-soc-lista aria-live="polite"></div>
+
+  <div class="soc-vacio" data-soc-vacio hidden>
+    {% if pestana == 'amigos' %}
+    <h2>Todavía no hay publicaciones.</h2>
+    <p>Cuando vos o tus amigos compartan un plan, va a aparecer acá.</p>
+    <a class="plan-accion-secundaria" href="/amigos">Buscar amigos</a>
+    {% else %}
+    <h2>Todavía no hay planes públicos.</h2>
+    <p>Los planes que otras personas compartan con todos van a aparecer acá.</p>
+    {% endif %}
+  </div>
+
+  <p class="soc-cargando" data-soc-cargando>Cargando…</p>
+
+  <div class="social-ver-mas">
+    <button class="plan-accion-secundaria" type="button" data-soc-mas hidden>Ver más</button>
+  </div>
+
+</section>
+
+
+{# ----------------------------- Tarjeta de publicación ----------------------------- #}
+
+<template id="soc-tpl-tarjeta">
+  <article class="soc-tarjeta">
+
+    <header class="soc-autor">
+      <div class="soc-avatar" data-soc-avatar aria-hidden="true"></div>
+      <div class="soc-autor-datos">
+        <strong data-soc-autor></strong>
+        <small data-soc-fecha></small>
+      </div>
+      <span class="soc-visibilidad" data-soc-visibilidad></span>
+      <button class="soc-icono" type="button" data-soc-eliminar hidden>Eliminar</button>
+      <button class="soc-icono" type="button" data-soc-reportar hidden>Reportar</button>
+    </header>
+
+    <p class="soc-texto" data-soc-texto></p>
+
+    <div class="soc-plan">
+
+      <div class="soc-plan-cabeza">
+        <h2 data-soc-plan-nombre></h2>
+        <span class="plan-estado" data-soc-plan-estado></span>
+      </div>
+
+      <p class="soc-plan-descripcion" data-soc-plan-descripcion></p>
+
+      <ul class="soc-plan-datos">
+        <li data-soc-plan-cuando></li>
+        <li data-soc-plan-lugares></li>
+        <li data-soc-plan-precio></li>
+        <li data-soc-plan-puntaje></li>
+      </ul>
+
+      <a class="soc-ver-plan" data-soc-ver-plan hidden>Ver plan ↗</a>
+
+    </div>
+
+    <div class="soc-acciones">
+      <button class="soc-accion" type="button" data-soc-like aria-pressed="false">
+        <span aria-hidden="true" data-soc-like-icono>♡</span>
+        <span>Me gusta</span>
+        <span class="soc-contador" data-soc-like-n>0</span>
+      </button>
+      <button class="soc-accion" type="button" data-soc-comentarios aria-expanded="false">
+        <span aria-hidden="true">✎</span>
+        <span>Comentar</span>
+        <span class="soc-contador" data-soc-comentarios-n>0</span>
+      </button>
+      <button class="soc-accion" type="button" data-soc-guardar aria-pressed="false">
+        <span aria-hidden="true" data-soc-guardar-icono>☆</span>
+        <span data-soc-guardar-texto>Guardar</span>
+      </button>
+    </div>
+
+    <div class="soc-comentarios" data-soc-zona-comentarios hidden>
+      <ul class="soc-comentarios-lista" data-soc-comentarios-lista></ul>
+      <form class="soc-comentar" data-soc-form-comentar>
+        <label class="visually-hidden">Tu comentario</label>
+        <input type="text" maxlength="300" placeholder="Escribí un comentario…" data-soc-comentario-input autocomplete="off" />
+        <button class="plan-accion-secundaria" type="submit">Enviar</button>
+      </form>
+      <p class="soc-aviso" data-soc-comentario-error role="alert" hidden></p>
+    </div>
+
+  </article>
+</template>
+
+<template id="soc-tpl-comentario">
+  <li class="soc-comentario">
+    <div>
+      <strong data-soc-comentario-autor></strong>
+      <small data-soc-comentario-fecha></small>
+    </div>
+    <p data-soc-comentario-texto></p>
+    <div class="soc-comentario-acciones">
+      <button class="soc-icono" type="button" data-soc-comentario-eliminar hidden>Eliminar</button>
+      <button class="soc-icono" type="button" data-soc-comentario-reportar hidden>Reportar</button>
+    </div>
+  </li>
+</template>
+
+<template id="soc-tpl-publicable">
+  <label class="soc-publicable">
+    <input type="radio" name="plan_id" required />
+    <span>
+      <strong data-soc-publicable-nombre></strong>
+      <small data-soc-publicable-detalle></small>
+    </span>
+  </label>
+</template>
+
+
+{# ------------------------------- Modal: compartir un plan ------------------------------- #}
+
+<dialog class="modal" id="soc-modal-publicar" aria-labelledby="soc-modal-publicar-titulo">
+
+  <form data-soc-form-publicar>
+
+    <div class="modal-head">
+      <h2 class="modal-title" id="soc-modal-publicar-titulo">Compartir un plan</h2>
+      <button class="modal-close" type="button" data-soc-cerrar aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+      <fieldset class="modal-field soc-campo">
+        <legend class="modal-field-label">¿Qué plan querés compartir?</legend>
+        <div class="soc-publicables" data-soc-publicables></div>
+        <p class="soc-ayuda" data-soc-publicables-vacio hidden>
+          No tenés planes para compartir todavía. Podés compartir tus ideas y los planes a los que ya fuiste.
+        </p>
+      </fieldset>
+
+      <div class="modal-field">
+        <label for="soc-publicar-texto">Algo para contar (opcional)</label>
+        <textarea id="soc-publicar-texto" name="texto" maxlength="500" data-soc-texto-input></textarea>
+        <small class="soc-ayuda"><span data-soc-texto-cuenta>0</span>/500</small>
+      </div>
+
+      <fieldset class="modal-field soc-campo">
+        <legend class="modal-field-label">¿Quién lo puede ver?</legend>
+        <label class="soc-opcion">
+          <input type="radio" name="visibilidad" value="amigos" checked />
+          <span>Mis amigos</span>
+        </label>
+        <label class="soc-opcion">
+          <input type="radio" name="visibilidad" value="publico" />
+          <span>Todos</span>
+        </label>
+      </fieldset>
+
+      <p class="soc-aviso" data-soc-publicar-error role="alert" hidden></p>
+
+    </div>
+
+    <div class="modal-actions">
+      <button class="header-action header-action-ghost" type="button" data-soc-cerrar>Cancelar</button>
+      <button class="lime-button" type="submit" data-soc-publicar-enviar>Compartir</button>
+    </div>
+
+  </form>
+
+</dialog>
+
+
+{# --------------------------------- Modal: reportar --------------------------------- #}
+
+<dialog class="modal" id="soc-modal-reportar" aria-labelledby="soc-modal-reportar-titulo">
+
+  <form data-soc-form-reportar>
+
+    <div class="modal-head">
+      <h2 class="modal-title" id="soc-modal-reportar-titulo">Reportar</h2>
+      <button class="modal-close" type="button" data-soc-cerrar aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-field">
+        <label for="soc-reportar-motivo">¿Qué pasa? (opcional)</label>
+        <textarea id="soc-reportar-motivo" maxlength="300" data-soc-motivo></textarea>
+      </div>
+      <p class="soc-aviso" data-soc-reportar-error role="alert" hidden></p>
+    </div>
+
+    <div class="modal-actions">
+      <button class="header-action header-action-ghost" type="button" data-soc-cerrar>Cancelar</button>
+      <button class="lime-button" type="submit">Enviar reporte</button>
+    </div>
+
+  </form>
+
+</dialog>
+
+<script defer src="{{ url_for('static', filename='social.js', v='20261019-social-v1') }}"></script>
+
+{% endif %}
 
 
 {% if logueado %}

@@ -1,0 +1,452 @@
+/* ==========================================================================
+   Social: feed de publicaciones (pestañas Amigos y Descubrir)
+   Solo usa los tokens de style.css, así que el modo noche funciona solo.
+   ========================================================================== */
+
+.soc-tabs {
+  margin-top: 0;
+  margin-bottom: clamp(20px, 3vw, 32px);
+  justify-content: flex-start;
+}
+
+.soc-feed {
+  padding-bottom: clamp(64px, 9vw, 96px);
+}
+
+.soc-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  margin-bottom: 22px;
+  padding-bottom: 16px;
+
+  border-bottom: 1px solid var(--line);
+}
+
+.soc-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  max-width: 720px;
+}
+
+.soc-aviso {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.soc-cargando {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.soc-vacio {
+  max-width: 720px;
+  padding: 32px 26px;
+  background: var(--surface-1);
+}
+
+.soc-vacio h2 {
+  margin: 0 0 10px;
+}
+
+.soc-vacio p {
+  margin: 0 0 20px;
+  color: var(--muted);
+}
+
+
+/* --- Tarjeta --------------------------------------------------------------- */
+
+.soc-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  padding: 22px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+.soc-autor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.soc-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+
+  font-weight: 700;
+}
+
+.soc-autor-datos {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.soc-autor-datos strong {
+  display: block;
+  overflow: hidden;
+
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soc-autor-datos small {
+  display: block;
+  margin-top: 2px;
+
+  color: var(--muted);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.soc-visibilidad {
+  padding: 2px 10px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.soc-icono {
+  min-height: 44px;
+  padding: 0 10px;
+
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.soc-icono:hover,
+.soc-icono:focus-visible {
+  color: var(--ink);
+}
+
+.soc-texto {
+  margin: 0;
+  font-size: var(--text-base);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+
+/* --- El plan dentro de la tarjeta ------------------------------------------ */
+
+.soc-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  padding: 18px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page);
+}
+
+.soc-plan-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.soc-plan-cabeza h2 {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.soc-plan-descripcion {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.soc-plan-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  margin: 0;
+  padding: 0;
+
+  color: var(--muted);
+  font-size: var(--text-sm);
+  list-style: none;
+}
+
+.soc-plan-datos li[hidden] {
+  display: none;
+}
+
+.soc-ver-plan[hidden] {
+  display: none;
+}
+
+.soc-ver-plan {
+  align-self: flex-start;
+
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+
+  color: var(--ink);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-transform: uppercase;
+}
+
+
+/* --- Acciones -------------------------------------------------------------- */
+
+.soc-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.soc-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  min-height: 44px;
+  padding: 0 16px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: inherit;
+
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.soc-accion:hover {
+  background: var(--page);
+}
+
+.soc-accion[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.soc-contador {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.soc-accion[aria-pressed="true"] .soc-contador {
+  color: inherit;
+}
+
+
+/* --- Comentarios ----------------------------------------------------------- */
+
+.soc-comentarios {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.soc-comentarios[hidden] {
+  display: none;
+}
+
+.soc-comentarios-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.soc-comentario strong {
+  font-size: var(--text-sm);
+}
+
+.soc-comentario small {
+  margin-left: 8px;
+
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.soc-comentario p {
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.soc-comentario-acciones {
+  display: flex;
+}
+
+.soc-comentario-acciones .soc-icono {
+  min-height: 32px;
+  padding: 0;
+}
+
+.soc-comentar {
+  display: flex;
+  gap: 8px;
+}
+
+.soc-comentar input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 14px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page);
+  color: var(--ink);
+
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.soc-comentar input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+  outline: none;
+}
+
+
+/* --- Modal de compartir ----------------------------------------------------- */
+
+.soc-campo {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.soc-publicables {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.soc-publicable,
+.soc-opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  padding: 12px 14px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.soc-publicable:has(input:checked),
+.soc-opcion:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.soc-publicable input,
+.soc-opcion input {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  accent-color: var(--accent);
+}
+
+.soc-publicable strong {
+  display: block;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.soc-publicable small {
+  display: block;
+  margin-top: 2px;
+
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.soc-ayuda {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+
+@media (max-width: 480px) {
+
+  .soc-tarjeta {
+    padding: 16px;
+  }
+
+  .soc-plan {
+    padding: 14px;
+  }
+
+  .soc-visibilidad {
+    display: none;
+  }
+
+  .soc-comentar {
+    flex-direction: column;
+  }
+}
