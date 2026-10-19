@@ -15,6 +15,7 @@ from routes.friends import friends_bp
 from routes.chat import chat
 from routes.grupo_planes import grupo_planes_bp
 from routes.chatbot import chatbot_bp
+from routes.social import social_api
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
 from services.plan_service import PlanService
@@ -33,6 +34,7 @@ app.register_blueprint(friends_bp)
 app.register_blueprint(grupo_planes_bp)
 app.register_blueprint(chat)
 app.register_blueprint(chatbot_bp)
+app.register_blueprint(social_api)
 invitation_service = InvitationService()
 friend_service = FriendService()
 plan_service = PlanService()
@@ -118,6 +120,17 @@ def dashboard():
 def social():
     if not session.get('user_id'):
         return redirect('/login')
+
+    # Amigos y Descubrir son el feed de publicaciones: la página solo trae el
+    # armazón y static/social.js lo llena con /social/feed. Actividad es la
+    # lista automática de lo que hicieron los amigos.
+    pestana = request.args.get('tab', 'amigos')
+    if pestana not in ('amigos', 'descubrir', 'actividad'):
+        pestana = 'amigos'
+
+    if pestana != 'actividad':
+        return render_template('social.html', pestana=pestana)
+
     nivel_pedido = request.args.get('nivel', '4')
     if nivel_pedido == 'todos':
         nivel = None
@@ -131,7 +144,7 @@ def social():
 
     plan_service.archivar_vencidos()
     sugerencias = plan_service.get_sugerencias_amigos(session['user_id'], nivel)
-    return render_template('social.html', **sugerencias)
+    return render_template('social.html', pestana=pestana, **sugerencias)
 
 @app.route('/explorar')
 def explorar():
