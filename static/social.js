@@ -34,6 +34,7 @@
     reportes: raiz.dataset.urlReportes,
     raiz: raiz.dataset.urlRaiz,
     detalle: raiz.dataset.urlDetalle,
+    fotos: `${raiz.dataset.urlRaiz}/fotos/`,
   };
 
   let siguiente = null;
@@ -129,22 +130,23 @@
   const pintarLikes = (tarjeta, publicacion) => {
     const boton = $("[data-soc-like]", tarjeta);
     boton.setAttribute("aria-pressed", String(publicacion.yo_di_like));
-    $("[data-soc-like-icono]", boton).textContent = publicacion.yo_di_like ? "♥" : "♡";
+    boton.title = publicacion.yo_di_like ? "Quitar me gusta" : "Me gusta";
     $("[data-soc-like-n]", boton).textContent = publicacion.likes;
   };
 
   const pintarGuardado = (tarjeta, publicacion) => {
     const boton = $("[data-soc-guardar]", tarjeta);
     boton.setAttribute("aria-pressed", String(publicacion.guardado));
-    $("[data-soc-guardar-icono]", boton).textContent = publicacion.guardado ? "★" : "☆";
-    $("[data-soc-guardar-texto]", boton).textContent = publicacion.guardado ? "Guardado" : "Guardar";
+    boton.title = publicacion.guardado ? "Quitar de guardados" : "Guardar plan";
+    boton.setAttribute("aria-label", boton.title);
 
-    // El detalle del plan solo se puede abrir si es tuyo o lo guardaste.
-    const enlace = $("[data-soc-ver-plan]", tarjeta);
-    const puedeVer = publicacion.es_mio || publicacion.guardado;
-    enlace.hidden = !puedeVer;
-    if (puedeVer) {
-      enlace.href = urls.detalle.replace("__ID__", publicacion.plan.id);
+    // El detalle del plan solo se puede abrir si es tuyo o lo guardaste: si
+    // no, el nombre queda como texto, sin enlace.
+    const nombre = $("[data-soc-plan-nombre]", tarjeta);
+    if (publicacion.es_mio || publicacion.guardado) {
+      nombre.href = urls.detalle.replace("__ID__", publicacion.plan.id);
+    } else {
+      nombre.removeAttribute("href");
     }
   };
 
@@ -158,36 +160,89 @@
     elemento.hidden = !texto;
   };
 
+  // Las fotos van en un carrusel horizontal con "snap". Sin fotos, el plan
+  // se muestra sobre una portada de color (3 variantes, según el id).
+  const pintarMedia = (tarjeta, publicacion) => {
+    const contenedor = $("[data-soc-fotos]", tarjeta);
+    const puntos = $("[data-soc-puntos]", tarjeta);
+    const portada = $("[data-soc-portada]", tarjeta);
+    const nombre = publicacion.plan.nombre;
+
+    if (publicacion.fotos.length === 0) {
+      const variante = parseInt(publicacion.id.slice(0, 2), 16) % 3;
+      portada.className = `soc-portada soc-portada-${variante}`;
+      portada.hidden = false;
+      $("[data-soc-portada-nombre]", portada).textContent = nombre;
+      return;
+    }
+
+    contenedor.hidden = false;
+    contenedor.replaceChildren(
+      ...publicacion.fotos.map((id, i) => {
+        const imagen = document.createElement("img");
+        imagen.src = urls.fotos + id;
+        imagen.alt = `Foto ${i + 1} de ${nombre}`;
+        imagen.loading = "lazy";
+        imagen.decoding = "async";
+        return imagen;
+      })
+    );
+
+    if (publicacion.fotos.length > 1) {
+      puntos.hidden = false;
+      puntos.replaceChildren(
+        ...publicacion.fotos.map((_, i) => {
+          const punto = document.createElement("span");
+          punto.className = i === 0 ? "is-activo" : "";
+          return punto;
+        })
+      );
+      contenedor.addEventListener("scroll", () => {
+        const actual = Math.round(contenedor.scrollLeft / contenedor.clientWidth);
+        [...puntos.children].forEach((p, i) => p.classList.toggle("is-activo", i === actual));
+      }, { passive: true });
+    }
+  };
+
   const crearTarjeta = (publicacion) => {
     const tarjeta = plantillaTarjeta.content.firstElementChild.cloneNode(true);
     const plan = publicacion.plan;
+    const autor = publicacion.es_mio ? "Vos" : publicacion.autor.nombre;
 
     tarjeta.dataset.publicacionId = publicacion.id;
 
     $("[data-soc-avatar]", tarjeta).textContent =
       (publicacion.autor.nombre || "?").trim().charAt(0).toUpperCase();
-    $("[data-soc-autor]", tarjeta).textContent = publicacion.es_mio ? "Vos" : publicacion.autor.nombre;
+    $("[data-soc-autor]", tarjeta).textContent = autor;
     $("[data-soc-fecha]", tarjeta).textContent = hace(publicacion.creada_en);
-    $("[data-soc-visibilidad]", tarjeta).textContent =
-      publicacion.visibilidad === "publico" ? "Todos" : "Amigos";
 
-    rellenarTexto(tarjeta, "[data-soc-texto]", publicacion.texto);
+    const esPublico = publicacion.visibilidad === "publico";
+    const visibilidad = $("[data-soc-visibilidad]", tarjeta);
+    visibilidad.title = esPublico ? "Visible para todos" : "Visible para tus amigos";
+    $("[data-soc-vis-publico]", tarjeta).hidden = !esPublico;
+    $("[data-soc-vis-amigos]", tarjeta).hidden = esPublico;
+
+    pintarMedia(tarjeta, publicacion);
 
     $("[data-soc-plan-nombre]", tarjeta).textContent = plan.nombre;
     $("[data-soc-plan-estado]", tarjeta).textContent = plan.estado_texto;
-    rellenarTexto(tarjeta, "[data-soc-plan-descripcion]", plan.descripcion);
-    rellenarTexto(tarjeta, "[data-soc-plan-cuando]", cuando(plan) && `Cuándo: ${cuando(plan)}`);
+    rellenarTexto(tarjeta, "[data-soc-plan-cuando]", cuando(plan));
+    rellenarTexto(tarjeta, "[data-soc-plan-precio]", precio(plan));
     rellenarTexto(
       tarjeta,
       "[data-soc-plan-lugares]",
-      plan.lugares.length ? `Lugares: ${plan.lugares.map((l) => l.nombre).join(" → ")}` : ""
+      plan.lugares.map((l) => l.nombre).join(" → ")
     );
-    rellenarTexto(tarjeta, "[data-soc-plan-precio]", precio(plan) && `Precio: ${precio(plan)}`);
     rellenarTexto(
       tarjeta,
       "[data-soc-plan-puntaje]",
       plan.promedio != null ? `★ ${plan.promedio} · ${plural(plan.votos, "voto", "votos")}` : ""
     );
+    rellenarTexto(tarjeta, "[data-soc-plan-descripcion]", plan.descripcion);
+
+    $("[data-soc-texto-autor]", tarjeta).textContent = publicacion.texto ? autor : "";
+    $("[data-soc-texto]", tarjeta).textContent = publicacion.texto || "";
+    $(".soc-texto", tarjeta).hidden = !publicacion.texto;
 
     $("[data-soc-eliminar]", tarjeta).hidden = !publicacion.es_mio;
     $("[data-soc-reportar]", tarjeta).hidden = publicacion.es_mio;
@@ -498,6 +553,7 @@
 
   $("[data-soc-abrir-publicar]", raiz).addEventListener("click", () => {
     formularioPublicar.reset();
+    reiniciarFotos();
     cuentaTexto.textContent = "0";
     cargarPublicables();
   });
@@ -518,6 +574,7 @@
         plan_id: datos.get("plan_id"),
         texto: datos.get("texto"),
         visibilidad: datos.get("visibilidad"),
+        fotos: fotosElegidas.map((foto) => foto.dataUrl),
       });
 
       modalPublicar.close();
@@ -534,6 +591,114 @@
       mostrarError(errorPublicar, e.message);
       botonPublicar.disabled = false;
     }
+  });
+
+
+  /* --- Fotos del modal ------------------------------------------------------ */
+
+  const MAX_FOTOS = 2;
+  const MAX_BYTES = 380 * 1024;   // el servidor acepta hasta 400 KB
+  const LADO_MAXIMO = 1080;
+
+  const previas = $("[data-soc-previas]", modalPublicar);
+  const botonSubir = $("[data-soc-subir]", modalPublicar);
+  const entradaArchivos = $("[data-soc-archivos]", modalPublicar);
+  const ayudaFotos = $("[data-soc-fotos-ayuda]", modalPublicar);
+  const plantillaPrevia = document.getElementById("soc-tpl-previa");
+
+  let fotosElegidas = [];   // [{ dataUrl }]
+
+  // Achica la imagen a un JPEG de hasta LADO_MAXIMO px y MAX_BYTES: baja la
+  // calidad primero y, si hace falta, el tamaño.
+  const comprimir = (archivo) => new Promise((resolver, rechazar) => {
+    const origen = URL.createObjectURL(archivo);
+    const imagen = new Image();
+
+    imagen.onerror = () => {
+      URL.revokeObjectURL(origen);
+      rechazar(new Error("No pudimos leer una de las imágenes."));
+    };
+
+    imagen.onload = () => {
+      URL.revokeObjectURL(origen);
+
+      let escala = Math.min(1, LADO_MAXIMO / Math.max(imagen.width, imagen.height));
+      let calidad = 0.85;
+      const lienzo = document.createElement("canvas");
+
+      const intentar = () => {
+        lienzo.width = Math.max(1, Math.round(imagen.width * escala));
+        lienzo.height = Math.max(1, Math.round(imagen.height * escala));
+
+        const contexto = lienzo.getContext("2d");
+        contexto.fillStyle = "#fff";   // el JPEG no tiene transparencia
+        contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+        contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+
+        lienzo.toBlob((blob) => {
+          if (!blob) {
+            rechazar(new Error("No pudimos procesar una de las imágenes."));
+          } else if (blob.size <= MAX_BYTES) {
+            const lector = new FileReader();
+            lector.onload = () => resolver(lector.result);
+            lector.onerror = () => rechazar(new Error("No pudimos leer una de las imágenes."));
+            lector.readAsDataURL(blob);
+          } else if (calidad > 0.5) {
+            calidad -= 0.1;
+            intentar();
+          } else if (escala > 0.3) {
+            escala *= 0.8;
+            intentar();
+          } else {
+            rechazar(new Error("Una de las imágenes es demasiado pesada."));
+          }
+        }, "image/jpeg", calidad);
+      };
+
+      intentar();
+    };
+
+    imagen.src = origen;
+  });
+
+  const pintarPrevias = () => {
+    previas.replaceChildren(
+      ...fotosElegidas.map((foto, i) => {
+        const previa = plantillaPrevia.content.firstElementChild.cloneNode(true);
+        $("img", previa).src = foto.dataUrl;
+        $("button", previa).addEventListener("click", () => {
+          fotosElegidas.splice(i, 1);
+          pintarPrevias();
+        });
+        return previa;
+      })
+    );
+    botonSubir.hidden = fotosElegidas.length >= MAX_FOTOS;
+  };
+
+  const reiniciarFotos = () => {
+    fotosElegidas = [];
+    entradaArchivos.value = "";
+    ayudaFotos.hidden = true;
+    pintarPrevias();
+  };
+
+  entradaArchivos.addEventListener("change", async () => {
+    const archivos = [...entradaArchivos.files].slice(0, MAX_FOTOS - fotosElegidas.length);
+    entradaArchivos.value = "";
+    ayudaFotos.hidden = true;
+
+    botonSubir.setAttribute("aria-busy", "true");
+    for (const archivo of archivos) {
+      try {
+        fotosElegidas.push({ dataUrl: await comprimir(archivo) });
+      } catch (e) {
+        ayudaFotos.textContent = e.message;
+        ayudaFotos.hidden = false;
+      }
+    }
+    botonSubir.removeAttribute("aria-busy");
+    pintarPrevias();
   });
 
 

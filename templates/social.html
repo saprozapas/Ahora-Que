@@ -11,9 +11,26 @@
   {%- endif -%}
 {%- endmacro %}
 
+{# Íconos de la pantalla: un solo lugar para todos los trazos. #}
+{% macro ico(nombre) -%}
+<svg class="soc-ico soc-ico-{{ nombre }}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  {%- if nombre == 'corazon' %}<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>
+  {%- elif nombre == 'comentario' %}<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>
+  {%- elif nombre == 'guardar' %}<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+  {%- elif nombre == 'basura' %}<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>
+  {%- elif nombre == 'bandera' %}<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V4s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/>
+  {%- elif nombre == 'mundo' %}<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+  {%- elif nombre == 'amigos' %}<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>
+  {%- elif nombre == 'enviar' %}<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>
+  {%- elif nombre == 'imagen' %}<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
+  {%- elif nombre == 'cerrar' %}<path d="M18 6L6 18M6 6l12 12"/>
+  {%- endif -%}
+</svg>
+{%- endmacro %}
+
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261019-social-v2') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261019-social-v3') }}" />
 
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
@@ -214,56 +231,58 @@
         <strong data-soc-autor></strong>
         <small data-soc-fecha></small>
       </div>
-      <span class="soc-visibilidad" data-soc-visibilidad></span>
-      <button class="soc-icono" type="button" data-soc-eliminar hidden>Eliminar</button>
-      <button class="soc-icono" type="button" data-soc-reportar hidden>Reportar</button>
+      <span class="soc-visibilidad" data-soc-visibilidad>
+        <span data-soc-vis-amigos hidden>{{ ico('amigos') }}</span>
+        <span data-soc-vis-publico hidden>{{ ico('mundo') }}</span>
+      </span>
+      <button class="soc-icono" type="button" data-soc-eliminar hidden aria-label="Eliminar publicación" title="Eliminar publicación">{{ ico('basura') }}</button>
+      <button class="soc-icono" type="button" data-soc-reportar hidden aria-label="Reportar publicación" title="Reportar publicación">{{ ico('bandera') }}</button>
     </header>
 
-    <p class="soc-texto" data-soc-texto></p>
-
-    <div class="soc-plan">
-
-      <div class="soc-plan-cabeza">
-        <h2 data-soc-plan-nombre></h2>
-        <span class="plan-estado" data-soc-plan-estado></span>
+    <div class="soc-media">
+      <div class="soc-fotos" data-soc-fotos hidden></div>
+      <div class="soc-puntos" data-soc-puntos hidden></div>
+      <div class="soc-portada" data-soc-portada hidden>
+        <span data-soc-portada-nombre></span>
       </div>
-
-      <p class="soc-plan-descripcion" data-soc-plan-descripcion></p>
-
-      <ul class="soc-plan-datos">
-        <li data-soc-plan-cuando></li>
-        <li data-soc-plan-lugares></li>
-        <li data-soc-plan-precio></li>
-        <li data-soc-plan-puntaje></li>
-      </ul>
-
-      <a class="soc-ver-plan" data-soc-ver-plan hidden>Ver plan ↗</a>
-
     </div>
 
     <div class="soc-acciones">
-      <button class="soc-accion" type="button" data-soc-like aria-pressed="false">
-        <span aria-hidden="true" data-soc-like-icono>♡</span>
-        <span>Me gusta</span>
-        <span class="soc-contador" data-soc-like-n>0</span>
+      <button class="soc-accion" type="button" data-soc-like aria-pressed="false" aria-label="Me gusta" title="Me gusta">
+        {{ ico('corazon') }}<span class="soc-contador" data-soc-like-n>0</span>
       </button>
-      <button class="soc-accion" type="button" data-soc-comentarios aria-expanded="false">
-        <span aria-hidden="true">✎</span>
-        <span>Comentar</span>
-        <span class="soc-contador" data-soc-comentarios-n>0</span>
+      <button class="soc-accion" type="button" data-soc-comentarios aria-expanded="false" aria-label="Comentarios" title="Comentarios">
+        {{ ico('comentario') }}<span class="soc-contador" data-soc-comentarios-n>0</span>
       </button>
-      <button class="soc-accion" type="button" data-soc-guardar aria-pressed="false">
-        <span aria-hidden="true" data-soc-guardar-icono>☆</span>
-        <span data-soc-guardar-texto>Guardar</span>
+      <button class="soc-accion soc-accion-guardar" type="button" data-soc-guardar aria-pressed="false" aria-label="Guardar plan" title="Guardar plan">
+        {{ ico('guardar') }}
       </button>
+    </div>
+
+    <div class="soc-pie">
+
+      <h2 class="soc-plan-nombre"><a data-soc-plan-nombre></a></h2>
+
+      <ul class="soc-datos">
+        <li class="plan-estado" data-soc-plan-estado></li>
+        <li data-soc-plan-cuando></li>
+        <li data-soc-plan-precio></li>
+        <li data-soc-plan-lugares></li>
+        <li data-soc-plan-puntaje></li>
+      </ul>
+
+      <p class="soc-plan-descripcion" data-soc-plan-descripcion></p>
+
+      <p class="soc-texto"><strong data-soc-texto-autor></strong> <span data-soc-texto></span></p>
+
     </div>
 
     <div class="soc-comentarios" data-soc-zona-comentarios hidden>
       <ul class="soc-comentarios-lista" data-soc-comentarios-lista></ul>
       <form class="soc-comentar" data-soc-form-comentar>
         <label class="visually-hidden">Tu comentario</label>
-        <input type="text" maxlength="300" placeholder="Escribí un comentario…" data-soc-comentario-input autocomplete="off" />
-        <button class="plan-accion-secundaria" type="submit">Enviar</button>
+        <input type="text" maxlength="300" placeholder="Agregá un comentario…" data-soc-comentario-input autocomplete="off" />
+        <button class="soc-icono" type="submit" aria-label="Enviar comentario" title="Enviar comentario">{{ ico('enviar') }}</button>
       </form>
       <p class="soc-aviso" data-soc-comentario-error role="alert" hidden></p>
     </div>
@@ -273,15 +292,10 @@
 
 <template id="soc-tpl-comentario">
   <li class="soc-comentario">
-    <div>
-      <strong data-soc-comentario-autor></strong>
-      <small data-soc-comentario-fecha></small>
-    </div>
-    <p data-soc-comentario-texto></p>
-    <div class="soc-comentario-acciones">
-      <button class="soc-icono" type="button" data-soc-comentario-eliminar hidden>Eliminar</button>
-      <button class="soc-icono" type="button" data-soc-comentario-reportar hidden>Reportar</button>
-    </div>
+    <p><strong data-soc-comentario-autor></strong> <span data-soc-comentario-texto></span></p>
+    <small data-soc-comentario-fecha></small>
+    <button class="soc-icono soc-icono-chico" type="button" data-soc-comentario-eliminar hidden aria-label="Eliminar comentario" title="Eliminar comentario">{{ ico('basura') }}</button>
+    <button class="soc-icono soc-icono-chico" type="button" data-soc-comentario-reportar hidden aria-label="Reportar comentario" title="Reportar comentario">{{ ico('bandera') }}</button>
   </li>
 </template>
 
@@ -293,6 +307,13 @@
       <small data-soc-publicable-detalle></small>
     </span>
   </label>
+</template>
+
+<template id="soc-tpl-previa">
+  <div class="soc-previa">
+    <img alt="Foto elegida" />
+    <button class="soc-previa-quitar" type="button" aria-label="Quitar foto" title="Quitar foto">{{ ico('cerrar') }}</button>
+  </div>
 </template>
 
 
@@ -321,6 +342,17 @@
           No tenés planes para compartir todavía. Podés compartir tus ideas y los planes a los que ya fuiste.
         </p>
       </fieldset>
+
+      <div class="modal-field">
+        <span class="modal-field-label">Fotos (opcional, hasta 2)</span>
+        <div class="soc-previas" data-soc-previas></div>
+        <label class="soc-subir" data-soc-subir>
+          {{ ico('imagen') }}
+          <span>Agregar foto</span>
+          <input type="file" accept="image/*" multiple data-soc-archivos class="visually-hidden" />
+        </label>
+        <p class="soc-ayuda" data-soc-fotos-ayuda hidden></p>
+      </div>
 
       <div class="modal-field">
         <label for="soc-publicar-texto">Algo para contar (opcional)</label>
@@ -387,7 +419,7 @@
 
 </dialog>
 
-<script defer src="{{ url_for('static', filename='social.js', v='20261019-social-v2') }}"></script>
+<script defer src="{{ url_for('static', filename='social.js', v='20261019-social-v3') }}"></script>
 
 {% endif %}
 
