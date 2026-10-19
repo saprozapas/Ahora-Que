@@ -1,5 +1,3 @@
-Esta es la base de datos del proyecto
-
 ## Table `Usuarios`
 
 ### Columns
@@ -31,6 +29,10 @@ Esta es la base de datos del proyecto
 | `Direccion` | `text` |  Nullable |
 | `Nivel_Precio` | `int4` |  Nullable |
 | `Imagen_Url` | `text` |  Nullable |
+| `Osm_Id` | `text` |  Nullable |
+| `Fuente` | `text` |  |
+| `Verificado` | `bool` |  |
+| `Barrio` | `text` |  Nullable |
 
 ## Table `Plan`
 
@@ -88,8 +90,8 @@ Conecto Usuarios con Grupos
 |------|------|-------------|
 | `Id_Usuario` | `uuid` | Primary |
 | `Id_Grupo` | `uuid` | Primary |
-| `Es_Admin` | `boolean` | Default `false`. Lo pone el trigger `usuario_grupo_es_admin` al insertar |
-| `Fecha_Union` | `timestamptz` | Default `now()`. Desempata la sucesión de admin |
+| `Es_Admin` | `bool` |  |
+| `Fecha_Union` | `timestamptz` |  |
 
 ## Table `horario_lugar`
 
@@ -360,6 +362,17 @@ Conecto Usuarios con Grupos
 | `Ronda` | `int4` | Primary |
 | `Id_Opcion` | `uuid` |  Nullable |
 
+## Table `Rachas`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Grupo` | `uuid` | Primary |
+| `Activa` | `bool` |  |
+| `Semanas` | `int4` |  |
+| `Ultima_Reunion` | `date` |  Nullable |
+
 ## RLS Policies
 
 ### `Usuario-Grupo`
@@ -376,12 +389,6 @@ Conecto Usuarios con Grupos
 | `usuario_crea_plan` | INSERT | public | PERMISSIVE | — | `true` |
 | `usuario_ve_planes_de_sus_grupos` | SELECT | public | PERMISSIVE | `(EXISTS ( SELECT 1    FROM "Usuario-Grupo" ug   WHERE ((ug."Id_Grupo" = "Plan"."Grupo_id") AND (ug."Id_Usuario" = auth.uid()))))` | — |
 
-### `horario_lugar`
-
-| Policy | Command | Roles | Action | USING | WITH CHECK |
-|--------|---------|-------|--------|-------|------------|
-| `lectura_publica_horario` | SELECT | public | PERMISSIVE | `true` | — |
-
 ### `Grupos`
 
 | Policy | Command | Roles | Action | USING | WITH CHECK |
@@ -389,18 +396,24 @@ Conecto Usuarios con Grupos
 | `usuario_crea_grupo` | INSERT | public | PERMISSIVE | — | `(auth.uid() = "Creado_Por")` |
 | `usuario_ve_sus_grupos` | SELECT | public | PERMISSIVE | `(EXISTS ( SELECT 1    FROM "Usuario-Grupo" ug   WHERE ((ug."Id_Grupo" = "Grupos"."Id_Grupo") AND (ug."Id_Usuario" = auth.uid()))))` | — |
 
-### `Usuario-Plan`
+### `horario_lugar`
 
 | Policy | Command | Roles | Action | USING | WITH CHECK |
 |--------|---------|-------|--------|-------|------------|
-| `usuario_inserta_su_asistencia` | INSERT | public | PERMISSIVE | — | `(auth.uid() = "Usuario_id")` |
-| `usuario_ve_su_asistencia` | SELECT | public | PERMISSIVE | `(auth.uid() = "Usuario_id")` | — |
+| `lectura_publica_horario` | SELECT | public | PERMISSIVE | `true` | — |
 
 ### `Lugar`
 
 | Policy | Command | Roles | Action | USING | WITH CHECK |
 |--------|---------|-------|--------|-------|------------|
 | `lectura_publica_lugar` | SELECT | public | PERMISSIVE | `true` | — |
+
+### `Usuario-Plan`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `usuario_inserta_su_asistencia` | INSERT | public | PERMISSIVE | — | `(auth.uid() = "Usuario_id")` |
+| `usuario_ve_su_asistencia` | SELECT | public | PERMISSIVE | `(auth.uid() = "Usuario_id")` | — |
 
 ### `Usuarios`
 
