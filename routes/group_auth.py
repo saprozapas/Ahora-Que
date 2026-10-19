@@ -267,3 +267,20 @@ def abandonar_grupo(group_id):
         flash("Error al abandonar el grupo.")
 
     return redirect(url_for("group_auth.grupos"))
+
+
+
+
+@group_auth.route("/racha/<group_id>")
+def racha_grupo(group_id):
+    redirect_response = _require_login()
+    if redirect_response:
+        return redirect_response
+
+    if not isUserInGroup(session.get("user_id"), group_id):
+        return redirect(url_for("group_auth.grupos"))
+
+    group = getGroupById(group_id)
+    group.set_user(getUser(session.get("user_id")))
+    return render_template("racha.html", group=group, groups_page=True,
+                           users=getUsersInGroupWithIds(group_id))
