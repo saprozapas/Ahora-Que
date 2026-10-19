@@ -17,7 +17,7 @@
   El interior de una tarjeta de grupo, en un macro, para no repetirlo en
   las dos variantes de abajo (con enlace y sin enlace).
 #}
-{% macro contenido_de_tarjeta(group, numero, enlazable) %}
+{% macro contenido_de_tarjeta(group, numero, enlazable, racha=none) %}
 
   <div class="group-card-top">
 
@@ -31,7 +31,15 @@
 
   <div class="group-card-content">
 
-    <h3>{{ group.get_name() }}</h3>
+    <h3>
+      {{ group.get_name() }}
+      {% if racha %}
+      <span class="group-card-streak{% if not racha.activa %} is-inactive{% endif %}" aria-label="Racha: {{ racha.semanas }} semanas">
+        <img src="{{ url_for('static', filename='racha.svg') }}" alt="" aria-hidden="true" />
+        <span>{{ racha.semanas }}</span>
+      </span>
+      {% endif %}
+    </h3>
 
     {% if group.get_description() %}
 
@@ -102,17 +110,18 @@
         archivo.
       #}
       {% set group_id = group.get_id() if group.get_id is defined else none %}
+      {% set group_racha = rachas.get(group_id) if group_id and rachas is defined else none %}
 
       {% if group_id %}
 
       <a class="group-card" href="/grupos/{{ group_id }}">
-        {{ contenido_de_tarjeta(group, loop.index, true) }}
+        {{ contenido_de_tarjeta(group, loop.index, true, group_racha) }}
       </a>
 
       {% else %}
 
       <article class="group-card">
-        {{ contenido_de_tarjeta(group, loop.index, false) }}
+        {{ contenido_de_tarjeta(group, loop.index, false, group_racha) }}
       </article>
 
       {% endif %}

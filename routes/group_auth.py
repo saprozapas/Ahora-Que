@@ -49,10 +49,13 @@ def grupos():
 
     grupos = getGroupsForUser(session.get("user_id"))# getGroups no devuelve grupos con usuario asignado.
     usuario = getUser(session.get("user_id"))  # una sola consulta, no una por grupo
+    rachas = {}
     for grupo in grupos:
         grupo.set_user(usuario)
+        if grupo.get_id():
+            rachas[grupo.get_id()] = racha_service.actualizar_racha(grupo.get_id())
 
-    return render_template("grupos.html", groups=grupos, groups_page=True)
+    return render_template("grupos.html", groups=grupos, groups_page=True, rachas=rachas)
 
 
 @group_auth.route("/grupos/nuevo", methods=["GET", "POST"])

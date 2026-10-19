@@ -3882,6 +3882,35 @@
     line-height: 1.02;
   }
 
+  .group-card-streak {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.08em;
+    margin-left: 0.14em;
+    color: #ef4328;
+    white-space: nowrap;
+    vertical-align: baseline;
+  }
+
+  .group-card-streak img {
+    width: 0.78em;
+    height: 0.78em;
+    align-self: center;
+    object-fit: contain;
+  }
+
+  .group-card-streak > span {
+    font-size: 0.78em;
+    font-weight: 750;
+    line-height: 1;
+  }
+
+  .group-card-streak.is-inactive { color: #737373; }
+  .group-card-streak.is-inactive img { filter: grayscale(1) brightness(0.72); }
+
+  html[data-theme="night"] .group-card-streak.is-inactive { color: #c8c8c8; }
+  html[data-theme="night"] .group-card-streak.is-inactive img { filter: grayscale(1) brightness(1.25); }
+
   .group-card p {
     max-width: 32ch;
     color: var(--muted);
