@@ -7,16 +7,21 @@ sean UUID (un id mal formado llegaría a la base y daría un error 500).
 Las reglas de quién puede qué viven en services/social_service.py.
 """
 
+import base64
+import binascii
 import uuid
 
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, Response, jsonify, request, session
 
-from services.social_service import SocialError, SocialService
+from services.social_service import MAX_FOTOS, SocialError, SocialService
 
 
 social_api = Blueprint("social_api", __name__, url_prefix="/social")
 
 social_service = SocialService()
+
+# Dos fotos de hasta 400 KB, en base64 (+33 %), más el texto.
+MAX_BYTES_PUBLICAR = 1_200_000
 
 
 def _error(mensaje, estado):
@@ -41,6 +46,24 @@ def _cuerpo():
     if not isinstance(datos, dict):
         raise SocialError("La solicitud no es válida.", 415)
     return datos
+
+
+def _decodificar_fotos(valores):
+    """Las fotos llegan como data URL ("data:image/jpeg;base64,...") o base64
+    pelado. Acá solo se decodifican; el servicio valida que sean JPEG."""
+    if valores is None:
+        return []
+    if not isinstance(valores, list) or len(valores) > MAX_FOTOS:
+        raise SocialError(f"Podés subir hasta {MAX_FOTOS} fotos.")
+    fotos = []
+    for valor in valores:
+        if not isinstance(valor, str):
+            raise SocialError("Las fotos no son válidas.")
+        try:
+            fotos.append(base64.b64decode(valor.split(",", 1)[-1], validate=True))
+        except (binascii.Error, ValueError):
+            raise SocialError("Las fotos no son válidas.")
+    return fotos
 
 
 def _con_sesion(funcion):
@@ -80,17 +103,38 @@ def publicables(user_id):
     return jsonify({"planes": social_service.listar_publicables(user_id)})
 
 
+# ----------------------------------------------------------------- Fotos
+
+@social_api.route("/fotos/<foto_id>", methods=["GET"])
+@_con_sesion
+def foto(user_id, foto_id):
+    datos = social_service.obtener_foto(user_id, _id_o_404(foto_id))
+    return Response(
+        datos,
+        mimetype="image/jpeg",
+        headers={
+            # Una foto no se edita: el navegador puede guardarla. "private"
+            # evita que un proxy compartido se la dé a otra persona.
+            "Cache-Control": "private, max-age=86400, immutable",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
 # --------------------------------------------------------- Publicaciones
 
 @social_api.route("/publicaciones", methods=["POST"])
 @_con_sesion
 def publicar(user_id):
+    if request.content_length and request.content_length > MAX_BYTES_PUBLICAR:
+        raise SocialError("Las fotos pesan demasiado.", 413)
     datos = _cuerpo()
     publicacion = social_service.publicar(
         user_id,
         _id_o_404(datos.get("plan_id", "")),
         str(datos.get("texto") or ""),
         str(datos.get("visibilidad") or "amigos"),
+        _decodificar_fotos(datos.get("fotos")),
     )
     return jsonify({"publicacion": publicacion}), 201
 

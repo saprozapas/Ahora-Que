@@ -30,6 +30,10 @@ from services.plan_service import PlanService
 MAX_TEXTO = 500
 MAX_COMENTARIO = 300
 MAX_MOTIVO = 300
+MAX_FOTOS = 2
+MAX_BYTES_FOTO = 400 * 1024
+_JPEG_INICIO = bytes((0xFF, 0xD8, 0xFF))
+_JPEG_FIN = bytes((0xFF, 0xD9))
 
 LIMITE_FEED = 10
 LIMITE_FEED_MAX = 20
@@ -147,7 +151,28 @@ class SocialService:
             cursor.fetchall(),
             lambda f: {"_pub": f},
         )
-        return [self._serializar(plan, user_id) for plan in planes]
+        publicaciones = [self._serializar(plan, user_id) for plan in planes]
+        self._agregar_fotos(cursor, publicaciones)
+        return publicaciones
+
+    def _agregar_fotos(self, cursor, publicaciones):
+        """Una sola consulta para las fotos de todas (sin traer los bytes)."""
+        if not publicaciones:
+            return
+        cursor.execute(
+            """
+            SELECT "Id_Publicacion", "Id_Foto"
+            FROM public."Publicacion_Foto"
+            WHERE "Id_Publicacion" = ANY(%s::uuid[])
+            ORDER BY "Orden"
+            """,
+            ([p["id"] for p in publicaciones],),
+        )
+        por_publicacion = {}
+        for publicacion_id, foto_id in cursor.fetchall():
+            por_publicacion.setdefault(str(publicacion_id), []).append(str(foto_id))
+        for p in publicaciones:
+            p["fotos"] = por_publicacion.get(p["id"], [])
 
     def _serializar(self, plan, user_id):
         f = plan["_pub"]
@@ -180,6 +205,7 @@ class SocialService:
                 "promedio": float(f[18]) if f[18] is not None else None,
                 "votos": f[19],
             },
+            "fotos": [],
             "likes": f[14],
             "yo_di_like": bool(f[15]),
             "comentarios": f[16],
@@ -287,7 +313,22 @@ class SocialService:
             for p in planes
         ]
 
-    def publicar(self, user_id, plan_id, texto, visibilidad):
+    @staticmethod
+    def _validar_fotos(fotos):
+        fotos = list(fotos or [])
+        if len(fotos) > MAX_FOTOS:
+            raise SocialError(f"Podés subir hasta {MAX_FOTOS} fotos.")
+        for datos in fotos:
+            if len(datos) > MAX_BYTES_FOTO:
+                raise SocialError("Una de las fotos pesa demasiado.", 413)
+            # Solo JPEG (el navegador las convierte antes de subir): empieza
+            # con FF D8 FF y termina con FF D9.
+            if not (datos[:3] == _JPEG_INICIO and datos[-2:] == _JPEG_FIN):
+                raise SocialError("Las fotos tienen que ser imágenes JPEG válidas.")
+        return fotos
+
+    def publicar(self, user_id, plan_id, texto, visibilidad, fotos=()):
+        fotos = self._validar_fotos(fotos)
         texto = (texto or "").strip()
         if len(texto) > MAX_TEXTO:
             raise SocialError(f"El texto puede tener hasta {MAX_TEXTO} caracteres.")
@@ -342,6 +383,14 @@ class SocialService:
                     (user_id, plan_id, texto or None, visibilidad),
                 )
                 publicacion_id = cursor.fetchone()[0]
+                for orden, datos in enumerate(fotos):
+                    cursor.execute(
+                        """
+                        INSERT INTO public."Publicacion_Foto" ("Id_Publicacion", "Orden", "Datos")
+                        VALUES (%s, %s, %s)
+                        """,
+                        (publicacion_id, orden, psycopg2.Binary(datos)),
+                    )
                 publicacion = self._una(cursor, user_id, publicacion_id)
             connection.commit()
             return publicacion
@@ -368,12 +417,40 @@ class SocialService:
                 )
                 if cursor.rowcount == 0:
                     raise SocialError("No encontramos esa publicación.", 404)
+                # Las fotos no se conservan: liberan lugar en la base.
+                cursor.execute(
+                    'DELETE FROM public."Publicacion_Foto" WHERE "Id_Publicacion" = %s',
+                    (publicacion_id,),
+                )
             connection.commit()
         except Exception:
             connection.rollback()
             raise
         finally:
             release_db_connection(connection)
+
+    def obtener_foto(self, user_id, foto_id):
+        """Los bytes de una foto, si el usuario puede ver su publicación."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT f."Datos"
+                    FROM public."Publicacion_Foto" f
+                    JOIN public."Publicacion" pub ON pub."Id_Publicacion" = f."Id_Publicacion"
+                    WHERE f."Id_Foto" = %(fid)s
+                      AND NOT pub."Eliminada"
+                      AND {self._visible_sql()}
+                    """,
+                    {"fid": foto_id, "uid": user_id},
+                )
+                fila = cursor.fetchone()
+        finally:
+            release_db_connection(connection)
+        if fila is None:
+            raise SocialError("No encontramos esa foto.", 404)
+        return bytes(fila[0])
 
     # --- Me gusta y guardar -------------------------------------------------
 

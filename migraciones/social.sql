@@ -8,6 +8,8 @@
 -- Qué crea:
 --   "Publicacion"             un plan compartido por su autor, con un texto
 --                             y quién lo puede ver ('amigos' o 'publico').
+--   "Publicacion_Foto"        hasta 2 fotos por publicación (JPEG ya achicado
+--                             en el navegador, guardado en la base).
 --   "Publicacion_Like"        un "me gusta" por usuario y publicación.
 --   "Publicacion_Comentario"  comentarios planos (sin hilos).
 --   "Publicacion_Reporte"     denuncias de publicaciones o comentarios, para
@@ -61,6 +63,24 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Publicacion_una_por_plan_idx"
 -- Para que borrar un plan no recorra toda la tabla.
 CREATE INDEX IF NOT EXISTS "Publicacion_plan_idx"
     ON public."Publicacion" ("Id_Plan");
+
+
+-- -----------------------------------------------------------------------------
+-- Publicacion_Foto
+--
+-- Las fotos se achican en el navegador (~1080 px, menos de 400 KB) y se
+-- guardan acá. Al borrar la publicación se borran sus fotos para no ocupar
+-- lugar en la base.
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS public."Publicacion_Foto" (
+    "Id_Foto"        uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+    "Id_Publicacion" uuid        NOT NULL
+                     REFERENCES public."Publicacion" ("Id_Publicacion") ON DELETE CASCADE,
+    "Orden"          smallint    NOT NULL CHECK ("Orden" IN (0, 1)),
+    "Datos"          bytea       NOT NULL CHECK (octet_length("Datos") <= 409600),
+    UNIQUE ("Id_Publicacion", "Orden")
+);
 
 
 -- -----------------------------------------------------------------------------
@@ -129,6 +149,7 @@ CREATE TABLE IF NOT EXISTS public."Publicacion_Reporte" (
 -- -----------------------------------------------------------------------------
 
 ALTER TABLE public."Publicacion"             ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public."Publicacion_Foto"        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."Publicacion_Like"        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."Publicacion_Comentario"  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."Publicacion_Reporte"     ENABLE ROW LEVEL SECURITY;
