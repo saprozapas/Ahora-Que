@@ -1,3 +1,5 @@
+Esta es la base de datos del proyecto
+
 ## Table `Usuarios`
 
 ### Columns
@@ -29,10 +31,10 @@
 | `Direccion` | `text` |  Nullable |
 | `Nivel_Precio` | `int4` |  Nullable |
 | `Imagen_Url` | `text` |  Nullable |
-| `Osm_Id` | `text` |  Nullable |
-| `Fuente` | `text` |  |
-| `Verificado` | `bool` |  |
-| `Barrio` | `text` |  Nullable |
+| `Osm_Id` | `text` |  Nullable Unique. Id en OpenStreetMap (`node/123`, `way/456`, `relation/789`); lo usa `scripts/importar_osm.py` |
+| `Fuente` | `text` | Default `'manual'`. `'osm'` si vino de OpenStreetMap |
+| `Verificado` | `bool` | Default `false`. `true` = corregido a mano: la importación de OSM no lo pisa |
+| `Barrio` | `text` |  Nullable. Nombre tal cual lo da OSM |
 
 ## Table `Plan`
 
@@ -63,7 +65,7 @@
 | `Nombre` | `text` |  |
 | `Id_Grupo` | `uuid` | Primary |
 | `Descripcion` | `text` |  Nullable |
-| `Todos_Admin` | `bool` |  |
+| `Todos_Admin` | `boolean` | Default `false`. Si está activo, todo el que entra al grupo es admin |
 
 ## Table `Usuario-Grupo`
 
@@ -75,8 +77,8 @@ Conecto Usuarios con Grupos
 |------|------|-------------|
 | `Id_Usuario` | `uuid` | Primary |
 | `Id_Grupo` | `uuid` | Primary |
-| `Es_Admin` | `bool` |  |
-| `Fecha_Union` | `timestamptz` |  |
+| `Es_Admin` | `boolean` | Default `false`. Lo pone el trigger `usuario_grupo_es_admin` al insertar |
+| `Fecha_Union` | `timestamptz` | Default `now()`. Desempata la sucesión de admin |
 
 ## Table `horario_lugar`
 
