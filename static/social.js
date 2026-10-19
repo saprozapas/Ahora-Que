@@ -142,11 +142,16 @@
 
     // El detalle del plan solo se puede abrir si es tuyo o lo guardaste: si
     // no, el nombre queda como texto, sin enlace.
-    const nombre = $("[data-soc-plan-nombre]", tarjeta);
-    if (publicacion.es_mio || publicacion.guardado) {
-      nombre.href = urls.detalle.replace("__ID__", publicacion.plan.id);
-    } else {
-      nombre.removeAttribute("href");
+    const enlaces = [
+      $("[data-soc-plan-nombre]", tarjeta),
+      $("[data-soc-portada-nombre]", tarjeta),
+    ];
+    for (const enlace of enlaces) {
+      if (publicacion.es_mio || publicacion.guardado) {
+        enlace.href = urls.detalle.replace("__ID__", publicacion.plan.id);
+      } else {
+        enlace.removeAttribute("href");
+      }
     }
   };
 
@@ -173,6 +178,8 @@
       portada.className = `soc-portada soc-portada-${variante}`;
       portada.hidden = false;
       $("[data-soc-portada-nombre]", portada).textContent = nombre;
+      // El nombre ya está en la portada: no se repite como título.
+      $(".soc-plan-nombre", tarjeta).hidden = true;
       return;
     }
 

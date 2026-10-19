@@ -301,6 +301,21 @@
   overflow-wrap: anywhere;
 }
 
+.soc-portada a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.soc-portada a[href] {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+.soc-plan-nombre[hidden] {
+  display: none;
+}
+
 .soc-portada-0 {
   background: var(--accent);
   color: var(--on-accent);

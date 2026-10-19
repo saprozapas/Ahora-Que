@@ -30,7 +30,7 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261019-social-v3') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261019-social-v4') }}" />
 
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
@@ -243,7 +243,7 @@
       <div class="soc-fotos" data-soc-fotos hidden></div>
       <div class="soc-puntos" data-soc-puntos hidden></div>
       <div class="soc-portada" data-soc-portada hidden>
-        <span data-soc-portada-nombre></span>
+        <a data-soc-portada-nombre></a>
       </div>
     </div>
 
@@ -419,7 +419,7 @@
 
 </dialog>
 
-<script defer src="{{ url_for('static', filename='social.js', v='20261019-social-v3') }}"></script>
+<script defer src="{{ url_for('static', filename='social.js', v='20261019-social-v4') }}"></script>
 
 {% endif %}
 
