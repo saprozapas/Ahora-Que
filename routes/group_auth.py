@@ -9,6 +9,7 @@ from werkzeug.security import generate_password_hash
 from services.auth_service import AuthService
 from services.grupo_plan_service import GrupoPlanService
 from services.plan_service import PlanService
+from services.chat_service import ChatService
 from services.grupo_encuesta_service import GrupoEncuestaService, MAX_FRANJAS, opciones_de_precio
 from services.lugar_service import LugarService
 from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, getUsersInGroupWithIds, isUserInGroup, getGroupById, buscarUsuariosInvitables
@@ -20,6 +21,7 @@ auth_service = AuthService()
 invitation_service = InvitationService()
 grupo_plan_service = GrupoPlanService()
 plan_service = PlanService()
+chat_service = ChatService()
 grupo_encuesta_service = GrupoEncuestaService()
 lugar_service = LugarService()
 
@@ -98,6 +100,7 @@ def detalle_grupo(group_id):
     group.set_user(getUser(session.get("user_id")))
     users = getUsersInGroupWithIds(group_id)
     plan_service.archivar_vencidos()
+    chat_service.eliminar_mensajes_viejos()
     tablero = grupo_plan_service.get_tablero(group_id, session.get("user_id"))
     encuestas = grupo_encuesta_service.get_abiertas(group_id, session.get("user_id"))
     es_admin, todos_admin = group_auth_service.get_rol(session.get("user_id"), group_id)
@@ -267,3 +270,20 @@ def abandonar_grupo(group_id):
         flash("Error al abandonar el grupo.")
 
     return redirect(url_for("group_auth.grupos"))
+
+
+
+
+@group_auth.route("/racha/<group_id>")
+def racha_grupo(group_id):
+    redirect_response = _require_login()
+    if redirect_response:
+        return redirect_response
+
+    if not isUserInGroup(session.get("user_id"), group_id):
+        return redirect(url_for("group_auth.grupos"))
+
+    group = getGroupById(group_id)
+    group.set_user(getUser(session.get("user_id")))
+    return render_template("racha.html", group=group, groups_page=True,
+                           users=getUsersInGroupWithIds(group_id))

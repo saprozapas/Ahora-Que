@@ -3,6 +3,22 @@ from database import get_db_connection, release_db_connection
 
 class ChatService:
 
+    def eliminar_mensajes_viejos(self):
+        """Elimina mensajes enviados hace más de 14 días."""
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute('''
+                    DELETE FROM public."Mensajes"
+                    WHERE "Fecha_Envio" < now() - INTERVAL '14 days'
+                ''')
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            print(f"Error al eliminar mensajes viejos: {e}")
+        finally:
+            release_db_connection(conn)
+
     @staticmethod
     def _nombre_visible(username, nombre):
         """Cómo se identifica a alguien en el chat: por su username. Nunca
