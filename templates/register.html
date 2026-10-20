@@ -100,8 +100,22 @@
       name="password"
       type="password"
       autocomplete="new-password"
+      data-password-strength
+      minlength="8"
       required
     />
+
+    <div class="password-strength">
+      <div class="password-strength-track" role="progressbar" aria-label="Seguridad de la contraseña" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1" data-strength-bar>
+        <span></span>
+      </div>
+      <p class="password-strength-label is-weak" aria-live="polite" data-strength-label>Débil — usá al menos 8 caracteres.</p>
+    </div>
+
+    <label class="check-row" for="accept_terms">
+      <input id="accept_terms" name="accept_terms" type="checkbox" required {% if form_data.accept_terms == 'on' %}checked{% endif %} />
+      <span>Acepto los <a href="{{ url_for('auth.terminos_y_condiciones') }}" target="_blank" rel="noopener">términos y condiciones</a>.</span>
+    </label>
 
 
     <button class="lime-button" type="submit">
@@ -113,5 +127,7 @@
   </form>
 
 </section>
+
+<script src="{{ url_for('static', filename='password_strength.js') }}" defer></script>
 
 {% endblock %}

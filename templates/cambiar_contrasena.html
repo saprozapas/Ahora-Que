@@ -55,9 +55,16 @@
       name="nueva"
       type="password"
       autocomplete="new-password"
+      data-password-strength
+      minlength="8"
       required
     />
-    <!-- minlength="8" -->
+    <div class="password-strength">
+      <div class="password-strength-track" role="progressbar" aria-label="Seguridad de la contraseña" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1" data-strength-bar>
+        <span></span>
+      </div>
+      <p class="password-strength-label is-weak" aria-live="polite" data-strength-label>Débil — usá al menos 8 caracteres.</p>
+    </div>
 
 
     <label for="confirmar">Confirmar nueva contraseña</label>
@@ -67,9 +74,9 @@
       name="confirmar"
       type="password"
       autocomplete="new-password"
+      minlength="8"
       required
     />
-    <!-- minlength="8" -->
 
 
     <button class="lime-button" type="submit">
@@ -80,6 +87,7 @@
 
 </section>
 
+<script src="{{ url_for('static', filename='password_strength.js') }}" defer></script>
 
 {% if logueado %}
   </div>

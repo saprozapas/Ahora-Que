@@ -6381,3 +6381,48 @@
 .invitar-estado.is-ok {
   color: var(--accent);
 }
+
+.password-strength {
+  margin-top: 8px;
+}
+
+.auth-form .password-strength-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.password-strength-track span {
+  display: block;
+  width: 33%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--danger);
+  transition: width 180ms ease, background-color 180ms ease;
+}
+
+.password-strength-track.is-medium span {
+  background: #b7791f;
+}
+
+.password-strength-track.is-strong span {
+  background: var(--success);
+}
+
+.auth-form .password-strength-label {
+  margin-top: 6px;
+  font-size: var(--text-xs);
+}
+
+.password-strength-label.is-weak {
+  color: var(--danger);
+}
+
+.password-strength-label.is-medium {
+  color: #b7791f;
+}
+
+.password-strength-label.is-strong {
+  color: var(--success);
+}
