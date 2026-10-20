@@ -47,13 +47,10 @@ def grupos():
     if redirect_response:
         return redirect_response
 
-    grupos = getGroupsForUser(session.get("user_id"))# getGroups no devuelve grupos con usuario asignado.
-    usuario = getUser(session.get("user_id"))  # una sola consulta, no una por grupo
-    rachas = {}
-    for grupo in grupos:
-        grupo.set_user(usuario)
-        if grupo.get_id():
-            rachas[grupo.get_id()] = racha_service.actualizar_racha(grupo.get_id())
+    grupos = getGroupsForUser(session.get("user_id"))
+    rachas = racha_service.obtener_resumenes(
+        [grupo.get_id() for grupo in grupos if grupo.get_id()]
+    )
 
     return render_template("grupos.html", groups=grupos, groups_page=True, rachas=rachas)
 

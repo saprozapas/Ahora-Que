@@ -26,6 +26,57 @@ def _color_fuego(semanas):
 class RachaService:
     """Calcula y persiste la racha de reuniones de un grupo."""
 
+    def obtener_resumenes(self, group_ids):
+        """Lee de una vez los datos que muestran las tarjetas de grupos."""
+        if not group_ids:
+            return {}
+
+        hoy = datetime.now(_MONTEVIDEO).date()
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    '''
+                    SELECT r."Id_Grupo", r."Semanas", r."Ultima_Reunion",
+                           r."Activa", a."Marco_Semanas", a."Titulo_Semanas",
+                           ARRAY(
+                               SELECT i."Semanas"
+                               FROM public."Grupo_Insignia" i
+                               WHERE i."Id_Grupo" = r."Id_Grupo"
+                           )
+                    FROM public."Rachas" r
+                    LEFT JOIN public."Grupo_Apariencia" a
+                      ON a."Id_Grupo" = r."Id_Grupo"
+                    WHERE r."Id_Grupo" = ANY(%s::uuid[])
+                    ''',
+                    (group_ids,),
+                )
+                filas = cursor.fetchall()
+
+            resumenes = {}
+            for group_id, semanas_guardadas, ultima, _activa_guardada, marco_guardado, titulo_guardado, hitos in filas:
+                semanas = semanas_guardadas or 0
+                dias_desde_ultima = (hoy - ultima).days if ultima else None
+                if dias_desde_ultima is None or dias_desde_ultima >= 14:
+                    semanas = 0
+                activa = semanas > 0 and dias_desde_ultima < 7
+
+                hitos = set(hitos or [])
+                marcos = sorted(hitos.intersection(_MARCOS))
+                titulos = sorted(hitos.intersection(_COLORES_TITULO))
+                marco = marco_guardado if marco_guardado in marcos else (max(marcos) if marcos else None)
+                titulo = titulo_guardado if titulo_guardado in titulos else (max(titulos) if titulos else None)
+                resumenes[group_id] = {
+                    "activa": activa,
+                    "semanas": semanas,
+                    "fuego": _color_fuego(semanas),
+                    "marco": _MARCOS.get(marco),
+                    "titulo_color": _COLORES_TITULO.get(titulo),
+                }
+            return resumenes
+        finally:
+            release_db_connection(conn)
+
     def actualizar_racha(self, group_id):
         """Acumula solo planes nuevos y persiste el punto de control.
 
@@ -136,16 +187,17 @@ class RachaService:
                 )
 
                 # Los logros son permanentes aunque la racha actual se reinicie.
-                for hito in _HITOS:
-                    if semanas >= hito:
-                        cursor.execute(
-                            '''
-                            INSERT INTO public."Grupo_Insignia" ("Id_Grupo", "Semanas")
-                            VALUES (%s, %s)
-                            ON CONFLICT ("Id_Grupo", "Semanas") DO NOTHING
-                            ''',
-                            (group_id, hito),
-                        )
+                hitos_a_insertar = [hito for hito in _HITOS if semanas >= hito]
+                if hitos_a_insertar:
+                    cursor.execute(
+                        '''
+                        INSERT INTO public."Grupo_Insignia" ("Id_Grupo", "Semanas")
+                        SELECT %s, hito
+                        FROM UNNEST(%s::integer[]) AS hitos(hito)
+                        ON CONFLICT ("Id_Grupo", "Semanas") DO NOTHING
+                        ''',
+                        (group_id, hitos_a_insertar),
+                    )
                 cursor.execute(
                     'SELECT "Semanas" FROM public."Grupo_Insignia" WHERE "Id_Grupo" = %s',
                     (group_id,),
