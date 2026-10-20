@@ -434,6 +434,14 @@ def fila_de(el):
     else:
         apto = None
 
+    horario = parsear_horario(tags.get("opening_hours"))
+    horario_partido = False
+    if horario and len({dia for dia, _, _ in horario}) != len(horario):
+        # "horario_lugar" tiene UNIQUE (lugar_id, dia_semana): un solo intervalo
+        # por día. Un horario cortado (09-12 y 14-18) no entra sin falsearlo,
+        # así que no se guarda ninguno para ese lugar.
+        horario, horario_partido = None, True
+
     return {
         "osm_id": f"{el['type']}/{el['id']}",
         "nombre": nombre,
@@ -446,7 +454,7 @@ def fila_de(el):
         "vegano": True if tags.get("diet:vegan") in ("yes", "only") else None,
         "celiaco": True if tags.get("diet:gluten_free") == "yes" else None,
         "barrio": None,
-        "horario": parsear_horario(tags.get("opening_hours")),
+        "horario": horario, "horario_partido": horario_partido,
         "_addr_barrio": (tags.get("addr:suburb") or tags.get("addr:neighbourhood") or "").strip() or None,
     }
 
@@ -647,6 +655,8 @@ def resumen(filas):
     print("Con dirección:", pct(sum(1 for f in filas if f["direccion"])))
     print("Con horario:  ", pct(sum(1 for f in filas if f["horario"])))
     print("Con barrio:   ", pct(sum(1 for f in filas if f["barrio"])))
+    print("Horario cortado en el día (no se guarda: la tabla admite 1 intervalo por día):",
+          sum(1 for f in filas if f["horario_partido"]))
     print("Veganos:", sum(1 for f in filas if f["vegano"]),
           "| Celíacos:", sum(1 for f in filas if f["celiaco"]))
     barrios = Counter(f["barrio"] for f in filas if f["barrio"])
@@ -770,7 +780,11 @@ def _autotest():
     assert vegano["vegano"] is True and vegano["celiaco"] is None
     assert vegano["apto"] is True and vegano["nivel"] is None
     assert vegano["direccion"] == "Benito Blanco 1234"
-    assert len(vegano["horario"]) == 6
+    assert len(vegano["horario"]) == 6 and vegano["horario_partido"] is False
+    partido = fila_de({"type": "node", "id": 10, "lat": 1, "lon": 1,
+                       "tags": {"name": "Cortado", "amenity": "cafe",
+                                "opening_hours": "Mo-Fr 09:00-12:00,14:00-18:00"}})
+    assert partido["horario"] is None and partido["horario_partido"] is True
 
     boliche = fila_de({"type": "way", "id": 2, "center": {"lat": -34.91, "lon": -56.16},
                        "tags": {"name": "Noche", "amenity": "nightclub"}})
