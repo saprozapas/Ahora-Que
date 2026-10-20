@@ -1,0 +1,177 @@
+{# Piezas que comparte todo lo que muestra publicaciones (la página /social y
+   los perfiles): la tarjeta, un comentario, la miniatura de la grilla y los
+   diálogos de "ver publicación" y "reportar". Las llena static/social.js. #}
+{% from '_social_iconos.html' import ico %}
+
+{# ----------------------------- Tarjeta de publicación ----------------------------- #}
+
+<template id="soc-tpl-tarjeta">
+  <article class="soc-tarjeta">
+
+    <header class="soc-autor">
+      <a class="soc-autor-enlace" data-soc-autor-enlace>
+        <div class="soc-avatar" data-soc-avatar aria-hidden="true"></div>
+        <div class="soc-autor-datos">
+          <strong data-soc-autor></strong>
+          <small data-soc-fecha></small>
+        </div>
+      </a>
+      <span class="soc-visibilidad" data-soc-visibilidad>
+        <span data-soc-vis-amigos hidden>{{ ico('amigos') }}</span>
+        <span data-soc-vis-publico hidden>{{ ico('mundo') }}</span>
+      </span>
+      <button class="soc-icono" type="button" data-soc-eliminar hidden aria-label="Eliminar publicación" title="Eliminar publicación">{{ ico('basura') }}</button>
+      <button class="soc-icono" type="button" data-soc-reportar hidden aria-label="Reportar publicación" title="Reportar publicación">{{ ico('bandera') }}</button>
+    </header>
+
+    <div class="soc-media" data-soc-media>
+      <div class="soc-fotos" data-soc-fotos hidden></div>
+      <div class="soc-puntos" data-soc-puntos hidden></div>
+      <div class="soc-portada" data-soc-portada hidden>
+        <a data-soc-portada-nombre></a>
+      </div>
+      <span class="soc-corazon-pop" data-soc-pop aria-hidden="true">{{ ico('corazon') }}</span>
+    </div>
+
+    <div class="soc-acciones">
+      <button class="soc-accion" type="button" data-soc-like aria-pressed="false" aria-label="Me gusta" title="Me gusta">
+        {{ ico('corazon') }}<span class="soc-contador" data-soc-like-n>0</span>
+      </button>
+      <button class="soc-accion" type="button" data-soc-comentarios aria-expanded="false" aria-label="Comentarios" title="Comentarios">
+        {{ ico('comentario') }}<span class="soc-contador" data-soc-comentarios-n>0</span>
+      </button>
+      <button class="soc-accion" type="button" data-soc-proponer aria-label="Proponer a mi grupo" title="Proponer a mi grupo">
+        {{ ico('enviar') }}
+      </button>
+      <button class="soc-accion soc-accion-guardar" type="button" data-soc-guardar aria-pressed="false" aria-label="Guardar plan" title="Guardar plan">
+        {{ ico('guardar') }}
+      </button>
+    </div>
+
+    <p class="soc-likes" data-soc-likes-texto hidden></p>
+
+    <div class="soc-pie">
+
+      <h2 class="soc-plan-nombre"><a data-soc-plan-nombre></a></h2>
+
+      <ul class="soc-datos">
+        <li class="plan-estado" data-soc-plan-estado></li>
+        <li data-soc-plan-cuando></li>
+        <li data-soc-plan-precio></li>
+        <li data-soc-plan-lugares></li>
+        <li data-soc-plan-puntaje></li>
+      </ul>
+
+      <p class="soc-plan-descripcion" data-soc-plan-descripcion></p>
+
+      <p class="soc-texto"><strong data-soc-texto-autor></strong> <span data-soc-texto></span></p>
+
+      <div class="soc-previa-comentarios" data-soc-previa hidden>
+        <button class="soc-ver-comentarios" type="button" data-soc-ver-comentarios hidden></button>
+        <div data-soc-previa-lista></div>
+      </div>
+
+    </div>
+
+    <div class="soc-comentarios" data-soc-zona-comentarios hidden>
+      <ul class="soc-comentarios-lista" data-soc-comentarios-lista></ul>
+      <form class="soc-comentar" data-soc-form-comentar>
+        <label class="visually-hidden">Tu comentario</label>
+        <input type="text" maxlength="300" placeholder="Agregá un comentario…" data-soc-comentario-input autocomplete="off" />
+        <button class="soc-icono" type="submit" aria-label="Enviar comentario" title="Enviar comentario">{{ ico('enviar') }}</button>
+      </form>
+      <p class="soc-aviso" data-soc-comentario-error role="alert" hidden></p>
+    </div>
+
+  </article>
+</template>
+
+<template id="soc-tpl-comentario">
+  <li class="soc-comentario">
+    <p><strong data-soc-comentario-autor></strong> <span data-soc-comentario-texto></span></p>
+    <small data-soc-comentario-fecha></small>
+    <button class="soc-icono soc-icono-chico" type="button" data-soc-comentario-eliminar hidden aria-label="Eliminar comentario" title="Eliminar comentario">{{ ico('basura') }}</button>
+    <button class="soc-icono soc-icono-chico" type="button" data-soc-comentario-reportar hidden aria-label="Reportar comentario" title="Reportar comentario">{{ ico('bandera') }}</button>
+  </li>
+</template>
+
+{# Una celda de la grilla: foto (o portada de color) que abre la publicación. #}
+<template id="soc-tpl-miniatura">
+  <button class="soc-miniatura" type="button">
+    <img data-soc-mini-img alt="" loading="lazy" decoding="async" hidden />
+    <span class="soc-mini-portada" data-soc-mini-portada hidden></span>
+    <span class="soc-mini-varias" data-soc-mini-varias hidden>{{ ico('imagen') }}</span>
+    <span class="soc-mini-datos" aria-hidden="true">
+      <span>{{ ico('corazon') }}<b data-soc-mini-likes>0</b></span>
+      <span>{{ ico('comentario') }}<b data-soc-mini-comentarios>0</b></span>
+    </span>
+  </button>
+</template>
+
+
+{# ------------------------- Diálogo: ver una publicación (grilla) ------------------------- #}
+
+<dialog class="modal soc-modal-post" id="soc-modal-post" aria-label="Publicación">
+  <button class="soc-icono soc-modal-post-cerrar" type="button" data-soc-cerrar aria-label="Cerrar" title="Cerrar">{{ ico('cerrar') }}</button>
+  <div data-soc-post-contenedor></div>
+</dialog>
+
+
+{# ------------------------- Diálogo: proponer el plan a un grupo ------------------------- #}
+
+<dialog class="modal" id="soc-modal-grupo" aria-labelledby="soc-modal-grupo-titulo">
+
+  <div class="modal-head">
+    <h2 class="modal-title" id="soc-modal-grupo-titulo">Proponer a mi grupo</h2>
+    <button class="modal-close" type="button" data-soc-cerrar aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <p class="soc-ayuda" data-soc-grupo-plan></p>
+    <div class="soc-grupos" data-soc-grupos-lista></div>
+    <p class="soc-ayuda" data-soc-grupos-vacio hidden>
+      Todavía no estás en ningún grupo. <a href="/grupos">Creá uno o unite a uno</a> para poder proponerles planes.
+    </p>
+    <p class="soc-aviso" data-soc-grupo-error role="alert" hidden></p>
+  </div>
+
+</dialog>
+
+
+{# --------------------------------- Diálogo: reportar --------------------------------- #}
+
+<dialog class="modal" id="soc-modal-reportar" aria-labelledby="soc-modal-reportar-titulo">
+
+  <form data-soc-form-reportar>
+
+    <div class="modal-head">
+      <h2 class="modal-title" id="soc-modal-reportar-titulo">Reportar</h2>
+      <button class="modal-close" type="button" data-soc-cerrar aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-field">
+        <label for="soc-reportar-motivo">¿Qué pasa? (opcional)</label>
+        <textarea id="soc-reportar-motivo" maxlength="300" data-soc-motivo></textarea>
+      </div>
+      <p class="soc-aviso" data-soc-reportar-error role="alert" hidden></p>
+    </div>
+
+    <div class="modal-actions">
+      <button class="header-action header-action-ghost" type="button" data-soc-cerrar>Cancelar</button>
+      <button class="lime-button" type="submit">Enviar reporte</button>
+    </div>
+
+  </form>
+
+</dialog>

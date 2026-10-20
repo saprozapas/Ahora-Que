@@ -9,10 +9,12 @@ Las reglas de quién puede qué viven en services/social_service.py.
 
 import base64
 import binascii
+import os
 import uuid
 
-from flask import Blueprint, Response, jsonify, request, session
+from flask import Blueprint, Response, abort, jsonify, redirect, render_template, request, session
 
+from database_bridge.database_bridge import getGroupsForUser
 from services.social_service import MAX_FOTOS, SocialError, SocialService
 
 
@@ -22,6 +24,14 @@ social_service = SocialService()
 
 # Dos fotos de hasta 400 KB, en base64 (+33 %), más el texto.
 MAX_BYTES_PUBLICAR = 1_200_000
+
+
+def es_moderador():
+    """Quién puede revisar reportes: los mails de SOCIAL_MODERADORES en el .env
+    (separados por coma). Si la variable no está, nadie."""
+    permitidos = {m.strip().lower() for m in os.environ.get("SOCIAL_MODERADORES", "").split(",") if m.strip()}
+    mail = ((session.get("user") or {}).get("email") or "").lower()
+    return bool(mail) and mail in permitidos
 
 
 def _error(mensaje, estado):
@@ -89,12 +99,32 @@ def _con_sesion(funcion):
 def feed(user_id):
     limite = request.args.get("limite", type=int)
     argumentos = {} if limite is None else {"limite": limite}
+    autor = request.args.get("autor")
+    if autor:
+        return jsonify(social_service.listar_de_autor(
+            user_id,
+            _id_o_404(autor),
+            request.args.get("antes") or None,
+            **argumentos,
+        ))
     return jsonify(social_service.listar_feed(
         user_id,
         request.args.get("pestana", "amigos"),
         request.args.get("antes") or None,
         **argumentos,
     ))
+
+
+@social_api.route("/mis-grupos", methods=["GET"])
+@_con_sesion
+def mis_grupos(user_id):
+    """Los grupos del usuario, para elegir a cuál proponer un plan."""
+    return jsonify({
+        "grupos": [
+            {"id": str(grupo.get_id()), "nombre": grupo.get_name()}
+            for grupo in getGroupsForUser(user_id)
+        ]
+    })
 
 
 @social_api.route("/publicables", methods=["GET"])
@@ -135,8 +165,17 @@ def publicar(user_id):
         str(datos.get("texto") or ""),
         str(datos.get("visibilidad") or "amigos"),
         _decodificar_fotos(datos.get("fotos")),
+        str(datos.get("aspecto") or "cuadrada"),
     )
     return jsonify({"publicacion": publicacion}), 201
+
+
+@social_api.route("/publicaciones/<publicacion_id>", methods=["GET"])
+@_con_sesion
+def una_publicacion(user_id, publicacion_id):
+    return jsonify({
+        "publicacion": social_service.obtener_publicacion(user_id, _id_o_404(publicacion_id))
+    })
 
 
 @social_api.route("/publicaciones/<publicacion_id>/eliminar", methods=["POST"])
@@ -208,3 +247,51 @@ def reportar(user_id):
         str(datos.get("motivo") or ""),
     )
     return jsonify({"ok": True})
+
+
+# ------------------------------------------------- Página de una publicación
+
+@social_api.route("/p/<publicacion_id>", methods=["GET"])
+def pagina_publicacion(publicacion_id):
+    """Una publicación suelta (a donde llevan los avisos del Inbox). Los datos
+    los pide static/social.js a /social/publicaciones/<id>, que es donde se
+    decide si esta persona la puede ver."""
+    if not session.get("user_id"):
+        return redirect("/login")
+    try:
+        publicacion_id = str(uuid.UUID(publicacion_id))
+    except ValueError:
+        abort(404)
+    return render_template(
+        "social_publicacion.html",
+        publicacion_id=publicacion_id,
+        abrir_comentarios=request.args.get("comentarios") == "1",
+    )
+
+
+# ------------------------------------------------------------- Moderación
+
+@social_api.route("/moderacion", methods=["GET"])
+def pagina_moderacion():
+    """Los reportes sin revisar. Solo para los mails de SOCIAL_MODERADORES; para
+    el resto la página no existe (404, no se revela que está)."""
+    if not session.get("user_id"):
+        return redirect("/login")
+    if not es_moderador():
+        abort(404)
+    return render_template("social_moderacion.html", reportes=social_service.listar_reportes())
+
+
+@social_api.route("/moderacion/resolver", methods=["POST"])
+@_con_sesion
+def resolver_reporte(user_id):
+    if not es_moderador():
+        return _error("No encontramos eso.", 404)
+    datos = _cuerpo()
+    social_service.resolver_reportes(
+        str(datos.get("tipo") or ""),
+        _id_o_404(datos.get("id", "")),
+        str(datos.get("accion") or ""),
+    )
+    return jsonify({"ok": True})
+

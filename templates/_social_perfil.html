@@ -1,0 +1,47 @@
+{# "Planes publicados" de una persona, como grilla de fotos (estilo perfil de
+   Instagram). Se incluye en los perfiles con:
+       {% with autor_id=<id de la persona> %}{% include '_social_perfil.html' %}{% endwith %}
+   Lo llena static/social.js con /social/feed?autor=<id>; cada quien ve solo
+   lo que tiene permiso de ver (lo público, y lo de amigos si son amigos). #}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
+
+{% include '_social_plantillas.html' %}
+
+<section
+  class="soc-perfil section-shell"
+  id="soc-feed"
+  aria-labelledby="planes-publicados"
+  data-modo="grilla"
+  data-autor="{{ autor_id }}"
+  data-url-feed="{{ url_for('social_api.feed') }}"
+  data-url-reportes="{{ url_for('social_api.reportar') }}"
+  data-url-raiz="{{ url_for('social') }}"
+  data-url-detalle="{{ url_for('planes.detalle', plan_id='__ID__') }}"
+  data-url-perfil="{{ url_for('profile.perfil_publico', user_id='__ID__') }}"
+  data-url-mi-perfil="{{ url_for('profile.perfil') }}"
+  data-url-grupos="{{ url_for('social_api.mis_grupos') }}"
+  data-url-postular="{{ url_for('grupo_planes.postular', group_id='__GID__') }}"
+>
+
+  <h2 class="soc-perfil-titulo" id="planes-publicados">
+    Planes publicados <span class="soc-perfil-total" data-soc-total></span>
+  </h2>
+
+  <p class="soc-aviso" data-soc-error role="alert" hidden></p>
+
+  <div class="soc-lista" data-soc-lista aria-live="polite"></div>
+
+  <div class="soc-vacio" data-soc-vacio hidden>
+    <p>Todavía no hay planes publicados para mostrar.</p>
+  </div>
+
+  <p class="soc-cargando" data-soc-cargando>Cargando…</p>
+
+  <div class="social-ver-mas">
+    <button class="plan-accion-secundaria" type="button" data-soc-mas hidden>Ver más</button>
+  </div>
+
+</section>
+
+<script defer src="{{ url_for('static', filename='social.js', v='20261020-social-v6') }}"></script>

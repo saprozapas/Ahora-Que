@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Publicación — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
+
+{% if logueado %}
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+{% endif %}
+
+
+<section
+  class="soc-feed soc-unica section-shell"
+  id="soc-feed"
+  aria-label="Publicación"
+  data-modo="unica"
+  data-publicacion="{{ publicacion_id }}"
+  data-abrir-comentarios="{{ '1' if abrir_comentarios else '' }}"
+  data-url-feed="{{ url_for('social_api.feed') }}"
+  data-url-reportes="{{ url_for('social_api.reportar') }}"
+  data-url-raiz="{{ url_for('social') }}"
+  data-url-detalle="{{ url_for('planes.detalle', plan_id='__ID__') }}"
+  data-url-perfil="{{ url_for('profile.perfil_publico', user_id='__ID__') }}"
+  data-url-mi-perfil="{{ url_for('profile.perfil') }}"
+  data-url-grupos="{{ url_for('social_api.mis_grupos') }}"
+  data-url-postular="{{ url_for('grupo_planes.postular', group_id='__GID__') }}"
+>
+
+  <a class="back-link" href="{{ url_for('inbox.inbox', tab='publicaciones') }}">← Volver</a>
+
+  <p class="soc-aviso" data-soc-error role="alert" hidden></p>
+
+  <div class="soc-lista" data-soc-lista aria-live="polite"></div>
+
+  <div class="soc-vacio" data-soc-vacio hidden>
+    <h2>No encontramos esta publicación.</h2>
+    <p>Puede que la hayan eliminado o que no tengas permiso para verla.</p>
+    <a class="plan-accion-secundaria" href="/social">Ir a Social</a>
+  </div>
+
+  <p class="soc-cargando" data-soc-cargando>Cargando…</p>
+
+  <div class="social-ver-mas">
+    <button class="plan-accion-secundaria" type="button" data-soc-mas hidden>Ver más</button>
+  </div>
+
+</section>
+
+{% include '_social_plantillas.html' %}
+
+<script defer src="{{ url_for('static', filename='social.js', v='20261020-social-v6') }}"></script>
+
+
+{% if logueado %}
+  </div>
+
+</div>
+{% endif %}
+
+{% endblock %}

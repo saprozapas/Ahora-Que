@@ -15,10 +15,11 @@ from routes.friends import friends_bp
 from routes.chat import chat
 from routes.grupo_planes import grupo_planes_bp
 from routes.chatbot import chatbot_bp
-from routes.social import social_api
+from routes.social import es_moderador, social_api
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
 from services.plan_service import PlanService
+from services.social_service import SocialService
 
 
 app = Flask(__name__)
@@ -38,6 +39,7 @@ app.register_blueprint(social_api)
 invitation_service = InvitationService()
 friend_service = FriendService()
 plan_service = PlanService()
+social_service = SocialService()
 
 
 PLANS = [
@@ -91,16 +93,23 @@ def _inbox_guardado(user_id):
 
     invitaciones = invitation_service.get_invitations_for_user(user_id)
     solicitudes = friend_service.get_requests_for_user(user_id)
-    notificaciones = invitaciones + solicitudes
-    _inbox_cache[user_id] = (invitaciones, len(notificaciones), time.monotonic())
-    return invitaciones, len(notificaciones)
+    cantidad = len(invitaciones) + len(solicitudes)
+    # Los me gusta y comentarios nuevos también suman. Si todavía no existe la
+    # tabla de avisos, el contador sigue funcionando sin ellos.
+    try:
+        cantidad += social_service.contar_avisos_no_leidos(user_id)
+    except Exception as e:
+        print(f"No se pudieron contar los avisos de publicaciones: {e}")
+    _inbox_cache[user_id] = (invitaciones, cantidad, time.monotonic())
+    return invitaciones, cantidad
 
 
 @app.before_request
 def _borrar_inbox_guardado():
-    # Si el usuario acepta/rechaza algo (cualquier POST), se borra lo
-    # guardado para que el contador se actualice al momento.
-    if request.method == "POST" and session.get("user_id"):
+    # Si el usuario acepta/rechaza algo (cualquier POST), o abre el Inbox
+    # (donde se marcan los avisos como leídos), se borra lo guardado para que
+    # el contador se actualice al momento.
+    if session.get("user_id") and (request.method == "POST" or request.path == "/inbox"):
         _inbox_cache.pop(session["user_id"], None)
 
 
@@ -129,7 +138,7 @@ def social():
         pestana = 'amigos'
 
     if pestana != 'actividad':
-        return render_template('social.html', pestana=pestana)
+        return render_template('social.html', pestana=pestana, es_moderador=es_moderador())
 
     nivel_pedido = request.args.get('nivel', '4')
     if nivel_pedido == 'todos':

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Moderación — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
+
+{% if logueado %}
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+{% endif %}
+
+
+<section
+  class="mod section-shell"
+  id="moderacion"
+  data-url-resolver="{{ url_for('social_api.resolver_reporte') }}"
+>
+
+  <a class="back-link" href="{{ url_for('social') }}">← Volver a Social</a>
+
+  <h1>Reportes</h1>
+  <p class="mod-bajada">Contenido de Social que alguien reportó y todavía no se revisó.</p>
+
+  <p class="soc-aviso" data-mod-error role="alert" hidden></p>
+
+  <div class="mod-lista" data-mod-lista>
+
+    {% for r in reportes %}
+
+    <article class="mod-item" data-tipo="{{ r.tipo }}" data-id="{{ r.id }}">
+
+      <header class="mod-cabeza">
+        <span class="plan-estado">{{ 'Publicación' if r.tipo == 'publicacion' else 'Comentario' }}</span>
+        <strong>{{ r.total }} {{ 'reporte' if r.total == 1 else 'reportes' }}</strong>
+        <span class="mod-hace">último {{ r.hace }}</span>
+        {% if r.eliminado %}<span class="mod-eliminado">ya eliminado</span>{% endif %}
+      </header>
+
+      <div class="mod-contenido">
+        {% if r.foto %}
+          <img src="{{ url_for('social_api.foto', foto_id=r.foto) }}" alt="" loading="lazy" />
+        {% endif %}
+        <div>
+          <p><strong>{{ r.autor }}</strong> · plan <strong>{{ r.plan }}</strong></p>
+          {% if r.texto %}<p class="mod-texto">“{{ r.texto }}”</p>{% endif %}
+        </div>
+      </div>
+
+      {% if r.motivos %}
+      <ul class="mod-motivos">
+        {% for motivo in r.motivos %}<li>{{ motivo }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+
+      <div class="mod-acciones">
+        <a class="plan-accion-secundaria" href="{{ url_for('social_api.pagina_publicacion', publicacion_id=r.publicacion_id) }}">Ver publicación</a>
+        <button class="plan-accion-secundaria" type="button" data-mod-accion="descartar">Descartar reporte</button>
+        <button class="lime-button" type="button" data-mod-accion="eliminar">Eliminar contenido</button>
+      </div>
+
+    </article>
+
+    {% endfor %}
+
+  </div>
+
+  <div class="soc-vacio" data-mod-vacio {% if reportes %}hidden{% endif %}>
+    <h2>No hay reportes pendientes.</h2>
+    <p>Cuando alguien reporte una publicación o un comentario, va a aparecer acá.</p>
+  </div>
+
+</section>
+
+<script defer src="{{ url_for('static', filename='social_moderacion.js', v='20261020-social-v6') }}"></script>
+
+
+{% if logueado %}
+  </div>
+
+</div>
+{% endif %}
+
+{% endblock %}

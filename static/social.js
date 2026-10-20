@@ -1,5 +1,14 @@
 /* ==========================================================================
-   Social: feed de publicaciones (pestañas Amigos y Descubrir)
+   Social: feed de publicaciones (pestañas Amigos y Descubrir) y grilla de
+   "Planes publicados" de los perfiles.
+
+   Tres modos, según data-modo del contenedor #soc-feed:
+     lista    tarjetas una debajo de otra (Amigos).
+     grilla   miniaturas de fotos; al tocar una se abre la tarjeta en un
+              diálogo (Descubrir y perfiles). Con data-autor se muestran solo
+              las publicaciones de esa persona.
+     unica    una sola publicación (data-publicacion): a donde llevan los
+              avisos del Inbox. Con data-abrir-comentarios abre el hilo.
 
    La página trae el armazón y las <template>; acá se piden las
    publicaciones a /social/feed y se arman las tarjetas. Todo el texto de las
@@ -22,10 +31,18 @@
 
   const plantillaTarjeta = document.getElementById("soc-tpl-tarjeta");
   const plantillaComentario = document.getElementById("soc-tpl-comentario");
-  const plantillaPublicable = document.getElementById("soc-tpl-publicable");
+  const plantillaMiniatura = document.getElementById("soc-tpl-miniatura");
+  const plantillaPublicable = document.getElementById("soc-tpl-publicable");   // solo en /social
 
-  const modalPublicar = document.getElementById("soc-modal-publicar");
+  const modalPublicar = document.getElementById("soc-modal-publicar");         // solo en /social
   const modalReportar = document.getElementById("soc-modal-reportar");
+  const modalGrupo = document.getElementById("soc-modal-grupo");
+  const modalPost = document.getElementById("soc-modal-post");
+  const contenedorPost = $("[data-soc-post-contenedor]", modalPost);
+
+  const modoGrilla = raiz.dataset.modo === "grilla";
+  const modoUnica = raiz.dataset.modo === "unica";
+  const autorId = raiz.dataset.autor || null;
 
   const urls = {
     feed: raiz.dataset.urlFeed,
@@ -34,11 +51,25 @@
     reportes: raiz.dataset.urlReportes,
     raiz: raiz.dataset.urlRaiz,
     detalle: raiz.dataset.urlDetalle,
+    perfil: raiz.dataset.urlPerfil,
+    miPerfil: raiz.dataset.urlMiPerfil,
+    grupos: raiz.dataset.urlGrupos,
+    postular: raiz.dataset.urlPostular,
     fotos: `${raiz.dataset.urlRaiz}/fotos/`,
   };
 
   let siguiente = null;
   let ocupado = false;
+
+  let totalPublicaciones = null;     // solo en los perfiles ("Planes publicados (N)")
+  const publicaciones = new Map();   // id -> publicación (para abrirla desde la grilla)
+  const tarjetas = new Map();        // id -> tarjeta ya armada (grilla)
+  const miniaturas = new Map();      // id -> celda de la grilla
+
+  if (modoGrilla) {
+    lista.classList.remove("soc-lista");
+    lista.classList.add("soc-grilla");
+  }
 
 
   /* --- Pedidos al servidor ------------------------------------------------ */
@@ -124,14 +155,45 @@
 
   const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 
+  // Tres colores de portada, según el id (siempre el mismo para una publicación).
+  const varianteDe = (publicacion) => parseInt(publicacion.id.slice(0, 2), 16) % 3;
+
 
   /* --- Tarjeta ------------------------------------------------------------- */
+
+  // "Les gusta a Ana, Beto y 3 más". El servidor manda los nombres de hasta
+  // 2 personas (sin contar al usuario, sus amigos primero); "vos" va al frente
+  // si diste me gusta.
+  const textoLikes = (p) => {
+    if (p.likes <= 0) return "";
+    const nombres = [...(p.yo_di_like ? ["vos"] : []), ...(p.likes_nombres || [])];
+    const resto = p.likes - nombres.length;
+
+    if (nombres.length === 0) return `${p.likes} me gusta`;
+    if (p.likes === 1) return nombres[0] === "vos" ? "Te gusta" : `Le gusta a ${nombres[0]}`;
+    if (resto > 0) return `Les gusta a ${nombres.join(", ")} y ${resto} más`;
+    if (nombres.length === 1) return `Les gusta a ${nombres[0]}`;
+    return `Les gusta a ${nombres.slice(0, -1).join(", ")} y ${nombres[nombres.length - 1]}`;
+  };
+
+  // Los números que aparecen al pasar el mouse sobre la miniatura de la grilla.
+  const actualizarMiniatura = (publicacion) => {
+    const miniatura = miniaturas.get(publicacion.id);
+    if (!miniatura) return;
+    $("[data-soc-mini-likes]", miniatura).textContent = publicacion.likes;
+    $("[data-soc-mini-comentarios]", miniatura).textContent = publicacion.comentarios;
+  };
 
   const pintarLikes = (tarjeta, publicacion) => {
     const boton = $("[data-soc-like]", tarjeta);
     boton.setAttribute("aria-pressed", String(publicacion.yo_di_like));
     boton.title = publicacion.yo_di_like ? "Quitar me gusta" : "Me gusta";
     $("[data-soc-like-n]", boton).textContent = publicacion.likes;
+
+    const texto = $("[data-soc-likes-texto]", tarjeta);
+    texto.textContent = textoLikes(publicacion);
+    texto.hidden = publicacion.likes <= 0;
+    actualizarMiniatura(publicacion);
   };
 
   const pintarGuardado = (tarjeta, publicacion) => {
@@ -155,9 +217,43 @@
     }
   };
 
+  // Debajo de la descripción: los últimos 2 comentarios y "Ver los N
+  // comentarios". Se oculta mientras el hilo completo está abierto.
+  const pintarPrevia = (tarjeta, publicacion) => {
+    const bloque = $("[data-soc-previa]", tarjeta);
+    const ver = $("[data-soc-ver-comentarios]", bloque);
+    const previa = publicacion.comentarios_previa || [];
+    const hiloAbierto = !$("[data-soc-zona-comentarios]", tarjeta).hidden;
+
+    $("[data-soc-previa-lista]", bloque).replaceChildren(
+      ...previa.map((comentario) => {
+        const linea = document.createElement("p");
+        const autor = document.createElement("strong");
+        autor.textContent = comentario.autor;
+        linea.append(autor, " ", comentario.texto);   // strings: entran como texto, no como HTML
+        return linea;
+      })
+    );
+
+    const faltan = publicacion.comentarios > previa.length;
+    ver.hidden = !faltan;
+    if (faltan) ver.textContent = `Ver los ${publicacion.comentarios} comentarios`;
+    bloque.hidden = hiloAbierto || publicacion.comentarios === 0;
+  };
+
   const pintarContadorComentarios = (tarjeta, publicacion) => {
     $("[data-soc-comentarios-n]", tarjeta).textContent = publicacion.comentarios;
+    pintarPrevia(tarjeta, publicacion);
+    actualizarMiniatura(publicacion);
   };
+
+  // Al cerrar el hilo, la vista previa pasa a mostrar lo último que hay en él.
+  const previaDesdeHilo = (tarjeta) =>
+    [...tarjeta.querySelectorAll(".soc-comentario")].slice(-2).map((fila) => ({
+      id: fila.dataset.comentarioId,
+      autor: $("[data-soc-comentario-autor]", fila).textContent,
+      texto: $("[data-soc-comentario-texto]", fila).textContent,
+    }));
 
   const rellenarTexto = (tarjeta, selector, texto) => {
     const elemento = $(selector, tarjeta);
@@ -174,7 +270,7 @@
     const nombre = publicacion.plan.nombre;
 
     if (publicacion.fotos.length === 0) {
-      const variante = parseInt(publicacion.id.slice(0, 2), 16) % 3;
+      const variante = varianteDe(publicacion);
       portada.className = `soc-portada soc-portada-${variante}`;
       portada.hidden = false;
       $("[data-soc-portada-nombre]", portada).textContent = nombre;
@@ -184,6 +280,7 @@
     }
 
     contenedor.hidden = false;
+    contenedor.dataset.aspecto = publicacion.aspecto || "cuadrada";
     contenedor.replaceChildren(
       ...publicacion.fotos.map((id, i) => {
         const imagen = document.createElement("img");
@@ -221,6 +318,9 @@
     $("[data-soc-avatar]", tarjeta).textContent =
       (publicacion.autor.nombre || "?").trim().charAt(0).toUpperCase();
     $("[data-soc-autor]", tarjeta).textContent = autor;
+    $("[data-soc-autor-enlace]", tarjeta).href = publicacion.es_mio
+      ? urls.miPerfil
+      : urls.perfil.replace("__ID__", publicacion.autor.id);
     $("[data-soc-fecha]", tarjeta).textContent = hace(publicacion.creada_en);
 
     const esPublico = publicacion.visibilidad === "publico";
@@ -310,10 +410,13 @@
 
     if (!abrir) {
       zona.hidden = true;
+      tarjeta._publicacion.comentarios_previa = previaDesdeHilo(tarjeta);
+      pintarPrevia(tarjeta, tarjeta._publicacion);
       return;
     }
 
     await cargarComentarios(tarjeta);
+    pintarPrevia(tarjeta, tarjeta._publicacion);   // con el hilo abierto, la vista previa se oculta
     $("[data-soc-comentario-input]", tarjeta).focus();
   };
 
@@ -360,8 +463,51 @@
     pintarGuardado(tarjeta, publicacion);
   };
 
+  // Doble toque (o doble clic) sobre la foto: me gusta, con el corazón que
+  // aparece un instante. Se detecta con dos clics seguidos y no con "dblclick"
+  // porque en el celular ese evento no siempre llega.
+  let ultimoToque = { tarjeta: null, instante: 0 };
+
+  const latido = (tarjeta) => {
+    const corazon = $("[data-soc-pop]", tarjeta);
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      corazon.classList.remove("is-pop");
+      void corazon.offsetWidth;   // reinicia la animación si se toca otra vez
+      corazon.classList.add("is-pop");
+    }
+    if (!tarjeta._publicacion.yo_di_like) darLike(tarjeta);
+  };
+
+  const toqueEnFoto = (tarjeta, instante) => {
+    if (ultimoToque.tarjeta === tarjeta && instante - ultimoToque.instante < 350) {
+      ultimoToque = { tarjeta: null, instante: 0 };
+      latido(tarjeta);
+    } else {
+      ultimoToque = { tarjeta, instante };
+    }
+  };
+
   const mostrarVacioSiHaceFalta = () => {
     vacio.hidden = lista.children.length > 0 || ocupado || siguiente !== null;
+  };
+
+  const pintarTotal = (n) => {
+    totalPublicaciones = Math.max(0, n);
+    const elemento = $("[data-soc-total]", raiz);
+    if (elemento) elemento.textContent = `(${totalPublicaciones})`;
+  };
+
+  const quitarDeVista = (tarjeta) => {
+    const id = tarjeta.dataset.publicacionId;
+    tarjeta.remove();
+    const miniatura = miniaturas.get(id);
+    if (miniatura) miniatura.remove();
+    miniaturas.delete(id);
+    tarjetas.delete(id);
+    publicaciones.delete(id);
+    if (modalPost.open) modalPost.close();
+    if (totalPublicaciones !== null) pintarTotal(totalPublicaciones - 1);
+    mostrarVacioSiHaceFalta();
   };
 
   const eliminarPublicacion = async (tarjeta) => {
@@ -373,8 +519,7 @@
         `${urls.raiz}/publicaciones/${tarjeta.dataset.publicacionId}/eliminar`,
         {}
       );
-      tarjeta.remove();
-      mostrarVacioSiHaceFalta();
+      quitarDeVista(tarjeta);
     } catch (e) {
       mostrarError(avisoGeneral, e.message);
     }
@@ -458,15 +603,30 @@
 
   /* --- Clics dentro del feed (una sola escucha para todas las tarjetas) ----- */
 
-  lista.addEventListener("click", (evento) => {
-    const boton = evento.target.closest("button");
+  const alClic = (evento) => {
+    const miniatura = evento.target.closest(".soc-miniatura");
+    if (miniatura) {
+      abrirPost(miniatura.dataset.publicacionId);
+      return;
+    }
+
     const tarjeta = evento.target.closest(".soc-tarjeta");
-    if (!boton || !tarjeta) return;
+    if (!tarjeta) return;
+
+    const boton = evento.target.closest("button");
+    if (!boton) {
+      if (evento.target.closest("[data-soc-media]") && !evento.target.closest("a[href]")) {
+        toqueEnFoto(tarjeta, evento.timeStamp);
+      }
+      return;
+    }
 
     if (boton.matches("[data-soc-like]")) darLike(tarjeta);
     else if (boton.matches("[data-soc-guardar]")) guardar(tarjeta);
-    else if (boton.matches("[data-soc-comentarios]")) alternarComentarios(tarjeta, boton);
-    else if (boton.matches("[data-soc-eliminar]")) eliminarPublicacion(tarjeta);
+    else if (boton.matches("[data-soc-proponer]")) abrirProponer(tarjeta);
+    else if (boton.matches("[data-soc-comentarios], [data-soc-ver-comentarios]")) {
+      alternarComentarios(tarjeta, $("[data-soc-comentarios]", tarjeta));
+    } else if (boton.matches("[data-soc-eliminar]")) eliminarPublicacion(tarjeta);
     else if (boton.matches("[data-soc-reportar]")) {
       abrirReporte("publicacion", tarjeta.dataset.publicacionId, "Reportar publicación");
     } else {
@@ -478,14 +638,134 @@
         abrirReporte("comentario", fila.dataset.comentarioId, "Reportar comentario");
       }
     }
-  });
+  };
 
-  lista.addEventListener("submit", (evento) => {
+  const alEnviar = (evento) => {
     const formulario = evento.target.closest("[data-soc-form-comentar]");
     if (!formulario) return;
 
     evento.preventDefault();
     enviarComentario(evento.target.closest(".soc-tarjeta"), formulario);
+  };
+
+  // Las tarjetas viven en la lista o, en modo grilla, dentro del diálogo.
+  for (const zona of [lista, contenedorPost]) {
+    zona.addEventListener("click", alClic);
+    zona.addEventListener("submit", alEnviar);
+  }
+
+
+  /* --- Proponer el plan a un grupo ------------------------------------------------
+     Se elige un grupo y se sigue a la pantalla de "Postular idea" de ese grupo con
+     el plan ya elegido. Postular exige tener el plan en Guardados, así que si todavía
+     no lo está se guarda antes (es lo mismo que tocar el marcador). */
+
+  const listaGrupos = $("[data-soc-grupos-lista]", modalGrupo);
+  const grupoVacio = $("[data-soc-grupos-vacio]", modalGrupo);
+  const grupoError = $("[data-soc-grupo-error]", modalGrupo);
+  let gruposCargados = null;
+  let tarjetaAProponer = null;
+
+  const elegirGrupo = async (grupo, boton) => {
+    const publicacion = tarjetaAProponer._publicacion;
+    limpiarError(grupoError);
+    boton.disabled = true;
+
+    try {
+      if (!publicacion.guardado) {
+        const datos = await pedir(
+          `${urls.raiz}/publicaciones/${publicacion.id}/guardar`,
+          { guardar: true }
+        );
+        publicacion.guardado = datos.guardado;
+        pintarGuardado(tarjetaAProponer, publicacion);
+      }
+      window.location.href =
+        `${urls.postular.replace("__GID__", grupo.id)}?idea_id=${encodeURIComponent(publicacion.plan.id)}`;
+    } catch (e) {
+      mostrarError(grupoError, e.message);
+      boton.disabled = false;
+    }
+  };
+
+  const pintarGrupos = (grupos) => {
+    listaGrupos.replaceChildren(
+      ...grupos.map((grupo) => {
+        const boton = document.createElement("button");
+        boton.type = "button";
+        boton.className = "soc-grupo";
+        boton.textContent = grupo.nombre;
+        boton.addEventListener("click", () => elegirGrupo(grupo, boton));
+        return boton;
+      })
+    );
+    grupoVacio.hidden = grupos.length > 0;
+  };
+
+  const abrirProponer = async (tarjeta) => {
+    tarjetaAProponer = tarjeta;
+    $("[data-soc-grupo-plan]", modalGrupo).textContent =
+      `Plan: ${tarjeta._publicacion.plan.nombre}. Elegí a qué grupo se lo proponés; después ponés la fecha y el grupo lo vota.`;
+    limpiarError(grupoError);
+    modalGrupo.showModal();
+
+    if (gruposCargados === null) {
+      listaGrupos.replaceChildren();
+      grupoVacio.hidden = true;
+      try {
+        gruposCargados = (await pedir(urls.grupos)).grupos;
+      } catch (e) {
+        mostrarError(grupoError, e.message);
+        return;
+      }
+    }
+    pintarGrupos(gruposCargados);
+  };
+
+
+  /* --- Grilla: miniaturas que abren la publicación en un diálogo ------------- */
+
+  const crearMiniatura = (publicacion) => {
+    const miniatura = plantillaMiniatura.content.firstElementChild.cloneNode(true);
+    const imagen = $("[data-soc-mini-img]", miniatura);
+    const portada = $("[data-soc-mini-portada]", miniatura);
+
+    miniatura.dataset.publicacionId = publicacion.id;
+    miniatura.setAttribute("aria-label", `Ver publicación: ${publicacion.plan.nombre}`);
+
+    if (publicacion.fotos.length > 0) {
+      imagen.src = urls.fotos + publicacion.fotos[0];
+      imagen.hidden = false;
+    } else {
+      portada.className = `soc-mini-portada soc-portada-${varianteDe(publicacion)}`;
+      portada.textContent = publicacion.plan.nombre;
+      portada.hidden = false;
+    }
+    $("[data-soc-mini-varias]", miniatura).hidden = publicacion.fotos.length < 2;
+
+    publicaciones.set(publicacion.id, publicacion);
+    miniaturas.set(publicacion.id, miniatura);
+    actualizarMiniatura(publicacion);
+    return miniatura;
+  };
+
+  const abrirPost = (id) => {
+    const publicacion = publicaciones.get(id);
+    if (!publicacion) return;
+
+    let tarjeta = tarjetas.get(id);
+    if (!tarjeta) {
+      tarjeta = crearTarjeta(publicacion);
+      tarjetas.set(id, tarjeta);
+    }
+    contenedorPost.replaceChildren(tarjeta);
+    if (!modalPost.open) modalPost.showModal();
+  };
+
+  // Si el evento "close" llega después de haber abierto otra publicación, no
+  // se vacía el diálogo: solo se limpia cuando de verdad quedó cerrado.
+  modalPost.addEventListener("close", () => {
+    if (!modalPost.open) contenedorPost.replaceChildren();
   });
 
 
@@ -499,14 +779,18 @@
     botonMas.hidden = true;
     limpiarError(avisoGeneral);
 
-    const parametros = new URLSearchParams({ pestana: raiz.dataset.pestana });
+    const parametros = new URLSearchParams(
+      autorId ? { autor: autorId } : { pestana: raiz.dataset.pestana }
+    );
     if (siguiente) parametros.set("antes", siguiente);
 
     try {
       const datos = await pedir(`${urls.feed}?${parametros}`);
 
-      lista.append(...datos.publicaciones.map(crearTarjeta));
+      lista.append(...datos.publicaciones.map(modoGrilla ? crearMiniatura : crearTarjeta));
       siguiente = datos.hay_mas ? datos.siguiente : null;
+
+      if (datos.total != null) pintarTotal(datos.total);
     } catch (e) {
       mostrarError(avisoGeneral, e.message);
     }
@@ -519,8 +803,29 @@
 
   botonMas.addEventListener("click", cargarPagina);
 
+  // Modo "unica": una publicación puntual (la página a la que llevan los avisos).
+  const cargarUnica = async () => {
+    botonMas.hidden = true;
 
-  /* --- Compartir un plan ---------------------------------------------------- */
+    try {
+      const datos = await pedir(`${urls.raiz}/publicaciones/${raiz.dataset.publicacion}`);
+      const tarjeta = crearTarjeta(datos.publicacion);
+      lista.append(tarjeta);
+      if (raiz.dataset.abrirComentarios) {
+        alternarComentarios(tarjeta, $("[data-soc-comentarios]", tarjeta));
+      }
+    } catch (e) {
+      vacio.hidden = false;
+      if (!e.message.startsWith("No encontramos")) mostrarError(avisoGeneral, e.message);
+    }
+
+    cargando.hidden = true;
+  };
+
+
+  /* --- Compartir un plan (solo en /social) ------------------------------------ */
+
+  const iniciarPublicar = () => {
 
   const formularioPublicar = $("[data-soc-form-publicar]", modalPublicar);
   const contenedorPublicables = $("[data-soc-publicables]", modalPublicar);
@@ -582,13 +887,14 @@
         texto: datos.get("texto"),
         visibilidad: datos.get("visibilidad"),
         fotos: fotosElegidas.map((foto) => foto.dataUrl),
+        aspecto: datos.get("aspecto"),
       });
 
       modalPublicar.close();
 
       // Lo propio siempre figura en la pestaña Amigos: ahí aparece arriba de
-      // todo al instante. En Descubrir solo se avisa dónde encontrarlo.
-      if (raiz.dataset.pestana === "amigos") {
+      // todo al instante. En Descubrir (grilla) solo se avisa dónde encontrarlo.
+      if (!modoGrilla) {
         lista.prepend(crearTarjeta(respuesta.publicacion));
         vacio.hidden = true;
       } else {
@@ -709,6 +1015,11 @@
   });
 
 
+  };
+
+  if (modalPublicar) iniciarPublicar();
+
+
   /* --- Cerrar modales con los botones "Cancelar" y la cruz ------------------ */
 
   document.querySelectorAll("dialog.modal [data-soc-cerrar]").forEach((boton) => {
@@ -716,5 +1027,6 @@
   });
 
 
-  cargarPagina();
+  if (modoUnica) cargarUnica();
+  else cargarPagina();
 })();

@@ -126,11 +126,6 @@
     </p>
 
     <p>
-      <strong>Planes publicados</strong><br />
-      {{ published_plans | length }} planes
-    </p>
-
-    <p>
       <strong>Planes guardados</strong><br />
       {{ saved_plans | length }} planes
     </p>
@@ -138,6 +133,8 @@
   </div>
 
 </section>
+
+{% with autor_id=autor_id %}{% include '_social_perfil.html' %}{% endwith %}
 
 
 {% if logueado %}

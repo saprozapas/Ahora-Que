@@ -1,3 +1,5 @@
+Esta es la base de datos del proyecto
+
 ## Table `Usuarios`
 
 ### Columns
@@ -29,10 +31,10 @@
 | `Direccion` | `text` |  Nullable |
 | `Nivel_Precio` | `int4` |  Nullable |
 | `Imagen_Url` | `text` |  Nullable |
-| `Osm_Id` | `text` |  Nullable |
-| `Fuente` | `text` |  |
-| `Verificado` | `bool` |  |
-| `Barrio` | `text` |  Nullable |
+| `Osm_Id` | `text` |  Nullable Unique. Id en OpenStreetMap (`node/123`, `way/456`, `relation/789`); lo usa `scripts/importar_osm.py` |
+| `Fuente` | `text` | Default `'manual'`. `'osm'` si vino de OpenStreetMap |
+| `Verificado` | `bool` | Default `false`. `true` = corregido a mano: la importación de OSM no lo pisa |
+| `Barrio` | `text` |  Nullable. Nombre tal cual lo da OSM |
 
 ## Table `Plan`
 
@@ -142,8 +144,8 @@ Conecto Usuarios con Grupos
 |------|------|-------------|
 | `Id_Usuario` | `uuid` | Primary |
 | `Id_Grupo` | `uuid` | Primary |
-| `Es_Admin` | `bool` |  |
-| `Fecha_Union` | `timestamptz` |  |
+| `Es_Admin` | `boolean` | Default `false`. Lo pone el trigger `usuario_grupo_es_admin` al insertar |
+| `Fecha_Union` | `timestamptz` | Default `now()`. Desempata la sucesión de admin |
 
 ## Table `horario_lugar`
 
@@ -414,16 +416,114 @@ Conecto Usuarios con Grupos
 | `Ronda` | `int4` | Primary |
 | `Id_Opcion` | `uuid` |  Nullable |
 
-## Table `Rachas`
+## Table `Publicacion`
+
+Un plan que su autor comparte en Social (`/social`). Se puede publicar una idea
+propia o un plan al que el usuario fue y ya pasó. Al borrar el plan o el usuario
+se borra la publicación (y con ella fotos, likes y comentarios). Borrar una
+publicación desde la app la marca `Eliminada` (no se borra la fila) y borra sus fotos.
+Creada con `migraciones/social.sql`.
 
 ### Columns
 
 | Name | Type | Constraints |
 |------|------|-------------|
-| `Id_Grupo` | `uuid` | Primary |
-| `Activa` | `bool` |  |
-| `Semanas` | `int4` |  |
-| `Ultima_Reunion` | `date` |  Nullable |
+| `Id_Publicacion` | `uuid` | Primary, Default `gen_random_uuid()` |
+| `Id_Autor` | `uuid` | Not Null, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`) |
+| `Id_Plan` | `uuid` | Not Null, Foreign Key → `Plan.id_Plan` (`ON DELETE CASCADE`) |
+| `Texto` | `text` | Nullable. Check: máximo 500 caracteres |
+| `Visibilidad` | `text` | Not Null, Default `'amigos'`. Check: `'amigos'` (autor y sus amigos) o `'publico'` (todos) |
+| `Creada_En` | `timestamptz` | Not Null, Default `now()` |
+| `Eliminada` | `boolean` | Not Null, Default `false` |
+| `Aspecto` | `text` | Not Null, Default `'cuadrada'`. Check: `'cuadrada'` o `'vertical'` (4:5). Formato en que se muestran sus fotos |
+
+Índices: `Publicacion_feed_idx` (`Creada_En` desc, solo no eliminadas), `Publicacion_autor_idx`,
+`Publicacion_plan_idx`, y `Publicacion_una_por_plan_idx` (UNIQUE `Id_Autor` + `Id_Plan`, solo no
+eliminadas: un plan no se publica dos veces).
+
+## Table `Publicacion_Foto`
+
+Hasta 2 fotos por publicación. Son JPEG ya achicados en el navegador (~1080 px) y se
+guardan en la propia base.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Foto` | `uuid` | Primary, Default `gen_random_uuid()` |
+| `Id_Publicacion` | `uuid` | Not Null, Foreign Key → `Publicacion.Id_Publicacion` (`ON DELETE CASCADE`) |
+| `Orden` | `smallint` | Not Null. Check: 0 o 1. UNIQUE junto con `Id_Publicacion` |
+| `Datos` | `bytea` | Not Null. Check: máximo 400 KB (409600 bytes) |
+
+## Table `Publicacion_Like`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Publicacion` | `uuid` | Primary, Foreign Key → `Publicacion.Id_Publicacion` (`ON DELETE CASCADE`) |
+| `Id_Usuario` | `uuid` | Primary, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`) |
+| `Fecha` | `timestamptz` | Not Null, Default `now()` |
+
+## Table `Publicacion_Comentario`
+
+Comentarios planos (sin hilos). Los puede borrar quien comentó o el autor de la publicación
+(se marca `Eliminado`).
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Comentario` | `uuid` | Primary, Default `gen_random_uuid()` |
+| `Id_Publicacion` | `uuid` | Not Null, Foreign Key → `Publicacion.Id_Publicacion` (`ON DELETE CASCADE`) |
+| `Id_Usuario` | `uuid` | Not Null, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`) |
+| `Contenido` | `text` | Not Null. Check: entre 1 y 300 caracteres |
+| `Creado_En` | `timestamptz` | Not Null, Default `now()` |
+| `Eliminado` | `boolean` | Not Null, Default `false` |
+
+## Table `Publicacion_Reporte`
+
+Denuncias de publicaciones o comentarios. No hay pantalla de moderación: el equipo las
+revisa directo en la base (`SELECT * FROM "Publicacion_Reporte" WHERE NOT "Revisado" ORDER BY "Creado_En";`).
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Reporte` | `uuid` | Primary, Default `gen_random_uuid()` |
+| `Tipo` | `text` | Not Null. Check: `'publicacion'` o `'comentario'` |
+| `Id_Objetivo` | `uuid` | Not Null. Id de la publicación o del comentario (sin Foreign Key, depende de `Tipo`) |
+| `Id_Reportante` | `uuid` | Not Null, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`) |
+| `Motivo` | `text` | Nullable. Check: máximo 300 caracteres |
+| `Creado_En` | `timestamptz` | Not Null, Default `now()` |
+| `Revisado` | `boolean` | Not Null, Default `false` |
+
+UNIQUE (`Id_Reportante`, `Tipo`, `Id_Objetivo`): cada persona reporta una vez lo mismo.
+
+## Table `Publicacion_Notificacion`
+
+Avisos para el autor de una publicación cuando alguien le da me gusta o le comenta.
+Se ven en Inbox > Publicaciones (los me gusta de una misma publicación se muestran
+juntos). Se borran al sacar el me gusta, borrar el comentario o eliminar la publicación.
+Creada con `migraciones/social_inbox.sql`.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Notificacion` | `uuid` | Primary, Default `gen_random_uuid()` |
+| `Id_Usuario` | `uuid` | Not Null, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`). Quién recibe el aviso |
+| `Id_Actor` | `uuid` | Not Null, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`). Quién dio me gusta o comentó |
+| `Tipo` | `text` | Not Null. Check: `'like'` o `'comentario'` |
+| `Id_Publicacion` | `uuid` | Not Null, Foreign Key → `Publicacion.Id_Publicacion` (`ON DELETE CASCADE`) |
+| `Id_Comentario` | `uuid` | Nullable, Foreign Key → `Publicacion_Comentario.Id_Comentario` (`ON DELETE CASCADE`). Solo en los avisos de comentario |
+| `Creada_En` | `timestamptz` | Not Null, Default `now()` |
+| `Leida` | `boolean` | Not Null, Default `false` |
+
+Índices: `Publicacion_Notificacion_usuario_idx` (`Id_Usuario`, `Creada_En` desc),
+`Publicacion_Notificacion_no_leidas_idx` (`Id_Usuario`, solo no leídas) y
+`Publicacion_Notificacion_like_uq` (UNIQUE `Id_Usuario` + `Id_Publicacion` + `Id_Actor`, solo
+`Tipo = 'like'`: un aviso de me gusta por persona y publicación).
 
 ## RLS Policies
 
@@ -473,3 +573,9 @@ Conecto Usuarios con Grupos
 |--------|---------|-------|--------|-------|------------|
 | `usuario_edita_su_perfil` | UPDATE | public | PERMISSIVE | `(auth.uid() = "Id_Usuario")` | — |
 | `usuario_ve_su_perfil` | SELECT | public | PERMISSIVE | `(auth.uid() = "Id_Usuario")` | — |
+
+### Tablas de Social (`Publicacion`, `Publicacion_Foto`, `Publicacion_Like`, `Publicacion_Comentario`, `Publicacion_Reporte`, `Publicacion_Notificacion`)
+
+Tienen RLS activado y **sin políticas**: la API pública de Supabase (clave `anon`) no puede
+leerlas ni escribirlas. La app entra con el usuario de la base (`postgres`), que no pasa por
+RLS, y aplica las reglas de visibilidad en `services/social_service.py`.
