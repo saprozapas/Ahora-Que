@@ -69,6 +69,17 @@ def _numero(valor):
     return int(numero) if numero.is_integer() else numero
 
 
+def _unir_nombres(nombres, total):
+    """"Beto", "Beto y Dani", "Beto, Dani y Fede" o "Beto, Dani y 3 más"."""
+    if total <= 1 or len(nombres) <= 1:
+        return nombres[0] if nombres else ""
+    if total == 2:
+        return f"{nombres[0]} y {nombres[1]}"
+    if total == 3 and len(nombres) >= 3:
+        return f"{nombres[0]}, {nombres[1]} y {nombres[2]}"
+    return f"{nombres[0]}, {nombres[1]} y {total - 2} más"
+
+
 def _hace(momento):
     """"hace 5 min", "hace 2 h", "hace 3 días" o la fecha, para los avisos."""
     segundos = (datetime.now(momento.tzinfo) - momento).total_seconds()
@@ -922,6 +933,9 @@ class SocialService:
                     "texto": texto if len(texto) <= 140 else texto[:139] + "…",
                     "creada_en": momento.isoformat(), "hace": _hace(momento), "no_leida": not leida,
                 })
+        for aviso in avisos:
+            if aviso["tipo"] == "like":
+                aviso["texto_actores"] = _unir_nombres(aviso["actores"], aviso["total"])
         return avisos[:limite]
 
     def contar_avisos_no_leidos(self, user_id):

@@ -12,6 +12,29 @@
 
   <div class="dashboard-main">
 
+<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
+
+<nav class="group-tabs inbox-tabs section-shell" aria-label="Secciones del inbox">
+
+  <a class="group-tab{% if tab == 'solicitudes' %} is-active{% endif %}"
+     href="{{ url_for('inbox.inbox', tab='solicitudes') }}"
+     {% if tab == 'solicitudes' %}aria-current="page"{% endif %}>
+    Solicitudes
+    {% if pendientes %}<span class="group-tab-count">{{ pendientes }}</span>{% endif %}
+  </a>
+
+  <a class="group-tab{% if tab == 'publicaciones' %} is-active{% endif %}"
+     href="{{ url_for('inbox.inbox', tab='publicaciones') }}"
+     {% if tab == 'publicaciones' %}aria-current="page"{% endif %}>
+    Publicaciones
+    {% if avisos_nuevos and tab != 'publicaciones' %}<span class="group-tab-count">{{ avisos_nuevos }}</span>{% endif %}
+  </a>
+
+</nav>
+
+
+{% if tab == 'solicitudes' %}
+
 <section class="inbox-section section-shell">
 
   {% if invitaciones %}
@@ -237,6 +260,82 @@
     {% endfor %}
 
   </div>
+
+</section>
+
+{% endif %}
+
+{% else %}
+
+{# ------------------- Publicaciones: me gusta y comentarios de lo que publicaste ------------------- #}
+
+<section class="inbox-section section-shell">
+
+  {% if avisos %}
+
+  <div class="avisos">
+
+    {% for aviso in avisos %}
+
+    <a class="aviso{% if aviso.no_leida %} aviso-nuevo{% endif %}"
+       href="{{ url_for('social_api.pagina_publicacion', publicacion_id=aviso.publicacion_id, comentarios=('1' if aviso.tipo == 'comentario' else None)) }}">
+
+      <span class="aviso-miniatura" aria-hidden="true">
+        {% if aviso.foto %}
+          <img src="{{ url_for('social_api.foto', foto_id=aviso.foto) }}" alt="" loading="lazy" />
+        {% else %}
+          <span>{{ aviso.plan[:1] | upper }}</span>
+        {% endif %}
+      </span>
+
+      <span class="aviso-cuerpo">
+
+        {% if aviso.tipo == 'like' %}
+          <span class="aviso-texto">
+            <strong>{{ aviso.texto_actores }}</strong>
+            {{ 'le dio me gusta' if aviso.total == 1 else 'le dieron me gusta' }}
+            a tu plan <strong>{{ aviso.plan }}</strong>.
+          </span>
+        {% else %}
+          <span class="aviso-texto">
+            <strong>{{ aviso.actor }}</strong> comentó en <strong>{{ aviso.plan }}</strong>:
+            “{{ aviso.texto }}”
+          </span>
+        {% endif %}
+
+        <span class="aviso-hace">{{ aviso.hace }}</span>
+
+      </span>
+
+      {% if aviso.no_leida %}<span class="aviso-punto" aria-label="Nuevo" title="Nuevo"></span>{% endif %}
+
+    </a>
+
+    {% endfor %}
+
+  </div>
+
+  {% else %}
+
+  <div class="inbox-empty">
+
+    <div class="empty-symbol" aria-hidden="true">
+      ✦
+    </div>
+
+    <h2>
+      Todavía no hay novedades en tus publicaciones.
+    </h2>
+
+    <p>
+      Cuando alguien le dé me gusta o comente un plan que compartiste, lo vas a ver acá.
+    </p>
+
+    <a class="plan-accion-secundaria" href="/social">Ir a Social</a>
+
+  </div>
+
+  {% endif %}
 
 </section>
 

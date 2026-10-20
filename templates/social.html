@@ -15,7 +15,7 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v5') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
 
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
@@ -267,6 +267,18 @@
         <p class="soc-ayuda" data-soc-fotos-ayuda hidden></p>
       </div>
 
+      <fieldset class="modal-field soc-campo">
+        <legend class="modal-field-label">Formato de las fotos</legend>
+        <label class="soc-opcion">
+          <input type="radio" name="aspecto" value="cuadrada" checked />
+          <span>Cuadrada</span>
+        </label>
+        <label class="soc-opcion">
+          <input type="radio" name="aspecto" value="vertical" />
+          <span>Vertical (4:5)</span>
+        </label>
+      </fieldset>
+
       <div class="modal-field">
         <label for="soc-publicar-texto">Algo para contar (opcional)</label>
         <textarea id="soc-publicar-texto" name="texto" maxlength="500" data-soc-texto-input></textarea>
@@ -299,7 +311,7 @@
 </dialog>
 
 
-<script defer src="{{ url_for('static', filename='social.js', v='20261020-social-v5') }}"></script>
+<script defer src="{{ url_for('static', filename='social.js', v='20261020-social-v6') }}"></script>
 
 {% endif %}
 

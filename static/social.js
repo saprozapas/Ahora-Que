@@ -2,11 +2,13 @@
    Social: feed de publicaciones (pestañas Amigos y Descubrir) y grilla de
    "Planes publicados" de los perfiles.
 
-   Dos modos, según data-modo del contenedor #soc-feed:
+   Tres modos, según data-modo del contenedor #soc-feed:
      lista    tarjetas una debajo de otra (Amigos).
      grilla   miniaturas de fotos; al tocar una se abre la tarjeta en un
               diálogo (Descubrir y perfiles). Con data-autor se muestran solo
               las publicaciones de esa persona.
+     unica    una sola publicación (data-publicacion): a donde llevan los
+              avisos del Inbox. Con data-abrir-comentarios abre el hilo.
 
    La página trae el armazón y las <template>; acá se piden las
    publicaciones a /social/feed y se arman las tarjetas. Todo el texto de las
@@ -39,6 +41,7 @@
   const contenedorPost = $("[data-soc-post-contenedor]", modalPost);
 
   const modoGrilla = raiz.dataset.modo === "grilla";
+  const modoUnica = raiz.dataset.modo === "unica";
   const autorId = raiz.dataset.autor || null;
 
   const urls = {
@@ -173,6 +176,14 @@
     return `Les gusta a ${nombres.slice(0, -1).join(", ")} y ${nombres[nombres.length - 1]}`;
   };
 
+  // Los números que aparecen al pasar el mouse sobre la miniatura de la grilla.
+  const actualizarMiniatura = (publicacion) => {
+    const miniatura = miniaturas.get(publicacion.id);
+    if (!miniatura) return;
+    $("[data-soc-mini-likes]", miniatura).textContent = publicacion.likes;
+    $("[data-soc-mini-comentarios]", miniatura).textContent = publicacion.comentarios;
+  };
+
   const pintarLikes = (tarjeta, publicacion) => {
     const boton = $("[data-soc-like]", tarjeta);
     boton.setAttribute("aria-pressed", String(publicacion.yo_di_like));
@@ -182,6 +193,7 @@
     const texto = $("[data-soc-likes-texto]", tarjeta);
     texto.textContent = textoLikes(publicacion);
     texto.hidden = publicacion.likes <= 0;
+    actualizarMiniatura(publicacion);
   };
 
   const pintarGuardado = (tarjeta, publicacion) => {
@@ -232,6 +244,7 @@
   const pintarContadorComentarios = (tarjeta, publicacion) => {
     $("[data-soc-comentarios-n]", tarjeta).textContent = publicacion.comentarios;
     pintarPrevia(tarjeta, publicacion);
+    actualizarMiniatura(publicacion);
   };
 
   // Al cerrar el hilo, la vista previa pasa a mostrar lo último que hay en él.
@@ -267,6 +280,7 @@
     }
 
     contenedor.hidden = false;
+    contenedor.dataset.aspecto = publicacion.aspecto || "cuadrada";
     contenedor.replaceChildren(
       ...publicacion.fotos.map((id, i) => {
         const imagen = document.createElement("img");
@@ -731,6 +745,7 @@
 
     publicaciones.set(publicacion.id, publicacion);
     miniaturas.set(publicacion.id, miniatura);
+    actualizarMiniatura(publicacion);
     return miniatura;
   };
 
@@ -787,6 +802,25 @@
   };
 
   botonMas.addEventListener("click", cargarPagina);
+
+  // Modo "unica": una publicación puntual (la página a la que llevan los avisos).
+  const cargarUnica = async () => {
+    botonMas.hidden = true;
+
+    try {
+      const datos = await pedir(`${urls.raiz}/publicaciones/${raiz.dataset.publicacion}`);
+      const tarjeta = crearTarjeta(datos.publicacion);
+      lista.append(tarjeta);
+      if (raiz.dataset.abrirComentarios) {
+        alternarComentarios(tarjeta, $("[data-soc-comentarios]", tarjeta));
+      }
+    } catch (e) {
+      vacio.hidden = false;
+      if (!e.message.startsWith("No encontramos")) mostrarError(avisoGeneral, e.message);
+    }
+
+    cargando.hidden = true;
+  };
 
 
   /* --- Compartir un plan (solo en /social) ------------------------------------ */
@@ -853,6 +887,7 @@
         texto: datos.get("texto"),
         visibilidad: datos.get("visibilidad"),
         fotos: fotosElegidas.map((foto) => foto.dataUrl),
+        aspecto: datos.get("aspecto"),
       });
 
       modalPublicar.close();
@@ -992,5 +1027,6 @@
   });
 
 
-  cargarPagina();
+  if (modoUnica) cargarUnica();
+  else cargarPagina();
 })();

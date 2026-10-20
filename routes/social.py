@@ -11,7 +11,7 @@ import base64
 import binascii
 import uuid
 
-from flask import Blueprint, Response, jsonify, request, session
+from flask import Blueprint, Response, abort, jsonify, redirect, render_template, request, session
 
 from database_bridge.database_bridge import getGroupsForUser
 from services.social_service import MAX_FOTOS, SocialError, SocialService
@@ -156,8 +156,17 @@ def publicar(user_id):
         str(datos.get("texto") or ""),
         str(datos.get("visibilidad") or "amigos"),
         _decodificar_fotos(datos.get("fotos")),
+        str(datos.get("aspecto") or "cuadrada"),
     )
     return jsonify({"publicacion": publicacion}), 201
+
+
+@social_api.route("/publicaciones/<publicacion_id>", methods=["GET"])
+@_con_sesion
+def una_publicacion(user_id, publicacion_id):
+    return jsonify({
+        "publicacion": social_service.obtener_publicacion(user_id, _id_o_404(publicacion_id))
+    })
 
 
 @social_api.route("/publicaciones/<publicacion_id>/eliminar", methods=["POST"])
@@ -229,3 +238,23 @@ def reportar(user_id):
         str(datos.get("motivo") or ""),
     )
     return jsonify({"ok": True})
+
+
+# ------------------------------------------------- Página de una publicación
+
+@social_api.route("/p/<publicacion_id>", methods=["GET"])
+def pagina_publicacion(publicacion_id):
+    """Una publicación suelta (a donde llevan los avisos del Inbox). Los datos
+    los pide static/social.js a /social/publicaciones/<id>, que es donde se
+    decide si esta persona la puede ver."""
+    if not session.get("user_id"):
+        return redirect("/login")
+    try:
+        publicacion_id = str(uuid.UUID(publicacion_id))
+    except ValueError:
+        abort(404)
+    return render_template(
+        "social_publicacion.html",
+        publicacion_id=publicacion_id,
+        abrir_comentarios=request.args.get("comentarios") == "1",
+    )
