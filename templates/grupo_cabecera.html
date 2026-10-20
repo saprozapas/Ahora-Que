@@ -9,8 +9,10 @@
   <header class="group-detail-head">
 
     <div class="group-title-row">
-      <h1>{{ group.get_name() }}</h1>
-      <a class="group-streak-link{% if not racha.activa %} is-inactive{% endif %}" href="{{ url_for('group_auth.racha_grupo', group_id=group.get_id()) }}" aria-label="Racha del grupo: {{ racha.semanas }} semanas">
+      <div class="group-title-frame{% if racha.marco %} group-frame group-frame--{{ racha.marco }}{% endif %}">
+        <h1 class="group-title-award{% if racha.titulo_color %} group-title-award--{{ racha.titulo_color }}{% endif %}">{{ group.get_name() }}</h1>
+      </div>
+      <a class="group-streak-link racha-fuego--{{ racha.fuego }}{% if not racha.activa %} is-inactive{% endif %}" href="{{ url_for('group_auth.racha_grupo', group_id=group.get_id()) }}" aria-label="Racha del grupo: {{ racha.semanas }} semanas">
         <span class="group-streak-number" aria-hidden="true">{{ racha.semanas }}</span>
         <img src="{{ url_for('static', filename='racha.svg') }}" alt="" aria-hidden="true" />
       </a>

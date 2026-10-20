@@ -49,7 +49,8 @@
     text-align: center;
   }
 
-  .racha-numero svg { width: 34px; height: 34px; }
+  .racha-numero > img { width: 44px; height: 44px; object-fit: contain; }
+  .racha-numero > img.is-inactive { filter: grayscale(1); }
 
   .racha-numero strong {
     font-family: var(--font-display);
@@ -268,6 +269,28 @@
     transition: border-color var(--fast) var(--ease), transform var(--fast) var(--ease);
   }
 
+  .racha-hito--hierro strong { color: #647181; }
+  .racha-hito--amatista strong { color: #7943b5; }
+  .racha-hito--bronce strong { color: #a45d2e; }
+  .racha-hito--rubi strong { color: #bd3155; }
+  .racha-hito--plata strong { color: #60758e; }
+  .racha-hito--violeta strong { color: #7843c7; }
+  .racha-hito--magenta strong { color: #b32880; }
+  .racha-hito--oro strong { color: #9d7100; }
+  .racha-hito--hielo strong { color: #2778b5; }
+  .racha-hito--esmeralda strong { color: #087950; }
+
+  html[data-theme="night"] .racha-hito--hierro strong { color: #c3cbd4; }
+  html[data-theme="night"] .racha-hito--amatista strong { color: #c9a1ff; }
+  html[data-theme="night"] .racha-hito--bronce strong { color: #eab17c; }
+  html[data-theme="night"] .racha-hito--rubi strong { color: #ff9ab0; }
+  html[data-theme="night"] .racha-hito--plata strong { color: #d8e3f0; }
+  html[data-theme="night"] .racha-hito--violeta strong { color: #c2a0ff; }
+  html[data-theme="night"] .racha-hito--magenta strong { color: #ff92d7; }
+  html[data-theme="night"] .racha-hito--oro strong { color: #ffdc70; }
+  html[data-theme="night"] .racha-hito--hielo strong { color: #8ad7ff; }
+  html[data-theme="night"] .racha-hito--esmeralda strong { color: #70e2b6; }
+
   .racha-hito:hover { border-color: var(--accent); transform: translateY(-2px); }
   .racha-hito:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
@@ -297,6 +320,47 @@
 
   .racha-premio span,
   .racha-hito-modal-estado { color: var(--muted); font-size: var(--text-sm); }
+  .racha-invitacion-nota { color: var(--muted); font-size: var(--text-xs); line-height: 1.4; }
+
+  .racha-hito-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 82px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-1);
+  }
+
+  .racha-hito-preview.group-frame {
+    position: relative;
+    isolation: isolate;
+    border-color: transparent;
+    box-shadow: 0 0 18px color-mix(in srgb, var(--group-frame-color) 25%, transparent);
+  }
+
+  .racha-hito-preview-title { font-size: 1.1rem; font-weight: 800; }
+  .racha-hito-preview-streak { display: inline-flex; align-items: center; gap: 3px; color: #ef4328; font-weight: 800; white-space: nowrap; }
+  .racha-hito-preview-streak.racha-fuego--verde { color: #16814a; }
+  .racha-hito-preview-streak.racha-fuego--violeta { color: #7839b5; }
+  .racha-hito-preview-streak.racha-fuego--azul { color: #2877bd; }
+  .racha-hito-preview-streak img { width: 25px; height: 25px; }
+  .racha-hito-preview-streak.racha-fuego--verde img { filter: hue-rotate(95deg) saturate(1.4); }
+  .racha-hito-preview-streak.racha-fuego--violeta img { filter: hue-rotate(245deg) saturate(1.4); }
+  .racha-hito-preview-streak.racha-fuego--azul img { filter: hue-rotate(180deg) saturate(1.35); }
+
+  html[data-theme="night"] .racha-hito--hierro strong,
+  html[data-theme="night"] .racha-hito--amatista strong,
+  html[data-theme="night"] .racha-hito--bronce strong,
+  html[data-theme="night"] .racha-hito--rubi strong,
+  html[data-theme="night"] .racha-hito--plata strong,
+  html[data-theme="night"] .racha-hito--violeta strong,
+  html[data-theme="night"] .racha-hito--magenta strong,
+  html[data-theme="night"] .racha-hito--oro strong,
+  html[data-theme="night"] .racha-hito--hielo strong,
+  html[data-theme="night"] .racha-hito--esmeralda strong { text-shadow: 0 0 12px currentColor; }
 
   .racha-nota {
     padding-top: 18px;
@@ -340,12 +404,7 @@
       <div class="racha-hero">
 
         <div class="racha-numero" aria-label="{{ racha.semanas }} semanas de racha">
-          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-            <path
-              d="M12 3c.5 3-1.5 4.5-3 6.5S6.5 13.5 8 16.5c1 2 3 3.5 5 3.5 3 0 5-2.4 5-5.5 0-2.2-1-3.8-2.2-5.2-.4 1.2-1.1 2-2 2.3.6-3.2-.3-6.700-1.800-8.600Z"
-              fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"
-            />
-          </svg>
+          <img class="racha-hero-flame racha-fuego--{{ racha.fuego }}{% if not racha.activa %} is-inactive{% endif %}" src="{{ url_for('static', filename='racha.svg') }}" alt="" />
           <strong>{{ racha.semanas }}</strong>
           <span>semanas</span>
         </div>
@@ -364,10 +423,15 @@
 
           <div class="racha-progreso">
             <div class="racha-progreso-info">
-              <span>Próximo hito: {{ racha.proximo_hito }} semanas</span>
-              <span>{{ racha.semanas }} / {{ racha.proximo_hito }}</span>
+              {% if racha.proximo_hito %}
+                <span>Próximo hito: {{ racha.proximo_hito }} semanas</span>
+                <span>{{ racha.semanas }} / {{ racha.proximo_hito }}</span>
+              {% else %}
+                <span>Todos los hitos alcanzados</span>
+                <span>100 / 100</span>
+              {% endif %}
             </div>
-            <div class="racha-barra" role="progressbar" aria-valuenow="{{ racha.semanas }}" aria-valuemin="0" aria-valuemax="{{ racha.proximo_hito }}">
+            <div class="racha-barra" role="progressbar" aria-valuenow="{{ racha.semanas }}" aria-valuemin="0" aria-valuemax="{{ racha.proximo_hito or 100 }}">
               <span style="width: {{ racha.progreso_hito }}%"></span>
             </div>
           </div>
@@ -416,13 +480,13 @@
             <span>Todavía no hubo reuniones</span>
           {% elif racha.dias_desde_ultima == 0 %}
             <strong>Hoy</strong>
-            <span>{{ racha.ultimo_plan or 'Plan del grupo' }}</span>
+            <span>Última reunión: {{ racha.ultima_reunion.strftime('%d/%m/%Y') }}</span>
           {% elif racha.dias_desde_ultima == 1 %}
             <strong>Ayer</strong>
-            <span>{{ racha.ultimo_plan or 'Plan del grupo' }}</span>
+            <span>Última reunión: {{ racha.ultima_reunion.strftime('%d/%m/%Y') }}</span>
           {% else %}
             <strong>Hace {{ racha.dias_desde_ultima }} días</strong>
-            <span>{{ racha.ultimo_plan or 'Plan del grupo' }}</span>
+            <span>Última reunión: {{ racha.ultima_reunion.strftime('%d/%m/%Y') }}</span>
           {% endif %}
         </div>
 
@@ -439,7 +503,7 @@
 
           {% for hito in racha.hitos %}
           <button
-            class="racha-hito{% if hito.logrado %} is-logrado{% elif not hito.proximo %} is-bloqueado{% endif %}"
+            class="racha-hito racha-hito--{{ hito.titulo_color }}{% if hito.logrado %} is-logrado{% elif not hito.proximo %} is-bloqueado{% endif %}"
             type="button"
             data-modal-open="modal-hito-{{ hito.semanas }}"
             aria-haspopup="dialog"
@@ -459,23 +523,40 @@
                 </button>
               </div>
               <div class="modal-body racha-hito-modal-body">
+                <div class="racha-hito-preview{% if hito.marco %} group-frame group-frame--{{ hito.marco }}{% endif %}">
+                  <span class="racha-hito-preview-title{% if hito.titulo_color %} group-title-award--{{ hito.titulo_color }}{% endif %}">{{ group.get_name() }}</span>
+                  <span class="racha-hito-preview-streak racha-fuego--{{ hito.fuego }}">
+                    <img src="{{ url_for('static', filename='racha.svg') }}" alt="" />
+                    <span>{{ hito.semanas }}</span>
+                  </span>
+                </div>
                 {% if hito.semanas == 3 %}
-                  <p>¡Ya encontraron el ritmo! Tres semanas con planes compartidos son el primer paso para convertirlo en costumbre.</p>
-                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Buena chispa”</strong><span>Una insignia para mostrar en el grupo y un fondo especial para su tarjeta.</span></div>
+                  <div class="racha-premio"><strong>Marco de hierro</strong><span>Un marco épico para el grupo.</span></div>
                 {% elif hito.semanas == 5 %}
-                  <p>Cinco semanas con encuentros: el grupo está sosteniendo la racha con constancia.</p>
-                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Equipo constante”</strong><span>Un color exclusivo para el nombre del grupo y una insignia nueva.</span></div>
+                  <div class="racha-premio"><strong>Título amatista</strong><span>Color violeta para el nombre.</span></div>
                 {% elif hito.semanas == 10 %}
-                  <p>Diez semanas es un gran logro. ¡Ya tienen un montón de planes compartidos!</p>
-                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Diez en marcha”</strong><span>Un marco especial para la foto del grupo y una insignia destacada.</span></div>
+                  <div class="racha-premio"><strong>Marco de bronce</strong><span>Un marco épico para el grupo.</span></div>
                 {% elif hito.semanas == 20 %}
-                  <p>Veinte semanas con encuentros compartidos es una racha extraordinaria.</p>
-                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Leyendas del plan”</strong><span>Un tema visual exclusivo para el grupo y una insignia legendaria.</span></div>
+                  <div class="racha-premio"><strong>Invitación + título plata</strong><span>Una salida para comer o tomar algo y el color plata para el nombre.</span></div>
+                {% elif hito.semanas == 30 %}
+                  <div class="racha-premio"><strong>Marco de plata</strong><span>Un marco épico para el grupo.</span></div>
+                {% elif hito.semanas == 40 %}
+                  <div class="racha-premio"><strong>Invitación + título oro</strong><span>Una salida para comer o tomar algo y el color oro para el nombre.</span></div>
+                {% elif hito.semanas == 50 %}
+                  <div class="racha-premio"><strong>Título magenta épico</strong><span>Color magenta para el nombre.</span></div>
+                {% elif hito.semanas == 70 %}
+                  <div class="racha-premio"><strong>Marco de oro</strong><span>Un marco épico para el grupo.</span></div>
+                {% elif hito.semanas == 90 %}
+                  <div class="racha-premio"><strong>Invitación + título hielo</strong><span>Una salida para comer o tomar algo y el color hielo para el nombre.</span></div>
+                {% elif hito.semanas == 100 %}
+                  <div class="racha-premio"><strong>Marco de esmeralda</strong><span>Un marco épico para el grupo.</span></div>
                 {% else %}
-                  <p>¡Alcanzaron {{ hito.semanas }} semanas de racha! Cada encuentro los acerca a un nuevo hito.</p>
-                  <div class="racha-premio"><strong>Premio de ejemplo: Insignia “Racha {{ hito.semanas }}”</strong><span>Una insignia conmemorativa para celebrar el logro del grupo.</span></div>
+                  <div class="racha-premio"><strong>Color de título</strong><span>Un nuevo color para el nombre.</span></div>
                 {% endif %}
-                <p class="racha-hito-modal-estado">Estado: {% if hito.logrado %}hito alcanzado{% elif hito.proximo %}próximo hito{% else %}todavía bloqueado{% endif %}.</p>
+                {% if hito.semanas in [20, 40, 90] %}
+                  <small class="racha-invitacion-nota">La invitación es de Ahora Qué y es válida en lugares elegidos por la app.</small>
+                {% endif %}
+                <p class="racha-hito-modal-estado">{% if hito.logrado %}Desbloqueado{% elif hito.proximo %}Próximo{% else %}Bloqueado{% endif %}</p>
               </div>
             </form>
           </dialog>
