@@ -15,22 +15,43 @@
 
 {#
   El interior de una tarjeta de grupo, en un macro, para no repetirlo en
-  las dos variantes de abajo (con enlace y sin enlace). El tono del avatar
-  sale del largo del nombre: estable y sin datos nuevos.
+  las dos variantes de abajo (con enlace y sin enlace).
 #}
-{% macro contenido_de_tarjeta(group) %}
+{% macro contenido_de_tarjeta(group, numero, enlazable, racha=none) %}
 
-  <span class="avatar group-tile__avatar" style="--h: {{ (group.get_name() | length * 47) % 360 }}" aria-hidden="true">
-    {{ group.get_name()[:1] | upper }}
-  </span>
+  <div class="group-card-top">
 
-  <h2 class="plan-tile__title">{{ group.get_name() }}</h2>
+    <span class="group-number">{{ '%02d' | format(numero) }}</span>
 
-  {% if group.get_description() %}
-  <p class="plan-tile__text">{{ group.get_description() }}</p>
-  {% else %}
-  <p class="meta">Sin descripción.</p>
-  {% endif %}
+    {% if enlazable %}
+    <span class="group-arrow" aria-hidden="true">↗</span>
+    {% endif %}
+
+  </div>
+
+  <div class="group-card-content">
+
+    <h3 class="group-title-award{% if racha and racha.titulo_color %} group-title-award--{{ racha.titulo_color }}{% endif %}">
+      {{ group.get_name() }}
+      {% if racha %}
+      <span class="group-card-streak racha-fuego--{{ racha.fuego }}{% if not racha.activa %} is-inactive{% endif %}" aria-label="Racha: {{ racha.semanas }} semanas">
+        <img src="{{ url_for('static', filename='racha.svg') }}" alt="" aria-hidden="true" />
+        <span>{{ racha.semanas }}</span>
+      </span>
+      {% endif %}
+    </h3>
+
+    {% if group.get_description() %}
+
+    <p>{{ group.get_description() }}</p>
+
+    {% else %}
+
+    <p class="no-description">Sin descripción.</p>
+
+    {% endif %}
+
+  </div>
 
 {% endmacro %}
 
@@ -41,67 +62,99 @@
      VISTA DEL USUARIO LOGUEADO
      ========================================================================= -->
 
-<section class="container page">
+<!--
+  Cabecera centrada: título y bajada en una sola línea, con el botón de
+  crear grupo debajo. El carrusel es harina de otro costal: vive en su
+  propia sección de ancho completo, más abajo.
+-->
 
-  <a class="back-link" href="/dashboard">← Inicio</a>
+<section class="page-hero section-shell">
 
-  <header class="page-head">
-    <div class="page-head__row">
-      <div>
-        <h1 class="h2">Tus grupos.</h1>
-        <p class="lead">Cada grupo tiene sus ideas, sus votaciones y sus planes confirmados.</p>
-      </div>
-      <a class="btn btn--primary btn--lg" href="/grupos/nuevo">Armá un grupo</a>
-    </div>
-  </header>
+  <a class="back-link" href="/dashboard">← Volver</a>
 
+  <div class="groups-hero-copy">
+
+    <h1>Tus grupos <em>están acá.</em></h1>
+
+    <p>Creá un espacio para organizar planes y decidir junto a los demás.</p>
+
+    <a class="lime-button" href="/grupos/nuevo">
+      Crear un grupo <span aria-hidden="true">↗</span>
+    </a>
+
+  </div>
+
+</section>
+
+
+<section class="groups-section section-shell">
 
   {% if groups %}
 
-  <!-- Carrusel: la paginación la maneja app.js (de a 3 en escritorio, 2 en
-       tablet, 1 en celular) con data-grupo y los ids de los controles. -->
+  <!-- Carrusel de grupos, a lo ancho de toda la sección. La paginación
+       la maneja app.js: de a 3 en escritorio, 2 en tablet, 1 en celular. -->
+
   <div class="groups-carousel">
 
-    <ul class="groups-list" id="groupsGrid">
+    <div class="groups-grid" id="groupsGrid">
 
       {% for group in groups %}
 
       {#
-        Solo se arma el enlace si el grupo trae un id, y solo se lo pide si
-        el objeto tiene el método: "group.get_id is defined" comprueba que
-        exista ANTES de llamarlo.
+        Solo se arma el enlace si el grupo trae un id, y solo se lo pide
+        si el objeto tiene el método: "group.get_id is defined" comprueba
+        que exista ANTES de llamarlo, así el template no se rompe
+        mientras el modelo de backend no lo implemente. Cuando lo
+        implementen (Group.get_id(), o el dict/objeto que usen en su
+        lugar), esta tarjeta va a empezar a enlazar sola, sin tocar este
+        archivo.
       #}
       {% set group_id = group.get_id() if group.get_id is defined else none %}
+      {% set group_racha = rachas.get(group_id) if group_id and rachas is defined else none %}
 
-      <li data-grupo>
-        {% if group_id %}
-        <a class="card plan-tile group-tile" href="/grupos/{{ group_id }}">
-          {{ contenido_de_tarjeta(group) }}
-        </a>
-        {% else %}
-        <article class="card plan-tile group-tile">
-          {{ contenido_de_tarjeta(group) }}
-        </article>
-        {% endif %}
-      </li>
+      {% if group_id %}
+
+      <a class="group-card{% if group_racha and group_racha.marco %} group-frame group-frame--{{ group_racha.marco }}{% endif %}" href="/grupos/{{ group_id }}">
+        {{ contenido_de_tarjeta(group, loop.index, true, group_racha) }}
+      </a>
+
+      {% else %}
+
+      <article class="group-card{% if group_racha and group_racha.marco %} group-frame group-frame--{{ group_racha.marco }}{% endif %}">
+        {{ contenido_de_tarjeta(group, loop.index, false, group_racha) }}
+      </article>
+
+      {% endif %}
 
       {% endfor %}
 
-    </ul>
+    </div>
 
 
-    <div class="groups-pager" data-grupos-nav>
+    <div class="groups-navigation">
 
-      <span class="meta">
-        <span id="groupsCurrentPage">01</span> de <span id="groupsTotalPages">01</span>
-      </span>
-
-      <button class="icon-btn" type="button" id="groupsPrev" aria-label="Grupos anteriores">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      <button
+        class="groups-nav-button"
+        type="button"
+        id="groupsPrev"
+        aria-label="Grupos anteriores"
+      >
+        ←
       </button>
 
-      <button class="icon-btn" type="button" id="groupsNext" aria-label="Grupos siguientes">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      <p class="groups-page-indicator">
+        <span id="groupsCurrentPage">01</span>
+        <span class="indicator-line" aria-hidden="true"></span>
+        <span id="groupsTotalPages">01</span>
+      </p>
+
+      <button
+        class="groups-nav-button"
+        type="button"
+        id="groupsNext"
+        aria-label="Grupos siguientes"
+      >
+        →
       </button>
 
     </div>
@@ -110,9 +163,17 @@
 
   {% else %}
 
-  <div class="empty-state">
-    <p>Todavía no tenés grupos.</p>
-    <a class="btn btn--secondary" href="/grupos/nuevo">Armá uno</a>
+  <div class="groups-empty">
+
+    <div class="empty-symbol" aria-hidden="true">+</div>
+
+    <div>
+      <h3>Todavía no tenés grupos.</h3>
+      <p>Creá el primero.</p>
+    </div>
+
+    <a class="dark-button" href="/grupos/nuevo">Crear mi primer grupo</a>
+
   </div>
 
   {% endif %}
@@ -126,22 +187,94 @@
      VISTA PÚBLICA
 
      Nota: hoy esta rama no se llega a renderizar, porque la ruta /grupos
-     exige sesión iniciada y redirige a /login.
+     exige sesión iniciada y redirige a /login. Queda lista para cuando se
+     resuelva del lado del backend.
      ========================================================================= -->
 
-<section class="container page page--public">
+<section class="page-hero section-shell">
 
-  <header class="page-head">
-    <h1 class="h2">Armen el grupo.</h1>
-    <p class="lead">
-      Un lugar para proponer ideas, votarlas y elegir cuándo. Cada uno entra
-      con su usuario y acepta la invitación desde su inbox.
+  <a class="back-link" href="/">← Volver</a>
+
+  <h1>El plan mejora<br />cuando <em>entran todos.</em></h1>
+
+  <p>Creá un espacio, invitá al grupo y decidan juntos.</p>
+
+  <a class="lime-button" href="/register">
+    Crear un grupo <span aria-hidden="true">↗</span>
+  </a>
+
+</section>
+
+
+<section class="group-feature section-shell">
+
+  <div class="group-visual" aria-hidden="true">
+
+    <div class="group-orbit"></div>
+
+    <div class="avatar avatar-a">M</div>
+    <div class="avatar avatar-b">J</div>
+    <div class="avatar avatar-c">S</div>
+    <div class="avatar avatar-d">L</div>
+
+    <span>4 personas<br />disponibles</span>
+
+  </div>
+
+
+  <div class="group-copy">
+
+    <p class="section-tag">una mesa para todos</p>
+
+    <h2>Cada persona pone algo. La app arma el mapa.</h2>
+
+    <p>
+      Horarios, presupuesto y preferencias quedan en un solo lugar. Todos pueden
+      proponer y votar.
     </p>
-    <div class="actions">
-      <a class="btn btn--primary btn--lg" href="/register">Crear cuenta</a>
-      <a class="btn btn--ghost btn--lg" href="/login">Iniciar sesión</a>
+
+    <div class="mini-points">
+      <span>✓ disponibilidad</span>
+      <span>✓ votaciones</span>
+      <span>✓ historial</span>
     </div>
-  </header>
+
+  </div>
+
+</section>
+
+
+<section class="process section-shell">
+
+  <div class="process-title">
+
+    <p class="section-tag">armar el grupo</p>
+
+    <h2>Tres pasos y<br />ya están <em>adentro.</em></h2>
+
+  </div>
+
+  <div class="process-steps">
+
+    <article>
+      <span>01</span>
+      <h3>Crean la mesa</h3>
+      <p>Un nombre para encontrar el grupo.</p>
+    </article>
+
+    <article>
+      <span>02</span>
+      <h3>Invitan al resto</h3>
+      <p>Comparten un link.</p>
+    </article>
+
+    <article>
+      <span>03</span>
+      <h3>Eligen juntos</h3>
+      <p>Comparan y votan.</p>
+    </article>
+
+  </div>
 
 </section>
 

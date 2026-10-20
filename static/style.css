@@ -1531,6 +1531,28 @@
     border-color: var(--danger);
   }
 
+  /* Casilla con el texto al costado (ej. "Que todos los integrantes sean
+     admins" al crear un grupo). Sin esto hereda el ancho 100% y el alto
+     de los campos de texto de arriba. */
+
+  .auth-form .check-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+  }
+
+  .auth-form .check-row input[type="checkbox"] {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    min-height: 0;
+    padding: 0;
+
+    accent-color: var(--accent);
+  }
+
   /* La regla de arriba solo cubre <input>: sin esto, los <textarea> y
      <select> dentro de .auth-form (como "Descripción" al crear un
      plan) quedan con el estilo por defecto del navegador. */
@@ -3860,6 +3882,124 @@
     line-height: 1.02;
   }
 
+  .group-frame--hierro { --group-frame-color: #505a66; }
+  .group-frame--bronce { --group-frame-color: #b8733f; }
+  .group-frame--plata { --group-frame-color: #aebdce; }
+  .group-frame--oro { --group-frame-color: #d6a719; }
+  .group-frame--esmeralda { --group-frame-color: #23a878; }
+
+  .group-frame--hierro { --frame-shine: #aeb8c4; }
+  .group-frame--bronce { --frame-shine: #ffd7a8; }
+  .group-frame--plata { --frame-shine: #ffffff; }
+  .group-frame--oro { --frame-shine: #fff2a6; }
+  .group-frame--esmeralda { --frame-shine: #a9ffe0; }
+
+  .group-card.group-frame {
+    position: relative;
+    isolation: isolate;
+    box-sizing: border-box;
+    border: 5px solid var(--group-frame-color);
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, var(--frame-shine) 76%, transparent),
+      0 0 24px color-mix(in srgb, var(--group-frame-color) 48%, transparent);
+  }
+
+  .group-card.group-frame::before { content: none; }
+
+  .group-frame.group-frame--hierro,
+  .group-frame.group-frame--bronce,
+  .group-frame.group-frame--plata,
+  .group-frame.group-frame--oro,
+  .group-frame.group-frame--esmeralda { --frame-art: url('/static/marco-epico.svg'); }
+
+  .group-frame.group-frame--hierro::before,
+  .group-frame.group-frame--bronce::before,
+  .group-frame.group-frame--plata::before,
+  .group-frame.group-frame--oro::before,
+  .group-frame.group-frame--esmeralda::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(135deg, var(--frame-shine), var(--group-frame-color) 24%, var(--frame-shine) 43%, var(--group-frame-color) 65%, var(--frame-shine));
+    -webkit-mask: var(--frame-art) center / 100% 100% no-repeat;
+    mask: var(--frame-art) center / 100% 100% no-repeat;
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--group-frame-color) 95%, transparent));
+  }
+
+  .group-card.group-frame.group-frame--hierro::before,
+  .group-card.group-frame.group-frame--bronce::before,
+  .group-card.group-frame.group-frame--plata::before,
+  .group-card.group-frame.group-frame--oro::before,
+  .group-card.group-frame.group-frame--esmeralda::before {
+    content: none;
+    display: none;
+  }
+
+  .group-card.group-frame > * { position: relative; z-index: 1; }
+  .racha-hito-preview.group-frame > * { position: relative; z-index: 1; }
+  }
+
+  .group-title-award--hierro { color: #647181; text-shadow: 0 0 12px rgb(123 135 148 / 28%); }
+  .group-title-award--amatista { color: #7943b5; text-shadow: 0 0 14px rgb(121 67 181 / 32%); }
+  .group-title-award--bronce { color: #a45d2e; text-shadow: 0 0 12px rgb(184 115 63 / 30%); }
+  .group-title-award--rubi { color: #bd3155; text-shadow: 0 0 14px rgb(189 49 85 / 30%); }
+  .group-title-award--plata { color: #60758e; text-shadow: 0 0 12px rgb(174 189 206 / 45%); }
+  .group-title-award--violeta { color: #7843c7; text-shadow: 0 0 15px rgb(120 67 199 / 35%); }
+  .group-title-award--magenta { color: #b32880; text-shadow: 0 0 15px rgb(179 40 128 / 33%); }
+  .group-title-award--oro { color: #9d7100; text-shadow: 0 0 14px rgb(214 167 25 / 38%); }
+  .group-title-award--hielo { color: #2778b5; text-shadow: 0 0 15px rgb(39 120 181 / 35%); }
+  .group-title-award--esmeralda { color: #087950; text-shadow: 0 0 15px rgb(35 168 120 / 38%); }
+
+  html[data-theme="night"] .group-title-award--hierro { color: #c3cbd4; }
+  html[data-theme="night"] .group-title-award--amatista { color: #c9a1ff; }
+  html[data-theme="night"] .group-title-award--bronce { color: #eab17c; }
+  html[data-theme="night"] .group-title-award--rubi { color: #ff9ab0; }
+  html[data-theme="night"] .group-title-award--plata { color: #d8e3f0; }
+  html[data-theme="night"] .group-title-award--violeta { color: #c2a0ff; }
+  html[data-theme="night"] .group-title-award--magenta { color: #ff92d7; }
+  html[data-theme="night"] .group-title-award--oro { color: #ffdc70; }
+  html[data-theme="night"] .group-title-award--hielo { color: #8ad7ff; }
+  html[data-theme="night"] .group-title-award--esmeralda { color: #70e2b6; }
+
+  .group-card-streak {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.08em;
+    margin-left: 0.14em;
+    color: #ef4328;
+    white-space: nowrap;
+    vertical-align: baseline;
+  }
+
+  .group-card-streak.racha-fuego--verde { color: #16814a; }
+  .group-card-streak.racha-fuego--violeta { color: #7839b5; }
+  .group-card-streak.racha-fuego--azul { color: #2877bd; }
+
+  .group-card-streak img {
+    width: 0.78em;
+    height: 0.78em;
+    align-self: center;
+    object-fit: contain;
+  }
+
+  .group-card-streak > span {
+    font-size: 0.78em;
+    font-weight: 750;
+    line-height: 1;
+  }
+
+  .group-card-streak.is-inactive { color: #737373; }
+  .group-card-streak.is-inactive img { filter: grayscale(1) brightness(0.72); }
+
+  .racha-fuego--verde img { filter: hue-rotate(95deg) saturate(1.4); }
+  .racha-fuego--violeta img { filter: hue-rotate(245deg) saturate(1.4); }
+  .racha-fuego--azul img { filter: hue-rotate(180deg) saturate(1.35); }
+
+  html[data-theme="night"] .group-card-streak.is-inactive { color: #c8c8c8; }
+  html[data-theme="night"] .group-card-streak.is-inactive img { filter: grayscale(1) brightness(1.25); }
+
   .group-card p {
     max-width: 32ch;
     color: var(--muted);
@@ -4201,7 +4341,6 @@
     padding-block: 18px clamp(56px, 8vw, 96px);
   }
 
-
   /* --- Cabecera: nombre, lápiz, descripción y acciones, centrados ------- */
 
   .group-detail-head {
@@ -4215,12 +4354,97 @@
     text-align: center;
   }
 
+  .group-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .group-title-frame {
+    position: relative;
+    isolation: isolate;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: calc(100% - 90px);
+    box-sizing: border-box;
+  }
+
+  .group-title-frame.group-frame::before { inset: 0; }
+  .group-title-frame.group-frame {
+    --frame-art: url('/static/marco-titulo.svg');
+    padding: 34px 64px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .group-title-frame > h1 { position: relative; z-index: 1; margin: 0; }
+
   .group-detail-head h1 {
     font-size: clamp(40px, 6vw, 84px);
     line-height: 1;
 
     /* El nombre lo escribe el usuario: puede ser una sola palabra larga. */
     overflow-wrap: anywhere;
+  }
+
+  .group-streak-link {
+    position: relative;
+    top: -0.04em;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    font-size: clamp(40px, 6vw, 84px);
+    line-height: 1;
+    color: #e85d2a;
+    text-decoration: none;
+  }
+
+  .group-streak-link img {
+    width: 0.9em;
+    height: 0.9em;
+    margin-top: 0.1em;
+  }
+
+  .group-streak-link.racha-fuego--verde img { filter: hue-rotate(95deg) saturate(1.4); }
+  .group-streak-link.racha-fuego--violeta img { filter: hue-rotate(245deg) saturate(1.4); }
+  .group-streak-link.racha-fuego--azul img { filter: hue-rotate(180deg) saturate(1.35); }
+
+  .group-streak-number {
+    position: absolute;
+    bottom: 0.29em;
+    left: 50%;
+    z-index: 1;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 0.39em;
+    font-weight: 900;
+    line-height: 1;
+    -webkit-text-stroke: 2.5px #000;
+    -webkit-text-fill-color: #fff;
+    text-shadow: 0 1px 2px #000;
+  }
+
+  .group-streak-link:hover { transform: scale(1.06); }
+
+  .group-streak-link.is-inactive img {
+    filter: grayscale(1) brightness(0.72);
+  }
+
+  html[data-theme="night"] .group-streak-link.is-inactive img {
+    filter: grayscale(1) brightness(1.25);
+  }
+
+  @media (max-width: 560px) {
+    .group-title-row { gap: 8px; }
+    .group-title-frame { max-width: calc(100% - 48px); }
+    .group-title-frame.group-frame { padding: 26px 38px; }
+    .group-streak-link,
+    .group-detail-head h1 { font-size: clamp(32px, 9vw, 40px); }
   }
 
   /* El lápiz de editar. Mismo dibujo que el botón de contraer la barra
@@ -4566,6 +4790,68 @@
     outline: none;
   }
 
+  .cosmetic-carousel {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 5px 3px 12px;
+    scroll-snap-type: x mandatory;
+    scrollbar-color: var(--muted) transparent;
+  }
+
+  .cosmetic-choice {
+    display: flex;
+    flex: 0 0 112px;
+    min-width: 0;
+    min-height: 124px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface-1);
+    color: var(--ink);
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: border-color var(--fast) var(--ease), transform var(--fast) var(--ease), background var(--fast) var(--ease);
+  }
+
+  .cosmetic-choice:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--accent); }
+  .cosmetic-choice.is-selected { border: 2px solid var(--accent); background: var(--accent-soft); }
+  .cosmetic-choice:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .cosmetic-choice:disabled { cursor: not-allowed; opacity: .76; }
+  .cosmetic-choice.is-locked .cosmetic-preview { filter: saturate(.58) brightness(.88); }
+  .cosmetic-choice strong { font-size: var(--text-xs); line-height: 1.1; text-align: center; }
+  .cosmetic-choice small { color: var(--muted); font-size: 10px; line-height: 1; text-align: center; white-space: nowrap; }
+
+  .cosmetic-preview {
+    display: grid;
+    width: 62px;
+    height: 44px;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    font-weight: 900;
+  }
+
+  .cosmetic-frame-preview {
+    position: relative;
+    display: grid;
+    width: 78px;
+    height: 48px;
+    place-items: center;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  .cosmetic-frame-preview.group-frame { border: 0; }
+  .cosmetic-frame-preview.group-frame > span { position: relative; z-index: 1; font-size: 10px; font-weight: 800; }
+  .cosmetic-scroll-hint { color: var(--muted); font-size: 11px; }
+
 
   /* --- Lista de integrantes, dentro del modal de editar ------------------ */
 
@@ -4595,6 +4881,23 @@
   .modal-member-link:hover,
   .modal-member-link:focus-visible {
     background: var(--surface-1);
+  }
+
+  /* Fila con acciones de admin (nombrar admin / sacar) a la derecha. */
+
+  .modal-member-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .modal-member-row > .modal-member-link {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .modal-member-row form {
+    margin: 0;
   }
 
   .modal-member-avatar {
@@ -5544,10 +5847,6 @@
   transform: translateY(-1px);
 }
 
-.friend-action:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
 
 .friend-action-danger:hover:not(:disabled) {
   border-color: #b91c1c;
@@ -5908,16 +6207,398 @@
 
   /* --- Chat del grupo (maqueta, deshabilitado) ------------------------------------ */
 
-  .group-chat {
-    opacity: 0.7;
+  .group-chat-messages {
+    max-height: 400px;
+    overflow-y: auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    padding: 15px;
+    margin-bottom: 12px;
+
+    border-radius: 12px;
+}
+
+/* =========================================================================
+   CHAT DEL GRUPO — burbujas
+   ========================================================================= */
+
+/* Contenedor común: mensajes e input miden lo mismo */
+.group-chat-box {
+  width: min(1100px, 100%);
+  box-sizing: border-box;
+  margin: clamp(24px, 4vw, 40px) auto 0;
+  padding: clamp(18px, 3vw, 32px);
+
+  /* Mismo recuadro que las tarjetas del resto del sitio. */
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-sm);
+}
+
+/* La barra de escribir resalta sobre el fondo de la tarjeta. */
+.group-chat-box .group-ai-prompt {
+  background: var(--page);
+  margin-top: 12px;
+}
+
+/* Fuerza a la barra de escribir a ocupar todo el contenedor,
+   así los mensajes nunca se pasan de sus bordes */
+.group-chat-box .group-ai-prompt {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+}
+
+.group-chat-messages {
+  display: flex;
+  flex-direction: column;
+  height: 560px;
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 0;           /* sin padding lateral: alinea con la barra */
+}
+
+/* Cada mensaje: nombre arriba + (burbuja y hora) abajo */
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: flex-start;    /* los de otros, a la izquierda */
+  max-width: 85%;
+  margin-top: 12px;
+}
+
+.chat-message:first-child {
+  margin-top: 0;
+}
+
+/* Mensajes seguidos del mismo usuario: más pegados */
+.chat-message.is-grouped {
+  margin-top: 3px;
+}
+
+/* Mis mensajes, a la derecha */
+.chat-message.is-own {
+  align-items: flex-end;
+  align-self: flex-end;
+}
+
+/* Nombre chico */
+.chat-message-author {
+  margin: 0 0 3px 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.65;
+}
+
+/* Fila burbuja + hora */
+.chat-message-line {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* En mis mensajes la hora queda a la izquierda de la burbuja */
+.chat-message.is-own .chat-message-line {
+  flex-direction: row-reverse;
+}
+
+/* Burbuja */
+.chat-bubble {
+  min-width: 0;
+  max-width: 100%;
+  padding: 8px 14px;
+  border-radius: 18px 18px 18px 6px;
+  background: var(--chat-bubble-bg, #efefec);
+  color: var(--chat-bubble-text, #1a1a1a);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.chat-bubble p {
+  margin: 0;
+}
+
+.chat-message.is-own .chat-bubble {
+  border-radius: 18px 18px 6px 18px;
+  background: var(--chat-bubble-own-bg, #d4f55a);
+  color: var(--chat-bubble-own-text, #1a1a1a);
+}
+
+/* Mensajes agrupados: esquinas redondeadas parejas */
+.chat-message.is-grouped .chat-bubble {
+  border-radius: 18px;
+}
+
+/* Hora al lado de la burbuja */
+.chat-message-time {
+  flex-shrink: 0;
+  padding-bottom: 3px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  opacity: 0.55;
+}
+
+
+}
+
+
+/* ==========================================================================
+   Grupo: pestañas (planes / chat / integrantes) y encuestas
+   ========================================================================== */
+
+.group-tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: clamp(24px, 4vw, 40px) auto 0;
+}
+
+.group-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.group-tab:hover {
+  background: var(--surface-1);
+}
+
+.group-tab.is-active {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.group-tab-count {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.2);
+  font-size: 0.8em;
+  text-align: center;
+}
+
+.encuesta-form {
+  display: grid;
+  gap: 18px;
+}
+
+/* Campos con el mismo aspecto que los de los formularios del sitio. */
+.encuesta-campo {
+  display: grid;
+  gap: 6px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.encuesta-campo input,
+.encuesta-campo select {
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--page);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--text-base);
+  font-weight: 400;
+  transition:
+    border-color var(--fast) var(--ease),
+    box-shadow var(--fast) var(--ease);
+}
+
+.encuesta-campo input:focus,
+.encuesta-campo select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+  outline: none;
+}
+
+.encuesta-franjas {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.encuesta-franjas legend {
+  margin-bottom: 4px;
+  padding: 0;
+  font-weight: 700;
+}
+
+.encuesta-ayuda {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.encuesta-franja {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .encuesta-franja {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .group-chat .group-ai-prompt-input:disabled,
-  .group-chat .group-ai-prompt-send:disabled {
-    cursor: not-allowed;
+  .encuesta-franja > :first-child {
+    grid-column: 1 / -1;
   }
+}
 
-  .group-chat .group-ai-prompt-send:disabled {
-    box-shadow: none;
-  }
+.encuesta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+}
+
+.encuesta-chips legend {
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.encuesta-chips label {
+  cursor: pointer;
+}
+
+.encuesta-chips input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.encuesta-chips span {
+  display: inline-block;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.encuesta-chips input:checked + span {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.encuesta-chips input:focus-visible + span {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.encuesta-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+
+/* --- Invitar al grupo: buscador dentro del modal ------------------------ */
+
+.invitar-titulo {
+  margin: 4px 0 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+}
+
+.invitar-lista {
+  display: grid;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.invitar-estado {
+  min-height: 1.2em;
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.invitar-estado.is-error {
+  color: var(--danger);
+}
+
+.invitar-estado.is-ok {
+  color: var(--accent);
+}
+
+.password-strength {
+  margin-top: 8px;
+}
+
+.auth-form .password-strength-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+.password-strength-track span {
+  display: block;
+  width: 33%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--danger);
+  transition: width 180ms ease, background-color 180ms ease;
+}
+
+.password-strength-track.is-medium span {
+  background: #b7791f;
+}
+
+.password-strength-track.is-strong span {
+  background: var(--success);
+}
+
+.auth-form .password-strength-label {
+  margin-top: 6px;
+  font-size: var(--text-xs);
+}
+
+.password-strength-label.is-weak {
+  color: var(--danger);
+}
+
+.password-strength-label.is-medium {
+  color: #b7791f;
+}
+
+.password-strength-label.is-strong {
+  color: var(--success);
 }

@@ -87,7 +87,7 @@
             {% if mostrar_quitar_guardado %}
             <div class="plan-tile__foot">
               <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}"
-                    onsubmit="return confirm('¿Quitar este plan de guardados?')">
+                    data-confirmar="¿Quitar este plan de guardados?">
                 <button class="btn btn--ghost btn--sm" type="submit">Quitar de guardados</button>
               </form>
             </div>

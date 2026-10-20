@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Términos y condiciones — Ahora Qué{% endblock %}
+
+{% block content %}
+<section class="auth-page section-shell">
+  <a class="back-link" href="{{ url_for('auth.register') }}">← Volver al registro</a>
+  <div class="auth-intro">
+    <h1>Términos y<br /><em>condiciones.</em></h1>
+    <p>Última actualización: 20 de octubre de 2026 · Versión 1.0</p>
+  </div>
+  <article class="auth-form terms-content">
+    <h2>1. Sobre Ahora Qué</h2>
+    <p>Ahora Qué es un proyecto académico que ayuda a organizar planes y actividades entre personas. Al crear una cuenta o usar la aplicación, aceptás estas condiciones.</p>
+    <h2>2. Tu cuenta</h2>
+    <p>Debés proporcionar información correcta, mantener segura tu contraseña y usar la aplicación de forma responsable. Sos responsable de la actividad realizada desde tu cuenta.</p>
+    <h2>3. Uso aceptable</h2>
+    <p>No uses la aplicación para acosar, suplantar a otras personas, publicar contenido ilegal o interferir con su funcionamiento. Tratá con respeto a las demás personas y grupos.</p>
+    <h2>4. Planes y contenido</h2>
+    <p>La aplicación facilita la coordinación de actividades. Cada participante decide si asiste y debe verificar por su cuenta la información, disponibilidad, costos y seguridad del lugar o actividad.</p>
+    <h2>5. Privacidad</h2>
+    <p>Los datos de tu cuenta se usan para ofrecer las funciones de la aplicación, como grupos, invitaciones y planes. No incluyas información sensible en tu perfil o publicaciones. Podés solicitar ayuda al equipo del proyecto para consultar o corregir tus datos.</p>
+    <h2>6. Disponibilidad y cambios</h2>
+    <p>Como proyecto académico, la aplicación puede cambiar, interrumpirse o dejar de estar disponible. Podemos actualizar estas condiciones; si un cambio requiere aceptación, te lo solicitaremos antes de continuar usando la cuenta.</p>
+    <h2>7. Contacto</h2>
+    <p>Para consultas sobre estas condiciones o tus datos, contactá al equipo responsable del proyecto Ahora Qué.</p>
+  </article>
+</section>
+{% endblock %}

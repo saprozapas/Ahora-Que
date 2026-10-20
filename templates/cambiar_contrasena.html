@@ -13,59 +13,81 @@
 {% endif %}
 
 
-<section class="container page">
+<section class="auth-page section-shell">
 
-  <a class="back-link" href="/perfil">← Perfil</a>
+  <a class="back-link" href="/perfil">← Volver al perfil</a>
 
-  <div class="auth auth--inline">
+  <div class="auth-intro">
 
-    <div class="auth__inner">
+    <h1>Cambiar<br /><em>contraseña.</em></h1>
 
-      <header class="auth__head">
-        <h1 class="h2">Cambiá tu contraseña.</h1>
-        <p class="lead">Primero la actual, después la nueva dos veces.</p>
-      </header>
-
-
-      <form class="auth__form" action="/perfil/cambiar-contrasena" method="post">
-
-        {% if error %}
-        <p class="notice notice--error" role="alert">{{ error }}</p>
-        {% endif %}
-
-        {% if exito %}
-        <p class="notice" role="status">{{ exito }}</p>
-        {% endif %}
-
-        <div class="field">
-          <label for="actual">Contraseña actual</label>
-          <input class="input" id="actual" name="actual" type="password" autocomplete="current-password" required />
-        </div>
-
-        <div class="field">
-          <label for="nueva">Nueva contraseña</label>
-          <input class="input" id="nueva" name="nueva" type="password" autocomplete="new-password" required />
-          <!-- minlength="8" -->
-        </div>
-
-        <div class="field">
-          <label for="confirmar">Repetí la nueva contraseña</label>
-          <input class="input" id="confirmar" name="confirmar" type="password" autocomplete="new-password" required />
-          <!-- minlength="8" -->
-        </div>
-
-        <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">
-          Guardar contraseña <span class="btn__hint" aria-hidden="true">↵</span>
-        </button>
-
-      </form>
-
-    </div>
+    <p>Ingresá tu contraseña actual y la nueva contraseña que querés usar.</p>
 
   </div>
 
+
+  <form class="auth-form" action="/perfil/cambiar-contrasena" method="post">
+
+    {% if error %}
+    <p class="form-message form-error" role="alert">{{ error }}</p>
+    {% endif %}
+
+    {% if exito %}
+    <p class="form-message form-success" role="status">{{ exito }}</p>
+    {% endif %}
+
+
+    <label for="actual">Contraseña actual</label>
+
+    <input
+      id="actual"
+      name="actual"
+      type="password"
+      autocomplete="current-password"
+      required
+    />
+
+
+    <label for="nueva">Nueva contraseña</label>
+
+    <input
+      id="nueva"
+      name="nueva"
+      type="password"
+      autocomplete="new-password"
+      data-password-strength
+      minlength="8"
+      required
+    />
+    <div class="password-strength">
+      <div class="password-strength-track" role="progressbar" aria-label="Seguridad de la contraseña" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1" data-strength-bar>
+        <span></span>
+      </div>
+      <p class="password-strength-label is-weak" aria-live="polite" data-strength-label>Débil — usá al menos 8 caracteres.</p>
+    </div>
+
+
+    <label for="confirmar">Confirmar nueva contraseña</label>
+
+    <input
+      id="confirmar"
+      name="confirmar"
+      type="password"
+      autocomplete="new-password"
+      minlength="8"
+      required
+    />
+
+
+    <button class="lime-button" type="submit">
+      Guardar contraseña <span aria-hidden="true">→</span>
+    </button>
+
+  </form>
+
 </section>
 
+<script src="{{ url_for('static', filename='password_strength.js') }}" defer></script>
 
 {% if logueado %}
   </div>

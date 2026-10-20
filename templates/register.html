@@ -4,121 +4,130 @@
 
 {% block content %}
 
-<section class="auth container dot-grid">
+<section class="auth-page section-shell">
 
-  <div class="auth__inner">
+  <a class="back-link" href="/">← Volver</a>
 
-    <header class="auth__head">
-      <h1 class="h2">Creá tu cuenta.</h1>
-      <p class="lead">Después armás tu grupo y deciden juntos, sin eternizarse en el chat.</p>
-    </header>
+  <div class="auth-intro">
 
+    <h1>Hacer planes<br /><em>es más fácil.</em></h1>
 
-    <form class="auth__form" action="/register" method="post">
-
-      {#
-        La ruta /register devuelve el mensaje de éxito por la misma variable
-        `error` que usa para los fallos, así que acá distinguimos los dos
-        casos por el texto para poder darles estilo y rol distintos.
-
-        Cuando el backend separe las variables (`error` y `exito`), esta
-        línea se reemplaza por un simple {% if exito %}.
-      #}
-      {% if error %}
-
-        {% set es_exito = 'correctamente' in error %}
-
-        <p
-          class="notice{{ '' if es_exito else ' notice--error' }}"
-          role="{{ 'status' if es_exito else 'alert' }}"
-        >
-          {{ error }}
-        </p>
-
-      {% endif %}
-
-
-      <div class="field">
-        <label for="name">Nombre</label>
-        <input
-          class="input"
-          id="name"
-          name="name"
-          type="text"
-          autocomplete="name"
-          value="{{ form_data.name | default('', true) }}"
-          required
-        />
-      </div>
-
-      <div class="field">
-        <label for="birth_date">Fecha de nacimiento</label>
-        <input
-          class="input"
-          id="birth_date"
-          name="birth_date"
-          type="text"
-          inputmode="numeric"
-          placeholder="dd/mm/aaaa"
-          pattern="\d{2}/\d{2}/\d{4}"
-          maxlength="10"
-          autocomplete="bday"
-          value="{{ form_data.birth_date | default('', true) }}"
-          required
-        />
-      </div>
-
-      <div class="field">
-        <label for="username">Usuario</label>
-        <input
-          class="input"
-          id="username"
-          name="username"
-          type="text"
-          autocomplete="username"
-          value="{{ form_data.username | default('', true) }}"
-          required
-        />
-      </div>
-
-      <div class="field">
-        <label for="email">Correo electrónico</label>
-        <input
-          class="input"
-          id="email"
-          name="email"
-          type="email"
-          autocomplete="email"
-          value="{{ form_data.email | default('', true) }}"
-          required
-        />
-      </div>
-
-      <div class="field">
-        <label for="password">Contraseña</label>
-        <input
-          class="input"
-          id="password"
-          name="password"
-          type="password"
-          autocomplete="new-password"
-          required
-        />
-      </div>
-
-      <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">
-        Crear cuenta <span class="btn__hint" aria-hidden="true">↵</span>
-      </button>
-
-    </form>
-
-
-    <p class="auth__alt">¿Ya tenés cuenta? <a href="/login">Iniciá sesión</a></p>
-
-    {% include '_garantias.html' %}
+    <p>Creá tu cuenta y armá grupos para decidir sin eternizarse en el chat.</p>
 
   </div>
 
+
+  <form class="auth-form" action="/register" method="post">
+
+    {#
+      La ruta /register devuelve el mensaje de éxito por la misma variable
+      `error` que usa para los fallos, así que acá distinguimos los dos
+      casos por el texto para poder darles color, ícono y rol distintos.
+
+      Cuando el backend separe las variables (`error` y `exito`), esta
+      línea se reemplaza por un simple {% if exito %}.
+    #}
+    {% if error %}
+
+      {% set es_exito = 'correctamente' in error %}
+
+      <p
+        class="form-message {{ 'form-success' if es_exito else 'form-error' }}"
+        role="{{ 'status' if es_exito else 'alert' }}"
+      >
+        {{ error }}
+      </p>
+
+    {% endif %}
+
+
+    <label for="name">Nombre</label>
+
+    <input
+      id="name"
+      name="name"
+      type="text"
+      autocomplete="name"
+      value="{{ form_data.name | default('', true) }}"
+      required
+    />
+
+
+    <label for="birth_date">Fecha de nacimiento</label>
+
+    <input
+      id="birth_date"
+      name="birth_date"
+      type="text"
+      inputmode="numeric"
+      placeholder="dd/mm/aaaa"
+      pattern="\d{2}/\d{2}/\d{4}"
+      maxlength="10"
+      autocomplete="bday"
+      value="{{ form_data.birth_date | default('', true) }}"
+      required
+    />
+
+
+    <label for="username">Usuario</label>
+
+    <input
+      id="username"
+      name="username"
+      type="text"
+      autocomplete="username"
+      value="{{ form_data.username | default('', true) }}"
+      required
+    />
+
+
+    <label for="email">Correo electrónico</label>
+
+    <input
+      id="email"
+      name="email"
+      type="email"
+      autocomplete="email"
+      value="{{ form_data.email | default('', true) }}"
+      required
+    />
+
+
+    <label for="password">Contraseña</label>
+
+    <input
+      id="password"
+      name="password"
+      type="password"
+      autocomplete="new-password"
+      data-password-strength
+      minlength="8"
+      required
+    />
+
+    <div class="password-strength">
+      <div class="password-strength-track" role="progressbar" aria-label="Seguridad de la contraseña" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1" data-strength-bar>
+        <span></span>
+      </div>
+      <p class="password-strength-label is-weak" aria-live="polite" data-strength-label>Débil — usá al menos 8 caracteres.</p>
+    </div>
+
+    <label class="check-row" for="accept_terms">
+      <input id="accept_terms" name="accept_terms" type="checkbox" required {% if form_data.accept_terms == 'on' %}checked{% endif %} />
+      <span>Acepto los <a href="{{ url_for('auth.terminos_y_condiciones') }}" target="_blank" rel="noopener">términos y condiciones</a>.</span>
+    </label>
+
+
+    <button class="lime-button" type="submit">
+      Crear cuenta <span aria-hidden="true">↗</span>
+    </button>
+
+    <p>¿Ya tenés cuenta? <a href="/login">Iniciá sesión</a></p>
+
+  </form>
+
 </section>
+
+<script src="{{ url_for('static', filename='password_strength.js') }}" defer></script>
 
 {% endblock %}

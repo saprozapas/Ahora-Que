@@ -1,0 +1,1515 @@
+diff --git a/app.py b/app.py
+index cf68bb8..228cda8 100644
+--- a/app.py
++++ b/app.py
+@@ -10,6 +10,7 @@ from routes.calendario import calendario_bp
+ from routes.planes import planes_bp
+ from routes.friends import friends_bp
+ from routes.grupo_planes import grupo_planes_bp
++from routes.chatbot import chatbot_bp
+ from services.invitation_service import InvitationService
+ from services.friend_service import FriendService
+ from services.plan_service import PlanService
+@@ -26,6 +27,7 @@ app.register_blueprint(planes_bp)
+ app.register_blueprint(inbox_bp)
+ app.register_blueprint(friends_bp)
+ app.register_blueprint(grupo_planes_bp)
++app.register_blueprint(chatbot_bp)
+ invitation_service = InvitationService()
+ friend_service = FriendService()
+ plan_service = PlanService()
+diff --git a/ia_bridge.py b/ia_bridge.py
+new file mode 100644
+index 0000000..eced5a9
+--- /dev/null
++++ b/ia_bridge.py
+@@ -0,0 +1,274 @@
++"""Puente entre Flask, la base de datos y el cifrado del chatbot.
++
++Todo lo que el chatbot persiste pasa por acá: conversaciones, mensajes
++cifrados y la verificación de lugares. No toca database_bridge ni los
++services existentes.
++
++Cifrado (ver services/crypto_service.py):
++  - Cada conversación tiene su DEK, guardada envuelta con la KEK en
++    "Conversacion"."Dek_Cifrada". AAD de la DEK: "dek|<Id_Conversacion>",
++    así una DEK no se puede copiar a otra conversación.
++  - Cada mensaje se cifra con la DEK. AAD del mensaje:
++    "<Id_Conversacion>|<Id_Mensaje>|<Rol>|<Tipo_Mensaje>", así no se
++    puede mover un mensaje de conversación ni cambiarle el rol o el tipo
++    en la base sin que falle el descifrado.
++"""
++import json
++import uuid
++
++import psycopg2
++
++from database import get_db_connection, release_db_connection
++from services.crypto_service import cifrar, descifrar, desenvolver_dek, envolver_dek, nueva_dek
++
++
++def _aad_dek(conv_id):
++    return f"dek|{conv_id}".encode("utf-8")
++
++
++def _aad_mensaje(conv_id, mensaje_id, rol, tipo):
++    return f"{conv_id}|{mensaje_id}|{rol}|{tipo}".encode("utf-8")
++
++
++def _es_uuid(valor):
++    try:
++        uuid.UUID(str(valor))
++        return True
++    except (ValueError, TypeError, AttributeError):
++        return False
++
++
++# --- Conversaciones ----------------------------------------------------------
++
++def _buscar_conversacion_bot(cursor, user_id):
++    cursor.execute(
++        """
++        SELECT c."Id_Conversacion", c."Dek_Cifrada"
++        FROM public."Conversacion" c
++        JOIN public."Conversacion_Miembro" cm ON c."Id_Conversacion" = cm."Id_Conversacion"
++        WHERE cm."Id_Usuario" = %s AND c."Tipo" = 'bot'
++        ORDER BY c."Created_At"
++        LIMIT 1
++        """,
++        (user_id,),
++    )
++    fila = cursor.fetchone()
++    if fila is None:
++        return None
++    conv_id = str(fila[0])
++    return conv_id, desenvolver_dek(bytes(fila[1]), _aad_dek(conv_id))
++
++
++def obtener_conversacion_bot(user_id):
++    """(conv_id, dek) de la conversación con el bot, o None si no hay."""
++    connection = get_db_connection()
++    try:
++        with connection.cursor() as cursor:
++            return _buscar_conversacion_bot(cursor, user_id)
++    except psycopg2.Error:
++        raise
++    finally:
++        release_db_connection(connection)
++
++
++def obtener_o_crear_conversacion_bot(user_id):
++    """(conv_id, dek) de la conversación con el bot; la crea si no existe."""
++    connection = get_db_connection()
++    try:
++        with connection.cursor() as cursor:
++            # Lock por usuario hasta el fin de la transacción: evita que dos
++            # requests simultáneos creen dos conversaciones para el mismo usuario.
++            cursor.execute(
++                "SELECT pg_advisory_xact_lock(hashtext(%s))",
++                (f"chatbot:{user_id}",),
++            )
++            existente = _buscar_conversacion_bot(cursor, user_id)
++            if existente:
++                connection.commit()
++                return existente
++
++            conv_id = str(uuid.uuid4())
++            dek = nueva_dek()
++            cursor.execute(
++                """
++                INSERT INTO public."Conversacion" ("Id_Conversacion", "Tipo", "Dek_Cifrada")
++                VALUES (%s, 'bot', %s)
++                """,
++                (conv_id, psycopg2.Binary(envolver_dek(dek, _aad_dek(conv_id)))),
++            )
++            cursor.execute(
++                """
++                INSERT INTO public."Conversacion_Miembro" ("Id_Conversacion", "Id_Usuario")
++                VALUES (%s, %s)
++                """,
++                (conv_id, user_id),
++            )
++        connection.commit()
++        return conv_id, dek
++    except psycopg2.Error:
++        connection.rollback()
++        raise
++    finally:
++        release_db_connection(connection)
++
++
++def borrar_conversacion_bot(user_id):
++    """Borra la conversación del usuario con el bot (y por CASCADE sus
++    mensajes). Al perderse la DEK, lo que quedara en backups tampoco se
++    puede descifrar."""
++    connection = get_db_connection()
++    try:
++        with connection.cursor() as cursor:
++            cursor.execute(
++                """
++                DELETE FROM public."Conversacion" c
++                USING public."Conversacion_Miembro" cm
++                WHERE cm."Id_Conversacion" = c."Id_Conversacion"
++                  AND cm."Id_Usuario" = %s
++                  AND c."Tipo" = 'bot'
++                """,
++                (user_id,),
++            )
++        connection.commit()
++    except psycopg2.Error:
++        connection.rollback()
++        raise
++    finally:
++        release_db_connection(connection)
++
++
++# --- Mensajes ----------------------------------------------------------------
++
++def guardar_mensajes(conv_id, dek, mensajes):
++    """Guarda varios mensajes cifrados en una sola transacción, en orden.
++
++    mensajes: lista de dicts {"remitente": uuid o None (bot),
++                              "rol": "user" | "assistant",
++                              "texto": str,
++                              "tipo": "texto" | "borrador"}
++    Devuelve la lista de Id_Mensaje en el mismo orden.
++    """
++    ids = []
++    connection = get_db_connection()
++    try:
++        with connection.cursor() as cursor:
++            for mensaje in mensajes:
++                mensaje_id = str(uuid.uuid4())
++                rol = mensaje["rol"]
++                tipo = mensaje.get("tipo", "texto")
++                blob = cifrar(dek, mensaje["texto"], _aad_mensaje(conv_id, mensaje_id, rol, tipo))
++                # clock_timestamp() (y no NOW(), que es fijo en toda la
++                # transacción) para que los mensajes queden ordenados.
++                cursor.execute(
++                    """
++                    INSERT INTO public."Mensaje"
++                        ("Id_Mensaje", "Id_Conversacion", "Id_Remitente", "Rol",
++                         "Tipo_Mensaje", "Contenido_Cifrado", "Created_At")
++                    VALUES (%s, %s, %s, %s, %s, %s, clock_timestamp())
++                    """,
++                    (mensaje_id, conv_id, mensaje.get("remitente"), rol, tipo, psycopg2.Binary(blob)),
++                )
++                ids.append(mensaje_id)
++        connection.commit()
++        return ids
++    except psycopg2.Error:
++        connection.rollback()
++        raise
++    finally:
++        release_db_connection(connection)
++
++
++def obtener_historial_desencriptado(conv_id, dek, limite=20):
++    """Los últimos `limite` mensajes, del más viejo al más nuevo:
++    [{"id", "role", "content", "tipo"}]."""
++    connection = get_db_connection()
++    try:
++        with connection.cursor() as cursor:
++            cursor.execute(
++                """
++                SELECT "Id_Mensaje", "Rol", "Tipo_Mensaje", "Contenido_Cifrado"
++                FROM public."Mensaje"
++                WHERE "Id_Conversacion" = %s
++                ORDER BY "Created_At" DESC
++                LIMIT %s
++                """,
++                (conv_id, limite),
++            )
++            filas = cursor.fetchall()
++    except psycopg2.Error:
++        raise
++    finally:
++        release_db_connection(connection)
++
++    historial = []
++    for mensaje_id, rol, tipo, blob in reversed(filas):
++        mensaje_id = str(mensaje_id)
++        texto = descifrar(dek, bytes(blob), _aad_mensaje(conv_id, mensaje_id, rol, tipo))
++        historial.append({"id": mensaje_id, "role": rol, "content": texto, "tipo": tipo})
++    return historial
++
++
++def obtener_borrador(conv_id, dek, mensaje_id):
++    """El borrador (dict) guardado en ese mensaje, solo si es de esta
++    conversación y es de tipo 'borrador'. Si no, None."""
++    if not _es_uuid(mensaje_id):
++        return None
++    connection = get_db_connection()
++    try:
++        with connection.cursor() as cursor:
++            cursor.execute(
++                """
++                SELECT "Contenido_Cifrado"
++                FROM public."Mensaje"
++                WHERE "Id_Mensaje" = %s
++                  AND "Id_Conversacion" = %s
++                  AND "Rol" = 'assistant'
++                  AND "Tipo_Mensaje" = 'borrador'
++                """,
++                (str(mensaje_id), conv_id),
++            )
++            fila = cursor.fetchone()
++    except psycopg2.Error:
++        raise
++    finally:
++        release_db_connection(connection)
++
++    if fila is None:
++        return None
++    texto = descifrar(dek, bytes(fila[0]), _aad_mensaje(conv_id, str(mensaje_id), "assistant", "borrador"))
++    return json.loads(texto)
++
++
++# --- Lugares -----------------------------------------------------------------
++
++def lugares_por_ids(ids):
++    """Verifica contra la tabla "Lugar" que los ids existan.
++    Devuelve {id: {"id", "nombre", "nivel_precio", "direccion"}} solo con
++    los que existen (los ids inventados o mal formados quedan afuera)."""
++    ids = [str(i) for i in ids if _es_uuid(i)]
++    if not ids:
++        return {}
++    connection = get_db_connection()
++    try:
++        with connection.cursor() as cursor:
++            cursor.execute(
++                """
++                SELECT "Id_Lugar", "Nombre", "Nivel_Precio", "Direccion"
++                FROM public."Lugar"
++                WHERE "Id_Lugar"::text = ANY(%s)
++                """,
++                (ids,),
++            )
++            return {
++                str(fila[0]): {
++                    "id": str(fila[0]),
++                    "nombre": fila[1],
++                    "nivel_precio": fila[2],
++                    "direccion": fila[3],
++                }
++                for fila in cursor.fetchall()
++            }
++    except psycopg2.Error:
++        raise
++    finally:
++        release_db_connection(connection)
+diff --git a/routes/chatbot.py b/routes/chatbot.py
+new file mode 100644
+index 0000000..e135c6e
+--- /dev/null
++++ b/routes/chatbot.py
+@@ -0,0 +1,174 @@
++"""Endpoints JSON del chatbot para crear ideas de plan.
++
++  GET  /chatbot/historial       mensajes de la conversación activa
++  POST /chatbot/mensaje         {"mensaje": str} -> respuesta del bot (+ borrador)
++  POST /chatbot/confirmar_plan  {"mensaje_id": str} -> guarda el borrador como idea
++  POST /chatbot/nueva           borra la conversación y arranca de cero
++"""
++import json
++
++from cryptography.exceptions import InvalidTag
++from flask import Blueprint, jsonify, request, session, url_for
++
++import ia_bridge
++from services.chatbot_service import historial_para_llm, procesar_mensaje_bot
++from services.crypto_service import ClaveMaestraFaltante
++from services.llm_service import LLMNoConfigurado
++from services.plan_service import PlanService
++
++chatbot_bp = Blueprint("chatbot", __name__, url_prefix="/chatbot")
++plan_service = PlanService()
++
++MAX_LARGO_MENSAJE = 1000
++LIMITE_HISTORIAL = 20
++
++
++def _no_autorizado():
++    return jsonify(error="Tenés que iniciar sesión."), 401
++
++
++def _error(mensaje, codigo):
++    return jsonify(error=mensaje), codigo
++
++
++def _mensaje_para_cliente(mensaje):
++    """Formato que usa el frontend: los borradores van como objeto."""
++    dato = {"id": mensaje["id"], "role": mensaje["role"], "tipo": mensaje["tipo"]}
++    if mensaje["tipo"] == "borrador":
++        dato["borrador"] = dict(json.loads(mensaje["content"]), mensaje_id=mensaje["id"])
++    else:
++        dato["content"] = mensaje["content"]
++    return dato
++
++
++@chatbot_bp.errorhandler(ClaveMaestraFaltante)
++@chatbot_bp.errorhandler(LLMNoConfigurado)
++def _no_configurado(error):
++    print(f"Chatbot sin configurar: {error}")
++    return _error("El asistente no está configurado en este servidor.", 503)
++
++
++@chatbot_bp.errorhandler(InvalidTag)
++def _no_se_pudo_descifrar(error):
++    # Un mensaje o la DEK no pasan la verificación de AES-GCM: se
++    # modificaron en la base o cambió CHAT_MASTER_KEY.
++    print("Chatbot: falló la verificación del cifrado (InvalidTag).")
++    return _error("No se pudo leer la conversación. Empezá una nueva conversación.", 500)
++
++
++@chatbot_bp.route("/historial")
++def historial():
++    user_id = session.get("user_id")
++    if not user_id:
++        return _no_autorizado()
++
++    conversacion = ia_bridge.obtener_conversacion_bot(user_id)
++    if conversacion is None:
++        return jsonify(mensajes=[])
++    conv_id, dek = conversacion
++    mensajes = ia_bridge.obtener_historial_desencriptado(conv_id, dek, limite=LIMITE_HISTORIAL)
++    return jsonify(mensajes=[_mensaje_para_cliente(m) for m in mensajes])
++
++
++@chatbot_bp.route("/mensaje", methods=["POST"])
++def enviar_mensaje():
++    user_id = session.get("user_id")
++    if not user_id:
++        return _no_autorizado()
++
++    datos = request.get_json(silent=True) or {}
++    texto_usuario = str(datos.get("mensaje") or "").strip()
++    if not texto_usuario:
++        return _error("El mensaje está vacío.", 400)
++    if len(texto_usuario) > MAX_LARGO_MENSAJE:
++        return _error(f"El mensaje puede tener hasta {MAX_LARGO_MENSAJE} caracteres.", 400)
++
++    conv_id, dek = ia_bridge.obtener_o_crear_conversacion_bot(user_id)
++    historial_guardado = ia_bridge.obtener_historial_desencriptado(conv_id, dek, limite=LIMITE_HISTORIAL)
++    mensajes_llm = historial_para_llm(historial_guardado)
++    mensajes_llm.append({"role": "user", "content": texto_usuario})
++
++    try:
++        respuesta, borrador = procesar_mensaje_bot(mensajes_llm)
++    except (ClaveMaestraFaltante, LLMNoConfigurado):
++        raise
++    except Exception as e:
++        print(f"Error del chatbot: {e}")
++        return _error("El asistente no pudo responder. Probá de nuevo en un rato.", 502)
++
++    # Se guarda todo junto recién cuando el bot respondió bien: así no
++    # quedan mensajes del usuario sin respuesta en el historial.
++    nuevos = [
++        {"remitente": user_id, "rol": "user", "texto": texto_usuario, "tipo": "texto"},
++        {"remitente": None, "rol": "assistant", "texto": respuesta, "tipo": "texto"},
++    ]
++    if borrador:
++        nuevos.append({
++            "remitente": None,
++            "rol": "assistant",
++            "texto": json.dumps(borrador, ensure_ascii=False, default=str),
++            "tipo": "borrador",
++        })
++    ids = ia_bridge.guardar_mensajes(conv_id, dek, nuevos)
++
++    return jsonify(
++        respuesta=respuesta,
++        borrador=dict(borrador, mensaje_id=ids[2]) if borrador else None,
++    )
++
++
++@chatbot_bp.route("/confirmar_plan", methods=["POST"])
++def confirmar_plan():
++    user_id = session.get("user_id")
++    if not user_id:
++        return _no_autorizado()
++
++    datos = request.get_json(silent=True) or {}
++    conversacion = ia_bridge.obtener_conversacion_bot(user_id)
++    if conversacion is None:
++        return _error("No hay ninguna conversación con el asistente.", 404)
++    conv_id, dek = conversacion
++
++    # El borrador se lee de la base (cifrado), no del navegador: el
++    # cliente solo manda el id del mensaje.
++    borrador = ia_bridge.obtener_borrador(conv_id, dek, datos.get("mensaje_id"))
++    if borrador is None:
++        return _error("No se encontró ese borrador.", 404)
++
++    # Se vuelve a verificar por si algún lugar se borró desde que se propuso.
++    ids = [lugar["id_lugar"] for lugar in borrador["lugares"]]
++    existentes = ia_bridge.lugares_por_ids(ids)
++    lugares = [
++        {
++            "id_lugar": id_lugar,
++            "nombre": existentes[id_lugar]["nombre"],
++            "nivel_precio": existentes[id_lugar]["nivel_precio"],
++            "hora": lugar.get("hora"),
++        }
++        for lugar, id_lugar in zip(borrador["lugares"], ids)
++        if id_lugar in existentes
++    ]
++    if not lugares:
++        return _error("Los lugares de este borrador ya no existen. Pedile al asistente otra propuesta.", 409)
++
++    try:
++        plan_id = plan_service.crear_idea(
++            user_id=user_id,
++            nombre=borrador["nombre"],
++            descripcion=borrador.get("descripcion") or None,
++            lugares=lugares,
++        )
++    except Exception as e:
++        print(f"Error al guardar la idea del chatbot: {e}")
++        return _error("No se pudo guardar la idea. Intentá de nuevo.", 500)
++
++    return jsonify(status="ok", plan_id=str(plan_id), url=url_for("planes.detalle", plan_id=plan_id))
++
++
++@chatbot_bp.route("/nueva", methods=["POST"])
++def nueva_conversacion():
++    user_id = session.get("user_id")
++    if not user_id:
++        return _no_autorizado()
++    ia_bridge.borrar_conversacion_bot(user_id)
++    return jsonify(status="ok")
+diff --git a/services/chatbot_service.py b/services/chatbot_service.py
+new file mode 100644
+index 0000000..26f4c5c
+--- /dev/null
++++ b/services/chatbot_service.py
+@@ -0,0 +1,256 @@
++"""Lógica del chatbot para armar ideas de plan (Tool Calling).
++
++El modelo tiene dos herramientas:
++
++  buscar_lugares      usa LugarService.buscar con los mismos filtros que
++                      el formulario (services/lugar_filtros.py). Si se
++                      agrega un filtro ahí, el bot lo recibe solo.
++  proponer_borrador   el modelo arma la idea con ids de lugares. Acá se
++                      verifican contra la tabla "Lugar": el borrador que
++                      llega al usuario solo tiene lugares reales, con el
++                      nombre y el precio que dice la base (no el modelo).
++
++No hay memoria entre conversaciones: todo lo que el bot sabe del usuario
++sale de los mensajes de la conversación activa.
++"""
++import json
++import re
++
++import ia_bridge
++from services.llm_service import chat_completion
++from services.lugar_filtros import FILTROS_LUGAR
++from services.lugar_service import LugarService
++
++lugar_service = LugarService()
++
++MAX_ITERACIONES = 5
++MAX_RESULTADOS_BUSQUEDA = 10
++MAX_LUGARES_BORRADOR = 8
++MAX_NOMBRE = 120
++MAX_DESCRIPCION = 600
++_HORA = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
++
++SYSTEM_PROMPT = (
++    "Sos el asistente de 'Ahora Qué', una app para armar planes y salidas en Montevideo. "
++    "Hablás en español rioplatense, con tono cercano y respuestas cortas.\n"
++    "Tu trabajo es ayudar al usuario a armar una IDEA de plan: qué hacer y por qué lugares pasar "
++    "(las ideas no tienen fecha; la fecha se elige después, en un grupo).\n"
++    "Reglas:\n"
++    "1. Para recomendar lugares usá SIEMPRE la herramienta buscar_lugares. Nunca inventes lugares, "
++    "direcciones ni precios: solo podés mencionar lugares que devolvió la herramienta.\n"
++    "2. Si una búsqueda no trae resultados, probá con menos filtros o con otra palabra clave antes de rendirte.\n"
++    "3. Si falta información importante (qué tipo de salida, presupuesto, restricciones de comida, si van menores), "
++    "preguntala, de a una o dos cosas por vez.\n"
++    "4. Cuando tengas una propuesta concreta, o el usuario te pida guardarla, llamá a proponer_borrador con un "
++    "nombre corto, una descripción y los id_lugar exactos que devolvió buscar_lugares. Si en esta conversación "
++    "no tenés los ids a mano, volvé a buscar los lugares antes de proponer el borrador.\n"
++    "5. Después de proponer el borrador, contale al usuario en una o dos frases qué armaste y avisale que "
++    "puede guardarlo con el botón o pedirte cambios.\n"
++    "6. Nunca muestres ids, JSON ni detalles técnicos al usuario."
++)
++
++
++# --- Herramientas ------------------------------------------------------------
++
++def schema_tools():
++    props = {"texto": {"type": "string", "description": "Palabra clave: nombre o tipo de lugar (ej: 'bar', 'parrilla', 'café')."}}
++    for filtro in FILTROS_LUGAR:
++        if filtro["tipo"] == "checkbox":
++            props[filtro["id"]] = {"type": "boolean", "description": filtro["etiqueta"]}
++        elif filtro["tipo"] == "select":
++            opciones = [(valor, etiqueta) for valor, etiqueta in filtro["opciones"] if valor]
++            props[filtro["id"]] = {
++                "type": "string",
++                "enum": [valor for valor, _ in opciones],
++                "description": filtro["etiqueta"] + " (" + ", ".join(f"{v} = {e}" for v, e in opciones) + ")",
++            }
++        elif filtro["tipo"] == "numero":
++            props[filtro["id"]] = {"type": "number", "description": filtro["etiqueta"]}
++        else:
++            props[filtro["id"]] = {"type": "string", "description": filtro["etiqueta"]}
++
++    return [
++        {
++            "type": "function",
++            "function": {
++                "name": "buscar_lugares",
++                "description": "Busca lugares reales de Montevideo en la base de datos de la app. "
++                               "Todos los parámetros son opcionales; usá solo los que el usuario pidió.",
++                "parameters": {"type": "object", "properties": props},
++            },
++        },
++        {
++            "type": "function",
++            "function": {
++                "name": "proponer_borrador",
++                "description": "Arma el borrador de la idea de plan para que el usuario lo pueda guardar. "
++                               "Los lugares tienen que ser ids devueltos por buscar_lugares, en el orden del recorrido.",
++                "parameters": {
++                    "type": "object",
++                    "properties": {
++                        "nombre": {"type": "string", "description": "Nombre corto de la idea (ej: 'Cena y pool')."},
++                        "descripcion": {"type": "string", "description": "De qué se trata la idea, en una o dos frases."},
++                        "lugares": {
++                            "type": "array",
++                            "items": {
++                                "type": "object",
++                                "properties": {
++                                    "id_lugar": {"type": "string", "description": "id exacto devuelto por buscar_lugares."},
++                                    "hora": {"type": "string", "description": "Hora sugerida HH:MM (opcional)."},
++                                },
++                                "required": ["id_lugar"],
++                            },
++                        },
++                    },
++                    "required": ["nombre", "lugares"],
++                },
++            },
++        },
++    ]
++
++
++def ejecutar_buscar_lugares(args):
++    filtros = {}
++    for clave, valor in args.items():
++        if clave == "texto" or valor in (None, False, ""):
++            continue
++        filtros[clave] = "1" if valor is True else str(valor)
++    return lugar_service.buscar(
++        texto=args.get("texto") or "",
++        tipo_id="",
++        filtros=filtros,
++        limite=MAX_RESULTADOS_BUSQUEDA,
++    )
++
++
++def ejecutar_proponer_borrador(args):
++    """Valida el borrador del modelo. Devuelve (borrador o None, respuesta_para_el_modelo)."""
++    nombre = str(args.get("nombre") or "").strip()[:MAX_NOMBRE]
++    descripcion = str(args.get("descripcion") or "").strip()[:MAX_DESCRIPCION]
++    pedidos = args.get("lugares") or []
++    if not isinstance(pedidos, list):
++        pedidos = []
++
++    if not nombre:
++        return None, {"ok": False, "error": "El borrador necesita un nombre."}
++
++    ids_pedidos = []
++    horas = {}
++    for pedido in pedidos:
++        if not isinstance(pedido, dict):
++            continue
++        id_lugar = str(pedido.get("id_lugar") or "").strip()
++        if not id_lugar or id_lugar in ids_pedidos:
++            continue
++        ids_pedidos.append(id_lugar)
++        hora = str(pedido.get("hora") or "").strip()
++        horas[id_lugar] = hora if _HORA.match(hora) else None
++
++    if not ids_pedidos:
++        return None, {"ok": False, "error": "El borrador necesita al menos un lugar devuelto por buscar_lugares."}
++    if len(ids_pedidos) > MAX_LUGARES_BORRADOR:
++        return None, {"ok": False, "error": f"Máximo {MAX_LUGARES_BORRADOR} lugares por idea."}
++
++    existentes = ia_bridge.lugares_por_ids(ids_pedidos)
++    invalidos = [i for i in ids_pedidos if i not in existentes]
++    if invalidos:
++        return None, {
++            "ok": False,
++            "error": "Estos id_lugar no existen. Volvé a usar buscar_lugares y usá los ids exactos.",
++            "ids_invalidos": invalidos,
++        }
++
++    borrador = {
++        "nombre": nombre,
++        "descripcion": descripcion,
++        "lugares": [
++            {
++                "id_lugar": id_lugar,
++                "nombre": existentes[id_lugar]["nombre"],
++                "nivel_precio": existentes[id_lugar]["nivel_precio"],
++                "direccion": existentes[id_lugar]["direccion"],
++                "hora": horas[id_lugar],
++            }
++            for id_lugar in ids_pedidos
++        ],
++    }
++    return borrador, {"ok": True, "mensaje": "Borrador listo: el usuario ya lo ve con un botón para guardarlo."}
++
++
++# --- Conversación ------------------------------------------------------------
++
++def historial_para_llm(historial):
++    """Convierte el historial guardado al formato del modelo. Los borradores
++    se le pasan como texto (con los ids), así puede ajustarlos si el
++    usuario pide cambios."""
++    mensajes = [{"role": "system", "content": SYSTEM_PROMPT}]
++    for mensaje in historial:
++        if mensaje["tipo"] == "borrador":
++            contenido = "[Borrador propuesto al usuario] " + mensaje["content"]
++        else:
++            contenido = mensaje["content"]
++        mensajes.append({"role": mensaje["role"], "content": contenido})
++    return mensajes
++
++
++def _tool_call_a_dict(tool_call):
++    return {
++        "id": tool_call.id,
++        "type": "function",
++        "function": {"name": tool_call.function.name, "arguments": tool_call.function.arguments},
++    }
++
++
++def _ejecutar_tool(tool_call):
++    """Devuelve (borrador o None, contenido_para_el_modelo)."""
++    nombre = tool_call.function.name
++    try:
++        args = json.loads(tool_call.function.arguments or "{}")
++        if not isinstance(args, dict):
++            raise ValueError
++    except ValueError:
++        return None, {"ok": False, "error": "Argumentos inválidos: tienen que ser un objeto JSON."}
++
++    if nombre == "buscar_lugares":
++        resultados = ejecutar_buscar_lugares(args)
++        return None, {"cantidad": len(resultados), "lugares": resultados}
++    if nombre == "proponer_borrador":
++        return ejecutar_proponer_borrador(args)
++    return None, {"ok": False, "error": f"Herramienta desconocida: {nombre}"}
++
++
++def procesar_mensaje_bot(mensajes):
++    """Corre el ciclo de Tool Calling. `mensajes` ya incluye el system
++    prompt y el último mensaje del usuario (ver historial_para_llm).
++
++    Devuelve (texto_respuesta, borrador o None).
++    """
++    tools = schema_tools()
++    borrador = None
++
++    for _ in range(MAX_ITERACIONES):
++        msg = chat_completion(mensajes, tools=tools)
++        if not msg.tool_calls:
++            texto = (msg.content or "").strip()
++            if not texto:
++                texto = "Listo, te dejé el borrador abajo." if borrador else "¿Me contás un poco más qué tenés ganas de hacer?"
++            return texto, borrador
++
++        mensajes.append({
++            "role": "assistant",
++            "content": msg.content or "",
++            "tool_calls": [_tool_call_a_dict(tc) for tc in msg.tool_calls],
++        })
++        for tool_call in msg.tool_calls:
++            nuevo_borrador, resultado = _ejecutar_tool(tool_call)
++            if nuevo_borrador:
++                borrador = nuevo_borrador
++            mensajes.append({
++                "role": "tool",
++                "tool_call_id": tool_call.id,
++                "content": json.dumps(resultado, ensure_ascii=False, default=str),
++            })
++
++    # Se pasó de iteraciones: se le pide una respuesta final sin herramientas.
++    msg = chat_completion(mensajes)
++    return (msg.content or "").strip() or "Perdón, me trabé buscando. ¿Probamos de nuevo?", borrador
+diff --git a/services/crypto_service.py b/services/crypto_service.py
+new file mode 100644
+index 0000000..226be1a
+--- /dev/null
++++ b/services/crypto_service.py
+@@ -0,0 +1,65 @@
++"""Cifrado en reposo de los mensajes del chatbot (Envelope Encryption).
++
++Cada conversación tiene su propia clave de datos (DEK, AES-256). La DEK
++se guarda en la base "envuelta" (cifrada) con la clave maestra (KEK),
++que NO está en la base: sale de la variable de entorno CHAT_MASTER_KEY.
++
++Formato de los blobs guardados: nonce (12 bytes) + ciphertext + tag (AES-GCM).
++
++La KEK se lee recién la primera vez que se usa (no al importar), así la
++app sigue levantando aunque la variable no esté configurada: solo falla
++el chatbot, con un mensaje claro.
++
++Para generar una clave maestra nueva:
++    python -c "import os, base64; print(base64.b64encode(os.urandom(32)).decode())"
++"""
++import base64
++import os
++
++from cryptography.hazmat.primitives.ciphers.aead import AESGCM
++
++_NONCE_BYTES = 12
++_kek = None
++
++
++class ClaveMaestraFaltante(RuntimeError):
++    pass
++
++
++def _get_kek():
++    global _kek
++    if _kek is None:
++        valor = os.environ.get("CHAT_MASTER_KEY", "").strip()
++        if not valor:
++            raise ClaveMaestraFaltante(
++                "Falta la variable de entorno CHAT_MASTER_KEY (32 bytes en base64)."
++            )
++        clave = base64.b64decode(valor)
++        if len(clave) != 32:
++            raise ClaveMaestraFaltante(
++                "CHAT_MASTER_KEY tiene que ser de 32 bytes (AES-256) codificada en base64."
++            )
++        _kek = AESGCM(clave)
++    return _kek
++
++
++def nueva_dek() -> bytes:
++    return AESGCM.generate_key(bit_length=256)
++
++
++def envolver_dek(dek: bytes, aad: bytes) -> bytes:
++    nonce = os.urandom(_NONCE_BYTES)
++    return nonce + _get_kek().encrypt(nonce, dek, aad)
++
++
++def desenvolver_dek(blob: bytes, aad: bytes) -> bytes:
++    return _get_kek().decrypt(blob[:_NONCE_BYTES], blob[_NONCE_BYTES:], aad)
++
++
++def cifrar(dek: bytes, texto: str, aad: bytes) -> bytes:
++    nonce = os.urandom(_NONCE_BYTES)
++    return nonce + AESGCM(dek).encrypt(nonce, texto.encode("utf-8"), aad)
++
++
++def descifrar(dek: bytes, blob: bytes, aad: bytes) -> str:
++    return AESGCM(dek).decrypt(blob[:_NONCE_BYTES], blob[_NONCE_BYTES:], aad).decode("utf-8")
+diff --git a/services/llm_service.py b/services/llm_service.py
+new file mode 100644
+index 0000000..9d9d957
+--- /dev/null
++++ b/services/llm_service.py
+@@ -0,0 +1,39 @@
++"""Integración con Groq (Llama 3.3 70B).
++
++El cliente se crea recién la primera vez que se usa, así la app levanta
++aunque falte GROQ_API_KEY o la librería groq: solo falla el chatbot.
++"""
++import os
++
++MODELO = "llama-3.3-70b-versatile"
++
++_client = None
++
++
++class LLMNoConfigurado(RuntimeError):
++    pass
++
++
++def _get_client():
++    global _client
++    if _client is None:
++        api_key = os.environ.get("GROQ_API_KEY", "").strip()
++        if not api_key:
++            raise LLMNoConfigurado("Falta la variable de entorno GROQ_API_KEY.")
++        from groq import Groq
++        _client = Groq(api_key=api_key)
++    return _client
++
++
++def chat_completion(messages, tools=None, temperature=0.5):
++    payload = {
++        "model": MODELO,
++        "messages": messages,
++        "temperature": temperature,
++    }
++    if tools:
++        payload["tools"] = tools
++        payload["tool_choice"] = "auto"
++
++    response = _get_client().chat.completions.create(**payload)
++    return response.choices[0].message
+diff --git a/sql/chatbot.sql b/sql/chatbot.sql
+new file mode 100644
+index 0000000..3ef2580
+--- /dev/null
++++ b/sql/chatbot.sql
+@@ -0,0 +1,45 @@
++-- ============================================================================
++-- Chatbot: conversaciones y mensajes cifrados en reposo (Envelope Encryption)
++-- Idempotente: se puede correr más de una vez sin romper nada.
++-- ============================================================================
++
++-- Conversaciones. Por ahora solo con el bot ('bot'); el chat entre
++-- usuarios se agrega después ampliando el CHECK de "Tipo".
++CREATE TABLE IF NOT EXISTS public."Conversacion" (
++    "Id_Conversacion" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
++    "Tipo"            TEXT NOT NULL CHECK ("Tipo" IN ('bot')),
++    "Dek_Cifrada"     BYTEA NOT NULL,  -- DEK envuelta con la KEK: nonce (12B) + ciphertext
++    "Created_At"      TIMESTAMPTZ NOT NULL DEFAULT NOW()
++);
++
++-- Quién participa de cada conversación.
++CREATE TABLE IF NOT EXISTS public."Conversacion_Miembro" (
++    "Id_Conversacion" UUID NOT NULL REFERENCES public."Conversacion" ("Id_Conversacion") ON DELETE CASCADE,
++    "Id_Usuario"      UUID NOT NULL REFERENCES public."Usuarios" ("Id_Usuario") ON DELETE CASCADE,
++    PRIMARY KEY ("Id_Conversacion", "Id_Usuario")
++);
++
++CREATE INDEX IF NOT EXISTS idx_conversacion_miembro_usuario
++    ON public."Conversacion_Miembro" ("Id_Usuario");
++
++-- Mensajes cifrados con la DEK de su conversación.
++CREATE TABLE IF NOT EXISTS public."Mensaje" (
++    "Id_Mensaje"        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
++    "Id_Conversacion"   UUID NOT NULL REFERENCES public."Conversacion" ("Id_Conversacion") ON DELETE CASCADE,
++    "Id_Remitente"      UUID REFERENCES public."Usuarios" ("Id_Usuario") ON DELETE CASCADE, -- NULL = lo mandó el bot
++    "Rol"               TEXT NOT NULL CHECK ("Rol" IN ('user', 'assistant')),
++    "Tipo_Mensaje"      TEXT NOT NULL DEFAULT 'texto' CHECK ("Tipo_Mensaje" IN ('texto', 'borrador')),
++    "Contenido_Cifrado" BYTEA NOT NULL, -- nonce (12B) + ciphertext + tag (AES-256-GCM)
++    "Created_At"        TIMESTAMPTZ NOT NULL DEFAULT NOW()
++);
++
++CREATE INDEX IF NOT EXISTS idx_mensaje_conv_created
++    ON public."Mensaje" ("Id_Conversacion", "Created_At");
++
++-- Supabase expone las tablas de "public" por su API REST. Con RLS activado
++-- y sin políticas, esa API no puede leer ni escribir estas tablas; la app
++-- se conecta como "postgres" (dueño de las tablas), que no pasa por RLS,
++-- así que a la app no le cambia nada.
++ALTER TABLE public."Conversacion"         ENABLE ROW LEVEL SECURITY;
++ALTER TABLE public."Conversacion_Miembro" ENABLE ROW LEVEL SECURITY;
++ALTER TABLE public."Mensaje"              ENABLE ROW LEVEL SECURITY;
+diff --git a/static/chatbot.css b/static/chatbot.css
+new file mode 100644
+index 0000000..22c0b2d
+--- /dev/null
++++ b/static/chatbot.css
+@@ -0,0 +1,273 @@
++/* ==========================================================================
++   Chatbot (asistente IA para crear ideas)
++   Solo usa los tokens de style.css, así que el modo noche funciona solo.
++   ========================================================================== */
++
++.chatbot {
++  display: flex;
++  flex-direction: column;
++  gap: 14px;
++
++  margin: clamp(20px, 3vw, 32px) 0;
++  padding: 18px;
++
++  border: 1px solid var(--line-strong);
++  border-radius: var(--radius);
++  background: var(--surface-3);
++}
++
++.chatbot-cabecera {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: flex-start;
++  justify-content: space-between;
++  gap: 10px;
++}
++
++.chatbot-titulo {
++  font-size: 1.375rem;
++  letter-spacing: -0.02em;
++}
++
++.chatbot-bajada {
++  margin-top: 4px;
++  color: var(--muted);
++  font-size: var(--text-sm);
++}
++
++.chatbot-nueva,
++.chatbot-accion {
++  padding: 8px 14px;
++
++  border: 1px solid var(--line-strong);
++  border-radius: var(--radius-pill);
++  background: transparent;
++  color: inherit;
++
++  font: inherit;
++  font-size: var(--text-sm);
++  font-weight: 600;
++  cursor: pointer;
++}
++
++.chatbot-nueva:hover,
++.chatbot-accion:hover:not(:disabled) {
++  border-color: var(--ink);
++  background: var(--surface-2);
++}
++
++.chatbot-accion:disabled,
++.chatbot-nueva:disabled {
++  color: var(--muted);
++  cursor: default;
++}
++
++.chatbot-accion-principal {
++  border-color: var(--accent);
++  background: var(--accent);
++  color: var(--on-accent);
++}
++
++.chatbot-accion-principal:hover:not(:disabled) {
++  border-color: var(--accent);
++  background: color-mix(in srgb, var(--accent) 86%, var(--ink));
++}
++
++.chatbot-mensajes {
++  display: flex;
++  flex-direction: column;
++  gap: 10px;
++
++  min-height: 160px;
++  max-height: min(460px, 60vh);
++  padding: 4px 2px;
++
++  overflow-y: auto;
++  overscroll-behavior: contain;
++}
++
++.chatbot-vacio {
++  margin: auto 0;
++  color: var(--muted);
++  font-size: var(--text-sm);
++  text-align: center;
++}
++
++.chatbot-mensaje {
++  max-width: 82%;
++  padding: 10px 14px;
++
++  border-radius: var(--radius);
++  font-size: var(--text-sm);
++  line-height: 1.5;
++  white-space: pre-wrap;
++  overflow-wrap: anywhere;
++}
++
++.chatbot-mensaje-user {
++  align-self: flex-end;
++  border-bottom-right-radius: 4px;
++  background: var(--accent);
++  color: var(--on-accent);
++}
++
++.chatbot-mensaje-assistant {
++  align-self: flex-start;
++  border: 1px solid var(--line);
++  border-bottom-left-radius: 4px;
++  background: var(--page);
++  color: var(--ink);
++}
++
++.chatbot-mensaje-error {
++  align-self: center;
++  border: 1px solid var(--danger);
++  background: var(--danger-soft);
++  color: var(--danger);
++}
++
++.chatbot-escribiendo {
++  color: var(--muted);
++  font-style: italic;
++}
++
++/* --- Tarjeta de borrador ------------------------------------------------- */
++
++.chatbot-borrador {
++  align-self: stretch;
++  padding: 14px;
++
++  border: 1px solid var(--accent);
++  border-radius: var(--radius);
++  background: var(--page);
++}
++
++.chatbot-borrador-etiqueta {
++  color: var(--accent);
++  font-size: var(--text-xs);
++  font-weight: 700;
++  letter-spacing: 0.06em;
++  text-transform: uppercase;
++}
++
++.chatbot-borrador-nombre {
++  margin-top: 4px;
++  font-size: var(--text-base);
++  font-weight: 700;
++}
++
++.chatbot-borrador-descripcion {
++  margin-top: 4px;
++  color: var(--muted);
++  font-size: var(--text-sm);
++}
++
++.chatbot-borrador-lugares {
++  display: flex;
++  flex-direction: column;
++  gap: 6px;
++
++  margin: 10px 0 12px;
++  padding: 0;
++
++  list-style: none;
++  counter-reset: parada;
++}
++
++.chatbot-borrador-lugar {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 4px 10px;
++  padding: 8px 10px;
++
++  border-radius: var(--radius-sm);
++  background: var(--surface-1);
++  font-size: var(--text-sm);
++  counter-increment: parada;
++}
++
++.chatbot-borrador-lugar::before {
++  content: counter(parada) ".";
++  color: var(--muted);
++  font-weight: 700;
++}
++
++.chatbot-borrador-lugar strong {
++  font-weight: 600;
++}
++
++.chatbot-borrador-lugar small {
++  color: var(--muted);
++  font-size: var(--text-xs);
++}
++
++.chatbot-borrador-acciones {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: 8px;
++}
++
++.chatbot-borrador-estado {
++  font-size: var(--text-sm);
++  font-weight: 600;
++}
++
++.chatbot-borrador-estado a {
++  color: var(--accent);
++}
++
++/* --- Entrada ------------------------------------------------------------- */
++
++.chatbot-entrada {
++  display: flex;
++  gap: 10px;
++}
++
++.chatbot-entrada input {
++  flex: 1;
++  min-width: 0;
++  min-height: 46px;
++  padding: 10px 14px;
++
++  border: 1px solid var(--line);
++  border-radius: var(--radius-sm);
++  background: var(--page);
++  color: var(--ink);
++
++  font-family: inherit;
++  font-size: var(--text-base);
++}
++
++.chatbot-entrada input::placeholder {
++  color: var(--muted);
++}
++
++.chatbot-entrada input:focus {
++  border-color: var(--accent);
++  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
++  outline: none;
++}
++
++.chatbot-enviar {
++  min-height: 46px;
++}
++
++.chatbot-oculto {
++  position: absolute;
++  width: 1px;
++  height: 1px;
++  overflow: hidden;
++  clip: rect(0 0 0 0);
++  white-space: nowrap;
++}
++
++@media (max-width: 650px) {
++  .chatbot {
++    padding: 14px;
++  }
++
++  .chatbot-mensaje {
++    max-width: 92%;
++  }
++}
+diff --git a/static/chatbot.js b/static/chatbot.js
+new file mode 100644
+index 0000000..e5538bf
+--- /dev/null
++++ b/static/chatbot.js
+@@ -0,0 +1,230 @@
++/* Chatbot para armar ideas de plan (ver templates/_chatbot_panel.html).
++   Habla con los endpoints de routes/chatbot.py. Todo el texto se pone
++   con textContent: nada de lo que escribe el usuario o el bot se
++   interpreta como HTML. */
++(function () {
++  "use strict";
++
++  var panel = document.getElementById("chatbot");
++  if (!panel) { return; }
++
++  var caja      = document.getElementById("chatbot-mensajes");
++  var vacio     = document.getElementById("chatbot-vacio");
++  var form      = document.getElementById("chatbot-form");
++  var input     = document.getElementById("chatbot-input");
++  var enviar    = document.getElementById("chatbot-enviar");
++  var botonNueva = document.getElementById("chatbot-nueva");
++  var ocupado   = false;
++
++  function bajarAlFinal() {
++    caja.scrollTop = caja.scrollHeight;
++  }
++
++  function mostrarVacio() {
++    vacio.hidden = caja.querySelectorAll(".chatbot-mensaje, .chatbot-borrador").length > 0;
++  }
++
++  function agregarMensaje(rol, texto) {
++    var div = document.createElement("div");
++    div.className = "chatbot-mensaje chatbot-mensaje-" + rol;
++    div.textContent = texto;
++    caja.appendChild(div);
++    mostrarVacio();
++    bajarAlFinal();
++    return div;
++  }
++
++  function precio(nivel) {
++    if (nivel === null || nivel === undefined || nivel === "") { return ""; }
++    nivel = parseInt(nivel, 10);
++    return nivel > 0 ? new Array(nivel + 1).join("$") : "Gratis";
++  }
++
++  function pedirJSON(url, opciones) {
++    return fetch(url, opciones).then(function (respuesta) {
++      return respuesta.json().catch(function () { return {}; }).then(function (datos) {
++        if (!respuesta.ok) {
++          throw new Error(datos.error || "Algo salió mal. Probá de nuevo.");
++        }
++        return datos;
++      });
++    });
++  }
++
++  function postJSON(url, cuerpo) {
++    return pedirJSON(url, {
++      method: "POST",
++      headers: { "Content-Type": "application/json" },
++      body: JSON.stringify(cuerpo || {})
++    });
++  }
++
++  // --- Tarjeta de borrador ---------------------------------------------------
++
++  function agregarBorrador(borrador) {
++    var tarjeta = document.createElement("div");
++    tarjeta.className = "chatbot-borrador";
++
++    var etiqueta = document.createElement("p");
++    etiqueta.className = "chatbot-borrador-etiqueta";
++    etiqueta.textContent = "Borrador de idea";
++    tarjeta.appendChild(etiqueta);
++
++    var nombre = document.createElement("p");
++    nombre.className = "chatbot-borrador-nombre";
++    nombre.textContent = borrador.nombre;
++    tarjeta.appendChild(nombre);
++
++    if (borrador.descripcion) {
++      var descripcion = document.createElement("p");
++      descripcion.className = "chatbot-borrador-descripcion";
++      descripcion.textContent = borrador.descripcion;
++      tarjeta.appendChild(descripcion);
++    }
++
++    var lista = document.createElement("ol");
++    lista.className = "chatbot-borrador-lugares";
++    (borrador.lugares || []).forEach(function (lugar) {
++      var item = document.createElement("li");
++      item.className = "chatbot-borrador-lugar";
++
++      var nombreLugar = document.createElement("strong");
++      nombreLugar.textContent = lugar.nombre;
++      item.appendChild(nombreLugar);
++
++      var detalle = [];
++      if (lugar.hora) { detalle.push(lugar.hora); }
++      if (lugar.direccion) { detalle.push(lugar.direccion); }
++      if (precio(lugar.nivel_precio)) { detalle.push(precio(lugar.nivel_precio)); }
++      if (detalle.length) {
++        var sub = document.createElement("small");
++        sub.textContent = detalle.join(" · ");
++        item.appendChild(sub);
++      }
++      lista.appendChild(item);
++    });
++    tarjeta.appendChild(lista);
++
++    var acciones = document.createElement("div");
++    acciones.className = "chatbot-borrador-acciones";
++
++    var guardar = document.createElement("button");
++    guardar.type = "button";
++    guardar.className = "chatbot-accion chatbot-accion-principal";
++    guardar.textContent = "Guardar como idea";
++    acciones.appendChild(guardar);
++
++    // Solo en la página de crear idea: carga el borrador en el formulario
++    // para editarlo a mano antes de guardarlo.
++    if (typeof window.crearIdeaCargarBorrador === "function") {
++      var alFormulario = document.createElement("button");
++      alFormulario.type = "button";
++      alFormulario.className = "chatbot-accion";
++      alFormulario.textContent = "Pasar al formulario";
++      alFormulario.addEventListener("click", function () {
++        window.crearIdeaCargarBorrador(borrador);
++      });
++      acciones.appendChild(alFormulario);
++    }
++
++    var estado = document.createElement("span");
++    estado.className = "chatbot-borrador-estado";
++    acciones.appendChild(estado);
++
++    guardar.addEventListener("click", function () {
++      guardar.disabled = true;
++      guardar.textContent = "Guardando...";
++      postJSON("/chatbot/confirmar_plan", { mensaje_id: borrador.mensaje_id })
++        .then(function (datos) {
++          guardar.textContent = "Guardada";
++          estado.textContent = "";
++          var link = document.createElement("a");
++          link.href = datos.url;
++          link.textContent = "Ver la idea →";
++          estado.appendChild(link);
++        })
++        .catch(function (error) {
++          guardar.disabled = false;
++          guardar.textContent = "Guardar como idea";
++          estado.textContent = error.message;
++        });
++    });
++
++    tarjeta.appendChild(acciones);
++    caja.appendChild(tarjeta);
++    mostrarVacio();
++    bajarAlFinal();
++  }
++
++  // --- Enviar ----------------------------------------------------------------
++
++  function bloquear(valor) {
++    ocupado = valor;
++    input.disabled = valor;
++    enviar.disabled = valor;
++    botonNueva.disabled = valor;
++    enviar.setAttribute("aria-busy", valor ? "true" : "false");
++  }
++
++  function enviarMensaje(evento) {
++    evento.preventDefault();
++    var texto = input.value.trim();
++    if (!texto || ocupado) { return; }
++
++    agregarMensaje("user", texto);
++    input.value = "";
++    bloquear(true);
++
++    var escribiendo = agregarMensaje("assistant", "Pensando...");
++    escribiendo.classList.add("chatbot-escribiendo");
++
++    postJSON("/chatbot/mensaje", { mensaje: texto })
++      .then(function (datos) {
++        escribiendo.remove();
++        agregarMensaje("assistant", datos.respuesta);
++        if (datos.borrador) { agregarBorrador(datos.borrador); }
++      })
++      .catch(function (error) {
++        escribiendo.remove();
++        agregarMensaje("error", error.message);
++        // Se devuelve el texto al campo para poder reintentar.
++        if (!input.value) { input.value = texto; }
++      })
++      .then(function () {
++        bloquear(false);
++        input.focus();
++      });
++  }
++
++  function nuevaConversacion() {
++    if (ocupado) { return; }
++    if (!confirm("¿Borrar esta conversación y empezar de cero?")) { return; }
++    bloquear(true);
++    postJSON("/chatbot/nueva")
++      .then(function () {
++        var viejos = caja.querySelectorAll(".chatbot-mensaje, .chatbot-borrador");
++        for (var i = 0; i < viejos.length; i++) { viejos[i].remove(); }
++        mostrarVacio();
++      })
++      .catch(function (error) { agregarMensaje("error", error.message); })
++      .then(function () { bloquear(false); });
++  }
++
++  function cargarHistorial() {
++    pedirJSON("/chatbot/historial")
++      .then(function (datos) {
++        (datos.mensajes || []).forEach(function (mensaje) {
++          if (mensaje.tipo === "borrador") {
++            agregarBorrador(mensaje.borrador);
++          } else {
++            agregarMensaje(mensaje.role, mensaje.content);
++          }
++        });
++      })
++      .catch(function (error) { agregarMensaje("error", error.message); });
++  }
++
++  form.addEventListener("submit", enviarMensaje);
++  botonNueva.addEventListener("click", nuevaConversacion);
++  cargarHistorial();
++})();
+diff --git a/templates/_chatbot_panel.html b/templates/_chatbot_panel.html
+new file mode 100644
+index 0000000..65c6ea7
+--- /dev/null
++++ b/templates/_chatbot_panel.html
+@@ -0,0 +1,34 @@
++{# Panel del asistente IA para armar ideas de plan.
++   Se incluye con {% include '_chatbot_panel.html' %}. Los estilos y el
++   JavaScript van en archivos propios para no tocar style.css ni app.js.
++   Si la página define window.crearIdeaCargarBorrador (planes_nuevo.html),
++   los borradores muestran además el botón "Pasar al formulario". #}
++
++<link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css', v='20260929-chatbot-v1') }}" />
++
++<section class="chatbot" id="chatbot" aria-labelledby="chatbot-titulo">
++
++  <header class="chatbot-cabecera">
++    <div>
++      <h2 class="chatbot-titulo" id="chatbot-titulo">Armala con el asistente</h2>
++      <p class="chatbot-bajada">Contale qué tenés ganas de hacer y te propone lugares reales de la app.</p>
++    </div>
++    <button type="button" class="chatbot-nueva" id="chatbot-nueva">Nueva conversación</button>
++  </header>
++
++  <div class="chatbot-mensajes" id="chatbot-mensajes" role="log" aria-live="polite">
++    <p class="chatbot-vacio" id="chatbot-vacio">
++      Por ejemplo: «Quiero cenar cerca del centro con opciones veganas y después ir a tomar algo».
++    </p>
++  </div>
++
++  <form class="chatbot-entrada" id="chatbot-form" autocomplete="off">
++    <label class="chatbot-oculto" for="chatbot-input">Mensaje para el asistente</label>
++    <input type="text" id="chatbot-input" maxlength="1000"
++           placeholder="Escribí lo que buscás..." />
++    <button class="lime-button chatbot-enviar" type="submit" id="chatbot-enviar">Enviar</button>
++  </form>
++
++</section>
++
++<script defer src="{{ url_for('static', filename='chatbot.js', v='20260929-chatbot-v1') }}"></script>
+diff --git a/templates/planes_nuevo.html b/templates/planes_nuevo.html
+index 668557d..5465ae2 100644
+--- a/templates/planes_nuevo.html
++++ b/templates/planes_nuevo.html
+@@ -23,6 +23,8 @@
+       <p class="form-message form-error" role="alert">{{ error }}</p>
+       {% endif %}
+ 
++      {% include '_chatbot_panel.html' %}
++
+       <form class="auth-form" method="post" action="/planes/nueva-idea" id="form-plan">
+ 
+         <label for="nombre">Nombre de la idea</label>
+@@ -192,7 +194,7 @@
+ 
+   // --- Agregar una parada al plan -----------------------------------------
+ 
+-  function agregarLugar(idLugar, nombre, nivelPrecio) {
++  function agregarLugar(idLugar, nombre, nivelPrecio, hora) {
+     if (idLugar && idsElegidos().indexOf(idLugar) !== -1) {
+       alert("Ese lugar ya está en el plan.");
+       return;
+@@ -225,6 +227,7 @@
+     inputHora.type = "time";
+     inputHora.name = "lugar_hora";
+     inputHora.className = "crear-plan-elegido-campo";
++    if (hora) { inputHora.value = hora; }
+     inputHora.setAttribute("aria-label", "Hora en " + nombre);
+ 
+     var quitar = document.createElement("button");
+@@ -343,6 +346,20 @@
+     }
+   });
+ 
++  // --- Borrador del asistente (static/chatbot.js) ------------------------
++  // Reemplaza el nombre, la descripción y los lugares del formulario por
++  // los del borrador, para revisarlo y guardarlo con el botón de siempre.
++
++  window.crearIdeaCargarBorrador = function (borrador) {
++    document.getElementById("nombre").value = borrador.nombre || "";
++    document.getElementById("descripcion").value = borrador.descripcion || "";
++    listaElegidos.innerHTML = "";
++    (borrador.lugares || []).forEach(function (lugar) {
++      agregarLugar(lugar.id_lugar, lugar.nombre, lugar.nivel_precio, lugar.hora);
++    });
++    formulario.scrollIntoView({ behavior: "smooth", block: "start" });
++  };
++
+   actualizarResumen();
+ })();
+ </script>

@@ -1,25 +1,21 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import chispa %}
 
 {% block title %}Social — Ahora Qué{% endblock %}
 
 {% macro estrellas(promedio) -%}
   {%- if promedio is not none -%}
     {%- set llenas = promedio | round | int -%}
-    <span class="stars" aria-label="{{ promedio }} de 5 estrellas">
+    <span class="rating-stars" aria-label="{{ promedio }} de 5 estrellas">
       {%- for i in range(5) %}<span class="{{ 'is-on' if i < llenas }}" aria-hidden="true">★</span>{% endfor -%}
     </span>
   {%- endif -%}
 {%- endmacro %}
 
-{% macro avatar(nombre) -%}
-  <span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 28px" aria-hidden="true">{{ nombre[:1] | upper }}</span>
-{%- endmacro %}
+{% from '_social_iconos.html' import ico %}
 
 {% block content %}
 
-{# Los niveles que acepta la ruta /social (PlanService.NIVELES_SOCIAL). #}
-{% set niveles = [(4, '4★ o más'), (3, '3★ o más'), (2, '2★ o más'), (1, '1★ o más'), (none, 'Todos')] %}
+<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
 
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
@@ -30,50 +26,74 @@
 {% endif %}
 
 
-<section class="container page social">
+<section class="page-hero section-shell">
 
-  <a class="back-link" href="/dashboard">← Inicio</a>
+  <a class="back-link" href="/dashboard">← Volver</a>
 
-  <header class="page-head">
-    <div class="page-head__row">
-      <div>
-        <h1 class="h2">Lo que hicieron tus amigos.</h1>
-        <p class="voice">
-          <strong>{% if total %}{{ total }} plan{{ 'es' if total != 1 }} en la última semana.{% else %}Esta semana, nada todavía.{% endif %}</strong>
-          Te mostramos primero los mejor puntuados.
-        </p>
-      </div>
-      <a class="btn btn--secondary btn--lg" href="/explorar">Explorar planes</a>
-    </div>
-  </header>
+  <h1>Social</h1>
+
+  <p>Planes que comparten tus amigos y la comunidad.</p>
+
+</section>
 
 
-  <nav class="chips social__levels" aria-label="Filtrar por puntaje">
-    {% for valor, etiqueta in niveles %}
-    {% set actual = (nivel == valor) %}
-    <a class="chip"
-       href="{{ url_for('social', nivel=(valor if valor is not none else 'todos')) }}"
-       {% if actual %}aria-current="page"{% endif %}>
-      {{ etiqueta }}
-      {% if actual %}<span class="chip__count">{{ planes | length }} de {{ total }}</span>{% endif %}
+<nav class="group-tabs soc-tabs section-shell" aria-label="Secciones de social">
+
+  <a class="group-tab{% if pestana == 'amigos' %} is-active{% endif %}"
+     href="{{ url_for('social', tab='amigos') }}"
+     {% if pestana == 'amigos' %}aria-current="page"{% endif %}>Amigos</a>
+
+  <a class="group-tab{% if pestana == 'descubrir' %} is-active{% endif %}"
+     href="{{ url_for('social', tab='descubrir') }}"
+     {% if pestana == 'descubrir' %}aria-current="page"{% endif %}>Descubrir</a>
+
+  <a class="group-tab{% if pestana == 'actividad' %} is-active{% endif %}"
+     href="{{ url_for('social', tab='actividad') }}"
+     {% if pestana == 'actividad' %}aria-current="page"{% endif %}>Actividad</a>
+
+</nav>
+
+
+{% if pestana == 'actividad' %}
+
+{# ======================= ACTIVIDAD: lo que hicieron los amigos ======================= #}
+
+<section
+  class="social-feed section-shell"
+  aria-label="Planes de tus amigos"
+>
+
+  <div class="social-feed-heading">
+
+    <p class="section-tag">
+      {% if nivel is none %}
+        todos los planes de la semana
+      {% else %}
+        planes con {{ nivel }}★ o más
+      {% endif %}
+      · {{ planes | length }} de {{ total }}
+    </p>
+
+    <a class="lime-button" href="/explorar">
+      Encontrar un plan <span aria-hidden="true">↗</span>
     </a>
-    {% endfor %}
-  </nav>
+
+  </div>
 
 
   {% if planes %}
 
-  <ul class="plan-list social__feed">
+  <div class="social-feed-grid">
 
     {% for plan in planes %}
-    <li>
-      <article class="card plan-tile social-post">
+    <article class="social-post{% if loop.index is even %} social-post-accent{% endif %}">
 
-        <div class="social-post__who">
-          <span class="group-members__faces">
-            {% for amigo in plan.amigos[:3] %}{{ avatar(amigo) }}{% endfor %}
-          </span>
-          <span class="social-post__names">
+      <div class="social-post-author">
+
+        <img src="{{ url_for('static', filename='favicon.svg') }}" alt="" />
+
+        <div>
+          <strong>
             {% if plan.amigos | length == 1 %}
               Fue {{ plan.amigos[0] }}
             {% elif plan.amigos | length == 2 %}
@@ -81,36 +101,36 @@
             {% else %}
               Fueron {{ plan.amigos[0] }} y {{ plan.amigos | length - 1 }} amigos más
             {% endif %}
-          </span>
+          </strong>
+          <small>
+            {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}
+          </small>
         </div>
 
-        <h2 class="plan-tile__title">
-          <a class="plan-tile__link" href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a>
-        </h2>
+      </div>
 
-        <p class="meta plan-tile__meta">
-          {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %} · {{ plan.resumen_lugares }}
-        </p>
+      <h2>{{ plan.nombre }}</h2>
 
-        <p class="social-post__score">
-          {% if plan.promedio is not none %}
-            {{ estrellas(plan.promedio) }}
-            <span class="meta">{{ plan.promedio }} · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}</span>
-          {% else %}
-            <span class="meta">Sin puntaje todavía</span>
-          {% endif %}
-        </p>
+      <p>{{ plan.resumen_lugares }}</p>
 
-      </article>
-    </li>
+      <div class="social-post-actions">
+        {% if plan.promedio is not none %}
+          <span>{{ estrellas(plan.promedio) }} {{ plan.promedio }} · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}</span>
+        {% else %}
+          <span>Sin puntaje todavía</span>
+        {% endif %}
+        <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">Ver plan ↗</a>
+      </div>
+
+    </article>
     {% endfor %}
 
-  </ul>
+  </div>
 
   {% if hay_siguiente %}
-  <div class="social__more">
-    <a class="btn btn--ghost"
-       href="{{ url_for('social', nivel=(siguiente_nivel if siguiente_nivel is not none else 'todos')) }}">
+  <div class="social-ver-mas">
+    <a class="plan-accion-secundaria"
+       href="{{ url_for('social', tab='actividad', nivel=(siguiente_nivel if siguiente_nivel is not none else 'todos')) }}">
       {% if siguiente_nivel is none %}
         Ver todos los planes de tus amigos
       {% else %}
@@ -122,14 +142,182 @@
 
   {% else %}
 
-  <div class="empty-state">
-    <p>Todavía no hay planes para mostrar. Cuando tus amigos confirmen planes, los de la última semana aparecen acá.</p>
-    <a class="btn btn--secondary" href="/amigos">Buscar amigos</a>
+  <div class="social-feed-empty">
+    <h2>Todavía no hay planes para mostrar.</h2>
+    <p>Cuando tus amigos confirmen planes, los de la última semana van a aparecer acá.</p>
+    <a class="plan-accion-secundaria" href="/amigos">Buscar amigos</a>
   </div>
 
   {% endif %}
 
 </section>
+
+{% else %}
+
+{# ============================ AMIGOS / DESCUBRIR: el feed ============================ #}
+
+<section
+  class="soc-feed section-shell"
+  id="soc-feed"
+  aria-label="{{ 'Publicaciones de tus amigos' if pestana == 'amigos' else 'Publicaciones de la comunidad' }}"
+  data-pestana="{{ pestana }}"
+  data-modo="{{ 'grilla' if pestana == 'descubrir' else 'lista' }}"
+  data-url-perfil="{{ url_for('profile.perfil_publico', user_id='__ID__') }}"
+  data-url-mi-perfil="{{ url_for('profile.perfil') }}"
+  data-url-grupos="{{ url_for('social_api.mis_grupos') }}"
+  data-url-postular="{{ url_for('grupo_planes.postular', group_id='__GID__') }}"
+  data-url-feed="{{ url_for('social_api.feed') }}"
+  data-url-publicables="{{ url_for('social_api.publicables') }}"
+  data-url-publicar="{{ url_for('social_api.publicar') }}"
+  data-url-reportes="{{ url_for('social_api.reportar') }}"
+  data-url-raiz="{{ url_for('social') }}"
+  data-url-detalle="{{ url_for('planes.detalle', plan_id='__ID__') }}"
+>
+
+  <div class="soc-barra">
+
+    <p class="section-tag">
+      {% if pestana == 'amigos' %}lo que comparten tus amigos{% else %}lo que comparte la comunidad{% endif %}
+    </p>
+
+    {% if es_moderador %}
+    <a class="soc-icono" href="{{ url_for('social_api.pagina_moderacion') }}" aria-label="Revisar reportes" title="Revisar reportes">{{ ico('bandera') }}</a>
+    {% endif %}
+
+    <button class="lime-button" type="button" data-modal-open="soc-modal-publicar" data-soc-abrir-publicar>
+      Compartir un plan <span aria-hidden="true">+</span>
+    </button>
+
+  </div>
+
+  <p class="soc-aviso" data-soc-error role="alert" hidden></p>
+
+  <div class="soc-lista" data-soc-lista aria-live="polite"></div>
+
+  <div class="soc-vacio" data-soc-vacio hidden>
+    {% if pestana == 'amigos' %}
+    <h2>Todavía no hay publicaciones.</h2>
+    <p>Cuando vos o tus amigos compartan un plan, va a aparecer acá.</p>
+    <a class="plan-accion-secundaria" href="/amigos">Buscar amigos</a>
+    {% else %}
+    <h2>Todavía no hay planes públicos.</h2>
+    <p>Los planes que otras personas compartan con todos van a aparecer acá.</p>
+    {% endif %}
+  </div>
+
+  <p class="soc-cargando" data-soc-cargando>Cargando…</p>
+
+  <div class="social-ver-mas">
+    <button class="plan-accion-secundaria" type="button" data-soc-mas hidden>Ver más</button>
+  </div>
+
+</section>
+
+
+{% include '_social_plantillas.html' %}
+
+<template id="soc-tpl-publicable">
+  <label class="soc-publicable">
+    <input type="radio" name="plan_id" required />
+    <span>
+      <strong data-soc-publicable-nombre></strong>
+      <small data-soc-publicable-detalle></small>
+    </span>
+  </label>
+</template>
+
+<template id="soc-tpl-previa">
+  <div class="soc-previa">
+    <img alt="Foto elegida" />
+    <button class="soc-previa-quitar" type="button" aria-label="Quitar foto" title="Quitar foto">{{ ico('cerrar') }}</button>
+  </div>
+</template>
+
+
+{# ------------------------------- Modal: compartir un plan ------------------------------- #}
+
+<dialog class="modal" id="soc-modal-publicar" aria-labelledby="soc-modal-publicar-titulo">
+
+  <form data-soc-form-publicar>
+
+    <div class="modal-head">
+      <h2 class="modal-title" id="soc-modal-publicar-titulo">Compartir un plan</h2>
+      <button class="modal-close" type="button" data-soc-cerrar aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+      <fieldset class="modal-field soc-campo">
+        <legend class="modal-field-label">¿Qué plan querés compartir?</legend>
+        <div class="soc-publicables" data-soc-publicables></div>
+        <p class="soc-ayuda" data-soc-publicables-vacio hidden>
+          No tenés planes para compartir todavía. Podés compartir tus ideas y los planes a los que ya fuiste.
+        </p>
+      </fieldset>
+
+      <div class="modal-field">
+        <span class="modal-field-label">Fotos (opcional, hasta 2)</span>
+        <div class="soc-previas" data-soc-previas></div>
+        <label class="soc-subir" data-soc-subir>
+          {{ ico('imagen') }}
+          <span>Agregar foto</span>
+          <input type="file" accept="image/*" multiple data-soc-archivos class="visually-hidden" />
+        </label>
+        <p class="soc-ayuda" data-soc-fotos-ayuda hidden></p>
+      </div>
+
+      <fieldset class="modal-field soc-campo">
+        <legend class="modal-field-label">Formato de las fotos</legend>
+        <label class="soc-opcion">
+          <input type="radio" name="aspecto" value="cuadrada" checked />
+          <span>Cuadrada</span>
+        </label>
+        <label class="soc-opcion">
+          <input type="radio" name="aspecto" value="vertical" />
+          <span>Vertical (4:5)</span>
+        </label>
+      </fieldset>
+
+      <div class="modal-field">
+        <label for="soc-publicar-texto">Algo para contar (opcional)</label>
+        <textarea id="soc-publicar-texto" name="texto" maxlength="500" data-soc-texto-input></textarea>
+        <small class="soc-ayuda"><span data-soc-texto-cuenta>0</span>/500</small>
+      </div>
+
+      <fieldset class="modal-field soc-campo">
+        <legend class="modal-field-label">¿Quién lo puede ver?</legend>
+        <label class="soc-opcion">
+          <input type="radio" name="visibilidad" value="amigos" checked />
+          <span>Mis amigos</span>
+        </label>
+        <label class="soc-opcion">
+          <input type="radio" name="visibilidad" value="publico" />
+          <span>Todos</span>
+        </label>
+      </fieldset>
+
+      <p class="soc-aviso" data-soc-publicar-error role="alert" hidden></p>
+
+    </div>
+
+    <div class="modal-actions">
+      <button class="header-action header-action-ghost" type="button" data-soc-cerrar>Cancelar</button>
+      <button class="lime-button" type="submit" data-soc-publicar-enviar>Compartir</button>
+    </div>
+
+  </form>
+
+</dialog>
+
+
+<script defer src="{{ url_for('static', filename='social.js', v='20261020-social-v6') }}"></script>
+
+{% endif %}
 
 
 {% if logueado %}

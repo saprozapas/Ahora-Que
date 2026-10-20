@@ -3,7 +3,7 @@ import time
 
 import psycopg2
 
-from database import get_db_connection
+from database import get_db_connection, release_db_connection
 from services.precio_lugar import rango_de_nivel, sumar_rangos
 
 
@@ -221,7 +221,7 @@ class PlanService:
             connection.rollback()
             print(f"No se pudieron archivar los planes vencidos: {e}")
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     # --- Listados -------------------------------------------------------
 
@@ -250,7 +250,7 @@ class PlanService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def get_planes_confirmados_calendario(self, user_id):
         """Como get_planes_confirmados, pero sin filtrar por fecha: el
@@ -274,7 +274,7 @@ class PlanService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def get_planes_grupo(self, user_id):
         """Planes activos de los grupos del usuario que él todavía no
@@ -309,7 +309,7 @@ class PlanService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def get_planes_guardados(self, user_id):
         connection = get_db_connection()
@@ -331,7 +331,7 @@ class PlanService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def get_archivados(self, user_id):
         """Planes que el usuario hizo: los de grupo ya archivados (12 h
@@ -363,7 +363,7 @@ class PlanService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def get_ideas_postulables(self, user_id):
         """Lo que el usuario puede postular en un grupo: sus guardados y
@@ -394,7 +394,7 @@ class PlanService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     # --- Creación --------------------------------------------------------
 
@@ -475,7 +475,7 @@ class PlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     # --- Guardar / desguardar ----------------------------------------------
 
@@ -503,7 +503,7 @@ class PlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     # --- Sumarse / bajarse / eliminar ---------------------------------------
 
@@ -533,7 +533,7 @@ class PlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
 
     def bajarse_de_plan(self, plan_id, user_id):
@@ -554,7 +554,7 @@ class PlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def eliminar_plan(self, plan_id, user_id):
         """Borra el plan entero. Solo puede hacerlo quien lo creó.
@@ -590,7 +590,7 @@ class PlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     # --- Social: planes de amigos -------------------------------------------
 
@@ -651,7 +651,7 @@ class PlanService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     def _filtrar_por_nivel(self, planes, nivel):
         if nivel is None:
@@ -718,7 +718,7 @@ class PlanService:
             connection.rollback()
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)
 
     # --- Detalle ----------------------------------------------------------
 
@@ -793,4 +793,4 @@ class PlanService:
         except psycopg2.Error:
             raise
         finally:
-            connection.close()
+            release_db_connection(connection)

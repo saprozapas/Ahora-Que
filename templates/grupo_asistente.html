@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear idea con el asistente — {{ group.get_name() }} — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="section-shell">
+
+      <a class="back-link" href="{{ url_for('group_auth.detalle_grupo', group_id=group.get_id()) }}">← Volver a {{ group.get_name() }}</a>
+
+      <div class="auth-intro">
+        <h1>Crear idea<br /><em>con el asistente.</em></h1>
+        <p>Contale qué quieren hacer y te propone un plan con lugares reales. Al guardarlo, lo postulás al grupo.</p>
+      </div>
+
+      {% with chatbot_grupo_id=group.get_id(), chatbot_grupo_nombre=group.get_name() %}
+        {% include '_chatbot_panel.html' %}
+      {% endwith %}
+
+      <p><a href="{{ url_for('grupo_planes.postular', group_id=group.get_id()) }}">¿Ya tenés una idea guardada? Postularla →</a></p>
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

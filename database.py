@@ -7,11 +7,11 @@ import time
 import psycopg2
 from psycopg2 import extensions
 
+#PASS de la BD: AhoraQue2026
 # ---- CONEXIÓN A LA BASE DE DATOS (Supabase / PostgreSQL) ----
-DB_URL = os.environ.get(
-    "AHORAQUE_DB_URL",
-    "postgresql://postgres.kmeggurdtvyvtyhpanox:AhoraQue2026@aws-0-us-east-2.pooler.supabase.com:6543/postgres",
-)
+# Reemplazar esto con el connection string que da Supabase
+# (Project Settings -> Database -> Connection String)
+DB_URL = os.environ.get("AHORAQUE_DB_URL")
 
 # =============================================================================
 # POR QUÉ ESTE ARCHIVO ES ASÍ
@@ -215,3 +215,15 @@ def get_db_connection():
         if conn.closed:
             continue
         return _ConexionDelPool(conn)
+
+def release_db_connection(conn):
+    """
+    Devuelve la conexión al pool.
+
+    Si la conexión está envuelta en _ConexionDelPool,
+    su close() la devuelve al pool en lugar de cerrarla.
+    """
+    if conn is None:
+        return
+
+    conn.close()

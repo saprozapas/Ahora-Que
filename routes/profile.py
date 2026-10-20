@@ -2,6 +2,7 @@ from flask import Blueprint, abort, flash, jsonify, redirect, render_template, r
 from services.auth_service import AuthService
 from database_bridge.database_bridge import getUser
 from werkzeug.security import check_password_hash, generate_password_hash
+from services.password_policy import validar_contrasena
 
 profile = Blueprint("profile", __name__)
 auth_service = AuthService()
@@ -57,6 +58,7 @@ def perfil():
         "perfil.html",
         user=user,
         groups=[],
+        autor_id=session["user_id"],
         published_plans=[],
         saved_plans=[],
         error_name=error_name,
@@ -82,9 +84,8 @@ def cambiar_contrasena():
 
         if hash_actual is None or not check_password_hash(hash_actual, actual):
             error = "La contraseña actual es incorrecta."
-        # Esto es por si queremos hacer que la contraseña tenga un mínimo de caracteres, pero por ahora no lo hacemos.
-        # elif len(nueva) < 8:
-        #     error = "La nueva contraseña debe tener al menos 8 caracteres."
+        elif (error_contrasena := validar_contrasena(nueva)):
+            error = error_contrasena
         elif nueva != confirmar:
             error = "Las contraseñas nuevas no coinciden."
         elif actual == nueva:
@@ -116,4 +117,4 @@ def perfil_publico(user_id):
     if usuario is None:
         abort(404)
 
-    return render_template("perfil_publico.html", usuario=usuario)
+    return render_template("perfil_publico.html", usuario=usuario, autor_id=user_id)

@@ -1,6 +1,6 @@
 import psycopg2
 
-from database import get_db_connection
+from database import get_db_connection, release_db_connection
 from models.solicitud_amistad import SolicitudAmistad
 
 
@@ -58,38 +58,32 @@ class FriendService:
             raise
         finally:
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
 
     def get_requests_for_user(self, user_id, conn=None):
         cerrar_conexion = conn is None
         if conn is None:
             conn = get_db_connection()
 
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            SELECT s."Id_Solicitante", u."Nombre", u."Username", s."Fecha"
-            FROM public."Solicitudes_Amistad" s
-            JOIN public."Usuarios" u ON u."Id_Usuario" = s."Id_Solicitante"
-            WHERE s."Id_Destinatario" = %s
-            ORDER BY s."Fecha" DESC
-            """,
-            (user_id,)
-        )
-
-        rows = cursor.fetchall()
-
-        solicitudes = [
-            SolicitudAmistad(row[0], row[1], row[2], row[3])
-            for row in rows
-        ]
-
-        cursor.close()
-        if cerrar_conexion:
-            conn.close()
-
-        return solicitudes
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT s."Id_Solicitante", u."Nombre", u."Username", s."Fecha"
+                    FROM public."Solicitudes_Amistad" s
+                    JOIN public."Usuarios" u ON u."Id_Usuario" = s."Id_Solicitante"
+                    WHERE s."Id_Destinatario" = %s
+                    ORDER BY s."Fecha" DESC
+                    """,
+                    (user_id,)
+                )
+                return [
+                    SolicitudAmistad(row[0], row[1], row[2], row[3])
+                    for row in cursor.fetchall()
+                ]
+        finally:
+            if cerrar_conexion:
+                release_db_connection(conn)
 
     def accept_request(self, from_id, to_id):
         conn = get_db_connection()
@@ -114,7 +108,7 @@ class FriendService:
             raise
         finally:
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
 
     def reject_request(self, from_id, to_id):
         conn = get_db_connection()
@@ -131,7 +125,7 @@ class FriendService:
             raise
         finally:
             cursor.close()
-            conn.close()
+            release_db_connection(conn)
 
     def remove_friend(self, uid1, uid2):
         conn = get_db_connection()
@@ -149,4 +143,4 @@ class FriendService:
             raise
         finally:
             cursor.close()
-            conn.close()
+            release_db_connection(conn)

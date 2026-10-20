@@ -5,6 +5,7 @@ from flask import Blueprint, redirect, render_template, request, session
 from models import user
 from models.user import User
 from services.auth_service import AuthService
+from services.password_policy import validar_contrasena
 from werkzeug.security import check_password_hash,generate_password_hash
 
 auth = Blueprint("auth", __name__)
@@ -17,7 +18,13 @@ def login():
         username_or_email = form_data.get("username", "").strip()
         password = form_data.get("password", "")
         resultado = auth_service.getUserAndId(username_or_email)
-        
+
+        user_id = resultado[1] if resultado else None
+        if not auth_service.registrar_intento_login(username_or_email, user_id):
+            return render_template(
+                "login.html",
+                mensaje="Alcanzaste el límite de 5 intentos. Probá de nuevo en 30 minutos.",
+            ), 429
 
         if resultado is None:
             return render_template(
@@ -65,6 +72,19 @@ def register():
         username = form_data.get("username", "").strip()
         email = form_data.get("email", "").strip()
         password = form_data.get("password", "")
+
+        error_contrasena = validar_contrasena(password)
+        if error_contrasena:
+            return render_template(
+                "register.html", error=error_contrasena, form_data=form_data
+            ), 400
+
+        if form_data.get("accept_terms") != "on":
+            return render_template(
+                "register.html",
+                error="Tenés que aceptar los términos y condiciones para crear una cuenta.",
+                form_data=form_data,
+            ), 400
 
         try:
             birth_date = datetime.strptime(birth_date_input, "%d/%m/%Y").date()
@@ -116,6 +136,11 @@ def register():
     
     # El usuario simplemente entró a /register
     return render_template("register.html",error=None, form_data={})
+
+
+@auth.route("/terminos-y-condiciones")
+def terminos_y_condiciones():
+    return render_template("terminos.html")
 
 @auth.route("/logout")
 def logout():

@@ -27,7 +27,7 @@ FILTROS_LUGAR = [
         "id": "apto_menores",
         "etiqueta": "Apto menores",
         "tipo": "checkbox",
-        "sql": 'l."Apto_Menores" = true',
+        "sql": 'l."Apto_Menores" IS NOT FALSE',  # NULL = desconocido: no se descarta
     },
     {
         "id": "opcion_celiacos",
@@ -52,13 +52,21 @@ FILTROS_LUGAR = [
             ("3", "$$$"),
             ("4", "$$$$"),
         ],
-        "sql": 'l."Nivel_Precio" <= %s',
+        "sql": '(l."Nivel_Precio" IS NULL OR l."Nivel_Precio" <= %s)',  # sin dato: no se descarta
     },
     {
         "id": "ambiente",
         "etiqueta": "Ambiente",
         "tipo": "texto",
         "sql": 'l."Ambiente" ILIKE %s',
+        "transformar": lambda valor: f"%{valor}%",
+    },
+    {
+        "id": "barrio",
+        "etiqueta": "Barrio",
+        "tipo": "texto",
+        "sql": 'l."Barrio" ILIKE %s',
+        # ponytail: no ignora tildes ("Cordon" no encuentra "Cordón"); pasar a "select" cuando esté la lista de barrios.
         "transformar": lambda valor: f"%{valor}%",
     },
 ]
@@ -90,6 +98,11 @@ def construir_condiciones(valores):
             continue
 
         valor = str(valor).strip()
+
+        # Un select solo acepta los valores de su lista: así un valor
+        # inventado en la URL (?nivel_precio=abc) no llega a la consulta.
+        if filtro["tipo"] == "select" and valor not in {v for v, _ in filtro["opciones"]}:
+            continue
 
         transformar = filtro.get("transformar")
         if transformar:
