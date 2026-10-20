@@ -17,7 +17,13 @@ def login():
         username_or_email = form_data.get("username", "").strip()
         password = form_data.get("password", "")
         resultado = auth_service.getUserAndId(username_or_email)
-        
+
+        user_id = resultado[1] if resultado else None
+        if not auth_service.registrar_intento_login(username_or_email, user_id):
+            return render_template(
+                "login.html",
+                mensaje="Alcanzaste el límite de 5 intentos. Probá de nuevo en 30 minutos.",
+            ), 429
 
         if resultado is None:
             return render_template(
