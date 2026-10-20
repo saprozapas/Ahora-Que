@@ -86,12 +86,13 @@
   /* ---------- 8. ESTADOS (decisión: --ok y --danger apagados, siempre con texto o ícono) ---------- */
   --ok:           #2E6B4A;   /* confirmado, guardado, aceptar */
   --ok-soft:      color-mix(in srgb, var(--ok) 11%, var(--surface));
+  --on-danger:    #FFFFFF;
   --danger:       #B03128;   /* abandonar, eliminar, errores de formulario */
   --danger-soft:  color-mix(in srgb, var(--danger) 9%, var(--surface));
   --accent-wash:  color-mix(in srgb, var(--accent) 12%, var(--surface));
 
   /* ---------- 9. TAMAÑO DE CONTROLES ----------
-     44 / 48 / 52 con dedo; 40 / 44 / 48 con puntero fino (mouse). */
+     44 / 48 / 52 en celular y tablet (y con dedo); 40 / 44 / 48 solo con mouse en pantallas grandes. */
   --control-h:    44px;
   --control-h-lg: 48px;
   --control-h-xl: 52px;
@@ -101,7 +102,7 @@
   color-scheme: light;
 }
 
-@media (pointer: fine) {
+@media (pointer: fine) and (min-width: 901px) {
   :root { --control-h: 40px; --control-h-lg: 44px; --control-h-xl: 48px; --ctl-icon: 40px; }
 }
 
@@ -125,6 +126,7 @@
   --alert: #E8695F;
   --ok: #7CC79A;
   --danger: #EE8C83;
+  --on-danger: #151515;
 
   color-scheme: dark;
 }

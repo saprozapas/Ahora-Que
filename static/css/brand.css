@@ -7,7 +7,7 @@
 
    ÍNDICE
      00. Medidas del shell
-     01. Puente con style.css (temporal, se borra en la fase 7)
+     01. (retirado: el puente con style.css ya no hace falta)
      02. Topografía
      03. Utilidades
      04. Header
@@ -47,35 +47,6 @@
 
 :root[data-theme="night"] {
   --scrim: rgb(0 0 0 / 0.6);
-}
-
-
-/* ---------- 01. Puente con style.css ----------
-   Mientras style.css se siga cargando, sus tokens apuntan a los de Sereno:
-   así las pantallas que todavía no se rediseñaron ya usan el papel, la
-   tinta, los radios y las sombras nuevos, en claro y en noche. Va sin
-   @layer a propósito: le gana a las capas de style.css. */
-
-:root {
-  --page: var(--paper);
-  --surface-1: var(--surface);
-  --surface-3: var(--paper-deep);
-  --muted: var(--ink-3);
-
-  --font-display: var(--brand-headline);
-  --font-mono: var(--font-sans);
-
-  --radius: var(--r-lg);
-  --radius-sm: var(--r-md);
-  --radius-pill: var(--r-full);
-
-  --shadow-sm: var(--sh-card);
-  --shadow-md: var(--sh-float);
-  --lift: var(--sh-btn);
-  --lift-pressed: var(--sh-btn);
-
-  --ease: var(--ease-out);
-  --fast: var(--d-fast);
 }
 
 
@@ -1035,3 +1006,10 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 .flash-message-texto { flex: 1; }
 .dashboard-sidebar-nav.is-reordering, .dashboard-sidebar-nav.is-reordering .dashboard-sidebar-link { cursor: grabbing; }
 .groups-carousel { min-width: 0; }
+
+
+/* ---------- 27. Objetivos táctiles de enlaces sueltos ---------- */
+.logo { min-height: var(--control-h); }
+.app-footer__col a { display: inline-flex; align-items: center; min-height: var(--control-h); }
+.app-footer__col { gap: 0; }
+.app-footer__title { margin-bottom: var(--s-2); }

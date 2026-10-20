@@ -66,7 +66,7 @@
 .btn--sm { --h: var(--control-h); padding-inline: var(--s-3); font-size: var(--t-meta); border-radius: var(--r-sm); }
 .btn--danger { background: var(--surface); color: var(--danger); box-shadow: 0 0 0 1px color-mix(in srgb, var(--danger) 35%, transparent); }
 .btn--danger:hover { background: var(--danger-soft); }
-.btn--danger-solid { background: var(--danger); color: #fff; box-shadow: var(--sh-btn); }
+.btn--danger-solid { background: var(--danger); color: var(--on-danger); box-shadow: var(--sh-btn); }
 .btn[disabled], .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .btn--block { width: 100%; }
 /* Pista de tecla: ↵ = "podés apretar Enter". Solo si es verdad. */
