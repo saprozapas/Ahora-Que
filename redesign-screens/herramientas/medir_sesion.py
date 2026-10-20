@@ -13,7 +13,7 @@ from playwright.sync_api import sync_playwright
 
 BASE, OUT = sys.argv[1], pathlib.Path(sys.argv[2])
 SOLO_DESCUBRIR = len(sys.argv) > 3 and sys.argv[3] == "descubrir"
-USUARIO, CLAVE = os.environ["AQ_USUARIO"], os.environ["AQ_CLAVE"]
+USUARIO, CLAVE = os.environ.get("AQ_USUARIO", ""), os.environ.get("AQ_CLAVE", "")
 
 fuente = (pathlib.Path(__file__).parent / "medir.py").read_text(encoding="utf-8")
 JS = re.search(r'JS = r"""(.*?)"""', fuente, re.S).group(1)
@@ -37,8 +37,14 @@ def slug(ruta):
     return re.sub(r"[^a-z0-9]+", "-", ruta.lower()).strip("-") or "inicio"
 
 
+ESTADO = os.environ.get("AQ_ESTADO")  # archivo de sesion de Playwright: evita volver a iniciar sesion
+
+
 def entrar(ctx):
     pg = ctx.new_page()
+    if ESTADO:
+        pg.goto(BASE + "/dashboard", wait_until="networkidle")
+        return pg, "/login" not in pg.url
     pg.goto(BASE + "/login", wait_until="networkidle")
     pg.fill("input[name=username]", USUARIO)
     pg.fill("input[name=password]", CLAVE)
@@ -102,7 +108,7 @@ def rutas(d):
 
 with sync_playwright() as p:
     nav = p.chromium.launch(channel="msedge")
-    ctx = nav.new_context(viewport={"width": 375, "height": 812}, locale="es-UY")
+    ctx = nav.new_context(viewport={"width": 375, "height": 812}, locale="es-UY", **({"storage_state": ESTADO} if ESTADO else {}))
     pg, ok = entrar(ctx)
     print("login ok:", ok, "->", pg.url.replace(BASE, ""), flush=True)
     if not ok:
@@ -127,7 +133,7 @@ with sync_playwright() as p:
         lista = [r for r in lista if any(f in r for f in FILTRO.split(","))]
     for tema in TEMAS:
         for (w, h) in VIEWPORTS:
-            ctx = nav.new_context(viewport={"width": w, "height": h}, locale="es-UY")
+            ctx = nav.new_context(viewport={"width": w, "height": h}, locale="es-UY", **({"storage_state": ESTADO} if ESTADO else {}))
             if tema == "noche":
                 ctx.add_init_script("try{localStorage.setItem('ahoraque-theme','night')}catch(e){}")
             pg, ok = entrar(ctx)

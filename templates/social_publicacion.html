@@ -15,7 +15,7 @@
 
 
 <section
-  class="soc-feed soc-unica section-shell"
+  class="soc-feed soc-unica container page"
   id="soc-feed"
   aria-label="Publicación"
   data-modo="unica"
@@ -31,14 +31,15 @@
   data-url-postular="{{ url_for('grupo_planes.postular', group_id='__GID__') }}"
 >
 
-  <a class="back-link" href="{{ url_for('inbox.inbox', tab='publicaciones') }}">← Volver</a>
+  <a class="back-link" href="{{ url_for('inbox.inbox', tab='publicaciones') }}">← Inbox</a>
+  <h1 class="visually-hidden">Publicación</h1>
 
   <p class="soc-aviso" data-soc-error role="alert" hidden></p>
 
   <div class="soc-lista" data-soc-lista aria-live="polite"></div>
 
   <div class="soc-vacio" data-soc-vacio hidden>
-    <h2>No encontramos esta publicación.</h2>
+    <h2 class="h3">No encontramos esta publicación.</h2>
     <p>Puede que la hayan eliminado o que no tengas permiso para verla.</p>
     <a class="btn btn--secondary" href="/social">Ir a Social</a>
   </div>

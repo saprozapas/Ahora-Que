@@ -12,7 +12,8 @@ from playwright.sync_api import sync_playwright
 
 BASE, OUT, PARTE = sys.argv[1], pathlib.Path(sys.argv[2]), sys.argv[3]
 RUTAS_JSON = sys.argv[4] if len(sys.argv) > 4 else "redesign-screens/audit/sesion-main/rutas_medidas.json"
-USUARIO, CLAVE = os.environ["AQ_USUARIO"], os.environ["AQ_CLAVE"]
+USUARIO, CLAVE = os.environ.get("AQ_USUARIO", ""), os.environ.get("AQ_CLAVE", "")
+ESTADO = os.environ.get("AQ_ESTADO")
 OUT.mkdir(parents=True, exist_ok=True)
 BLOQUEADOS = []
 
@@ -32,11 +33,17 @@ def bloquear(route):
 
 
 def contexto(nav, w, h, noche=False, **kw):
+    if ESTADO:
+        kw["storage_state"] = ESTADO
     ctx = nav.new_context(viewport={"width": w, "height": h}, locale="es-UY", **kw)
     if noche:
         ctx.add_init_script("try{localStorage.setItem('ahoraque-theme','night')}catch(e){}")
     ctx.route("**/*", bloquear)
     pg = ctx.new_page()
+    if ESTADO:
+        pg.goto(BASE + "/dashboard", wait_until="networkidle")
+        assert "/login" not in pg.url, "la sesion guardada no sirve"
+        return ctx, pg
     pg.goto(BASE + "/login", wait_until="networkidle")
     pg.fill("input[name=username]", USUARIO)
     pg.fill("input[name=password]", CLAVE)

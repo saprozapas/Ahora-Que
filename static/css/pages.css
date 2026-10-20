@@ -318,7 +318,7 @@
 
 .postular { display: grid; gap: var(--s-8); max-width: 880px; }
 .postular__error { max-width: 880px; margin-bottom: var(--s-6); }
-.postular__ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--s-3); }
+.postular__ideas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s-3); }
 .postular__when { display: flex; flex-wrap: wrap; gap: var(--s-3); }
 .postular__when .field { flex: 1 1 180px; max-width: 260px; }
 .postular > .btn { justify-self: start; }
@@ -338,7 +338,7 @@
 .dash-body { display: grid; gap: var(--s-12); padding-top: var(--s-10); }
 .dash-section { display: grid; gap: var(--s-4); }
 .dash-section > .h3 { margin: 0; }
-.dash-shortcuts { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); max-width: none; }
+.dash-shortcuts { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); max-width: none; }
 
 .dash-more { margin-left: auto; text-decoration: none; }
 .dash-more:hover { color: var(--ink); }

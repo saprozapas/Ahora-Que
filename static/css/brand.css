@@ -1022,3 +1022,16 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 .prose { max-width: 68ch; display: grid; gap: var(--s-4); }
 .prose h2 { margin: var(--s-6) 0 0; }
 .prose p { margin: 0; color: var(--ink-2); }
+
+
+/* ---------- 26. Restos del shell y de los diálogos ---------- */
+
+.modal-members { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.modal-member-row { display: flex; align-items: center; gap: var(--s-2); }
+.modal-member-row > .modal-member-link { flex: 1; min-width: 0; }
+.modal-member-row form { margin: 0; }
+.modal-group-item { width: 100%; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.modal-group-item[hidden] { display: none; }
+.flash-message-texto { flex: 1; }
+.dashboard-sidebar-nav.is-reordering, .dashboard-sidebar-nav.is-reordering .dashboard-sidebar-link { cursor: grabbing; }
+.groups-carousel { min-width: 0; }

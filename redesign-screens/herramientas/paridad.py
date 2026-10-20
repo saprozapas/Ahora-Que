@@ -12,7 +12,8 @@ from html.parser import HTMLParser
 from playwright.sync_api import sync_playwright
 
 A, B, RUTAS = sys.argv[1], sys.argv[2], sys.argv[3]
-USUARIO, CLAVE = os.environ["AQ_USUARIO"], os.environ["AQ_CLAVE"]
+USUARIO, CLAVE = os.environ.get("AQ_USUARIO", ""), os.environ.get("AQ_CLAVE", "")
+ESTADO_A, ESTADO_B = os.environ.get("AQ_ESTADO_A"), os.environ.get("AQ_ESTADO_B")
 
 
 class Extractor(HTMLParser):
@@ -52,14 +53,15 @@ def bajar(ctx, ruta):
     return r.status, r.text()
 
 
-def sesion(p, base):
-    ctx = p.request.new_context(base_url=base)
-    ctx.post("/login", form={"username": USUARIO, "password": CLAVE})
+def sesion(p, base, estado=None):
+    ctx = p.request.new_context(base_url=base, **({"storage_state": estado} if estado else {}))
+    if not estado:
+        ctx.post("/login", form={"username": USUARIO, "password": CLAVE})
     return ctx
 
 
 with sync_playwright() as p:
-    ca, cb = sesion(p, A), sesion(p, B)
+    ca, cb = sesion(p, A, ESTADO_A), sesion(p, B, ESTADO_B)
     rutas = json.load(open(RUTAS, encoding="utf-8"))
     # paginas publicas
     todas = ["/", "/login", "/register", "/explorar", "/contacto", "/plan/caminata-atardecer", "/terminos"] + rutas

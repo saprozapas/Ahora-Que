@@ -15,15 +15,17 @@
 
 
 <section
-  class="mod section-shell"
+  class="mod container page"
   id="moderacion"
   data-url-resolver="{{ url_for('social_api.resolver_reporte') }}"
 >
 
-  <a class="back-link" href="{{ url_for('social') }}">← Volver a Social</a>
+  <a class="back-link" href="{{ url_for('social') }}">← Social</a>
 
-  <h1>Reportes</h1>
-  <p class="mod-bajada">Contenido de Social que alguien reportó y todavía no se revisó.</p>
+  <header class="page-head">
+    <h1 class="h2">Reportes.</h1>
+    <p class="lead">Contenido de Social que alguien reportó y todavía no se revisó.</p>
+  </header>
 
   <p class="soc-aviso" data-mod-error role="alert" hidden></p>
 
@@ -34,7 +36,7 @@
     <article class="mod-item" data-tipo="{{ r.tipo }}" data-id="{{ r.id }}">
 
       <header class="mod-cabeza">
-        <span class="plan-estado">{{ 'Publicación' if r.tipo == 'publicacion' else 'Comentario' }}</span>
+        <span class="tag">{{ 'Publicación' if r.tipo == 'publicacion' else 'Comentario' }}</span>
         <strong>{{ r.total }} {{ 'reporte' if r.total == 1 else 'reportes' }}</strong>
         <span class="mod-hace">último {{ r.hace }}</span>
         {% if r.eliminado %}<span class="mod-eliminado">ya eliminado</span>{% endif %}
@@ -69,7 +71,7 @@
   </div>
 
   <div class="soc-vacio" data-mod-vacio {% if reportes %}hidden{% endif %}>
-    <h2>No hay reportes pendientes.</h2>
+    <h2 class="h3">No hay reportes pendientes.</h2>
     <p>Cuando alguien reporte una publicación o un comentario, va a aparecer acá.</p>
   </div>
 
