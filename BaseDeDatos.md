@@ -81,6 +81,58 @@ una semana sin reunión la pausa, y 14 días sin reunirse la reinician.
 | `Activa` | `boolean` | Not Null, Default `false` |
 | `Semanas` | `int4` | Not Null, Default `0` |
 | `Ultima_Reunion` | `date` | Nullable |
+| `Ultimo_Plan_Procesado` | `timestamp` | Nullable. Punto de control: los planes anteriores ya fueron contabilizados |
+| `Planes_Hechos` | `int4` | Not Null, Default `0`. Acumulado independiente de los planes que sigan en `Plan` |
+
+## Table `Grupo_Insignia`
+
+Guarda los hitos ganados permanentemente por cada grupo, aunque la racha
+actual se reinicie. Cada semana objetivo se registra una sola vez.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Grupo` | `uuid` | Primary, Foreign Key → `Grupos.Id_Grupo` (`ON DELETE CASCADE`) |
+| `Semanas` | `int4` | Primary. Hito: 3, 5, 10, 20, 30, 40, 50, 70, 90 o 100 |
+| `Desbloqueado_En` | `timestamptz` | Not Null, Default `now()` |
+
+Para crear esta tabla en Supabase:
+
+```sql
+CREATE TABLE IF NOT EXISTS public."Grupo_Insignia" (
+    "Id_Grupo" uuid NOT NULL
+        REFERENCES public."Grupos" ("Id_Grupo") ON DELETE CASCADE,
+    "Semanas" integer NOT NULL
+        CHECK ("Semanas" IN (3, 5, 10, 20, 30, 40, 50, 70, 90, 100)),
+    "Desbloqueado_En" timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY ("Id_Grupo", "Semanas")
+);
+```
+
+La apariencia elegida por el grupo se guarda aparte de los premios ganados:
+
+```sql
+CREATE TABLE IF NOT EXISTS public."Grupo_Apariencia" (
+    "Id_Grupo" uuid PRIMARY KEY
+        REFERENCES public."Grupos" ("Id_Grupo") ON DELETE CASCADE,
+    "Marco_Semanas" integer NULL,
+    "Titulo_Semanas" integer NULL,
+    CHECK ("Marco_Semanas" IS NULL OR "Marco_Semanas" IN (3, 10, 30, 70, 100)),
+    CHECK ("Titulo_Semanas" IS NULL OR "Titulo_Semanas" IN (3, 5, 10, 20, 30, 40, 50, 70, 90, 100))
+);
+```
+
+La aplicación valida que los hitos seleccionados estén desbloqueados en
+`Grupo_Insignia` antes de guardar la apariencia.
+
+Para actualizar una tabla `Rachas` que ya existe en Supabase:
+
+```sql
+ALTER TABLE public."Rachas"
+    ADD COLUMN IF NOT EXISTS "Ultimo_Plan_Procesado" timestamp without time zone,
+    ADD COLUMN IF NOT EXISTS "Planes_Hechos" integer NOT NULL DEFAULT 0;
+```
 
 ## Table `Usuario-Grupo`
 

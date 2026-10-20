@@ -334,6 +334,34 @@
 
       </div>
 
+      <div class="modal-field">
+        <label>Color del título</label>
+        <input type="hidden" name="titulo_semanas" value="{{ racha.titulo_semanas or '' }}" data-cosmetic-value="titulo">
+        <div class="cosmetic-carousel" aria-label="Elegir color del título">
+          <button class="cosmetic-choice{% if not racha.titulo_semanas %} is-selected{% endif %}" type="button" data-cosmetic-choice="titulo" data-value="" aria-pressed="{{ 'true' if not racha.titulo_semanas else 'false' }}"><span class="cosmetic-preview">Aa</span><strong>Normal</strong></button>
+          {% for hito in racha.hitos if hito.titulo_color %}
+          <button class="cosmetic-choice{% if hito.semanas == racha.titulo_semanas %} is-selected{% endif %}{% if not hito.logrado %} is-locked{% endif %}" type="button" data-cosmetic-choice="titulo" data-value="{{ hito.semanas }}" aria-pressed="{{ 'true' if hito.semanas == racha.titulo_semanas else 'false' }}" {% if not hito.logrado %}disabled{% endif %}>
+            <span class="cosmetic-preview group-title-award--{{ hito.titulo_color }}">Aa</span><strong>{{ hito.semanas }} sem.</strong><small>{{ hito.titulo_color|capitalize if hito.logrado else 'Bloqueado' }}</small>
+          </button>
+          {% endfor %}
+        </div>
+        <small class="cosmetic-scroll-hint">Deslizá para ver todos</small>
+      </div>
+
+      <div class="modal-field">
+        <label>Marco</label>
+        <input type="hidden" name="marco_semanas" value="{{ racha.marco_semanas or '' }}" data-cosmetic-value="marco">
+        <div class="cosmetic-carousel" aria-label="Elegir marco">
+          <button class="cosmetic-choice{% if not racha.marco_semanas %} is-selected{% endif %}" type="button" data-cosmetic-choice="marco" data-value="" aria-pressed="{{ 'true' if not racha.marco_semanas else 'false' }}"><span class="cosmetic-frame-preview">Sin marco</span><strong>Ninguno</strong></button>
+          {% for hito in racha.hitos if hito.marco %}
+          <button class="cosmetic-choice{% if hito.semanas == racha.marco_semanas %} is-selected{% endif %}{% if not hito.logrado %} is-locked{% endif %}" type="button" data-cosmetic-choice="marco" data-value="{{ hito.semanas }}" aria-pressed="{{ 'true' if hito.semanas == racha.marco_semanas else 'false' }}" {% if not hito.logrado %}disabled{% endif %}>
+            <span class="cosmetic-frame-preview group-frame group-frame--{{ hito.marco }}"><span>{{ hito.marco|capitalize }}</span></span><strong>{{ hito.semanas }} sem.</strong><small>{{ hito.marco|capitalize if hito.logrado else 'Bloqueado' }}</small>
+          </button>
+          {% endfor %}
+        </div>
+        <small class="cosmetic-scroll-hint">Deslizá para ver todos</small>
+      </div>
+
 
       {% if es_admin %}
       <label>
@@ -415,6 +443,24 @@
   </form>
 
 </dialog>
+
+<script>
+  document.querySelectorAll('[data-cosmetic-choice]').forEach(function (choice) {
+    choice.addEventListener('click', function () {
+      if (choice.disabled) return;
+      var kind = choice.dataset.cosmeticChoice;
+      var carousel = choice.closest('.cosmetic-carousel');
+      var hidden = document.querySelector('[data-cosmetic-value="' + kind + '"]');
+      if (!carousel || !hidden) return;
+      hidden.value = choice.dataset.value;
+      carousel.querySelectorAll('[data-cosmetic-choice]').forEach(function (item) {
+        var selected = item === choice;
+        item.classList.toggle('is-selected', selected);
+        item.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      });
+    });
+  });
+</script>
 
 
 <!-- =========================================================================
