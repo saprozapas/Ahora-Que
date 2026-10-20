@@ -10,6 +10,7 @@ from services.auth_service import AuthService
 from services.grupo_plan_service import GrupoPlanService
 from services.plan_service import PlanService
 from services.chat_service import ChatService
+from services.racha_service import RachaService
 from services.grupo_encuesta_service import GrupoEncuestaService, MAX_FRANJAS, opciones_de_precio
 from services.lugar_service import LugarService
 from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, getUsersInGroupWithIds, isUserInGroup, getGroupById, buscarUsuariosInvitables
@@ -22,6 +23,7 @@ invitation_service = InvitationService()
 grupo_plan_service = GrupoPlanService()
 plan_service = PlanService()
 chat_service = ChatService()
+racha_service = RachaService()
 grupo_encuesta_service = GrupoEncuestaService()
 lugar_service = LugarService()
 
@@ -47,10 +49,13 @@ def grupos():
 
     grupos = getGroupsForUser(session.get("user_id"))# getGroups no devuelve grupos con usuario asignado.
     usuario = getUser(session.get("user_id"))  # una sola consulta, no una por grupo
+    rachas = {}
     for grupo in grupos:
         grupo.set_user(usuario)
+        if grupo.get_id():
+            rachas[grupo.get_id()] = racha_service.actualizar_racha(grupo.get_id())
 
-    return render_template("grupos.html", groups=grupos, groups_page=True)
+    return render_template("grupos.html", groups=grupos, groups_page=True, rachas=rachas)
 
 
 @group_auth.route("/grupos/nuevo", methods=["GET", "POST"])
@@ -101,10 +106,11 @@ def detalle_grupo(group_id):
     users = getUsersInGroupWithIds(group_id)
     plan_service.archivar_vencidos()
     chat_service.eliminar_mensajes_viejos()
+    racha = racha_service.actualizar_racha(group_id)
     tablero = grupo_plan_service.get_tablero(group_id, session.get("user_id"))
     encuestas = grupo_encuesta_service.get_abiertas(group_id, session.get("user_id"))
     es_admin, todos_admin = group_auth_service.get_rol(session.get("user_id"), group_id)
-    return render_template("grupo.html", group=group, groups_page=True, users=users,
+    return render_template("grupo.html", group=group, groups_page=True, users=users, racha=racha,
                            es_admin=es_admin, todos_admin=todos_admin,
                            seccion="planes", tablero=tablero, hoy=date.today().isoformat(),
                            encuestas=encuestas,
@@ -124,9 +130,10 @@ def chat_grupo(group_id):
 
     group = getGroupById(group_id)
     group.set_user(getUser(session.get("user_id")))
+    racha = racha_service.actualizar_racha(group_id)
     es_admin, todos_admin = group_auth_service.get_rol(session.get("user_id"), group_id)
     return render_template("grupo_chat.html", group=group, groups_page=True,
-                           users=getUsersInGroupWithIds(group_id), seccion="chat",
+                           users=getUsersInGroupWithIds(group_id), seccion="chat", racha=racha,
                            es_admin=es_admin, todos_admin=todos_admin)
 
 
@@ -285,5 +292,6 @@ def racha_grupo(group_id):
 
     group = getGroupById(group_id)
     group.set_user(getUser(session.get("user_id")))
+    racha = racha_service.actualizar_racha(group_id)
     return render_template("racha.html", group=group, groups_page=True,
-                           users=getUsersInGroupWithIds(group_id))
+                           users=getUsersInGroupWithIds(group_id), racha=racha)

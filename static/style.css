@@ -3882,6 +3882,35 @@
     line-height: 1.02;
   }
 
+  .group-card-streak {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.08em;
+    margin-left: 0.14em;
+    color: #ef4328;
+    white-space: nowrap;
+    vertical-align: baseline;
+  }
+
+  .group-card-streak img {
+    width: 0.78em;
+    height: 0.78em;
+    align-self: center;
+    object-fit: contain;
+  }
+
+  .group-card-streak > span {
+    font-size: 0.78em;
+    font-weight: 750;
+    line-height: 1;
+  }
+
+  .group-card-streak.is-inactive { color: #737373; }
+  .group-card-streak.is-inactive img { filter: grayscale(1) brightness(0.72); }
+
+  html[data-theme="night"] .group-card-streak.is-inactive { color: #c8c8c8; }
+  html[data-theme="night"] .group-card-streak.is-inactive img { filter: grayscale(1) brightness(1.25); }
+
   .group-card p {
     max-width: 32ch;
     color: var(--muted);
@@ -4237,12 +4266,71 @@
     text-align: center;
   }
 
+  .group-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    max-width: 100%;
+  }
+
   .group-detail-head h1 {
     font-size: clamp(40px, 6vw, 84px);
     line-height: 1;
 
     /* El nombre lo escribe el usuario: puede ser una sola palabra larga. */
     overflow-wrap: anywhere;
+  }
+
+  .group-streak-link {
+    position: relative;
+    top: -0.04em;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    font-size: clamp(40px, 6vw, 84px);
+    line-height: 1;
+    color: #e85d2a;
+    text-decoration: none;
+  }
+
+  .group-streak-link img {
+    width: 0.9em;
+    height: 0.9em;
+    margin-top: 0.1em;
+  }
+
+  .group-streak-number {
+    position: absolute;
+    bottom: 0.29em;
+    left: 50%;
+    z-index: 1;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 0.39em;
+    font-weight: 900;
+    line-height: 1;
+    -webkit-text-stroke: 2.5px #000;
+    -webkit-text-fill-color: #fff;
+    text-shadow: 0 1px 2px #000;
+  }
+
+  .group-streak-link:hover { transform: scale(1.06); }
+
+  .group-streak-link.is-inactive img {
+    filter: grayscale(1) brightness(0.72);
+  }
+
+  html[data-theme="night"] .group-streak-link.is-inactive img {
+    filter: grayscale(1) brightness(1.25);
+  }
+
+  @media (max-width: 560px) {
+    .group-title-row { gap: 9px; }
+    .group-streak-link,
+    .group-detail-head h1 { font-size: clamp(32px, 9vw, 40px); }
   }
 
   /* El lápiz de editar. Mismo dibujo que el botón de contraer la barra
