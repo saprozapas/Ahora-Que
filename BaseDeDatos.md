@@ -383,6 +383,7 @@ Creada con `migraciones/social.sql`.
 | `Visibilidad` | `text` | Not Null, Default `'amigos'`. Check: `'amigos'` (autor y sus amigos) o `'publico'` (todos) |
 | `Creada_En` | `timestamptz` | Not Null, Default `now()` |
 | `Eliminada` | `boolean` | Not Null, Default `false` |
+| `Aspecto` | `text` | Not Null, Default `'cuadrada'`. Check: `'cuadrada'` o `'vertical'` (4:5). Formato en que se muestran sus fotos |
 
 Índices: `Publicacion_feed_idx` (`Creada_En` desc, solo no eliminadas), `Publicacion_autor_idx`,
 `Publicacion_plan_idx`, y `Publicacion_una_por_plan_idx` (UNIQUE `Id_Autor` + `Id_Plan`, solo no
@@ -447,6 +448,31 @@ revisa directo en la base (`SELECT * FROM "Publicacion_Reporte" WHERE NOT "Revis
 
 UNIQUE (`Id_Reportante`, `Tipo`, `Id_Objetivo`): cada persona reporta una vez lo mismo.
 
+## Table `Publicacion_Notificacion`
+
+Avisos para el autor de una publicación cuando alguien le da me gusta o le comenta.
+Se ven en Inbox > Publicaciones (los me gusta de una misma publicación se muestran
+juntos). Se borran al sacar el me gusta, borrar el comentario o eliminar la publicación.
+Creada con `migraciones/social_inbox.sql`.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Notificacion` | `uuid` | Primary, Default `gen_random_uuid()` |
+| `Id_Usuario` | `uuid` | Not Null, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`). Quién recibe el aviso |
+| `Id_Actor` | `uuid` | Not Null, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`). Quién dio me gusta o comentó |
+| `Tipo` | `text` | Not Null. Check: `'like'` o `'comentario'` |
+| `Id_Publicacion` | `uuid` | Not Null, Foreign Key → `Publicacion.Id_Publicacion` (`ON DELETE CASCADE`) |
+| `Id_Comentario` | `uuid` | Nullable, Foreign Key → `Publicacion_Comentario.Id_Comentario` (`ON DELETE CASCADE`). Solo en los avisos de comentario |
+| `Creada_En` | `timestamptz` | Not Null, Default `now()` |
+| `Leida` | `boolean` | Not Null, Default `false` |
+
+Índices: `Publicacion_Notificacion_usuario_idx` (`Id_Usuario`, `Creada_En` desc),
+`Publicacion_Notificacion_no_leidas_idx` (`Id_Usuario`, solo no leídas) y
+`Publicacion_Notificacion_like_uq` (UNIQUE `Id_Usuario` + `Id_Publicacion` + `Id_Actor`, solo
+`Tipo = 'like'`: un aviso de me gusta por persona y publicación).
+
 ## RLS Policies
 
 ### `Usuario-Grupo`
@@ -496,7 +522,7 @@ UNIQUE (`Id_Reportante`, `Tipo`, `Id_Objetivo`): cada persona reporta una vez lo
 | `usuario_edita_su_perfil` | UPDATE | public | PERMISSIVE | `(auth.uid() = "Id_Usuario")` | — |
 | `usuario_ve_su_perfil` | SELECT | public | PERMISSIVE | `(auth.uid() = "Id_Usuario")` | — |
 
-### Tablas de Social (`Publicacion`, `Publicacion_Foto`, `Publicacion_Like`, `Publicacion_Comentario`, `Publicacion_Reporte`)
+### Tablas de Social (`Publicacion`, `Publicacion_Foto`, `Publicacion_Like`, `Publicacion_Comentario`, `Publicacion_Reporte`, `Publicacion_Notificacion`)
 
 Tienen RLS activado y **sin políticas**: la API pública de Supabase (clave `anon`) no puede
 leerlas ni escribirlas. La app entra con el usuario de la base (`postgres`), que no pasa por
