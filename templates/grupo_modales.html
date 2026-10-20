@@ -1,3 +1,4 @@
+{% from '_macros.html' import nombre_titulo %}
 <!-- =========================================================================
      MODAL — INVITAR
      ========================================================================== -->
@@ -17,7 +18,7 @@
     <button
       class="modal-close"
       type="button"
-      onclick="document.getElementById('modal-invitar').close()"
+      data-cerrar-dialogo
       aria-label="Cerrar"
     >
       <svg viewBox="0 0 24 24" focusable="false">
@@ -70,9 +71,9 @@
 
   <div class="modal-actions">
     <button
-      class="header-action header-action-ghost"
+      class="btn btn--secondary"
       type="button"
-      onclick="document.getElementById('modal-invitar').close()"
+      data-cerrar-dialogo
     >
       Cerrar
     </button>
@@ -115,7 +116,7 @@
 
     if (!usuarios.length) {
       const vacio = document.createElement("p");
-      vacio.className = "friend-search-empty";
+      vacio.className = "friend-result__empty";
       vacio.textContent = hayTexto
         ? "No encontramos a nadie con ese nombre o usuario."
         : "Todavía no tenés amigos agregados: buscá por nombre o usuario.";
@@ -126,15 +127,17 @@
     usuarios.forEach(function (usuario) {
 
       const fila = document.createElement("div");
-      fila.className = "friend-search-result";
+      fila.className = "friend-result";
 
       const avatar = document.createElement("span");
-      avatar.className = "friend-avatar";
+      avatar.className = "avatar";
+      avatar.style.setProperty("--h", String(((usuario.nombre || "").length * 47) % 360));
+      avatar.style.setProperty("--size", "36px");
       avatar.setAttribute("aria-hidden", "true");
       avatar.textContent = (usuario.nombre || "?").slice(0, 1).toUpperCase();
 
       const nombres = document.createElement("span");
-      nombres.className = "friend-search-result-names";
+      nombres.className = "friend-result__names";
       const nombre = document.createElement("strong");
       nombre.textContent = usuario.nombre;
       nombres.appendChild(nombre);
@@ -145,14 +148,14 @@
       }
 
       const identidad = document.createElement("span");
-      identidad.className = "friend-search-result-identity";
+      identidad.className = "friend-result__who";
       identidad.appendChild(avatar);
       identidad.appendChild(nombres);
 
       const e = etiqueta(usuario);
       const boton = document.createElement("button");
       boton.type = "button";
-      boton.className = "friend-search-add";
+      boton.className = "btn btn--secondary btn--sm";
       boton.textContent = e.texto;
       boton.disabled = e.off;
 
@@ -270,7 +273,7 @@
       <button
         class="modal-close"
         type="button"
-        onclick="document.getElementById('modal-editar-grupo').close()"
+        data-cerrar-dialogo
         aria-label="Cerrar"
       >
 
@@ -335,32 +338,21 @@
       </div>
 
       <div class="modal-field">
-        <label>Color del título</label>
+        <span class="modal-field-label" id="editar-titulo-label">Título de la racha</span>
         <input type="hidden" name="titulo_semanas" value="{{ racha.titulo_semanas or '' }}" data-cosmetic-value="titulo">
-        <div class="cosmetic-carousel" aria-label="Elegir color del título">
-          <button class="cosmetic-choice{% if not racha.titulo_semanas %} is-selected{% endif %}" type="button" data-cosmetic-choice="titulo" data-value="" aria-pressed="{{ 'true' if not racha.titulo_semanas else 'false' }}"><span class="cosmetic-preview">Aa</span><strong>Normal</strong></button>
+        <div class="cosmetic-carousel" role="group" aria-labelledby="editar-titulo-label">
+          <button class="chip cosmetic-choice" type="button" data-cosmetic-choice="titulo" data-value="" aria-pressed="{{ 'true' if not racha.titulo_semanas else 'false' }}">Ninguno</button>
           {% for hito in racha.hitos if hito.titulo_color %}
-          <button class="cosmetic-choice{% if hito.semanas == racha.titulo_semanas %} is-selected{% endif %}{% if not hito.logrado %} is-locked{% endif %}" type="button" data-cosmetic-choice="titulo" data-value="{{ hito.semanas }}" aria-pressed="{{ 'true' if hito.semanas == racha.titulo_semanas else 'false' }}" {% if not hito.logrado %}disabled{% endif %}>
-            <span class="cosmetic-preview group-title-award--{{ hito.titulo_color }}">Aa</span><strong>{{ hito.semanas }} sem.</strong><small>{{ hito.titulo_color|capitalize if hito.logrado else 'Bloqueado' }}</small>
+          <button class="chip cosmetic-choice" type="button" data-cosmetic-choice="titulo" data-value="{{ hito.semanas }}" aria-pressed="{{ 'true' if hito.semanas == racha.titulo_semanas else 'false' }}" {% if not hito.logrado %}disabled{% endif %}>
+            {{ nombre_titulo(hito.titulo_color) | trim }}{% if not hito.logrado %} <span class="meta">· {{ hito.semanas }} sem.</span>{% endif %}
           </button>
           {% endfor %}
         </div>
-        <small class="cosmetic-scroll-hint">Deslizá para ver todos</small>
       </div>
 
-      <div class="modal-field">
-        <label>Marco</label>
-        <input type="hidden" name="marco_semanas" value="{{ racha.marco_semanas or '' }}" data-cosmetic-value="marco">
-        <div class="cosmetic-carousel" aria-label="Elegir marco">
-          <button class="cosmetic-choice{% if not racha.marco_semanas %} is-selected{% endif %}" type="button" data-cosmetic-choice="marco" data-value="" aria-pressed="{{ 'true' if not racha.marco_semanas else 'false' }}"><span class="cosmetic-frame-preview">Sin marco</span><strong>Ninguno</strong></button>
-          {% for hito in racha.hitos if hito.marco %}
-          <button class="cosmetic-choice{% if hito.semanas == racha.marco_semanas %} is-selected{% endif %}{% if not hito.logrado %} is-locked{% endif %}" type="button" data-cosmetic-choice="marco" data-value="{{ hito.semanas }}" aria-pressed="{{ 'true' if hito.semanas == racha.marco_semanas else 'false' }}" {% if not hito.logrado %}disabled{% endif %}>
-            <span class="cosmetic-frame-preview group-frame group-frame--{{ hito.marco }}"><span>{{ hito.marco|capitalize }}</span></span><strong>{{ hito.semanas }} sem.</strong><small>{{ hito.marco|capitalize if hito.logrado else 'Bloqueado' }}</small>
-          </button>
-          {% endfor %}
-        </div>
-        <small class="cosmetic-scroll-hint">Deslizá para ver todos</small>
-      </div>
+      {# Los marcos de insignia quedan afuera del rediseño por ahora. Se conserva el
+         valor guardado para que guardar el grupo no lo borre. #}
+      <input type="hidden" name="marco_semanas" value="{{ racha.marco_semanas or '' }}" data-cosmetic-value="marco">
 
 
       {% if es_admin %}
@@ -423,16 +415,16 @@
     <div class="modal-actions">
 
       <button
-        class="header-action header-action-ghost"
+        class="btn btn--secondary"
         type="button"
-        onclick="document.getElementById('modal-editar-grupo').close()"
+        data-cerrar-dialogo
       >
         Cancelar
       </button>
 
 
       <button
-        class="lime-button"
+        class="btn btn--primary"
         type="submit"
       >
         Guardar cambios
@@ -455,7 +447,6 @@
       hidden.value = choice.dataset.value;
       carousel.querySelectorAll('[data-cosmetic-choice]').forEach(function (item) {
         var selected = item === choice;
-        item.classList.toggle('is-selected', selected);
         item.setAttribute('aria-pressed', selected ? 'true' : 'false');
       });
     });
@@ -494,7 +485,7 @@
       <button
         class="modal-close"
         type="button"
-        onclick="document.getElementById('modal-abandonar-grupo').close()"
+        data-cerrar-dialogo
         aria-label="Cerrar"
       >
 
@@ -544,9 +535,9 @@
 
       <!-- NO: simplemente cierra la tarjeta -->
       <button
-        class="header-action header-action-ghost"
+        class="btn btn--secondary"
         type="button"
-        onclick="document.getElementById('modal-abandonar-grupo').close()"
+        data-cerrar-dialogo
       >
         No
       </button>
@@ -554,7 +545,7 @@
 
       <!-- SÍ: recién acá se hace el POST a Flask -->
       <button
-        class="lime-button"
+        class="btn btn--danger-solid"
         type="submit"
       >
         Sí, abandonar
@@ -586,7 +577,7 @@
     <button
       class="modal-close"
       type="button"
-      onclick="document.getElementById('modal-integrantes').close()"
+      data-cerrar-dialogo
       aria-label="Cerrar"
     >
       <svg viewBox="0 0 24 24" focusable="false">
@@ -620,7 +611,7 @@
         {% if not integrante.es_admin %}
         <form method="post" action="{{ url_for('group_auth.hacer_admin', group_id=group.get_id(), user_id=integrante.id) }}">
           <button
-            class="friend-action"
+            class="icon-btn"
             type="submit"
             title="Hacer admin"
             aria-label="Hacer admin a {{ integrante.user.get_name() }}"
@@ -638,7 +629,7 @@
           data-confirmar="¿Sacar a {{ integrante.user.get_name() }} del grupo?"
         >
           <button
-            class="friend-action friend-action-danger"
+            class="icon-btn icon-btn--danger"
             type="submit"
             title="Sacar del grupo"
             aria-label="Sacar a {{ integrante.user.get_name() }} del grupo"
@@ -659,9 +650,9 @@
 
   <div class="modal-actions">
     <button
-      class="header-action header-action-ghost"
+      class="btn btn--secondary"
       type="button"
-      onclick="document.getElementById('modal-integrantes').close()"
+      data-cerrar-dialogo
     >
       Cerrar
     </button>

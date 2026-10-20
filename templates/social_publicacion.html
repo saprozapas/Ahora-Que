@@ -4,7 +4,6 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
 
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
@@ -41,13 +40,13 @@
   <div class="soc-vacio" data-soc-vacio hidden>
     <h2>No encontramos esta publicación.</h2>
     <p>Puede que la hayan eliminado o que no tengas permiso para verla.</p>
-    <a class="plan-accion-secundaria" href="/social">Ir a Social</a>
+    <a class="btn btn--secondary" href="/social">Ir a Social</a>
   </div>
 
   <p class="soc-cargando" data-soc-cargando>Cargando…</p>
 
   <div class="social-ver-mas">
-    <button class="plan-accion-secundaria" type="button" data-soc-mas hidden>Ver más</button>
+    <button class="btn btn--secondary" type="button" data-soc-mas hidden>Ver más</button>
   </div>
 
 </section>

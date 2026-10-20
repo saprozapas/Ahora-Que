@@ -15,7 +15,6 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
 
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
@@ -26,28 +25,25 @@
 {% endif %}
 
 
-<section class="page-hero section-shell">
+<section class="container page social-page">
 
-  <a class="back-link" href="/dashboard">← Volver</a>
+  <a class="back-link" href="/dashboard">← Inicio</a>
 
-  <h1>Social</h1>
+  <header class="page-head">
+    <h1 class="h2">Social.</h1>
+    <p class="lead">Planes que comparten tus amigos y la comunidad.</p>
+  </header>
 
-  <p>Planes que comparten tus amigos y la comunidad.</p>
+  <nav class="tabs soc-tabs" aria-label="Secciones de social">
+    <a class="tab" href="{{ url_for('social', tab='amigos') }}"
+       {% if pestana == 'amigos' %}aria-current="page"{% endif %}>Amigos</a>
+    <a class="tab" href="{{ url_for('social', tab='descubrir') }}"
+       {% if pestana == 'descubrir' %}aria-current="page"{% endif %}>Descubrir</a>
+    <a class="tab" href="{{ url_for('social', tab='actividad') }}"
+       {% if pestana == 'actividad' %}aria-current="page"{% endif %}>Actividad</a>
+  </nav>
 
-</section>
-
-
-<nav class="group-tabs soc-tabs section-shell" aria-label="Secciones de social">
-
-  <a class="group-tab{% if pestana == 'amigos' %} is-active{% endif %}"
-     href="{{ url_for('social', tab='amigos') }}"
-     {% if pestana == 'amigos' %}aria-current="page"{% endif %}>Amigos</a>
-
-  <a class="group-tab{% if pestana == 'descubrir' %} is-active{% endif %}"
-     href="{{ url_for('social', tab='descubrir') }}"
-     {% if pestana == 'descubrir' %}aria-current="page"{% endif %}>Descubrir</a>
-
-  <a class="group-tab{% if pestana == 'actividad' %} is-active{% endif %}"
+{% if pestana == 'actividad' %} is-active{% endif %}"
      href="{{ url_for('social', tab='actividad') }}"
      {% if pestana == 'actividad' %}aria-current="page"{% endif %}>Actividad</a>
 
@@ -58,40 +54,23 @@
 
 {# ======================= ACTIVIDAD: lo que hicieron los amigos ======================= #}
 
-<section
-  class="social-feed section-shell"
-  aria-label="Planes de tus amigos"
->
+<section class="social-feed" aria-label="Planes de tus amigos">
 
-  <div class="social-feed-heading">
-
-    <p class="section-tag">
-      {% if nivel is none %}
-        todos los planes de la semana
-      {% else %}
-        planes con {{ nivel }}★ o más
-      {% endif %}
+  <div class="soc-barra">
+    <p class="meta soc-barra__titulo">
+      {% if nivel is none %}todos los planes de la semana{% else %}planes con {{ nivel }}★ o más{% endif %}
       · {{ planes | length }} de {{ total }}
     </p>
-
-    <a class="lime-button" href="/explorar">
-      Encontrar un plan <span aria-hidden="true">↗</span>
-    </a>
-
+    <a class="btn btn--primary" href="/explorar">Encontrar un plan</a>
   </div>
 
-
   {% if planes %}
-
   <div class="social-feed-grid">
-
     {% for plan in planes %}
-    <article class="social-post{% if loop.index is even %} social-post-accent{% endif %}">
+    <article class="card plan-tile social-post">
 
       <div class="social-post-author">
-
-        <img src="{{ url_for('static', filename='favicon.svg') }}" alt="" />
-
+        <span class="avatar" style="--h: {{ (plan.amigos[0] | length * 47) % 360 }}; --size: 36px" aria-hidden="true">{{ plan.amigos[0][:1] | upper }}</span>
         <div>
           <strong>
             {% if plan.amigos | length == 1 %}
@@ -102,34 +81,29 @@
               Fueron {{ plan.amigos[0] }} y {{ plan.amigos | length - 1 }} amigos más
             {% endif %}
           </strong>
-          <small>
-            {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}
-          </small>
+          <small class="meta">{{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</small>
         </div>
-
       </div>
 
-      <h2>{{ plan.nombre }}</h2>
-
-      <p>{{ plan.resumen_lugares }}</p>
+      <h2 class="plan-tile__title">{{ plan.nombre }}</h2>
+      <p class="plan-tile__text">{{ plan.resumen_lugares }}</p>
 
       <div class="social-post-actions">
         {% if plan.promedio is not none %}
-          <span>{{ estrellas(plan.promedio) }} {{ plan.promedio }} · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}</span>
+          <span class="meta">{{ estrellas(plan.promedio) }} {{ plan.promedio }} · {{ plan.votos }} voto{{ 's' if plan.votos != 1 }}</span>
         {% else %}
-          <span>Sin puntaje todavía</span>
+          <span class="meta">Sin puntaje todavía</span>
         {% endif %}
-        <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">Ver plan ↗</a>
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('planes.detalle', plan_id=plan.id) }}">Ver plan</a>
       </div>
 
     </article>
     {% endfor %}
-
   </div>
 
   {% if hay_siguiente %}
   <div class="social-ver-mas">
-    <a class="plan-accion-secundaria"
+    <a class="btn btn--secondary"
        href="{{ url_for('social', tab='actividad', nivel=(siguiente_nivel if siguiente_nivel is not none else 'todos')) }}">
       {% if siguiente_nivel is none %}
         Ver todos los planes de tus amigos
@@ -141,13 +115,11 @@
   {% endif %}
 
   {% else %}
-
-  <div class="social-feed-empty">
-    <h2>Todavía no hay planes para mostrar.</h2>
+  <div class="empty-state">
+    <h2 class="h3">Todavía no hay planes para mostrar.</h2>
     <p>Cuando tus amigos confirmen planes, los de la última semana van a aparecer acá.</p>
-    <a class="plan-accion-secundaria" href="/amigos">Buscar amigos</a>
+    <a class="btn btn--secondary" href="/amigos">Buscar amigos</a>
   </div>
-
   {% endif %}
 
 </section>
@@ -157,7 +129,7 @@
 {# ============================ AMIGOS / DESCUBRIR: el feed ============================ #}
 
 <section
-  class="soc-feed section-shell"
+  class="soc-feed"
   id="soc-feed"
   aria-label="{{ 'Publicaciones de tus amigos' if pestana == 'amigos' else 'Publicaciones de la comunidad' }}"
   data-pestana="{{ pestana }}"
@@ -176,15 +148,15 @@
 
   <div class="soc-barra">
 
-    <p class="section-tag">
-      {% if pestana == 'amigos' %}lo que comparten tus amigos{% else %}lo que comparte la comunidad{% endif %}
+    <p class="meta soc-barra__titulo">
+      {% if pestana == 'amigos' %}Lo que comparten tus amigos{% else %}Lo que comparte la comunidad{% endif %}
     </p>
 
     {% if es_moderador %}
     <a class="soc-icono" href="{{ url_for('social_api.pagina_moderacion') }}" aria-label="Revisar reportes" title="Revisar reportes">{{ ico('bandera') }}</a>
     {% endif %}
 
-    <button class="lime-button" type="button" data-modal-open="soc-modal-publicar" data-soc-abrir-publicar>
+    <button class="btn btn--primary" type="button" data-modal-open="soc-modal-publicar" data-soc-abrir-publicar>
       Compartir un plan <span aria-hidden="true">+</span>
     </button>
 
@@ -194,13 +166,13 @@
 
   <div class="soc-lista" data-soc-lista aria-live="polite"></div>
 
-  <div class="soc-vacio" data-soc-vacio hidden>
+  <div class="soc-vacio empty-state" data-soc-vacio hidden>
     {% if pestana == 'amigos' %}
-    <h2>Todavía no hay publicaciones.</h2>
+    <h2 class="h3">Todavía no hay publicaciones.</h2>
     <p>Cuando vos o tus amigos compartan un plan, va a aparecer acá.</p>
-    <a class="plan-accion-secundaria" href="/amigos">Buscar amigos</a>
+    <a class="btn btn--secondary" href="/amigos">Buscar amigos</a>
     {% else %}
-    <h2>Todavía no hay planes públicos.</h2>
+    <h2 class="h3">Todavía no hay planes públicos.</h2>
     <p>Los planes que otras personas compartan con todos van a aparecer acá.</p>
     {% endif %}
   </div>
@@ -208,7 +180,7 @@
   <p class="soc-cargando" data-soc-cargando>Cargando…</p>
 
   <div class="social-ver-mas">
-    <button class="plan-accion-secundaria" type="button" data-soc-mas hidden>Ver más</button>
+    <button class="btn btn--secondary" type="button" data-soc-mas hidden>Ver más</button>
   </div>
 
 </section>
@@ -306,8 +278,8 @@
     </div>
 
     <div class="modal-actions">
-      <button class="header-action header-action-ghost" type="button" data-soc-cerrar>Cancelar</button>
-      <button class="lime-button" type="submit" data-soc-publicar-enviar>Compartir</button>
+      <button class="btn btn--secondary" type="button" data-soc-cerrar>Cancelar</button>
+      <button class="btn btn--primary" type="submit" data-soc-publicar-enviar>Compartir</button>
     </div>
 
   </form>
@@ -319,6 +291,8 @@
 
 {% endif %}
 
+
+</section>
 
 {% if logueado %}
   </div>

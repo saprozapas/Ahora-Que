@@ -1,295 +1,178 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import chispa %}
 
 {% block title %}Bandeja de entrada — Ahora Qué{% endblock %}
+
+{# Avatar con la inicial; el tono sale del largo del nombre (estable, sin datos nuevos). #}
+{% macro avatar(nombre) -%}
+  <span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 40px" aria-hidden="true">{{ nombre[:1] | upper }}</span>
+{%- endmacro %}
 
 {% block content %}
 
 {% if logueado %}
-
 <div class="dashboard-layout dashboard-layout-page">
 
 {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
-
-<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
-
-<nav class="group-tabs inbox-tabs section-shell" aria-label="Secciones del inbox">
-
-  <a class="group-tab{% if tab == 'solicitudes' %} is-active{% endif %}"
-     href="{{ url_for('inbox.inbox', tab='solicitudes') }}"
-     {% if tab == 'solicitudes' %}aria-current="page"{% endif %}>
-    Solicitudes
-    {% if pendientes %}<span class="group-tab-count">{{ pendientes }}</span>{% endif %}
-  </a>
-
-  <a class="group-tab{% if tab == 'publicaciones' %} is-active{% endif %}"
-     href="{{ url_for('inbox.inbox', tab='publicaciones') }}"
-     {% if tab == 'publicaciones' %}aria-current="page"{% endif %}>
-    Publicaciones
-    {% if avisos_nuevos and tab != 'publicaciones' %}<span class="group-tab-count">{{ avisos_nuevos }}</span>{% endif %}
-  </a>
-
-</nav>
-
-
-{% if tab == 'solicitudes' %}
-
-<section class="inbox-section section-shell">
-
-  {% if invitaciones %}
-
-    <div class="inbox-list">
-
-      {% for invitacion in invitaciones %}
-
-        <article class="invitation-card">
-
-          <div class="invitation-card-content">
-
-            <div class="invitation-group">
-
-              <span class="invitation-label">
-                Invitación a grupo
-              </span>
-
-              <h2>
-                {{ invitacion.get_nombre_grupo() }}
-              </h2>
-
-            </div>
-
-
-            <div class="invitation-details">
-
-              <div class="invitation-inviter">
-
-                <span class="invitation-label">
-                  Invitado por
-                </span>
-
-                <p>
-                  {{ invitacion.get_nombre_invitante() }}
-                </p>
-
-              </div>
-
-
-              {% if invitacion.get_mensaje() %}
-
-                <div class="invitation-description">
-
-                  <span class="invitation-label">
-                    Mensaje
-                  </span>
-
-                  <p>
-                    {{ invitacion.get_mensaje() }}
-                  </p>
-
-                </div>
-
-              {% endif %}
-
-            </div>
-
-          </div>
-
-
-          <div class="invitation-actions">
-
-            <!-- ACEPTAR INVITACIÓN -->
-
-            <form
-              action="/invitaciones/{{ invitacion.get_group_id() }}/aceptar"
-              method="POST"
-            >
-
-              <button
-                class="invitation-action invitation-accept"
-                type="submit"
-                aria-label="Aceptar invitación"
-                title="Aceptar invitación"
-              >
-                ✓
-              </button>
-
-            </form>
-
-
-            <!-- RECHAZAR INVITACIÓN -->
-
-            <form
-              action="/invitaciones/{{ invitacion.get_group_id() }}/rechazar"
-              method="POST"
-            >
-
-              <button
-                class="invitation-action invitation-reject"
-                type="submit"
-                aria-label="Rechazar invitación"
-                title="Rechazar invitación"
-              >
-                ×
-              </button>
-
-            </form>
-
-          </div>
-
-        </article>
-
-      {% endfor %}
-
-    </div>
-
-  {% elif not solicitudes_amistad %}
-
-    <div class="inbox-empty">
-
-      <div class="empty-symbol" aria-hidden="true">
-        ✦
-      </div>
-
-      <h2>
-        No tenés invitaciones pendientes.
-      </h2>
-
-      <p>
-        Cuando alguien te invite a un grupo, vas a encontrarla acá.
-      </p>
-
-    </div>
-
-  {% endif %}
-
-</section>
-
-
-{% if solicitudes_amistad %}
-
-<section class="inbox-section section-shell">
-
-  <div class="inbox-list">
-
-    {% for solicitud in solicitudes_amistad %}
-
-      <article class="invitation-card">
-
-        <div class="invitation-card-content">
-
-          <div class="invitation-group">
-
-            <span class="invitation-label">
-              Solicitud de amistad
-            </span>
-
-            <h2>
-              {{ solicitud.get_nombre_solicitante() }}
-            </h2>
-
-          </div>
-
-
-          <div class="invitation-details">
-
-            {% if solicitud.get_username_solicitante() %}
-
-              <div class="invitation-inviter">
-
-                <span class="invitation-label">
-                  Usuario
-                </span>
-
-                <p>
-                  @{{ solicitud.get_username_solicitante() }}
-                </p>
-
-              </div>
-
-            {% endif %}
-
-          </div>
-
-        </div>
-
-
-        <div class="invitation-actions">
-
-          <!-- ACEPTAR SOLICITUD -->
-
-          <form
-            action="{{ url_for('friends.aceptar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}"
-            method="POST"
-          >
-
-            <button
-              class="invitation-action invitation-accept"
-              type="submit"
-              aria-label="Aceptar solicitud de amistad"
-              title="Aceptar solicitud de amistad"
-            >
-              ✓
-            </button>
-
-          </form>
-
-
-          <!-- RECHAZAR SOLICITUD -->
-
-          <form
-            action="{{ url_for('friends.rechazar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}"
-            method="POST"
-          >
-
-            <button
-              class="invitation-action invitation-reject"
-              type="submit"
-              aria-label="Rechazar solicitud de amistad"
-              title="Rechazar solicitud de amistad"
-            >
-              ×
-            </button>
-
-          </form>
-
-        </div>
-
-      </article>
-
-    {% endfor %}
-
-  </div>
-
-</section>
-
 {% endif %}
 
-{% else %}
+<section class="container page inbox">
 
-{# ------------------- Publicaciones: me gusta y comentarios de lo que publicaste ------------------- #}
+  {% set n_inv = invitaciones | length if invitaciones else 0 %}
+  {% set n_sol = solicitudes_amistad | length if solicitudes_amistad else 0 %}
 
-<section class="inbox-section section-shell">
+  <header class="page-head">
+    <h1 class="h2">Inbox.</h1>
+
+    {% if tab == 'solicitudes' and (n_inv or n_sol) %}
+    <div class="brief">
+      <p class="brief__label">{{ chispa() }} Resumen</p>
+      <p class="voice">
+        <strong>
+          {% if n_inv %}{{ n_inv }} invitaci{{ 'ones' if n_inv != 1 else 'ón' }} a grupo{{ 's' if n_inv != 1 }}{% endif %}{% if n_inv and n_sol %} y {% endif %}{% if n_sol %}{{ n_sol }} solicitud{{ 'es' if n_sol != 1 }} de amistad{% endif %}.
+        </strong>
+        Aceptalas y aparecen en tus grupos y tus amigos.
+      </p>
+    </div>
+    {% else %}
+    <p class="lead">{{ 'Invitaciones a grupos y solicitudes de amistad.' if tab == 'solicitudes' else 'Los me gusta y comentarios de lo que publicaste.' }}</p>
+    {% endif %}
+  </header>
+
+
+  <nav class="tabs inbox__tabs" aria-label="Secciones del inbox">
+
+    <a class="tab" href="{{ url_for('inbox.inbox', tab='solicitudes') }}"
+       {% if tab == 'solicitudes' %}aria-current="page"{% endif %}>
+      Solicitudes
+      {% if pendientes %}<span class="tab__count">{{ pendientes }}</span>{% endif %}
+    </a>
+
+    <a class="tab" href="{{ url_for('inbox.inbox', tab='publicaciones') }}"
+       {% if tab == 'publicaciones' %}aria-current="page"{% endif %}>
+      Publicaciones
+      {% if avisos_nuevos and tab != 'publicaciones' %}<span class="tab__count">{{ avisos_nuevos }}</span>{% endif %}
+    </a>
+
+  </nav>
+
+
+  {% if tab == 'solicitudes' %}
+
+  {% if invitaciones %}
+  <section class="inbox__section" aria-labelledby="inbox-invitaciones">
+
+    <div class="board__head">
+      <h2 class="h3" id="inbox-invitaciones">Invitaciones a grupos</h2>
+      <span class="meta">{{ n_inv }}</span>
+    </div>
+
+    <ul class="inbox__list">
+      {% for invitacion in invitaciones %}
+      <li class="card item inbox-item">
+
+        {{ avatar(invitacion.get_nombre_grupo()) }}
+
+        <div class="item__body">
+          <div class="item__top">
+            <span class="item__name">{{ invitacion.get_nombre_grupo() }}</span>
+          </div>
+          <p class="inbox-item__text">Te invitó {{ invitacion.get_nombre_invitante() }}</p>
+          {% if invitacion.get_mensaje() %}
+          <p class="quote inbox-item__quote">“{{ invitacion.get_mensaje() }}”</p>
+          {% endif %}
+        </div>
+
+        <div class="inbox-item__actions">
+          <!-- ACEPTAR INVITACIÓN -->
+          <form action="/invitaciones/{{ invitacion.get_group_id() }}/aceptar" method="POST">
+            <button class="btn btn--primary btn--sm" type="submit" aria-label="Aceptar invitación a {{ invitacion.get_nombre_grupo() }}">Aceptar</button>
+          </form>
+          <!-- RECHAZAR INVITACIÓN -->
+          <form action="/invitaciones/{{ invitacion.get_group_id() }}/rechazar" method="POST">
+            <button class="btn btn--ghost btn--sm" type="submit" aria-label="Rechazar invitación a {{ invitacion.get_nombre_grupo() }}">Rechazar</button>
+          </form>
+        </div>
+
+      </li>
+      {% endfor %}
+    </ul>
+
+  </section>
+  {% endif %}
+
+
+  {% if solicitudes_amistad %}
+  <section class="inbox__section" aria-labelledby="inbox-amistad">
+
+    <div class="board__head">
+      <h2 class="h3" id="inbox-amistad">Solicitudes de amistad</h2>
+      <span class="meta">{{ n_sol }}</span>
+    </div>
+
+    <ul class="inbox__list">
+      {% for solicitud in solicitudes_amistad %}
+      <li class="card item inbox-item">
+
+        {{ avatar(solicitud.get_nombre_solicitante()) }}
+
+        <div class="item__body">
+          <div class="item__top">
+            <span class="item__name">{{ solicitud.get_nombre_solicitante() }}</span>
+          </div>
+          <p class="inbox-item__text">
+            Quiere ser tu amigo{% if solicitud.get_username_solicitante() %} · <span class="meta">@{{ solicitud.get_username_solicitante() }}</span>{% endif %}
+          </p>
+        </div>
+
+        <div class="inbox-item__actions">
+          <!-- ACEPTAR SOLICITUD -->
+          <form action="{{ url_for('friends.aceptar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}" method="POST">
+            <button class="btn btn--primary btn--sm" type="submit" aria-label="Aceptar solicitud de {{ solicitud.get_nombre_solicitante() }}">Aceptar</button>
+          </form>
+          <!-- RECHAZAR SOLICITUD -->
+          <form action="{{ url_for('friends.rechazar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}" method="POST">
+            <button class="btn btn--ghost btn--sm" type="submit" aria-label="Rechazar solicitud de {{ solicitud.get_nombre_solicitante() }}">Rechazar</button>
+          </form>
+        </div>
+
+      </li>
+      {% endfor %}
+    </ul>
+
+  </section>
+  {% endif %}
+
+
+  {% if not invitaciones and not solicitudes_amistad %}
+  <div class="empty-state">
+    <h2 class="h3">No tenés invitaciones pendientes.</h2>
+    <p>Cuando alguien te invite a un grupo o te mande una solicitud de amistad, la vas a encontrar acá.</p>
+  </div>
+  {% endif %}
+
+
+  {% else %}
+
+  {# ------------------- Publicaciones: me gusta y comentarios de lo que publicaste ------------------- #}
 
   {% if avisos %}
-
   <div class="avisos">
-
     {% for aviso in avisos %}
-
     <a class="aviso{% if aviso.no_leida %} aviso-nuevo{% endif %}"
        href="{{ url_for('social_api.pagina_publicacion', publicacion_id=aviso.publicacion_id, comentarios=('1' if aviso.tipo == 'comentario' else None)) }}">
 
       <span class="aviso-miniatura" aria-hidden="true">
         {% if aviso.foto %}
-          <img src="{{ url_for('social_api.foto', foto_id=aviso.foto) }}" alt="" loading="lazy" />
+          <img src="{{ url_for('social_api.foto', foto_id=aviso.foto) }}" alt="" loading="lazy" width="48" height="48" />
         {% else %}
           <span>{{ aviso.plan[:1] | upper }}</span>
         {% endif %}
       </span>
 
       <span class="aviso-cuerpo">
-
         {% if aviso.tipo == 'like' %}
           <span class="aviso-texto">
             <strong>{{ aviso.texto_actores }}</strong>
@@ -302,49 +185,30 @@
             “{{ aviso.texto }}”
           </span>
         {% endif %}
-
         <span class="aviso-hace">{{ aviso.hace }}</span>
-
       </span>
 
-      {% if aviso.no_leida %}<span class="aviso-punto" aria-label="Nuevo" title="Nuevo"></span>{% endif %}
+      {% if aviso.no_leida %}<span class="aviso-punto" role="img" aria-label="Nuevo" title="Nuevo"></span>{% endif %}
 
     </a>
-
     {% endfor %}
-
   </div>
-
   {% else %}
-
-  <div class="inbox-empty">
-
-    <div class="empty-symbol" aria-hidden="true">
-      ✦
-    </div>
-
-    <h2>
-      Todavía no hay novedades en tus publicaciones.
-    </h2>
-
-    <p>
-      Cuando alguien le dé me gusta o comente un plan que compartiste, lo vas a ver acá.
-    </p>
-
-    <a class="plan-accion-secundaria" href="/social">Ir a Social</a>
-
+  <div class="empty-state">
+    <h2 class="h3">Todavía no hay novedades en tus publicaciones.</h2>
+    <p>Cuando alguien le dé me gusta o comente un plan que compartiste, lo vas a ver acá.</p>
+    <a class="btn btn--secondary" href="/social">Ir a Social</a>
   </div>
+  {% endif %}
 
   {% endif %}
 
 </section>
 
-{% endif %}
-
+{% if logueado %}
   </div>
 
 </div>
-
 {% endif %}
 
 {% endblock %}

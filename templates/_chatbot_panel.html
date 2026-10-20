@@ -4,7 +4,6 @@
    Si la página define window.crearIdeaCargarBorrador (planes_nuevo.html),
    los borradores muestran además el botón "Pasar al formulario". #}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css', v='20261015-streaming2') }}" />
 
 <section class="chatbot" id="chatbot" aria-labelledby="chatbot-titulo"
          data-grupo-id="{{ chatbot_grupo_id or '' }}">
@@ -19,7 +18,7 @@
       <p class="chatbot-bajada">Contale qué tenés ganas de hacer y te propone un plan con lugares reales de la app.</p>
       {% endif %}
     </div>
-    <button type="button" class="chatbot-nueva" id="chatbot-nueva">Nueva conversación</button>
+    <button type="button" class="btn btn--secondary btn--sm chatbot-nueva" id="chatbot-nueva">Nueva conversación</button>
   </header>
 
   <div class="chatbot-mensajes" id="chatbot-mensajes" role="log" aria-live="polite">
@@ -30,9 +29,9 @@
 
   <form class="chatbot-entrada" id="chatbot-form" autocomplete="off">
     <label class="chatbot-oculto" for="chatbot-input">Mensaje para el asistente</label>
-    <input type="text" id="chatbot-input" maxlength="1000"
+    <input class="input" type="text" id="chatbot-input" maxlength="1000"
            placeholder="Escribí lo que buscás..." />
-    <button class="lime-button chatbot-enviar" type="submit" id="chatbot-enviar">Enviar</button>
+    <button class="btn btn--primary btn--lg chatbot-enviar" type="submit" id="chatbot-enviar">Enviar</button>
   </form>
 
 </section>

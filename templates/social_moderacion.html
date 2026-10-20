@@ -4,7 +4,6 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
 
 {% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
@@ -58,9 +57,9 @@
       {% endif %}
 
       <div class="mod-acciones">
-        <a class="plan-accion-secundaria" href="{{ url_for('social_api.pagina_publicacion', publicacion_id=r.publicacion_id) }}">Ver publicación</a>
-        <button class="plan-accion-secundaria" type="button" data-mod-accion="descartar">Descartar reporte</button>
-        <button class="lime-button" type="button" data-mod-accion="eliminar">Eliminar contenido</button>
+        <a class="btn btn--secondary" href="{{ url_for('social_api.pagina_publicacion', publicacion_id=r.publicacion_id) }}">Ver publicación</a>
+        <button class="btn btn--secondary" type="button" data-mod-accion="descartar">Descartar reporte</button>
+        <button class="btn btn--primary" type="button" data-mod-accion="eliminar">Eliminar contenido</button>
       </div>
 
     </article>

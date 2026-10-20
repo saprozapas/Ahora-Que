@@ -201,7 +201,7 @@
 
 .icon-btn {
   display: inline-grid; place-items: center; flex: none;
-  width: 40px; height: 40px; padding: 0;
+  width: var(--ctl-icon); height: var(--ctl-icon); padding: 0;
   border: 0; border-radius: var(--r-md);
   background: transparent; color: var(--ink-2); cursor: pointer;
   transition: background-color var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out), transform var(--d-fast) var(--ease-out);
@@ -289,7 +289,7 @@
 
 .dashboard-sidebar-toggle {
   display: inline-grid; place-items: center;
-  width: 36px; height: 36px; padding: 0;
+  width: var(--ctl-icon); height: var(--ctl-icon); padding: 0;
   border: 0; border-radius: var(--r-md);
   background: transparent; color: var(--ink-3); cursor: pointer;
   transition: background-color var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out), transform var(--d-base) var(--ease-out);
@@ -303,7 +303,7 @@
 .dashboard-sidebar-link {
   position: relative;
   display: flex; align-items: center; gap: var(--s-3);
-  height: 40px; min-height: 0; padding: 0 var(--s-3);
+  height: var(--control-h); min-height: 0; padding: 0 var(--s-3);
   border: 0; border-radius: var(--r-sm);
   color: var(--ink-2); text-decoration: none;
   font-size: var(--t-ui); font-weight: 500; letter-spacing: var(--track-ui);
@@ -346,7 +346,7 @@
 
 .dashboard-layout.is-collapsed .dashboard-sidebar-badge {
   display: inline-grid; position: absolute; top: 2px; right: 4px;
-  min-width: 16px; height: 16px; padding: 0 4px; margin: 0; font-size: 10px;
+  min-width: 18px; height: 18px; padding: 0 4px; margin: 0; font-size: 12px;
 }
 
 /* En celular la barra es una fila de pestañas con el look de .chips. */
@@ -377,10 +377,26 @@
   .dashboard-sidebar-link:hover { background: transparent; }
   .dashboard-sidebar-link.is-active:hover { background: var(--surface); }
 
+  /* Hay más destinos fuera de la vista: el borde se desvanece del lado que falta. */
+  .dashboard-sidebar-nav { scroll-snap-type: x proximity; }
+  .dashboard-sidebar-link { scroll-snap-align: center; }
+  .dashboard-sidebar-nav.tiene-mas-derecha {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+  }
+  .dashboard-sidebar-nav.tiene-mas-izquierda {
+    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent);
+            mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent);
+  }
+  .dashboard-sidebar-nav.tiene-mas-izquierda.tiene-mas-derecha {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
+            mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
+  }
+
   .dashboard-layout.is-collapsed .dashboard-sidebar-label { display: inline; }
 
   .dashboard-layout.is-collapsed .dashboard-sidebar-badge {
-    position: static; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 2px; font-size: 11px;
+    position: static; min-width: 22px; height: 22px; padding: 0 6px; margin-left: 2px; font-size: 12px;
   }
 }
 
@@ -413,7 +429,7 @@ dialog.modal::backdrop { background: var(--scrim); }
 }
 
 .modal-close {
-  width: 36px; height: 36px; border-radius: var(--r-md);
+  width: var(--ctl-icon); height: var(--ctl-icon); border-radius: var(--r-md);
   background: transparent; color: var(--ink-3);
 }
 
@@ -442,7 +458,7 @@ dialog.modal::backdrop { background: var(--scrim); }
 .modal-field textarea { min-height: 96px; padding: 14px var(--s-4); line-height: 1.5; resize: vertical; }
 
 .modal-field input::placeholder,
-.modal-field textarea::placeholder { color: var(--ink-4); }
+.modal-field textarea::placeholder { color: var(--ink-3); }
 
 .modal-field input:focus,
 .modal-field textarea:focus,
@@ -463,7 +479,7 @@ dialog.modal::backdrop { background: var(--scrim); }
 }
 
 .modal-member small {
-  color: var(--ink-4); font-size: var(--t-meta);
+  color: var(--ink-3); font-size: var(--t-meta);
   text-transform: none; letter-spacing: 0;
 }
 
@@ -503,7 +519,7 @@ dialog.modal::backdrop { background: var(--scrim); }
 }
 
 .flash-message-cerrar {
-  width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--r-sm);
+  width: var(--ctl-icon); height: var(--ctl-icon); padding: 0; border: 0; border-radius: var(--r-sm);
   background: transparent; color: color-mix(in srgb, var(--on-ink) 60%, transparent);
   cursor: pointer;
 }
@@ -608,11 +624,7 @@ a.plan-tile:hover { box-shadow: var(--sh-float); }
 /* ---------- 13. Tamaños táctiles ----------
    En celular, chips y segmented llegan a 40px de alto para el dedo. */
 
-@media (max-width: 640px) {
-  .chip { height: 40px; }
-  .seg button,
-  .seg > span { height: 40px; }
-}
+/* El tamaño de chips y segmentados ya sale de --control-h (44 con dedo, 40 con mouse). */
 
 
 /* ---------- 14. Página interna ----------
@@ -624,7 +636,7 @@ a.plan-tile:hover { box-shadow: var(--sh-float); }
 
 .back-link {
   display: inline-flex; align-items: center; gap: 6px;
-  min-height: 40px; margin: 0; padding: 0 var(--s-3) 0 var(--s-2);
+  min-height: var(--control-h); margin: 0; padding: 0 var(--s-3) 0 var(--s-2);
   border-radius: var(--r-md);
   color: var(--ink-3); text-decoration: none;
   font-size: var(--t-ui); font-weight: 500; letter-spacing: var(--track-ui); text-transform: none;
@@ -731,13 +743,14 @@ a.chip { text-decoration: none; }
 /* Select nativo con la cara de .input. */
 .select {
   appearance: none; -webkit-appearance: none;
-  height: 50px; width: 100%; padding: 0 40px 0 var(--s-4);
-  border: 1px solid var(--line-strong); border-radius: 12px;
-  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371706C' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 16px;
+  height: var(--control-h-xl); width: 100%; padding: 0 40px 0 var(--s-4);
+  border: 1px solid var(--line-control); border-radius: var(--r-md);
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2366655F' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center / 16px;
   color: var(--ink); font: 400 1rem var(--font-sans); letter-spacing: var(--track-ui);
   transition: border-color var(--d-fast) var(--ease-out), box-shadow var(--d-fast) var(--ease-out);
 }
 
+:root[data-theme="night"] .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A9A8A3' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
 .select:focus { outline: none; border-color: color-mix(in srgb, var(--ink) 40%, transparent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink) 7%, transparent); }
 
 textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-height: 1.5; resize: vertical; }
@@ -758,7 +771,7 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 .seg label { position: relative; display: inline-flex; }
 .seg label input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .seg label span {
-  display: inline-flex; align-items: center; height: 30px; padding: 0 12px;
+  display: inline-flex; align-items: center; height: var(--control-h); padding: 0 14px;
   border-radius: var(--r-sm);
   font: 500 var(--t-meta)/1 var(--font-sans); color: var(--ink-3); white-space: nowrap;
 }
@@ -768,16 +781,13 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 }
 .seg label input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-.seg--lg label span { height: 38px; padding: 0 16px; font-size: var(--t-ui); }
+.seg--lg label span { height: var(--control-h-lg); padding: 0 16px; font-size: var(--t-ui); }
 
 .field-group { display: grid; gap: var(--s-2); margin: 0; padding: 0; border: 0; min-width: 0; }
 /* Un .seg adentro mide lo que su contenido, no el ancho del campo. */
 .field-group > .seg { justify-self: start; }
 .field-group > legend { padding: 0; margin-bottom: var(--s-2); color: var(--ink-2); font-size: var(--t-ui); font-weight: 500; }
 
-@media (max-width: 640px) {
-  .seg label span { height: 40px; }
-}
 
 
 /* ---------- 19. Detalle de plan y datos clave ---------- */
@@ -803,7 +813,7 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 }
 
 .facts > div { display: grid; gap: 2px; }
-.facts dt { color: var(--ink-4); font-size: var(--t-meta); }
+.facts dt { color: var(--ink-3); font-size: var(--t-meta); }
 .facts dd { margin: 0; color: var(--ink); font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
 
 
@@ -869,7 +879,7 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 
 .idea-menu__item:hover { background: var(--surface-2); }
 .idea-menu__item strong { display: block; font-weight: 550; letter-spacing: -0.011em; }
-.idea-menu__item small { display: block; color: var(--ink-4); font-size: var(--t-meta); }
+.idea-menu__item small { display: block; color: var(--ink-3); font-size: var(--t-meta); }
 .idea-menu__item .menu-item__icon { width: 40px; height: 40px; }
 .idea-menu__item.is-disabled { opacity: 0.5; cursor: not-allowed; }
 .idea-menu__item.is-disabled:hover { background: transparent; }
@@ -901,7 +911,7 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 
 .profile-row .field-view [data-role="value"] { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .profile-row .field-edit .input { flex: 1; min-width: 0; font-family: var(--font-sans); }
-.profile-row .is-empty { color: var(--ink-4); }
+.profile-row .is-empty { color: var(--ink-3); }
 
 .profile-row--texto { align-items: start; }
 .profile-row--texto .profile-row__label { padding-top: 9px; }
@@ -990,3 +1000,25 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
   -webkit-mask-image: radial-gradient(ellipse 60% 80% at 50% 40%, #000 25%, transparent 78%);
           mask-image: radial-gradient(ellipse 60% 80% at 50% 40%, #000 25%, transparent 78%);
 }
+
+
+
+/* ---------- 25. Registro: contraseña, términos y texto largo ---------- */
+
+.password-strength { display: grid; gap: var(--s-2); margin-top: var(--s-1); }
+.password-strength-track { height: 6px; overflow: hidden; border-radius: var(--r-full); background: var(--paper-deep); box-shadow: inset 0 0 0 1px var(--line); }
+.password-strength-track span { display: block; width: 33%; height: 100%; border-radius: inherit; background: var(--danger); transition: width var(--d-base) var(--ease-out), background-color var(--d-base) var(--ease-out); }
+.password-strength-track.is-medium span { background: var(--accent); }
+.password-strength-track.is-strong span { background: var(--ok); }
+.password-strength-label { margin: 0; font-size: var(--t-meta); color: var(--ink-3); }
+.password-strength-label.is-weak { color: var(--danger); }
+.password-strength-label.is-strong { color: var(--ok); }
+
+.check-row { display: flex; align-items: flex-start; gap: var(--s-3); min-height: var(--hit); color: var(--ink-2); font-size: var(--t-ui); cursor: pointer; }
+.check-row input[type="checkbox"] { flex: none; width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--ink); }
+.check-row a { color: var(--ink); text-underline-offset: 0.18em; }
+
+/* Texto de lectura (términos): ancho cómodo y ritmo vertical. */
+.prose { max-width: 68ch; display: grid; gap: var(--s-4); }
+.prose h2 { margin: var(--s-6) 0 0; }
+.prose p { margin: 0; color: var(--ink-2); }

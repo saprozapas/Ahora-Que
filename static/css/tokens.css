@@ -24,21 +24,22 @@
 
   --ink:          #151515;  /* titulares, texto principal, botón primario */
   --ink-2:        #454542;  /* texto de cuerpo fuerte */
-  --ink-3:        #71706C;  /* párrafos secundarios, lead */
-  --ink-4:        #A3A29D;  /* metadata, horas, placeholders */
+  --ink-3:        #66655F;  /* texto secundario y metadatos (AA 4,5:1 sobre papel, bandas y tarjetas) */
+  --ink-4:        #A3A29D;  /* SOLO elementos no textuales: íconos decorativos, separadores. Nunca texto (2,3:1). */
   --on-ink:       #FFFFFF;  /* texto sobre botón negro */
 
   --line:         rgb(21 21 21 / 0.08);  /* bordes de cards (casi invisibles) */
-  --line-strong:  rgb(21 21 21 / 0.14);  /* inputs, divisores que importan */
+  --line-strong:  rgb(21 21 21 / 0.14);  /* divisores que importan */
+  --line-control: rgb(21 21 21 / 0.55);  /* borde de inputs y controles: 3:1 contra papel y superficie (WCAG 1.4.11) */
   --dot:          rgb(21 21 21 / 0.13);
 
   --accent:       var(--brand-accent);
-  --alert:       #C8372D;  /* solo para urgencia real ("hace 3 días") */
+  --alert:       #BC342B;  /* solo para urgencia real ("hace 3 días") */
   --focus:        color-mix(in srgb, var(--brand-accent) 55%, transparent);
 
   /* ---------- 3. TIPOGRAFÍA ---------- */
-  --font-sans:  "Inter", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-sans:  "Figtree", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
 
   --t-display: clamp(2.75rem, 1.55rem + 4.4vw, 5.5rem);  /* un solo uso por página */
   --t-h2:      clamp(2rem, 1.45rem + 2vw, 3.25rem);
@@ -82,7 +83,26 @@
   --d-base: 220ms;  /* abrir, cambiar estado */
   --d-slow: 700ms;  /* el único momento orquestado de la página */
 
+  /* ---------- 8. ESTADOS (decisión: --ok y --danger apagados, siempre con texto o ícono) ---------- */
+  --ok:           #2E6B4A;   /* confirmado, guardado, aceptar */
+  --ok-soft:      color-mix(in srgb, var(--ok) 11%, var(--surface));
+  --danger:       #B03128;   /* abandonar, eliminar, errores de formulario */
+  --danger-soft:  color-mix(in srgb, var(--danger) 9%, var(--surface));
+  --accent-wash:  color-mix(in srgb, var(--accent) 12%, var(--surface));
+
+  /* ---------- 9. TAMAÑO DE CONTROLES ----------
+     44 / 48 / 52 con dedo; 40 / 44 / 48 con puntero fino (mouse). */
+  --control-h:    44px;
+  --control-h-lg: 48px;
+  --control-h-xl: 52px;
+  --ctl-icon:     44px;
+  --hit:          44px;
+
   color-scheme: light;
+}
+
+@media (pointer: fine) {
+  :root { --control-h: 40px; --control-h-lg: 44px; --control-h-xl: 48px; --ctl-icon: 40px; }
 }
 
 /* ---------- MODO NOCHE ---------- */
@@ -91,8 +111,8 @@
   --paper-deep: hsl(var(--brand-paper-hue) 4% 10%);
   --surface: hsl(var(--brand-paper-hue) 3% 11.5%);
   --surface-2: hsl(var(--brand-paper-hue) 3% 14%);
-  --ink: #F1F0EC; --ink-2: #C9C8C3; --ink-3: #9C9B96; --ink-4: #6E6D69; --on-ink: #151515;
-  --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14); --dot: rgb(255 255 255 / 0.09);
+  --ink: #F1F0EC; --ink-2: #C9C8C3; --ink-3: #A9A8A3; --ink-4: #6E6D69; --on-ink: #151515;
+  --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14); --line-control: rgb(255 255 255 / 0.5); --dot: rgb(255 255 255 / 0.09);
   --sh-card: 0 0 0 1px var(--line), 0 6px 16px -6px rgb(0 0 0 / 0.5);
   --sh-float: 0 0 0 1px var(--line), 0 16px 32px -12px rgb(0 0 0 / 0.6), 0 32px 64px -32px rgb(0 0 0 / 0.5);
   --sh-btn: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 1px 2px rgb(0 0 0 / 0.4);
@@ -103,6 +123,8 @@
   /* El rojo de Sereno queda en 3,6:1 sobre la superficie oscura; este
      llega a AA (5,3:1). */
   --alert: #E8695F;
+  --ok: #7CC79A;
+  --danger: #EE8C83;
 
   color-scheme: dark;
 }

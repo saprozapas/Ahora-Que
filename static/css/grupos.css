@@ -1,0 +1,142 @@
+/* ==========================================================================
+   AHORA QUÉ — grupos: cabecera, tablero, encuestas, chat, racha
+   Solo tokens de Sereno (tokens.css). Los marcos de insignia no se dibujan.
+   ========================================================================== */
+
+/* ---------- Cabecera del grupo ---------- */
+.group-head__title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-4); }
+.group-head__title .h2 { margin: 0; overflow-wrap: anywhere; }
+.no-description { color: var(--ink-3); }
+
+/* ---------- Tablero: complementos ---------- */
+.board--encuestas { margin-bottom: var(--s-10); }
+.board-plan__ok { display: flex; align-items: center; gap: var(--s-2); margin: 0; color: var(--ok); font-weight: 550; }
+.board-plan__votes .seg { max-width: 100%; }
+.encuesta-form { display: grid; gap: var(--s-5); }
+.encuesta-franja { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
+.encuesta-acciones { margin-top: var(--s-1); }
+.postular__ideas { display: grid; gap: var(--s-3); }
+
+@media (max-width: 520px) {
+  .encuesta-franja { grid-template-columns: minmax(0, 1fr); }
+  /* Sí/No y Puedo/No puedo ocupan la fila entera: más fáciles de tocar. */
+  .board-plan__votes { display: grid; gap: var(--s-4); width: 100%; }
+  .board-plan__votes .seg, .board-slots__vote.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
+  .seg label span, .seg > button { justify-content: center; width: 100%; }
+}
+
+/* ---------- Invitar (diálogo) ---------- */
+.invitar-estado { min-height: 1.4em; margin: 0; font-size: var(--t-meta); }
+.invitar-estado.is-ok { color: var(--ok); }
+.invitar-estado.is-error { color: var(--danger); }
+.invitar-titulo { margin: var(--s-2) 0 var(--s-1); color: var(--ink-2); font-size: var(--t-ui); font-weight: 600; }
+.invitar-lista { display: grid; gap: 2px; max-height: 280px; overflow-y: auto; }
+
+/* ---------- Apariencia (editar grupo): título de la racha por nombre ---------- */
+.cosmetic-carousel { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.cosmetic-choice { background: var(--paper-deep); }
+.cosmetic-choice[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); box-shadow: var(--sh-btn); }
+.cosmetic-choice:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* ---------- Chat de grupo ---------- */
+.chat { display: grid; gap: var(--s-3); max-width: 880px; }
+
+.chat__messages {
+  display: flex; flex-direction: column; gap: var(--s-3);
+  height: clamp(320px, 56vh, 560px); padding: var(--s-4); overflow-y: auto;
+  background: var(--paper-deep); border-radius: var(--r-lg);
+}
+
+.chat-message { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; max-width: 86%; }
+.chat-message.is-own { align-self: flex-end; align-items: flex-end; }
+.chat-message.is-grouped { margin-top: calc(var(--s-2) * -1); }
+
+.chat-message-author { padding-inline: 4px; color: var(--ink-3); font-size: var(--t-meta); font-weight: 500; letter-spacing: 0; }
+.chat-message-line { display: flex; align-items: flex-end; gap: var(--s-2); min-width: 0; }
+.chat-message.is-own .chat-message-line { flex-direction: row-reverse; }
+
+.chat-bubble {
+  min-width: 0; padding: 9px 14px;
+  background: var(--surface); color: var(--ink); box-shadow: var(--sh-hair);
+  border-radius: var(--r-lg) var(--r-lg) var(--r-lg) var(--r-xs);
+  font-size: var(--t-ui); line-height: 1.4; overflow-wrap: anywhere; white-space: pre-wrap;
+}
+.chat-bubble p { margin: 0; }
+.chat-message.is-own .chat-bubble { background: var(--ink); color: var(--on-ink); box-shadow: none; border-radius: var(--r-lg) var(--r-lg) var(--r-xs) var(--r-lg); }
+.chat-message.is-grouped .chat-bubble { border-radius: var(--r-lg); }
+
+.chat-message-time { flex: none; color: var(--ink-3); font-size: var(--t-meta); font-variant-numeric: tabular-nums; }
+
+.chat-bar { max-width: none; margin-top: 0; }
+
+
+/* ---------- Racha ---------- */
+.racha-page { display: grid; gap: var(--s-8); align-content: start; max-width: 960px; }
+.racha-page .page-head { margin-bottom: 0; }
+.racha-bloque { display: grid; gap: var(--s-4); }
+.racha-bloque > .h3 { margin: 0; }
+
+.racha-hero { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-8); align-items: center; padding: var(--s-8); }
+.racha-hero__copy { display: grid; gap: var(--s-3); min-width: 0; }
+.racha-hero__copy .h3, .racha-hero__copy p { margin: 0; }
+.racha-hero__copy p { color: var(--ink-2); max-width: 54ch; }
+
+.racha-numero {
+  display: grid; justify-items: center; align-content: center; gap: 2px;
+  width: 144px; height: 144px; border-radius: 50%;
+  background: var(--paper-deep); color: var(--ink);
+}
+.racha-numero__llama svg { width: 28px; height: 28px; color: var(--accent); }
+.racha-numero.is-inactiva .racha-numero__llama svg { color: var(--ink-4); }
+.racha-numero strong { font-size: 2.75rem; font-weight: 680; letter-spacing: var(--track-h2); line-height: 1; font-variant-numeric: tabular-nums; }
+.racha-numero > span:last-child { color: var(--ink-3); font-size: var(--t-meta); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+
+.progreso { display: grid; gap: var(--s-2); }
+.progreso__info { display: flex; justify-content: space-between; gap: var(--s-3); color: var(--ink-2); font-size: var(--t-meta); font-weight: 550; font-variant-numeric: tabular-nums; }
+.progreso__barra { height: 8px; overflow: hidden; border-radius: var(--r-full); background: var(--paper-deep); box-shadow: inset 0 0 0 1px var(--line); }
+.progreso__barra > span { display: block; height: 100%; border-radius: inherit; background: var(--accent); transition: width var(--d-slow) var(--ease-out); }
+
+.racha-semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s-2); }
+.racha-dia {
+  display: grid; justify-items: center; gap: 6px; padding: var(--s-3) 2px;
+  border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-hair);
+  color: var(--ink-3); font-size: var(--t-meta); font-weight: 600;
+}
+.racha-dia > span:last-child { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--paper-deep); color: var(--ink-3); }
+.racha-dia.is-hecho > span:last-child { background: var(--ink); color: var(--on-ink); }
+.racha-dia.is-hoy { box-shadow: 0 0 0 1.5px var(--ink); color: var(--ink); }
+
+.racha-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-4); }
+.racha-stat { display: grid; align-content: start; gap: var(--s-1); padding: var(--s-5); }
+.racha-stat strong { font-size: 1.75rem; font-weight: 650; letter-spacing: var(--track-h3); line-height: 1.15; }
+
+.racha-hitos { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: var(--s-3); }
+.racha-hito {
+  display: grid; justify-items: center; gap: 2px; min-height: 96px; padding: var(--s-4) var(--s-3);
+  border: 0; border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-card);
+  color: var(--ink); cursor: pointer; font: inherit; text-align: center;
+  transition: box-shadow var(--d-base) var(--ease-out);
+}
+.racha-hito:hover { box-shadow: var(--sh-float); }
+.racha-hito strong { font-size: 1.75rem; font-weight: 650; letter-spacing: var(--track-h3); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.racha-hito > span { color: var(--ink-3); font-size: var(--t-meta); }
+.racha-hito.is-logrado { background: var(--ink); color: var(--on-ink); box-shadow: var(--sh-btn); }
+.racha-hito.is-logrado > span { color: color-mix(in srgb, var(--on-ink) 75%, transparent); }
+.racha-hito.is-proximo { box-shadow: 0 0 0 1.5px var(--ink), var(--sh-card); }
+.racha-hito.is-bloqueado { background: var(--paper-deep); box-shadow: none; }
+
+.racha-hito-modal-body { display: grid; gap: var(--s-4); }
+.racha-hito-preview { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-3); padding: var(--s-4); border-radius: var(--r-lg); background: var(--paper-deep); }
+.racha-hito-preview__nombre { font-size: 1.25rem; font-weight: 650; letter-spacing: var(--track-h3); overflow-wrap: anywhere; }
+.racha-premio { display: grid; gap: 2px; }
+.racha-premio strong { font-size: 1.0625rem; }
+.racha-premio span { color: var(--ink-2); }
+.racha-hito-modal-estado { margin: 0; font-weight: 600; }
+.racha-nota { max-width: 60ch; }
+
+@media (max-width: 700px) {
+  .racha-hero { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; padding: var(--s-6); }
+  .racha-hero__copy { justify-items: center; }
+  .racha-stats { grid-template-columns: minmax(0, 1fr); }
+  .racha-hitos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

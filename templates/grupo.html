@@ -1,571 +1,284 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import chispa %}
 
 {% block title %}Planes — {{ group.get_name() }} — Ahora Qué{% endblock %}
 
 {% block content %}
 
-{% if logueado %}
+{% macro cuando(plan) -%}
+  {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} a las {{ plan.hora.strftime('%H:%M') }}{% endif %}
+{%- endmacro %}
 
+{% macro si_no(nombre, valor) %}
+  <label>
+    <input type="radio" name="{{ nombre }}" value="si" required {% if valor == true %}checked{% endif %} />
+    <span>Sí</span>
+  </label>
+  <label>
+    <input type="radio" name="{{ nombre }}" value="no" required {% if valor == false %}checked{% endif %} />
+    <span>No</span>
+  </label>
+{% endmacro %}
+
+{% if logueado %}
 <div class="dashboard-layout dashboard-layout-page">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
-
 {% endif %}
 
 
-<section class="group-detail section-shell">
+<section class="container page group-page">
 
   {% include 'grupo_cabecera.html' %}
 
   {% include 'grupo_encuestas.html' %}
 
 
-  <!-- =======================================================================
-       PLANES DEL GRUPO
-       ======================================================================= -->
+  {# Resumen del tablero en la voz de la marca: solo cuentas de lo que ya viene en `tablero`. #}
+  {% set n_puntuar = tablero.para_puntuar | length %}
+  {% set n_votacion = tablero.votacion | length %}
+  {% set n_horario = tablero.esperando_horario | length %}
+  {% set n_confirmados = tablero.confirmados | length %}
+  {% set sin_votar = tablero.votacion | selectattr('mi_gusta', 'none') | list | length %}
+  {% set activos = n_votacion + n_horario + n_confirmados %}
 
-  {% macro cuando(plan) -%}
-
-    {{ plan.fecha.strftime('%d/%m') }}
-
-    {% if plan.hora %}
-      a las {{ plan.hora.strftime('%H:%M') }}
-    {% endif %}
-
-  {%- endmacro %}
-
-
-  {% macro si_no(nombre, valor) %}
-
-    <label>
-
-      <input
-        type="radio"
-        name="{{ nombre }}"
-        value="si"
-        required
-        {% if valor == true %}checked{% endif %}
-      />
-
-      <span>Sí</span>
-
-    </label>
+  {% if activos or n_puntuar %}
+  <div class="brief group-brief">
+    <p class="brief__label">{{ chispa() }} Resumen</p>
+    <p class="voice">
+      <strong>{% if activos %}{{ activos }} plan{{ 'es' if activos != 1 }} en marcha.{% else %}Nada en marcha por ahora.{% endif %}</strong>
+      {% if sin_votar %}Te falta votar {{ sin_votar }} idea{{ 's' if sin_votar != 1 }}.{% endif %}
+      {% if n_horario %}{{ n_horario }} {{ 'busca' if n_horario == 1 else 'buscan' }} horario.{% endif %}
+      {% if n_confirmados %}{{ n_confirmados }} ya {{ 'está confirmado' if n_confirmados == 1 else 'están confirmados' }}.{% endif %}
+      {% if n_puntuar %}Y {{ 'queda' if n_puntuar == 1 else 'quedan' }} {{ n_puntuar }} para puntuar.{% endif %}
+    </p>
+  </div>
+  {% endif %}
 
 
-    <label>
+  {# =====================================================================
+     TABLERO DEL GRUPO
 
-      <input
-        type="radio"
-        name="{{ nombre }}"
-        value="no"
-        required
-        {% if valor == false %}checked{% endif %}
-      />
+     Separado por estado: primero lo que pide acción (puntuar, votar,
+     proponer horario) y después lo ya confirmado.
+     ===================================================================== #}
 
-      <span>No</span>
+  <div class="board" id="planes-grupo">
 
-    </label>
-
-  {% endmacro %}
-
-
-  <div class="group-board" id="planes-grupo">
-
-    {% set hay_planes =
-      tablero.para_puntuar
-      or tablero.votacion
-      or tablero.esperando_horario
-      or tablero.confirmados
-    %}
-
+    {% set hay_planes = tablero.para_puntuar or tablero.votacion or tablero.esperando_horario or tablero.confirmados %}
 
     {% if not hay_planes %}
-
-    <div class="group-board-empty">
-
-      <h2>Todavía no hay planes en este grupo.</h2>
-
-      <p>
-        Tocá <strong>+ Idea</strong> para postular una de tus ideas
-        guardadas o armar una nueva con el asistente.
-      </p>
-
+    <div class="empty-state">
+      <h2 class="h3">Todavía no hay planes en este grupo.</h2>
+      <p>Tocá <strong>+ Idea</strong> para postular una de tus ideas guardadas o armar una nueva con el asistente.</p>
     </div>
-
     {% endif %}
 
 
     {# ------------------------------- PUNTUAR ------------------------------- #}
-
     {% if tablero.para_puntuar %}
+    <section class="board__section" aria-labelledby="tablero-puntuar">
 
-    <h2 class="group-board-title">
-      ¿Qué tal estuvo?
-    </h2>
+      <div class="board__head">
+        <h2 class="h3" id="tablero-puntuar">¿Qué tal estuvo?</h2>
+        <span class="meta">{{ n_puntuar }} para puntuar</span>
+      </div>
 
-    {% for plan in tablero.para_puntuar %}
+      {% for plan in tablero.para_puntuar %}
+      <article class="card board-plan" id="plan-{{ plan.id }}">
 
-    <article
-      class="group-plan"
-      id="plan-{{ plan.id }}"
-    >
+        <header class="board-plan__head">
+          <span class="tag">Para puntuar</span>
+          <h3 class="plan-tile__title"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+          <p class="meta">Fue el {{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
+        </header>
 
-      <header class="group-plan-head">
+        <form class="board-plan__form" method="post" action="{{ url_for('planes.puntuar', plan_id=plan.id) }}">
+          <input type="hidden" name="volver" value="{{ request.path }}#planes-grupo" />
+          <fieldset class="field-group">
+            <legend>Tu puntaje</legend>
+            <div class="seg">
+              {% for n in range(6) %}
+              <label>
+                <input type="radio" name="puntaje" value="{{ n }}" required />
+                <span>{{ n }}★</span>
+              </label>
+              {% endfor %}
+            </div>
+          </fieldset>
+          <button class="btn btn--secondary" type="submit">Puntuar</button>
+        </form>
 
-        <span class="plan-estado plan-estado-archivado">
-          Para puntuar
-        </span>
+      </article>
+      {% endfor %}
 
-        <h3>
-          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">
-            {{ plan.nombre }}
-          </a>
-        </h3>
-
-        <p>
-          Fue el {{ cuando(plan) }} · {{ plan.resumen_lugares }}
-        </p>
-
-      </header>
-
-
-      <form
-        method="post"
-        action="{{ url_for('planes.puntuar', plan_id=plan.id) }}"
-      >
-
-        <input
-          type="hidden"
-          name="volver"
-          value="{{ request.path }}#planes-grupo"
-        />
-
-        <fieldset class="plan-puntaje-opciones">
-
-          <legend>Tu puntaje</legend>
-
-          {% for n in range(6) %}
-
-          <label>
-
-            <input
-              type="radio"
-              name="puntaje"
-              value="{{ n }}"
-              required
-            />
-
-            <span>{{ n }}★</span>
-
-          </label>
-
-          {% endfor %}
-
-        </fieldset>
-
-
-        <button
-          class="plan-accion-secundaria"
-          type="submit"
-        >
-          Puntuar
-        </button>
-
-      </form>
-
-    </article>
-
-    {% endfor %}
-
+    </section>
     {% endif %}
 
 
     {# ------------------------------- VOTACIÓN ------------------------------ #}
-
     {% if tablero.votacion %}
+    <section class="board__section" aria-labelledby="tablero-votacion">
 
-    <h2 class="group-board-title">
-      En votación
-    </h2>
+      <div class="board__head">
+        <h2 class="h3" id="tablero-votacion">En votación</h2>
+        <span class="meta">{{ n_votacion }} idea{{ 's' if n_votacion != 1 }}</span>
+      </div>
 
-    {% for plan in tablero.votacion %}
+      {% for plan in tablero.votacion %}
+      <article class="card board-plan" id="plan-{{ plan.id }}">
 
-    <article
-      class="group-plan"
-      id="plan-{{ plan.id }}"
-    >
+        <header class="board-plan__head">
+          <span class="tag">En votación</span>
+          <h3 class="plan-tile__title"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+          <p class="meta">Postulada por {{ plan.creador }} para el {{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
+          {% if plan.descripcion %}<p class="quote">“{{ plan.descripcion }}”</p>{% endif %}
+        </header>
 
-      <header class="group-plan-head">
-
-        <span class="plan-estado plan-estado-votacion">
-          En votación
-        </span>
-
-        <h3>
-          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">
-            {{ plan.nombre }}
-          </a>
-        </h3>
-
-        <p>
-          Postulada por {{ plan.creador }}
-          para el {{ cuando(plan) }}
-          · {{ plan.resumen_lugares }}
+        <p class="meta board-plan__count">
+          {{ plan.votos }} de {{ plan.miembros }} votaron · {{ plan.gustan }} les gusta · {{ plan.pueden }} pueden
         </p>
 
-        {% if plan.descripcion %}
+        <form class="board-plan__form" method="post"
+              action="{{ url_for('grupo_planes.votar', group_id=group.get_id(), plan_id=plan.id) }}">
+          <div class="board-plan__votes">
+            <fieldset class="field-group">
+              <legend>¿Te gusta la idea?</legend>
+              <div class="seg">{{ si_no('me_gusta', plan.mi_gusta) }}</div>
+            </fieldset>
+            <fieldset class="field-group">
+              <legend>¿Podés el {{ cuando(plan) }}?</legend>
+              <div class="seg">{{ si_no('puedo', plan.mi_puedo) }}</div>
+            </fieldset>
+          </div>
+          <button class="btn btn--secondary" type="submit">
+            {% if plan.mi_gusta is none %}Votar{% else %}Cambiar mi voto{% endif %}
+          </button>
+        </form>
 
-        <p>
-          {{ plan.descripcion }}
-        </p>
-
+        {% if plan.es_creador or es_admin %}
+        <form method="post"
+              action="{{ url_for('grupo_planes.cerrar', group_id=group.get_id(), plan_id=plan.id) }}"
+              data-confirmar="¿Cerrar la votación con los votos que hay hasta ahora?">
+          <button class="btn btn--ghost btn--sm" type="submit">Cerrar votación ahora</button>
+        </form>
         {% endif %}
 
-      </header>
+      </article>
+      {% endfor %}
 
-
-      <p class="group-plan-conteo">
-
-        {{ plan.votos }} de {{ plan.miembros }} votaron
-        · {{ plan.gustan }} les gusta
-        · {{ plan.pueden }} pueden
-
-      </p>
-
-
-      <form
-        class="group-plan-voto"
-        method="post"
-        action="{{ url_for(
-          'grupo_planes.votar',
-          group_id=group.get_id(),
-          plan_id=plan.id
-        ) }}"
-      >
-
-        <fieldset class="plan-puntaje-opciones">
-
-          <legend>¿Te gusta la idea?</legend>
-
-          {{ si_no('me_gusta', plan.mi_gusta) }}
-
-        </fieldset>
-
-
-        <fieldset class="plan-puntaje-opciones">
-
-          <legend>
-            ¿Podés el {{ cuando(plan) }}?
-          </legend>
-
-          {{ si_no('puedo', plan.mi_puedo) }}
-
-        </fieldset>
-
-
-        <button
-          class="plan-accion-secundaria"
-          type="submit"
-        >
-
-          {% if plan.mi_gusta is none %}
-            Votar
-          {% else %}
-            Cambiar mi voto
-          {% endif %}
-
-        </button>
-
-      </form>
-
-
-      {% if plan.es_creador or es_admin %}
-
-      <form
-        method="post"
-        action="{{ url_for(
-          'grupo_planes.cerrar',
-          group_id=group.get_id(),
-          plan_id=plan.id
-        ) }}"
-        data-confirmar="¿Cerrar la votación con los votos que hay hasta ahora?"
-      >
-
-        <button
-          class="group-plan-link"
-          type="submit"
-        >
-          Cerrar votación ahora
-        </button>
-
-      </form>
-
-      {% endif %}
-
-    </article>
-
-    {% endfor %}
-
+    </section>
     {% endif %}
 
 
     {# --------------------------- ESPERANDO HORARIO -------------------------- #}
-
     {% if tablero.esperando_horario %}
+    <section class="board__section" aria-labelledby="tablero-horario">
 
-    <h2 class="group-board-title">
-      Buscando horario
-    </h2>
+      <div class="board__head">
+        <h2 class="h3" id="tablero-horario">Buscando horario</h2>
+        <span class="meta">{{ n_horario }} idea{{ 's' if n_horario != 1 }}</span>
+      </div>
 
-    {% for plan in tablero.esperando_horario %}
+      {% for plan in tablero.esperando_horario %}
+      <article class="card board-plan" id="plan-{{ plan.id }}">
 
-    <article
-      class="group-plan"
-      id="plan-{{ plan.id }}"
-    >
+        <header class="board-plan__head">
+          <span class="tag">Esperando horario</span>
+          <h3 class="plan-tile__title"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+          <p class="meta">Al grupo le gustó, pero no podían el {{ cuando(plan) }}. Propongan otro horario.</p>
+        </header>
 
-      <header class="group-plan-head">
+        {% if plan.horarios %}
+        <ul class="board-slots">
+          {% for h in plan.horarios %}
+          <li>
+            <div class="board-slots__info">
+              <strong>{{ h.fecha.strftime('%d/%m') }} a las {{ h.hora.strftime('%H:%M') }}</strong>
+              <span class="meta">Propuesto por {{ h.propuesto_por }} · {{ h.pueden }} de {{ plan.miembros }} pueden ({{ h.votos }} votaron)</span>
+            </div>
 
-        <span class="plan-estado plan-estado-esperando_horario">
-          Esperando horario
-        </span>
+            <form method="post"
+                  action="{{ url_for('grupo_planes.votar_horario', group_id=group.get_id(), horario_id=h.id) }}"
+                  class="seg board-slots__vote">
+              <button type="submit" name="puedo" value="si"
+                      aria-pressed="{{ 'true' if h.mi_puedo == true else 'false' }}">Puedo</button>
+              <button type="submit" name="puedo" value="no"
+                      aria-pressed="{{ 'true' if h.mi_puedo == false else 'false' }}">No puedo</button>
+            </form>
 
-        <h3>
-          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">
-            {{ plan.nombre }}
-          </a>
-        </h3>
+            {% if plan.es_creador or es_admin %}
+            <form method="post"
+                  action="{{ url_for('grupo_planes.cerrar_horario', group_id=group.get_id(), horario_id=h.id) }}"
+                  data-confirmar="¿Cerrar la votación de este horario?">
+              <button class="btn btn--ghost btn--sm" type="submit">Cerrar</button>
+            </form>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
 
-        <p>
-          Al grupo le gustó, pero no podían el
-          {{ cuando(plan) }}.
-          Propongan otro horario.
-        </p>
-
-      </header>
-
-
-      {% if plan.horarios %}
-
-      <ul class="group-horarios">
-
-        {% for h in plan.horarios %}
-
-        <li>
-
-          <div>
-
-            <strong>
-              {{ h.fecha.strftime('%d/%m') }}
-              a las {{ h.hora.strftime('%H:%M') }}
-            </strong>
-
-            <small>
-              Propuesto por {{ h.propuesto_por }}
-              · {{ h.pueden }} de {{ plan.miembros }} pueden
-              ({{ h.votos }} votaron)
-            </small>
-
+        <form class="board-plan__new-slot" method="post"
+              action="{{ url_for('grupo_planes.proponer_horario', group_id=group.get_id(), plan_id=plan.id) }}">
+          <div class="field">
+            <label for="fecha-{{ plan.id }}">Fecha</label>
+            <input class="input" id="fecha-{{ plan.id }}" type="date" name="fecha" min="{{ hoy }}" required />
           </div>
+          <div class="field">
+            <label for="hora-{{ plan.id }}">Hora</label>
+            <input class="input" id="hora-{{ plan.id }}" type="time" name="hora" required />
+          </div>
+          <button class="btn btn--secondary btn--lg" type="submit">Proponer horario</button>
+        </form>
 
+      </article>
+      {% endfor %}
 
-          <form
-            method="post"
-            action="{{ url_for(
-              'grupo_planes.votar_horario',
-              group_id=group.get_id(),
-              horario_id=h.id
-            ) }}"
-            class="group-horario-voto"
-          >
-
-            <button
-              type="submit"
-              name="puedo"
-              value="si"
-              class="{{ 'is-elegido' if h.mi_puedo == true }}"
-            >
-              Puedo
-            </button>
-
-            <button
-              type="submit"
-              name="puedo"
-              value="no"
-              class="{{ 'is-elegido' if h.mi_puedo == false }}"
-            >
-              No puedo
-            </button>
-
-          </form>
-
-
-          {% if plan.es_creador or es_admin %}
-
-          <form
-            method="post"
-            action="{{ url_for(
-              'grupo_planes.cerrar_horario',
-              group_id=group.get_id(),
-              horario_id=h.id
-            ) }}"
-            data-confirmar="¿Cerrar la votación de este horario?"
-          >
-
-            <button
-              class="group-plan-link"
-              type="submit"
-            >
-              Cerrar
-            </button>
-
-          </form>
-
-          {% endif %}
-
-        </li>
-
-        {% endfor %}
-
-      </ul>
-
-      {% endif %}
-
-
-      <form
-        class="group-horario-nuevo"
-        method="post"
-        action="{{ url_for(
-          'grupo_planes.proponer_horario',
-          group_id=group.get_id(),
-          plan_id=plan.id
-        ) }}"
-      >
-
-        <label>
-
-          <span>Fecha</span>
-
-          <input
-            type="date"
-            name="fecha"
-            min="{{ hoy }}"
-            required
-          />
-
-        </label>
-
-
-        <label>
-
-          <span>Hora</span>
-
-          <input
-            type="time"
-            name="hora"
-            required
-          />
-
-        </label>
-
-
-        <button
-          class="plan-accion-secundaria"
-          type="submit"
-        >
-          Proponer horario
-        </button>
-
-      </form>
-
-    </article>
-
-    {% endfor %}
-
+    </section>
     {% endif %}
 
 
     {# ------------------------------ CONFIRMADOS ------------------------------ #}
-
     {% if tablero.confirmados %}
+    <section class="board__section" aria-labelledby="tablero-confirmados">
 
-    <h2 class="group-board-title">
-      Confirmados
-    </h2>
+      <div class="board__head">
+        <h2 class="h3" id="tablero-confirmados">Confirmados</h2>
+        <span class="meta">{{ n_confirmados }} plan{{ 'es' if n_confirmados != 1 }}</span>
+      </div>
 
-    {% for plan in tablero.confirmados %}
+      {% for plan in tablero.confirmados %}
+      <article class="card board-plan" id="plan-{{ plan.id }}">
 
-    <article
-      class="group-plan"
-      id="plan-{{ plan.id }}"
-    >
+        <header class="board-plan__head">
+          <span class="tag tag--ok">Confirmado</span>
+          <h3 class="plan-tile__title"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+          <p class="meta">{{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
+          <p class="meta">Van: {{ plan.van | join(', ') if plan.van else 'nadie todavía' }}</p>
+        </header>
 
-      <header class="group-plan-head">
-
-        <span class="plan-estado plan-estado-confirmado">
-          Confirmado
-        </span>
-
-        <h3>
-          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">
-            {{ plan.nombre }}
-          </a>
-        </h3>
-
-        <p>
-          {{ cuando(plan) }}
-          · {{ plan.resumen_lugares }}
+        {% if plan.confirmado %}
+        <p class="board-plan__ok">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="m5 12.5 4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          Vas a este plan
         </p>
+        {% else %}
+        <form method="post" action="{{ url_for('planes.sumarme', plan_id=plan.id) }}">
+          <input type="hidden" name="volver" value="{{ request.path }}#planes-grupo" />
+          <button class="btn btn--primary" type="submit">Me sumo</button>
+        </form>
+        {% endif %}
 
-        <p>
-          Van:
-          {{ plan.van | join(', ') if plan.van else 'nadie todavía' }}
-        </p>
+      </article>
+      {% endfor %}
 
-      </header>
-
-
-      {% if plan.confirmado %}
-
-      <p class="group-plan-conteo">
-        ✓ Vas a este plan
-      </p>
-
-      {% else %}
-
-      <form
-        method="post"
-        action="{{ url_for('planes.sumarme', plan_id=plan.id) }}"
-      >
-
-        <input
-          type="hidden"
-          name="volver"
-          value="{{ request.path }}#planes-grupo"
-        />
-
-        <button
-          class="lime-button"
-          type="submit"
-        >
-          Me sumo
-        </button>
-
-      </form>
-
-      {% endif %}
-
-    </article>
-
-    {% endfor %}
-
+    </section>
     {% endif %}
 
   </div>
-
-
 
 </section>
 
@@ -574,12 +287,9 @@
 
 
 {% if logueado %}
-
   </div>
 
 </div>
-
 {% endif %}
-
 
 {% endblock %}

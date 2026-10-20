@@ -4,7 +4,6 @@
    Lo llena static/social.js con /social/feed?autor=<id>; cada quien ve solo
    lo que tiene permiso de ver (lo público, y lo de amigos si son amigos). #}
 
-<link rel="stylesheet" href="{{ url_for('static', filename='social.css', v='20261020-social-v6') }}" />
 
 {% include '_social_plantillas.html' %}
 
@@ -39,7 +38,7 @@
   <p class="soc-cargando" data-soc-cargando>Cargando…</p>
 
   <div class="social-ver-mas">
-    <button class="plan-accion-secundaria" type="button" data-soc-mas hidden>Ver más</button>
+    <button class="btn btn--secondary" type="button" data-soc-mas hidden>Ver más</button>
   </div>
 
 </section>

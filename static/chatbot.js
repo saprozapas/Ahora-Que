@@ -119,7 +119,7 @@
 
     var guardar = document.createElement("button");
     guardar.type = "button";
-    guardar.className = "chatbot-accion chatbot-accion-principal";
+    guardar.className = "btn btn--primary btn--sm chatbot-accion";
     guardar.textContent = "Guardar como idea";
     acciones.appendChild(guardar);
 
@@ -128,7 +128,7 @@
     if (typeof window.crearIdeaCargarBorrador === "function") {
       var alFormulario = document.createElement("button");
       alFormulario.type = "button";
-      alFormulario.className = "chatbot-accion";
+      alFormulario.className = "btn btn--secondary btn--sm chatbot-accion";
       alFormulario.textContent = "Pasar al formulario";
       alFormulario.addEventListener("click", function () {
         window.crearIdeaCargarBorrador(borrador);

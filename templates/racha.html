@@ -1,387 +1,9 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import llama, nombre_titulo %}
 
 {% block title %}Racha — {{ group.get_name() }} — Ahora Qué{% endblock %}
 
 {% block content %}
-
-<style>
-  /* Estilos propios de la página de racha. Solo usan los tokens de style.css,
-     así que el modo noche funciona solo. */
-
-  .racha-page {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    padding-block: 18px clamp(48px, 7vw, 80px);
-  }
-
-  .racha-page > .back-link { align-self: flex-start; margin-bottom: -8px; }
-
-  /* --- Tarjeta principal --------------------------------------------------- */
-
-  .racha-hero {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: clamp(20px, 4vw, 48px);
-
-    padding: clamp(24px, 4vw, 40px);
-
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface-1);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .racha-numero {
-    display: grid;
-    place-items: center;
-    gap: 4px;
-
-    min-width: clamp(140px, 18vw, 200px);
-    aspect-ratio: 1;
-    padding: 16px;
-
-    border: 1px solid var(--line-strong);
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--on-accent);
-    text-align: center;
-  }
-
-  .racha-numero > img { width: 44px; height: 44px; object-fit: contain; }
-  .racha-numero > img.is-inactive { filter: grayscale(1); }
-
-  .racha-numero strong {
-    font-family: var(--font-display);
-    font-size: clamp(56px, 8vw, 92px);
-    line-height: 0.9;
-    letter-spacing: -0.04em;
-  }
-
-  .racha-numero span {
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .racha-hero-copy h2 {
-    font-size: clamp(26px, 3.4vw, 42px);
-    line-height: 1.02;
-  }
-
-  .racha-hero-copy > p {
-    margin-top: 10px;
-    color: var(--muted);
-    font-size: var(--text-sm);
-  }
-
-  .racha-progreso { margin-top: 22px; }
-
-  .racha-progreso-info {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 8px;
-
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .racha-barra {
-    height: 12px;
-    overflow: hidden;
-
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius-pill);
-    background: var(--page);
-  }
-
-  .racha-barra span {
-    display: block;
-    width: 70%;
-    height: 100%;
-    background: var(--accent);
-  }
-
-  /* --- Semana --------------------------------------------------------------- */
-
-  .racha-titulo {
-    font-size: 1.375rem;
-    letter-spacing: -0.02em;
-  }
-
-  .racha-semana {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 14px;
-  }
-
-  .racha-dia {
-    display: grid;
-    justify-items: center;
-    gap: 8px;
-    padding: 14px 4px;
-
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface-1);
-
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .racha-dia > span:last-child {
-    display: grid;
-    place-items: center;
-
-    width: 34px;
-    height: 34px;
-
-    border: 1px solid var(--line-strong);
-    border-radius: 50%;
-
-    font-size: var(--text-sm);
-    letter-spacing: 0;
-  }
-
-  .racha-dia.is-hecho > span:last-child {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: var(--on-accent);
-  }
-
-  .racha-dia.is-hoy { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
-
-  .racha-dia.is-futuro { opacity: 0.55; }
-
-  /* --- Estadísticas ----------------------------------------------------------- */
-
-  .racha-stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
-  }
-
-  .racha-stat {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 22px;
-
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-  }
-
-  .racha-stat:nth-child(1) { background: var(--surface-1); }
-  .racha-stat:nth-child(2) { background: var(--surface-2); }
-  .racha-stat:nth-child(3) { background: var(--surface-3); }
-
-  .racha-stat small {
-    color: var(--muted);
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .racha-stat strong {
-    font-family: var(--font-display);
-    font-size: clamp(32px, 4vw, 48px);
-    line-height: 1;
-  }
-
-  .racha-stat span { color: var(--muted); font-size: var(--text-sm); }
-
-  /* --- Integrantes -------------------------------------------------------------- */
-
-  .racha-integrantes {
-    display: grid;
-    gap: 8px;
-    margin-top: 14px;
-  }
-
-  .racha-integrante {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
-
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface-1);
-  }
-
-  .racha-integrante-nombre { flex: 1; min-width: 0; font-weight: 600; }
-
-  .racha-integrante-nombre small {
-    display: block;
-    color: var(--muted);
-    font-size: var(--text-xs);
-    font-weight: 400;
-  }
-
-  .racha-estado {
-    padding: 4px 12px;
-
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pill);
-
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .racha-estado.is-ok {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    color: var(--accent);
-  }
-
-  /* --- Hitos -------------------------------------------------------------------- */
-
-  .racha-hitos {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 14px;
-  }
-
-  .racha-hito {
-    display: grid;
-    justify-items: center;
-    gap: 6px;
-    padding: 20px 12px;
-
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface-1);
-    color: var(--ink);
-    text-align: center;
-    cursor: pointer;
-    transition: border-color var(--fast) var(--ease), transform var(--fast) var(--ease);
-  }
-
-  .racha-hito--hierro strong { color: #647181; }
-  .racha-hito--amatista strong { color: #7943b5; }
-  .racha-hito--bronce strong { color: #a45d2e; }
-  .racha-hito--rubi strong { color: #bd3155; }
-  .racha-hito--plata strong { color: #60758e; }
-  .racha-hito--violeta strong { color: #7843c7; }
-  .racha-hito--magenta strong { color: #b32880; }
-  .racha-hito--oro strong { color: #9d7100; }
-  .racha-hito--hielo strong { color: #2778b5; }
-  .racha-hito--esmeralda strong { color: #087950; }
-
-  html[data-theme="night"] .racha-hito--hierro strong { color: #c3cbd4; }
-  html[data-theme="night"] .racha-hito--amatista strong { color: #c9a1ff; }
-  html[data-theme="night"] .racha-hito--bronce strong { color: #eab17c; }
-  html[data-theme="night"] .racha-hito--rubi strong { color: #ff9ab0; }
-  html[data-theme="night"] .racha-hito--plata strong { color: #d8e3f0; }
-  html[data-theme="night"] .racha-hito--violeta strong { color: #c2a0ff; }
-  html[data-theme="night"] .racha-hito--magenta strong { color: #ff92d7; }
-  html[data-theme="night"] .racha-hito--oro strong { color: #ffdc70; }
-  html[data-theme="night"] .racha-hito--hielo strong { color: #8ad7ff; }
-  html[data-theme="night"] .racha-hito--esmeralda strong { color: #70e2b6; }
-
-  .racha-hito:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .racha-hito:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-
-  .racha-hito strong {
-    font-family: var(--font-display);
-    font-size: 1.75rem;
-    line-height: 1;
-  }
-
-  .racha-hito span { color: var(--muted); font-size: var(--text-xs); }
-
-  .racha-hito.is-logrado { border-color: var(--accent); background: var(--accent-soft); }
-
-  .racha-hito.is-bloqueado { opacity: 0.5; border-style: dashed; }
-
-  .racha-hito-modal-body > p { line-height: 1.55; }
-
-  .racha-premio {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 16px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface-2);
-  }
-
-  .racha-premio span,
-  .racha-hito-modal-estado { color: var(--muted); font-size: var(--text-sm); }
-  .racha-invitacion-nota { color: var(--muted); font-size: var(--text-xs); line-height: 1.4; }
-
-  .racha-hito-preview {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    min-height: 82px;
-    padding: 16px;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface-1);
-  }
-
-  .racha-hito-preview.group-frame {
-    position: relative;
-    isolation: isolate;
-    border-color: transparent;
-    box-shadow: 0 0 18px color-mix(in srgb, var(--group-frame-color) 25%, transparent);
-  }
-
-  .racha-hito-preview-title { font-size: 1.1rem; font-weight: 800; }
-  .racha-hito-preview-streak { display: inline-flex; align-items: center; gap: 3px; color: #ef4328; font-weight: 800; white-space: nowrap; }
-  .racha-hito-preview-streak.racha-fuego--verde { color: #16814a; }
-  .racha-hito-preview-streak.racha-fuego--violeta { color: #7839b5; }
-  .racha-hito-preview-streak.racha-fuego--azul { color: #2877bd; }
-  .racha-hito-preview-streak img { width: 25px; height: 25px; }
-  .racha-hito-preview-streak.racha-fuego--verde img { filter: hue-rotate(95deg) saturate(1.4); }
-  .racha-hito-preview-streak.racha-fuego--violeta img { filter: hue-rotate(245deg) saturate(1.4); }
-  .racha-hito-preview-streak.racha-fuego--azul img { filter: hue-rotate(180deg) saturate(1.35); }
-
-  html[data-theme="night"] .racha-hito--hierro strong,
-  html[data-theme="night"] .racha-hito--amatista strong,
-  html[data-theme="night"] .racha-hito--bronce strong,
-  html[data-theme="night"] .racha-hito--rubi strong,
-  html[data-theme="night"] .racha-hito--plata strong,
-  html[data-theme="night"] .racha-hito--violeta strong,
-  html[data-theme="night"] .racha-hito--magenta strong,
-  html[data-theme="night"] .racha-hito--oro strong,
-  html[data-theme="night"] .racha-hito--hielo strong,
-  html[data-theme="night"] .racha-hito--esmeralda strong { text-shadow: 0 0 12px currentColor; }
-
-  .racha-nota {
-    padding-top: 18px;
-    border-top: 1px solid var(--line);
-    color: var(--muted);
-    font-size: var(--text-sm);
-  }
-
-  @media (max-width: 900px) {
-    .racha-hitos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-
-  @media (max-width: 650px) {
-    .racha-hero { grid-template-columns: 1fr; justify-items: center; text-align: center; }
-    .racha-stats { grid-template-columns: 1fr; }
-    .racha-semana { gap: 6px; }
-    .racha-dia { padding: 10px 2px; }
-    .racha-dia > span:last-child { width: 28px; height: 28px; }
-  }
-</style>
-
 
 <div class="dashboard-layout dashboard-layout-page">
 
@@ -389,40 +11,44 @@
 
   <div class="dashboard-main">
 
-    <section class="section-shell racha-page">
+    <section class="container page racha-page">
 
       <a class="back-link" href="{{ url_for('group_auth.detalle_grupo', group_id=group.get_id()) }}">← Volver a {{ group.get_name() }}</a>
 
-      <div class="auth-intro">
-        <h1>La racha<br /><em>del grupo.</em></h1>
-        <p>La racha cuenta las semanas en las que el grupo se reunió. Una semana sin plan da margen; dos semanas sin reunirse la reinician.</p>
-      </div>
+      <header class="page-head">
+        <h1 class="h2">La racha del grupo.</h1>
+        <p class="lead">La racha cuenta las semanas en las que el grupo se reunió. Una semana sin plan da margen; dos semanas sin reunirse la reinician.</p>
+      </header>
 
 
-      <!-- ================= RACHA ACTUAL ================= -->
+      {# ================= RACHA ACTUAL ================= #}
+      <div class="card racha-hero">
 
-      <div class="racha-hero">
-
-        <div class="racha-numero" aria-label="{{ racha.semanas }} semanas de racha">
-          <img class="racha-hero-flame racha-fuego--{{ racha.fuego }}{% if not racha.activa %} is-inactive{% endif %}" src="{{ url_for('static', filename='racha.svg') }}" alt="" />
+        <div class="racha-numero{% if not racha.activa %} is-inactiva{% endif %}" role="img" aria-label="{{ racha.semanas }} semanas de racha">
+          <span class="racha-numero__llama">{{ llama() }}</span>
           <strong>{{ racha.semanas }}</strong>
           <span>semanas</span>
         </div>
 
-        <div class="racha-hero-copy">
+        <div class="racha-hero__copy">
+
           {% if racha.activa %}
-            <h2>¡La racha está activa!</h2>
+            <h2 class="h3">La racha está activa.</h2>
             <p>{{ racha.semanas }} semanas con reuniones. Para mantenerla, junten otro plan dentro de los próximos 7 días.</p>
           {% elif racha.semanas > 0 %}
-            <h2>La racha está en pausa</h2>
+            <h2 class="h3">La racha está en pausa.</h2>
             <p>Pasó una semana sin reunión. Si se juntan antes de cumplir 14 días, conservan la racha.</p>
           {% else %}
-            <h2>Empiecen una nueva racha</h2>
+            <h2 class="h3">Empiecen una nueva racha.</h2>
             <p>La racha comienza cuando el grupo completa un plan.</p>
           {% endif %}
 
-          <div class="racha-progreso">
-            <div class="racha-progreso-info">
+          {% if racha.titulo_color %}
+          <p class="meta">Título del grupo: <strong>{{ nombre_titulo(racha.titulo_color) | trim }}</strong></p>
+          {% endif %}
+
+          <div class="progreso">
+            <div class="progreso__info">
               {% if racha.proximo_hito %}
                 <span>Próximo hito: {{ racha.proximo_hito }} semanas</span>
                 <span>{{ racha.semanas }} / {{ racha.proximo_hito }}</span>
@@ -431,79 +57,73 @@
                 <span>100 / 100</span>
               {% endif %}
             </div>
-            <div class="racha-barra" role="progressbar" aria-valuenow="{{ racha.semanas }}" aria-valuemin="0" aria-valuemax="{{ racha.proximo_hito or 100 }}">
+            <div class="progreso__barra" role="progressbar" aria-label="Avance hacia el próximo hito" aria-valuenow="{{ racha.semanas }}" aria-valuemin="0" aria-valuemax="{{ racha.proximo_hito or 100 }}">
               <span style="width: {{ racha.progreso_hito }}%"></span>
             </div>
           </div>
+
         </div>
 
       </div>
 
 
-      <!-- ================= ESTA SEMANA ================= -->
-
-      <div>
-
-        <h2 class="racha-titulo">Esta semana</h2>
-
+      {# ================= ESTA SEMANA ================= #}
+      <section class="racha-bloque" aria-labelledby="racha-semana-titulo">
+        <h2 class="h3" id="racha-semana-titulo">Esta semana</h2>
         <div class="racha-semana">
           {% for dia in racha.calendario %}
           <div class="racha-dia{% if dia.hecho %} is-hecho{% endif %}{% if dia.hoy %} is-hoy{% endif %}{% if dia.futuro %} is-futuro{% endif %}">
-            <span>{{ dia.dia }}</span><span>{% if dia.hecho %}✓{% else %}·{% endif %}</span>
+            <span>{{ dia.dia }}</span><span aria-label="{{ 'Hubo plan' if dia.hecho else 'Sin plan' }}">{% if dia.hecho %}✓{% else %}·{% endif %}</span>
           </div>
           {% endfor %}
         </div>
+      </section>
 
-      </div>
 
-
-      <!-- ================= NÚMEROS ================= -->
-
+      {# ================= NÚMEROS ================= #}
       <div class="racha-stats">
 
-        <div class="racha-stat">
-          <small>Semanas de racha</small>
+        <div class="card racha-stat">
+          <span class="meta">Semanas de racha</span>
           <strong>{{ racha.semanas }}</strong>
-          <span>con una reunión cada 14 días</span>
+          <span class="meta">con una reunión cada 14 días</span>
         </div>
 
-        <div class="racha-stat">
-          <small>Planes hechos</small>
+        <div class="card racha-stat">
+          <span class="meta">Planes hechos</span>
           <strong>{{ racha.planes_hechos }}</strong>
-          <span>planes grupales realizados</span>
+          <span class="meta">planes grupales realizados</span>
         </div>
 
-        <div class="racha-stat">
-          <small>Último plan</small>
+        <div class="card racha-stat">
+          <span class="meta">Último plan</span>
           {% if racha.dias_desde_ultima is none %}
             <strong>—</strong>
-            <span>Todavía no hubo reuniones</span>
+            <span class="meta">Todavía no hubo reuniones</span>
           {% elif racha.dias_desde_ultima == 0 %}
             <strong>Hoy</strong>
-            <span>Última reunión: {{ racha.ultima_reunion.strftime('%d/%m/%Y') }}</span>
+            <span class="meta">Última reunión: {{ racha.ultima_reunion.strftime('%d/%m/%Y') }}</span>
           {% elif racha.dias_desde_ultima == 1 %}
             <strong>Ayer</strong>
-            <span>Última reunión: {{ racha.ultima_reunion.strftime('%d/%m/%Y') }}</span>
+            <span class="meta">Última reunión: {{ racha.ultima_reunion.strftime('%d/%m/%Y') }}</span>
           {% else %}
             <strong>Hace {{ racha.dias_desde_ultima }} días</strong>
-            <span>Última reunión: {{ racha.ultima_reunion.strftime('%d/%m/%Y') }}</span>
+            <span class="meta">Última reunión: {{ racha.ultima_reunion.strftime('%d/%m/%Y') }}</span>
           {% endif %}
         </div>
 
       </div>
 
 
-      <!-- ================= HITOS ================= -->
+      {# ================= HITOS ================= #}
+      <section class="racha-bloque" aria-labelledby="racha-hitos-titulo">
 
-      <div>
-
-        <h2 class="racha-titulo">Hitos</h2>
+        <h2 class="h3" id="racha-hitos-titulo">Hitos</h2>
 
         <div class="racha-hitos">
-
           {% for hito in racha.hitos %}
           <button
-            class="racha-hito racha-hito--{{ hito.titulo_color }}{% if hito.logrado %} is-logrado{% elif not hito.proximo %} is-bloqueado{% endif %}"
+            class="racha-hito{% if hito.logrado %} is-logrado{% elif hito.proximo %} is-proximo{% else %} is-bloqueado{% endif %}"
             type="button"
             data-modal-open="modal-hito-{{ hito.semanas }}"
             aria-haspopup="dialog"
@@ -514,6 +134,7 @@
 
           <dialog class="modal" id="modal-hito-{{ hito.semanas }}" aria-labelledby="modal-hito-{{ hito.semanas }}-title">
             <form method="dialog">
+
               <div class="modal-head">
                 <h2 class="modal-title" id="modal-hito-{{ hito.semanas }}-title">Hito de {{ hito.semanas }} semanas</h2>
                 <button class="modal-close" type="submit" aria-label="Cerrar">
@@ -522,52 +143,58 @@
                   </svg>
                 </button>
               </div>
+
               <div class="modal-body racha-hito-modal-body">
-                <div class="racha-hito-preview{% if hito.marco %} group-frame group-frame--{{ hito.marco }}{% endif %}">
-                  <span class="racha-hito-preview-title{% if hito.titulo_color %} group-title-award--{{ hito.titulo_color }}{% endif %}">{{ group.get_name() }}</span>
-                  <span class="racha-hito-preview-streak racha-fuego--{{ hito.fuego }}">
-                    <img src="{{ url_for('static', filename='racha.svg') }}" alt="" />
-                    <span>{{ hito.semanas }}</span>
-                  </span>
+
+                <div class="racha-hito-preview">
+                  <span class="racha-hito-preview__nombre">{{ group.get_name() }}</span>
+                  <span class="racha-chip">{{ llama() }}<span class="racha-chip__n">{{ hito.semanas }}</span>{% if hito.titulo_color %}<span class="racha-chip__titulo">{{ nombre_titulo(hito.titulo_color) | trim }}</span>{% endif %}</span>
                 </div>
+
                 {% if hito.semanas == 3 %}
-                  <div class="racha-premio"><strong>Marco de hierro</strong><span>Un marco épico para el grupo.</span></div>
+                  <div class="racha-premio"><strong>Marco de hierro</strong><span>Un marco para el grupo.</span></div>
                 {% elif hito.semanas == 5 %}
-                  <div class="racha-premio"><strong>Título amatista</strong><span>Color violeta para el nombre.</span></div>
+                  <div class="racha-premio"><strong>Título amatista</strong><span>El grupo suma el título «Amatista».</span></div>
                 {% elif hito.semanas == 10 %}
-                  <div class="racha-premio"><strong>Marco de bronce</strong><span>Un marco épico para el grupo.</span></div>
+                  <div class="racha-premio"><strong>Marco de bronce</strong><span>Un marco para el grupo.</span></div>
                 {% elif hito.semanas == 20 %}
-                  <div class="racha-premio"><strong>Invitación + título plata</strong><span>Una salida para comer o tomar algo y el color plata para el nombre.</span></div>
+                  <div class="racha-premio"><strong>Invitación + título plata</strong><span>Una salida para comer o tomar algo y el título «Plata».</span></div>
                 {% elif hito.semanas == 30 %}
-                  <div class="racha-premio"><strong>Marco de plata</strong><span>Un marco épico para el grupo.</span></div>
+                  <div class="racha-premio"><strong>Marco de plata</strong><span>Un marco para el grupo.</span></div>
                 {% elif hito.semanas == 40 %}
-                  <div class="racha-premio"><strong>Invitación + título oro</strong><span>Una salida para comer o tomar algo y el color oro para el nombre.</span></div>
+                  <div class="racha-premio"><strong>Invitación + título oro</strong><span>Una salida para comer o tomar algo y el título «Oro».</span></div>
                 {% elif hito.semanas == 50 %}
-                  <div class="racha-premio"><strong>Título magenta épico</strong><span>Color magenta para el nombre.</span></div>
+                  <div class="racha-premio"><strong>Título magenta</strong><span>El grupo suma el título «Magenta».</span></div>
                 {% elif hito.semanas == 70 %}
-                  <div class="racha-premio"><strong>Marco de oro</strong><span>Un marco épico para el grupo.</span></div>
+                  <div class="racha-premio"><strong>Marco de oro</strong><span>Un marco para el grupo.</span></div>
                 {% elif hito.semanas == 90 %}
-                  <div class="racha-premio"><strong>Invitación + título hielo</strong><span>Una salida para comer o tomar algo y el color hielo para el nombre.</span></div>
+                  <div class="racha-premio"><strong>Invitación + título hielo</strong><span>Una salida para comer o tomar algo y el título «Hielo».</span></div>
                 {% elif hito.semanas == 100 %}
-                  <div class="racha-premio"><strong>Marco de esmeralda</strong><span>Un marco épico para el grupo.</span></div>
+                  <div class="racha-premio"><strong>Marco de esmeralda</strong><span>Un marco para el grupo.</span></div>
                 {% else %}
-                  <div class="racha-premio"><strong>Color de título</strong><span>Un nuevo color para el nombre.</span></div>
+                  <div class="racha-premio"><strong>Nuevo título</strong><span>Un título nuevo para el grupo.</span></div>
                 {% endif %}
+
+                {% if hito.semanas in [3, 10, 30, 70, 100] %}
+                  <p class="meta">Los marcos se muestran próximamente.</p>
+                {% endif %}
+
                 {% if hito.semanas in [20, 40, 90] %}
-                  <small class="racha-invitacion-nota">La invitación es de Ahora Qué y es válida en lugares elegidos por la app.</small>
+                  <p class="meta">La invitación es de Ahora Qué y es válida en lugares elegidos por la app.</p>
                 {% endif %}
+
                 <p class="racha-hito-modal-estado">{% if hito.logrado %}Desbloqueado{% elif hito.proximo %}Próximo{% else %}Bloqueado{% endif %}</p>
+
               </div>
+
             </form>
           </dialog>
           {% endfor %}
-
         </div>
 
-      </div>
+      </section>
 
-
-      <p class="racha-nota">
+      <p class="meta racha-nota">
         Cuentan los planes del grupo archivados o confirmados cuya fecha ya pasó.
       </p>
 

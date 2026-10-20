@@ -644,6 +644,25 @@
 
   const iniciarModales = () => {
 
+    // Un mismo <dialog> puede tener varios disparadores (por ejemplo "Invitar a
+    // un grupo" en cada fila de amigos): se guarda cuál lo abrió, para devolverle
+    // el foco a ESE al cerrar.
+    const abrir = (dialogo, disparador) => {
+
+      dialogo._disparador = disparador;
+      dialogo.showModal();
+
+      // En los diálogos con formulario el foco va al primer campo y no al
+      // botón de cerrar, que es lo primero que aparece en el HTML.
+      const campo = dialogo.querySelector(
+        '[autofocus], input:not([type="hidden"]):not([type="radio"]):not([type="checkbox"]):not([type="file"]), textarea, select'
+      );
+
+      if (campo && !campo.disabled) {
+        campo.focus();
+      }
+    };
+
     $$("[data-modal-open]").forEach((disparador) => {
 
       const dialogo = document.getElementById(disparador.dataset.modalOpen);
@@ -652,13 +671,29 @@
         return;
       }
 
-      disparador.addEventListener("click", () => {
-        dialogo.showModal();
-      });
+      disparador.addEventListener("click", () => abrir(dialogo, disparador));
 
-      dialogo.addEventListener("close", () => {
-        disparador.focus();
-      });
+      if (!dialogo.dataset.cierreListo) {
+
+        dialogo.dataset.cierreListo = "1";
+
+        dialogo.addEventListener("close", () => {
+          const origen = dialogo._disparador;
+
+          if (origen && document.contains(origen)) {
+            origen.focus();
+          }
+        });
+      }
+    });
+
+    // Botones de cerrar/cancelar adentro de un diálogo (sin handlers en línea).
+    document.addEventListener("click", (evento) => {
+      const cerrar = evento.target.closest("[data-cerrar-dialogo]");
+
+      if (cerrar) {
+        cerrar.closest("dialog")?.close();
+      }
     });
 
     $$("dialog.modal").forEach((dialogo) => {
@@ -680,15 +715,16 @@
 
     const dialogo = document.createElement("dialog");
     dialogo.className = "modal";
+    dialogo.setAttribute("role", "alertdialog");
     dialogo.setAttribute("aria-labelledby", "preguntar-texto");
     dialogo.innerHTML = `
       <form method="dialog">
         <div class="modal-body"><p id="preguntar-texto"></p></div>
         <div class="modal-actions">
           ${conCancelar
-            ? '<button class="header-action header-action-ghost" value="no">Cancelar</button>'
+            ? '<button class="btn btn--secondary" value="no" autofocus>Cancelar</button>'
             : ""}
-          <button class="lime-button" value="si" autofocus>Aceptar</button>
+          <button class="btn btn--primary" value="si"${conCancelar ? "" : " autofocus"}>Aceptar</button>
         </div>
       </form>`;
     $("p", dialogo).textContent = mensaje;
@@ -1028,6 +1064,66 @@
 
 
   /* ========================================================================
+     TIRA DE NAVEGACIÓN EN CELULAR
+
+     Con 8 destinos no entran en el ancho: la fila se desliza. Para que se
+     note, se marcan los bordes donde todavía hay más (el CSS les pone un
+     degradado) y el destino activo arranca a la vista.
+     ======================================================================== */
+
+  const iniciarTiraDeNavegacion = () => {
+
+    const tira = $(".dashboard-sidebar-nav");
+    if (!tira) return;
+
+    const marcar = () => {
+      const maximo = tira.scrollWidth - tira.clientWidth;
+      tira.classList.toggle("tiene-mas-izquierda", tira.scrollLeft > 4);
+      tira.classList.toggle("tiene-mas-derecha", maximo > 4 && tira.scrollLeft < maximo - 4);
+    };
+
+    const activo = $(".is-active", tira);
+
+    if (activo && tira.scrollWidth > tira.clientWidth) {
+      const centro = activo.offsetLeft - (tira.clientWidth - activo.offsetWidth) / 2;
+      tira.scrollLeft = Math.max(0, centro);
+    }
+
+    tira.addEventListener("scroll", marcar, { passive: true });
+    window.addEventListener("resize", marcar);
+    marcar();
+  };
+
+
+  /* ========================================================================
+     MENÚS DESPLEGABLES (<details class="idea-menu">)
+
+     Se cierran con Escape (y el foco vuelve al botón) y al tocar afuera.
+     ======================================================================== */
+
+  const iniciarMenusDesplegables = () => {
+
+    const menus = $$("details.idea-menu");
+    if (!menus.length) return;
+
+    menus.forEach((menu) => {
+      menu.addEventListener("keydown", (evento) => {
+        if (evento.key === "Escape" && menu.open) {
+          menu.open = false;
+          $("summary", menu)?.focus();
+        }
+      });
+    });
+
+    document.addEventListener("click", (evento) => {
+      menus.forEach((menu) => {
+        if (menu.open && !menu.contains(evento.target)) menu.open = false;
+      });
+    });
+  };
+
+
+  /* ========================================================================
      AVISOS (flash)
 
      base.html los pinta en .flash-stack. Acá se les agrega la cruz y se
@@ -1285,4 +1381,6 @@
   iniciarConfirmaciones();
   iniciarAvisos();
   iniciarOrdenBarraLateral();
+  iniciarTiraDeNavegacion();
+  iniciarMenusDesplegables();
 })();

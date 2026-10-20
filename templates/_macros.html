@@ -4,3 +4,27 @@
 {% macro chispa() -%}
 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" /></svg>
 {%- endmacro %}
+
+
+{# Llama de la racha: un solo trazo en currentColor (sin colores por rango). #}
+{% macro llama() -%}
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" /></svg>
+{%- endmacro %}
+
+
+{# Nombre del título de la racha (antes era un color). Sin color: ícono + etiqueta. #}
+{% macro nombre_titulo(clave) -%}
+{{ {'amatista': 'Amatista', 'plata': 'Plata', 'oro': 'Oro', 'magenta': 'Magenta', 'hielo': 'Hielo'}.get(clave, '') }}
+{%- endmacro %}
+
+
+{# Chip de racha: llama + semanas y, si el grupo ganó un título, su nombre.
+   `enlace` (opcional) lo vuelve un link a la pantalla de la racha. #}
+{% macro racha_chip(racha, enlace=none) %}
+{% set titulo = nombre_titulo(racha.titulo_color) | trim if racha.titulo_color else '' %}
+{% if enlace %}<a class="racha-chip{% if not racha.activa %} is-inactiva{% endif %}" href="{{ enlace }}" aria-label="Racha del grupo: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
+{% else %}<span class="racha-chip{% if not racha.activa %} is-inactiva{% endif %}" aria-label="Racha: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
+{% endif %}
+  {{ llama() }}<span class="racha-chip__n">{{ racha.semanas }}</span>{% if titulo %}<span class="racha-chip__titulo">{{ titulo }}</span>{% endif %}
+{% if enlace %}</a>{% else %}</span>{% endif %}
+{% endmacro %}

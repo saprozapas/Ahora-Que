@@ -15,55 +15,30 @@
 {% endif %}
 
 
-<section class="group-detail section-shell">
+<section class="container page group-page">
 
   {% include 'grupo_cabecera.html' %}
 
   <!-- CONTENEDOR COMÚN: mensajes e input comparten el mismo ancho -->
-  <div class="group-chat-box">
+  <div class="chat">
 
   <!-- MENSAJES DEL CHAT -->
   <div
-    class="group-chat-messages"
+    class="chat__messages"
     id="group-chat-messages"
+    role="log"
     aria-live="polite"
+    aria-label="Mensajes del grupo"
   >
     <!-- Los mensajes aparecen acá (burbujas generadas por el script de abajo) -->
   </div>
 
 
   <!-- INPUT DEL CHAT -->
-  <div
-    class="group-ai-prompt group-chat"
-  >
-
-    <span
-      class="group-ai-prompt-icon"
-      aria-hidden="true"
-    >
-
-      <svg
-        viewBox="0 0 24 24"
-        focusable="false"
-        width="20"
-        height="20"
-      >
-
-        <path
-          d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linejoin="round"
-        />
-
-      </svg>
-
-    </span>
-
+  <div class="chat-bar">
 
     <textarea
-      class="group-ai-prompt-input"
+      class="chat-bar__input input"
       id="group-chat-input"
       name="mensaje"
       rows="1"
@@ -71,37 +46,16 @@
       aria-label="Escribir mensaje"
     ></textarea>
 
-
     <button
-      class="group-ai-prompt-send"
+      class="icon-btn icon-btn--solid"
       id="group-chat-send"
       type="button"
       aria-label="Enviar"
     >
-
-      <svg
-        viewBox="0 0 24 24"
-        focusable="false"
-      >
-
-        <path
-          d="M22 2 11 13"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-        />
-
-        <path
-          d="M22 2 15 22 11 13 2 9 22 2"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linejoin="round"
-        />
-
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M22 2 11 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <path d="M22 2 15 22 11 13 2 9 22 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
       </svg>
-
     </button>
 
   </div>

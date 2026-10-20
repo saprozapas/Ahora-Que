@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-password-strength]").forEach((input) => {
-    const container = input.closest(".auth-form") || document;
+    const container = input.closest(".field") || input.closest("form") || document;
     const bar = container.querySelector("[data-strength-bar]");
     const label = container.querySelector("[data-strength-label]");
     const fill = bar?.querySelector("span");

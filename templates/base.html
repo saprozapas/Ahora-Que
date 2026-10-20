@@ -34,20 +34,23 @@
 
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Fraunces:opsz,wght@9..144,300..700&display=swap"
     />
 
     <!-- Sereno: tokens → componentes → marca → pantallas. style.css es el
          diseño anterior: se sigue cargando (antes, y con @layer, así que
-         pierde contra estos) hasta que la fase 7 lo saque. -->
+         pierde contra estos) hasta que se retire al final de la migración. -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='style.css', v='20260929-sereno-f6d') }}"
+      href="{{ url_for('static', filename='style.css', v='20261020-sereno-int') }}"
     />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20260929-sereno-f6d') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20260929-sereno-f6d') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20260929-sereno-f6d') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20260929-sereno-f6d') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261020-sereno-int') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261020-sereno-int') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261020-sereno-int') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261020-sereno-int') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261020-sereno-int') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261020-sereno-int') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261020-sereno-int') }}" />
 
     <link
       rel="icon"
@@ -58,7 +61,7 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20260929-sereno-f6d') }}"
+      src="{{ url_for('static', filename='app.js', v='20261020-sereno-int') }}"
     ></script>
 
   </head>
@@ -242,7 +245,6 @@
       <div class="container">
         <div class="app-footer__bottom">
           <span class="meta">© 2026 Ahora Qué</span>
-          <span class="meta">Hecho con Inter y Newsreader</span>
         </div>
       </div>
 
