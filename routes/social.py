@@ -89,6 +89,14 @@ def _con_sesion(funcion):
 def feed(user_id):
     limite = request.args.get("limite", type=int)
     argumentos = {} if limite is None else {"limite": limite}
+    autor = request.args.get("autor")
+    if autor:
+        return jsonify(social_service.listar_de_autor(
+            user_id,
+            _id_o_404(autor),
+            request.args.get("antes") or None,
+            **argumentos,
+        ))
     return jsonify(social_service.listar_feed(
         user_id,
         request.args.get("pestana", "amigos"),

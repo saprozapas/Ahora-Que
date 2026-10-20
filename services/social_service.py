@@ -153,6 +153,8 @@ class SocialService:
         )
         publicaciones = [self._serializar(plan, user_id) for plan in planes]
         self._agregar_fotos(cursor, publicaciones)
+        self._agregar_quien_dio_like(cursor, publicaciones, user_id)
+        self._agregar_comentarios_previa(cursor, publicaciones)
         return publicaciones
 
     def _agregar_fotos(self, cursor, publicaciones):
@@ -173,6 +175,69 @@ class SocialService:
             por_publicacion.setdefault(str(publicacion_id), []).append(str(foto_id))
         for p in publicaciones:
             p["fotos"] = por_publicacion.get(p["id"], [])
+
+    def _agregar_quien_dio_like(self, cursor, publicaciones, user_id):
+        """Hasta 2 nombres de quienes dieron me gusta (sin contar al propio
+        usuario), primero sus amigos y después los más recientes. Una sola
+        consulta para toda la página."""
+        if not publicaciones:
+            return
+        cursor.execute(
+            f"""
+            SELECT x."Id_Publicacion", x."Nombre"
+            FROM (
+                SELECT l."Id_Publicacion", u."Nombre",
+                       ROW_NUMBER() OVER (
+                           PARTITION BY l."Id_Publicacion"
+                           ORDER BY (l."Id_Usuario" IN ({self._planes._amigos_sql()})) DESC,
+                                    l."Fecha" DESC
+                       ) AS n
+                FROM public."Publicacion_Like" l
+                JOIN public."Usuarios" u ON u."Id_Usuario" = l."Id_Usuario"
+                WHERE l."Id_Publicacion" = ANY(%(ids)s::uuid[])
+                  AND l."Id_Usuario" <> %(uid)s
+            ) x
+            WHERE x.n <= 2
+            ORDER BY x."Id_Publicacion", x.n
+            """,
+            {"uid": user_id, "ids": [p["id"] for p in publicaciones]},
+        )
+        por_publicacion = {}
+        for publicacion_id, nombre in cursor.fetchall():
+            por_publicacion.setdefault(str(publicacion_id), []).append(nombre)
+        for p in publicaciones:
+            p["likes_nombres"] = por_publicacion.get(p["id"], [])
+
+    def _agregar_comentarios_previa(self, cursor, publicaciones):
+        """Los 2 últimos comentarios de cada publicación (del más viejo al más
+        nuevo), para mostrar debajo de la descripción sin abrir el hilo."""
+        if not publicaciones:
+            return
+        cursor.execute(
+            """
+            SELECT x."Id_Publicacion", x."Id_Comentario", x."Nombre", x."Contenido"
+            FROM (
+                SELECT c."Id_Publicacion", c."Id_Comentario", u."Nombre", c."Contenido",
+                       c."Creado_En",
+                       ROW_NUMBER() OVER (
+                           PARTITION BY c."Id_Publicacion" ORDER BY c."Creado_En" DESC
+                       ) AS n
+                FROM public."Publicacion_Comentario" c
+                JOIN public."Usuarios" u ON u."Id_Usuario" = c."Id_Usuario"
+                WHERE c."Id_Publicacion" = ANY(%s::uuid[]) AND NOT c."Eliminado"
+            ) x
+            WHERE x.n <= 2
+            ORDER BY x."Id_Publicacion", x."Creado_En"
+            """,
+            ([p["id"] for p in publicaciones],),
+        )
+        por_publicacion = {}
+        for publicacion_id, comentario_id, nombre, texto in cursor.fetchall():
+            por_publicacion.setdefault(str(publicacion_id), []).append(
+                {"id": str(comentario_id), "autor": nombre, "texto": texto}
+            )
+        for p in publicaciones:
+            p["comentarios_previa"] = por_publicacion.get(p["id"], [])
 
     def _serializar(self, plan, user_id):
         f = plan["_pub"]
@@ -206,23 +271,62 @@ class SocialService:
                 "votos": f[19],
             },
             "fotos": [],
+            "likes_nombres": [],
+            "comentarios_previa": [],
             "likes": f[14],
             "yo_di_like": bool(f[15]),
             "comentarios": f[16],
             "guardado": bool(f[17]),
         }
 
-    def listar_feed(self, user_id, pestana="amigos", antes=None, limite=LIMITE_FEED):
-        """Una página del feed, de la más nueva a la más vieja.
+    def _pagina(self, user_id, filtro, parametros, antes, limite, con_total=False):
+        """Una página (de la más nueva a la más vieja) de las publicaciones que
+        cumplen `filtro`. antes: fecha ISO de la última que ya tenés."""
+        limite = max(1, min(int(limite), LIMITE_FEED_MAX))
+        parametros = dict(parametros)
+        total = None
 
-        pestana 'amigos':    lo de tus amigos y lo tuyo.
-        pestana 'descubrir': lo público de otras personas.
-        antes: fecha ISO de la última publicación que ya tenés; devuelve las
-        anteriores a esa.
-        """
+        if antes:
+            try:
+                datetime.fromisoformat(antes)
+            except ValueError:
+                raise SocialError("La fecha de corte no es válida.")
+        filtro_pagina = filtro
+        if antes:
+            filtro_pagina += ' AND pub."Creada_En" < %(antes)s::timestamptz'
+            parametros["antes"] = antes
+
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                # Se pide una de más para saber si queda otra página.
+                publicaciones = self._consultar(cursor, user_id, filtro_pagina, parametros, limite + 1)
+                if con_total:
+                    cursor.execute(
+                        f"""SELECT COUNT(*) FROM public."Publicacion" pub
+                            WHERE NOT pub."Eliminada" AND {filtro}""",
+                        dict(parametros, uid=user_id),
+                    )
+                    total = cursor.fetchone()[0]
+        finally:
+            release_db_connection(connection)
+
+        hay_mas = len(publicaciones) > limite
+        publicaciones = publicaciones[:limite]
+        respuesta = {
+            "publicaciones": publicaciones,
+            "hay_mas": hay_mas,
+            "siguiente": publicaciones[-1]["creada_en"] if hay_mas else None,
+        }
+        if con_total:
+            respuesta["total"] = total
+        return respuesta
+
+    def listar_feed(self, user_id, pestana="amigos", antes=None, limite=LIMITE_FEED):
+        """pestana 'amigos':    lo de tus amigos y lo tuyo.
+        pestana 'descubrir': lo público de otras personas."""
         if pestana not in PESTANAS:
             raise SocialError("Esa pestaña no existe.")
-        limite = max(1, min(int(limite), LIMITE_FEED_MAX))
 
         if pestana == "amigos":
             filtro = f"""(pub."Id_Autor" = %(uid)s
@@ -230,30 +334,14 @@ class SocialService:
         else:
             filtro = """(pub."Visibilidad" = 'publico' AND pub."Id_Autor" <> %(uid)s)"""
 
-        parametros = {}
-        if antes:
-            try:
-                datetime.fromisoformat(antes)
-            except ValueError:
-                raise SocialError("La fecha de corte no es válida.")
-            filtro += ' AND pub."Creada_En" < %(antes)s::timestamptz'
-            parametros["antes"] = antes
+        return self._pagina(user_id, filtro, {}, antes, limite)
 
-        connection = get_db_connection()
-        try:
-            with connection.cursor() as cursor:
-                # Se pide una de más para saber si queda otra página.
-                publicaciones = self._consultar(cursor, user_id, filtro, parametros, limite + 1)
-        finally:
-            release_db_connection(connection)
-
-        hay_mas = len(publicaciones) > limite
-        publicaciones = publicaciones[:limite]
-        return {
-            "publicaciones": publicaciones,
-            "hay_mas": hay_mas,
-            "siguiente": publicaciones[-1]["creada_en"] if hay_mas else None,
-        }
+    def listar_de_autor(self, user_id, autor_id, antes=None, limite=LIMITE_FEED):
+        """Las publicaciones de una persona que el usuario puede ver (las
+        propias se ven todas; las ajenas, según su visibilidad). Trae además
+        el total, para el perfil."""
+        filtro = f'(pub."Id_Autor" = %(autor)s AND {self._visible_sql()})'
+        return self._pagina(user_id, filtro, {"autor": autor_id}, antes, limite, con_total=True)
 
     def _una(self, cursor, user_id, publicacion_id):
         filtro = 'pub."Id_Publicacion" = %(pid)s'
