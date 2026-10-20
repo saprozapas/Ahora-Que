@@ -719,3 +719,289 @@
     border-radius: 0;
   }
 }
+
+
+/* ==========================================================================
+   Estilo red de fotos, segunda parte: autor con enlace, "me gusta" con
+   nombres, doble toque, vista previa de comentarios, grilla y perfil.
+   ========================================================================== */
+
+/* --- Autor: toda la cabecera izquierda es un enlace a su perfil ------------- */
+
+.soc-autor-enlace {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  gap: 12px;
+  min-width: 0;
+
+  color: inherit;
+  text-decoration: none;
+}
+
+.soc-autor-enlace:hover strong,
+.soc-autor-enlace:focus-visible strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+
+/* --- Doble toque sobre la foto: el corazón aparece un instante -------------- */
+
+.soc-media {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.soc-corazon-pop {
+  position: absolute;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.soc-corazon-pop .soc-ico {
+  width: 96px;
+  height: 96px;
+
+  fill: currentColor;
+  stroke: none;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+}
+
+.soc-corazon-pop.is-pop {
+  animation: soc-latido 0.8s ease-out;
+}
+
+@keyframes soc-latido {
+  0%   { opacity: 0; transform: scale(0.4); }
+  20%  { opacity: 1; transform: scale(1.15); }
+  40%  { transform: scale(0.95); }
+  60%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .soc-corazon-pop.is-pop {
+    animation: none;
+  }
+}
+
+
+/* --- "Les gusta a Ana, Beto y 3 más" ---------------------------------------- */
+
+.soc-likes {
+  margin: 0;
+  padding: 2px 16px 0;
+
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.soc-likes[hidden] {
+  display: none;
+}
+
+
+/* --- Vista previa de comentarios ---------------------------------------------- */
+
+.soc-previa-comentarios {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.soc-previa-comentarios[hidden],
+.soc-ver-comentarios[hidden] {
+  display: none;
+}
+
+.soc-previa-comentarios p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.soc-ver-comentarios {
+  align-self: flex-start;
+
+  min-height: 36px;
+  padding: 0;
+
+  border: 0;
+  background: none;
+  color: var(--muted);
+
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.soc-ver-comentarios:hover,
+.soc-ver-comentarios:focus-visible {
+  color: var(--ink);
+}
+
+
+/* --- Grilla de miniaturas (Descubrir y perfiles) ------------------------------ */
+
+.soc-grilla {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.soc-feed[data-modo="grilla"] .soc-barra,
+.soc-feed[data-modo="grilla"] .soc-vacio,
+.soc-feed[data-modo="grilla"] .soc-cargando,
+.soc-feed[data-modo="grilla"] .social-ver-mas,
+.soc-feed[data-modo="grilla"] > .soc-aviso,
+.soc-perfil .soc-vacio,
+.soc-perfil .soc-cargando,
+.soc-perfil .social-ver-mas,
+.soc-perfil > .soc-aviso {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.soc-miniatura {
+  position: relative;
+
+  display: block;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  overflow: hidden;
+
+  border: 0;
+  background: var(--surface-1);
+  cursor: pointer;
+}
+
+.soc-miniatura img {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  transition: filter var(--fast) var(--ease);
+}
+
+.soc-miniatura img[hidden],
+.soc-mini-portada[hidden],
+.soc-mini-varias[hidden] {
+  display: none;
+}
+
+.soc-miniatura:hover img,
+.soc-miniatura:focus-visible img {
+  filter: brightness(0.82);
+}
+
+.soc-miniatura:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+/* Sin foto: el nombre del plan sobre el color de portada (.soc-portada-0/1/2). */
+.soc-mini-portada {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+
+  font-size: clamp(13px, 2.6vw, 19px);
+  font-weight: 700;
+  line-height: 1.1;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.soc-mini-varias {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+
+  color: #fff;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.65));
+}
+
+.soc-mini-varias .soc-ico {
+  width: 20px;
+  height: 20px;
+}
+
+
+/* --- Diálogo con la publicación abierta ----------------------------------------- */
+
+.soc-modal-post {
+  width: min(560px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+
+  background: var(--page);
+}
+
+.soc-modal-post-cerrar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+
+  display: flex;
+  margin: 4px 4px 0 auto;
+
+  background: var(--page);
+}
+
+.soc-modal-post .soc-tarjeta {
+  border: 0;
+  border-radius: 0;
+}
+
+
+/* --- "Planes publicados" en los perfiles ------------------------------------------ */
+
+.soc-perfil {
+  padding-bottom: clamp(48px, 7vw, 80px);
+}
+
+.soc-perfil-titulo {
+  max-width: 760px;
+  margin: 0 auto 14px;
+}
+
+.soc-perfil-total {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+
+  .soc-perfil {
+    padding-inline: 0;
+  }
+
+  .soc-perfil-titulo {
+    padding-inline: 16px;
+  }
+
+  .soc-modal-post {
+    width: calc(100% - 12px);
+  }
+}

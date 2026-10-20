@@ -57,6 +57,7 @@ def perfil():
         "perfil.html",
         user=user,
         groups=[],
+        autor_id=session["user_id"],
         published_plans=[],
         saved_plans=[],
         error_name=error_name,
@@ -116,4 +117,4 @@ def perfil_publico(user_id):
     if usuario is None:
         abort(404)
 
-    return render_template("perfil_publico.html", usuario=usuario)
+    return render_template("perfil_publico.html", usuario=usuario, autor_id=user_id)

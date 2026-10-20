@@ -1,5 +1,12 @@
 /* ==========================================================================
-   Social: feed de publicaciones (pestañas Amigos y Descubrir)
+   Social: feed de publicaciones (pestañas Amigos y Descubrir) y grilla de
+   "Planes publicados" de los perfiles.
+
+   Dos modos, según data-modo del contenedor #soc-feed:
+     lista    tarjetas una debajo de otra (Amigos).
+     grilla   miniaturas de fotos; al tocar una se abre la tarjeta en un
+              diálogo (Descubrir y perfiles). Con data-autor se muestran solo
+              las publicaciones de esa persona.
 
    La página trae el armazón y las <template>; acá se piden las
    publicaciones a /social/feed y se arman las tarjetas. Todo el texto de las
@@ -22,10 +29,16 @@
 
   const plantillaTarjeta = document.getElementById("soc-tpl-tarjeta");
   const plantillaComentario = document.getElementById("soc-tpl-comentario");
-  const plantillaPublicable = document.getElementById("soc-tpl-publicable");
+  const plantillaMiniatura = document.getElementById("soc-tpl-miniatura");
+  const plantillaPublicable = document.getElementById("soc-tpl-publicable");   // solo en /social
 
-  const modalPublicar = document.getElementById("soc-modal-publicar");
+  const modalPublicar = document.getElementById("soc-modal-publicar");         // solo en /social
   const modalReportar = document.getElementById("soc-modal-reportar");
+  const modalPost = document.getElementById("soc-modal-post");
+  const contenedorPost = $("[data-soc-post-contenedor]", modalPost);
+
+  const modoGrilla = raiz.dataset.modo === "grilla";
+  const autorId = raiz.dataset.autor || null;
 
   const urls = {
     feed: raiz.dataset.urlFeed,
@@ -34,11 +47,22 @@
     reportes: raiz.dataset.urlReportes,
     raiz: raiz.dataset.urlRaiz,
     detalle: raiz.dataset.urlDetalle,
+    perfil: raiz.dataset.urlPerfil,
+    miPerfil: raiz.dataset.urlMiPerfil,
     fotos: `${raiz.dataset.urlRaiz}/fotos/`,
   };
 
   let siguiente = null;
   let ocupado = false;
+
+  const publicaciones = new Map();   // id -> publicación (para abrirla desde la grilla)
+  const tarjetas = new Map();        // id -> tarjeta ya armada (grilla)
+  const miniaturas = new Map();      // id -> celda de la grilla
+
+  if (modoGrilla) {
+    lista.classList.remove("soc-lista");
+    lista.classList.add("soc-grilla");
+  }
 
 
   /* --- Pedidos al servidor ------------------------------------------------ */
@@ -124,14 +148,36 @@
 
   const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 
+  // Tres colores de portada, según el id (siempre el mismo para una publicación).
+  const varianteDe = (publicacion) => parseInt(publicacion.id.slice(0, 2), 16) % 3;
+
 
   /* --- Tarjeta ------------------------------------------------------------- */
+
+  // "Les gusta a Ana, Beto y 3 más". El servidor manda los nombres de hasta
+  // 2 personas (sin contar al usuario, sus amigos primero); "vos" va al frente
+  // si diste me gusta.
+  const textoLikes = (p) => {
+    if (p.likes <= 0) return "";
+    const nombres = [...(p.yo_di_like ? ["vos"] : []), ...(p.likes_nombres || [])];
+    const resto = p.likes - nombres.length;
+
+    if (nombres.length === 0) return `${p.likes} me gusta`;
+    if (p.likes === 1) return nombres[0] === "vos" ? "Te gusta" : `Le gusta a ${nombres[0]}`;
+    if (resto > 0) return `Les gusta a ${nombres.join(", ")} y ${resto} más`;
+    if (nombres.length === 1) return `Les gusta a ${nombres[0]}`;
+    return `Les gusta a ${nombres.slice(0, -1).join(", ")} y ${nombres[nombres.length - 1]}`;
+  };
 
   const pintarLikes = (tarjeta, publicacion) => {
     const boton = $("[data-soc-like]", tarjeta);
     boton.setAttribute("aria-pressed", String(publicacion.yo_di_like));
     boton.title = publicacion.yo_di_like ? "Quitar me gusta" : "Me gusta";
     $("[data-soc-like-n]", boton).textContent = publicacion.likes;
+
+    const texto = $("[data-soc-likes-texto]", tarjeta);
+    texto.textContent = textoLikes(publicacion);
+    texto.hidden = publicacion.likes <= 0;
   };
 
   const pintarGuardado = (tarjeta, publicacion) => {
@@ -155,9 +201,42 @@
     }
   };
 
+  // Debajo de la descripción: los últimos 2 comentarios y "Ver los N
+  // comentarios". Se oculta mientras el hilo completo está abierto.
+  const pintarPrevia = (tarjeta, publicacion) => {
+    const bloque = $("[data-soc-previa]", tarjeta);
+    const ver = $("[data-soc-ver-comentarios]", bloque);
+    const previa = publicacion.comentarios_previa || [];
+    const hiloAbierto = !$("[data-soc-zona-comentarios]", tarjeta).hidden;
+
+    $("[data-soc-previa-lista]", bloque).replaceChildren(
+      ...previa.map((comentario) => {
+        const linea = document.createElement("p");
+        const autor = document.createElement("strong");
+        autor.textContent = comentario.autor;
+        linea.append(autor, " ", comentario.texto);   // strings: entran como texto, no como HTML
+        return linea;
+      })
+    );
+
+    const faltan = publicacion.comentarios > previa.length;
+    ver.hidden = !faltan;
+    if (faltan) ver.textContent = `Ver los ${publicacion.comentarios} comentarios`;
+    bloque.hidden = hiloAbierto || publicacion.comentarios === 0;
+  };
+
   const pintarContadorComentarios = (tarjeta, publicacion) => {
     $("[data-soc-comentarios-n]", tarjeta).textContent = publicacion.comentarios;
+    pintarPrevia(tarjeta, publicacion);
   };
+
+  // Al cerrar el hilo, la vista previa pasa a mostrar lo último que hay en él.
+  const previaDesdeHilo = (tarjeta) =>
+    [...tarjeta.querySelectorAll(".soc-comentario")].slice(-2).map((fila) => ({
+      id: fila.dataset.comentarioId,
+      autor: $("[data-soc-comentario-autor]", fila).textContent,
+      texto: $("[data-soc-comentario-texto]", fila).textContent,
+    }));
 
   const rellenarTexto = (tarjeta, selector, texto) => {
     const elemento = $(selector, tarjeta);
@@ -174,7 +253,7 @@
     const nombre = publicacion.plan.nombre;
 
     if (publicacion.fotos.length === 0) {
-      const variante = parseInt(publicacion.id.slice(0, 2), 16) % 3;
+      const variante = varianteDe(publicacion);
       portada.className = `soc-portada soc-portada-${variante}`;
       portada.hidden = false;
       $("[data-soc-portada-nombre]", portada).textContent = nombre;
@@ -221,6 +300,9 @@
     $("[data-soc-avatar]", tarjeta).textContent =
       (publicacion.autor.nombre || "?").trim().charAt(0).toUpperCase();
     $("[data-soc-autor]", tarjeta).textContent = autor;
+    $("[data-soc-autor-enlace]", tarjeta).href = publicacion.es_mio
+      ? urls.miPerfil
+      : urls.perfil.replace("__ID__", publicacion.autor.id);
     $("[data-soc-fecha]", tarjeta).textContent = hace(publicacion.creada_en);
 
     const esPublico = publicacion.visibilidad === "publico";
@@ -310,10 +392,13 @@
 
     if (!abrir) {
       zona.hidden = true;
+      tarjeta._publicacion.comentarios_previa = previaDesdeHilo(tarjeta);
+      pintarPrevia(tarjeta, tarjeta._publicacion);
       return;
     }
 
     await cargarComentarios(tarjeta);
+    pintarPrevia(tarjeta, tarjeta._publicacion);   // con el hilo abierto, la vista previa se oculta
     $("[data-soc-comentario-input]", tarjeta).focus();
   };
 
@@ -360,8 +445,44 @@
     pintarGuardado(tarjeta, publicacion);
   };
 
+  // Doble toque (o doble clic) sobre la foto: me gusta, con el corazón que
+  // aparece un instante. Se detecta con dos clics seguidos y no con "dblclick"
+  // porque en el celular ese evento no siempre llega.
+  let ultimoToque = { tarjeta: null, instante: 0 };
+
+  const latido = (tarjeta) => {
+    const corazon = $("[data-soc-pop]", tarjeta);
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      corazon.classList.remove("is-pop");
+      void corazon.offsetWidth;   // reinicia la animación si se toca otra vez
+      corazon.classList.add("is-pop");
+    }
+    if (!tarjeta._publicacion.yo_di_like) darLike(tarjeta);
+  };
+
+  const toqueEnFoto = (tarjeta, instante) => {
+    if (ultimoToque.tarjeta === tarjeta && instante - ultimoToque.instante < 350) {
+      ultimoToque = { tarjeta: null, instante: 0 };
+      latido(tarjeta);
+    } else {
+      ultimoToque = { tarjeta, instante };
+    }
+  };
+
   const mostrarVacioSiHaceFalta = () => {
     vacio.hidden = lista.children.length > 0 || ocupado || siguiente !== null;
+  };
+
+  const quitarDeVista = (tarjeta) => {
+    const id = tarjeta.dataset.publicacionId;
+    tarjeta.remove();
+    const miniatura = miniaturas.get(id);
+    if (miniatura) miniatura.remove();
+    miniaturas.delete(id);
+    tarjetas.delete(id);
+    publicaciones.delete(id);
+    if (modalPost.open) modalPost.close();
+    mostrarVacioSiHaceFalta();
   };
 
   const eliminarPublicacion = async (tarjeta) => {
@@ -373,8 +494,7 @@
         `${urls.raiz}/publicaciones/${tarjeta.dataset.publicacionId}/eliminar`,
         {}
       );
-      tarjeta.remove();
-      mostrarVacioSiHaceFalta();
+      quitarDeVista(tarjeta);
     } catch (e) {
       mostrarError(avisoGeneral, e.message);
     }
@@ -458,15 +578,29 @@
 
   /* --- Clics dentro del feed (una sola escucha para todas las tarjetas) ----- */
 
-  lista.addEventListener("click", (evento) => {
-    const boton = evento.target.closest("button");
+  const alClic = (evento) => {
+    const miniatura = evento.target.closest(".soc-miniatura");
+    if (miniatura) {
+      abrirPost(miniatura.dataset.publicacionId);
+      return;
+    }
+
     const tarjeta = evento.target.closest(".soc-tarjeta");
-    if (!boton || !tarjeta) return;
+    if (!tarjeta) return;
+
+    const boton = evento.target.closest("button");
+    if (!boton) {
+      if (evento.target.closest("[data-soc-media]") && !evento.target.closest("a[href]")) {
+        toqueEnFoto(tarjeta, evento.timeStamp);
+      }
+      return;
+    }
 
     if (boton.matches("[data-soc-like]")) darLike(tarjeta);
     else if (boton.matches("[data-soc-guardar]")) guardar(tarjeta);
-    else if (boton.matches("[data-soc-comentarios]")) alternarComentarios(tarjeta, boton);
-    else if (boton.matches("[data-soc-eliminar]")) eliminarPublicacion(tarjeta);
+    else if (boton.matches("[data-soc-comentarios], [data-soc-ver-comentarios]")) {
+      alternarComentarios(tarjeta, $("[data-soc-comentarios]", tarjeta));
+    } else if (boton.matches("[data-soc-eliminar]")) eliminarPublicacion(tarjeta);
     else if (boton.matches("[data-soc-reportar]")) {
       abrirReporte("publicacion", tarjeta.dataset.publicacionId, "Reportar publicación");
     } else {
@@ -478,15 +612,62 @@
         abrirReporte("comentario", fila.dataset.comentarioId, "Reportar comentario");
       }
     }
-  });
+  };
 
-  lista.addEventListener("submit", (evento) => {
+  const alEnviar = (evento) => {
     const formulario = evento.target.closest("[data-soc-form-comentar]");
     if (!formulario) return;
 
     evento.preventDefault();
     enviarComentario(evento.target.closest(".soc-tarjeta"), formulario);
-  });
+  };
+
+  // Las tarjetas viven en la lista o, en modo grilla, dentro del diálogo.
+  for (const zona of [lista, contenedorPost]) {
+    zona.addEventListener("click", alClic);
+    zona.addEventListener("submit", alEnviar);
+  }
+
+
+  /* --- Grilla: miniaturas que abren la publicación en un diálogo ------------- */
+
+  const crearMiniatura = (publicacion) => {
+    const miniatura = plantillaMiniatura.content.firstElementChild.cloneNode(true);
+    const imagen = $("[data-soc-mini-img]", miniatura);
+    const portada = $("[data-soc-mini-portada]", miniatura);
+
+    miniatura.dataset.publicacionId = publicacion.id;
+    miniatura.setAttribute("aria-label", `Ver publicación: ${publicacion.plan.nombre}`);
+
+    if (publicacion.fotos.length > 0) {
+      imagen.src = urls.fotos + publicacion.fotos[0];
+      imagen.hidden = false;
+    } else {
+      portada.className = `soc-mini-portada soc-portada-${varianteDe(publicacion)}`;
+      portada.textContent = publicacion.plan.nombre;
+      portada.hidden = false;
+    }
+    $("[data-soc-mini-varias]", miniatura).hidden = publicacion.fotos.length < 2;
+
+    publicaciones.set(publicacion.id, publicacion);
+    miniaturas.set(publicacion.id, miniatura);
+    return miniatura;
+  };
+
+  const abrirPost = (id) => {
+    const publicacion = publicaciones.get(id);
+    if (!publicacion) return;
+
+    let tarjeta = tarjetas.get(id);
+    if (!tarjeta) {
+      tarjeta = crearTarjeta(publicacion);
+      tarjetas.set(id, tarjeta);
+    }
+    contenedorPost.replaceChildren(tarjeta);
+    modalPost.showModal();
+  };
+
+  modalPost.addEventListener("close", () => contenedorPost.replaceChildren());
 
 
   /* --- Cargar el feed ------------------------------------------------------ */
@@ -499,14 +680,19 @@
     botonMas.hidden = true;
     limpiarError(avisoGeneral);
 
-    const parametros = new URLSearchParams({ pestana: raiz.dataset.pestana });
+    const parametros = new URLSearchParams(
+      autorId ? { autor: autorId } : { pestana: raiz.dataset.pestana }
+    );
     if (siguiente) parametros.set("antes", siguiente);
 
     try {
       const datos = await pedir(`${urls.feed}?${parametros}`);
 
-      lista.append(...datos.publicaciones.map(crearTarjeta));
+      lista.append(...datos.publicaciones.map(modoGrilla ? crearMiniatura : crearTarjeta));
       siguiente = datos.hay_mas ? datos.siguiente : null;
+
+      const total = $("[data-soc-total]", raiz);
+      if (total && datos.total != null) total.textContent = `(${datos.total})`;
     } catch (e) {
       mostrarError(avisoGeneral, e.message);
     }
@@ -520,7 +706,9 @@
   botonMas.addEventListener("click", cargarPagina);
 
 
-  /* --- Compartir un plan ---------------------------------------------------- */
+  /* --- Compartir un plan (solo en /social) ------------------------------------ */
+
+  const iniciarPublicar = () => {
 
   const formularioPublicar = $("[data-soc-form-publicar]", modalPublicar);
   const contenedorPublicables = $("[data-soc-publicables]", modalPublicar);
@@ -587,8 +775,8 @@
       modalPublicar.close();
 
       // Lo propio siempre figura en la pestaña Amigos: ahí aparece arriba de
-      // todo al instante. En Descubrir solo se avisa dónde encontrarlo.
-      if (raiz.dataset.pestana === "amigos") {
+      // todo al instante. En Descubrir (grilla) solo se avisa dónde encontrarlo.
+      if (!modoGrilla) {
         lista.prepend(crearTarjeta(respuesta.publicacion));
         vacio.hidden = true;
       } else {
@@ -707,6 +895,11 @@
     botonSubir.removeAttribute("aria-busy");
     pintarPrevias();
   });
+
+
+  };
+
+  if (modalPublicar) iniciarPublicar();
 
 
   /* --- Cerrar modales con los botones "Cancelar" y la cruz ------------------ */
