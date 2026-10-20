@@ -31,10 +31,10 @@
 
   <div class="group-card-content">
 
-    <h3>
+    <h3 class="group-title-award{% if racha and racha.titulo_color %} group-title-award--{{ racha.titulo_color }}{% endif %}">
       {{ group.get_name() }}
       {% if racha %}
-      <span class="group-card-streak{% if not racha.activa %} is-inactive{% endif %}" aria-label="Racha: {{ racha.semanas }} semanas">
+      <span class="group-card-streak racha-fuego--{{ racha.fuego }}{% if not racha.activa %} is-inactive{% endif %}" aria-label="Racha: {{ racha.semanas }} semanas">
         <img src="{{ url_for('static', filename='racha.svg') }}" alt="" aria-hidden="true" />
         <span>{{ racha.semanas }}</span>
       </span>
@@ -114,13 +114,13 @@
 
       {% if group_id %}
 
-      <a class="group-card" href="/grupos/{{ group_id }}">
+      <a class="group-card{% if group_racha and group_racha.marco %} group-frame group-frame--{{ group_racha.marco }}{% endif %}" href="/grupos/{{ group_id }}">
         {{ contenido_de_tarjeta(group, loop.index, true, group_racha) }}
       </a>
 
       {% else %}
 
-      <article class="group-card">
+      <article class="group-card{% if group_racha and group_racha.marco %} group-frame group-frame--{{ group_racha.marco }}{% endif %}">
         {{ contenido_de_tarjeta(group, loop.index, false, group_racha) }}
       </article>
 

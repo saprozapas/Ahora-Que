@@ -13,6 +13,8 @@ Qué crea:
   * 9 planes (ideas y planes ya vividos, enlazados a lugares reales de la base
     cuando existen) y su publicación: 2 a nombre de tu usuario y 7 de los
     usuarios de ejemplo, con fotos dibujadas en el momento, me gusta y comentarios.
+  * Los avisos en tu Inbox (pestaña Publicaciones) por los me gusta y comentarios
+    que recibieron tus 2 publicaciones.
 
 Todo lleva ids fijos (derivados de un nombre), así que `crear` se puede repetir
 y `borrar` quita exactamente lo creado: publicaciones, planes, amistades y los
@@ -131,7 +133,7 @@ PUBLICACIONES = [
         "descripcion": "Subida suave con una vista enorme de la sierra.",
         "lugares": ["Cerro Pan de Azúcar"], "precio": (100, 300),
         "texto": "Llevá agua de más y buen calzado. Valió cada escalón.", "visibilidad": "publico",
-        "fotos": ["cerro", "cerro2"], "hace_min": 60 * 72,
+        "fotos": ["cerro", "cerro2"], "aspecto": "vertical", "hace_min": 60 * 72,
         "puntajes": {"joaquin": 5, "lucia": 5},
         "likes": ["yo", "vale", "mateo", "lucia"],
         "comentarios": [("lucia", "La mejor salida del año", 4200), ("yo", "Anotado para el finde largo", 4000)],
@@ -322,7 +324,7 @@ def _crear(cur, uid_yo):
         cur.execute('INSERT INTO public."Amistades" ("Id_Usuario1", "Id_Usuario2") VALUES (%s, %s)',
                     (menor, mayor))
 
-    contadores = {"planes": 0, "publicaciones": 0, "fotos": 0, "likes": 0, "comentarios": 0, "lugares_reales": 0}
+    contadores = {"planes": 0, "publicaciones": 0, "fotos": 0, "likes": 0, "comentarios": 0, "avisos": 0, "lugares_reales": 0}
     for p in PUBLICACIONES:
         plan_id, pub_id = _id(f"plan:{p['clave']}"), _id(f"publicacion:{p['clave']}")
         autor = quien[p["autor"]]
@@ -357,10 +359,10 @@ def _crear(cur, uid_yo):
 
         cur.execute(
             """INSERT INTO public."Publicacion"
-                   ("Id_Publicacion", "Id_Autor", "Id_Plan", "Texto", "Visibilidad", "Creada_En")
-               VALUES (%s, %s, %s, %s, %s, %s)""",
+                   ("Id_Publicacion", "Id_Autor", "Id_Plan", "Texto", "Visibilidad", "Creada_En", "Aspecto")
+               VALUES (%s, %s, %s, %s, %s, %s, %s)""",
             (pub_id, autor, plan_id, p["texto"] or None, p["visibilidad"],
-             ahora - timedelta(minutes=p["hace_min"])),
+             ahora - timedelta(minutes=p["hace_min"]), p.get("aspecto", "cuadrada")),
         )
         contadores["publicaciones"] += 1
 
@@ -371,20 +373,43 @@ def _crear(cur, uid_yo):
             )
             contadores["fotos"] += 1
 
+        # Si la publicación es tuya, cada me gusta y comentario de otra persona
+        # también deja su aviso en tu Inbox (como pasaría de verdad).
+        es_mia = p["autor"] == "yo"
+
         for k in p["likes"]:
+            momento = ahora - timedelta(minutes=max(1, p["hace_min"] - 5))
             cur.execute(
                 'INSERT INTO public."Publicacion_Like" ("Id_Publicacion", "Id_Usuario", "Fecha") VALUES (%s, %s, %s)',
-                (pub_id, quien[k], ahora - timedelta(minutes=max(1, p["hace_min"] - 5))),
+                (pub_id, quien[k], momento),
             )
             contadores["likes"] += 1
+            if es_mia and k != "yo":
+                cur.execute(
+                    """INSERT INTO public."Publicacion_Notificacion"
+                           ("Id_Usuario", "Id_Actor", "Tipo", "Id_Publicacion", "Creada_En")
+                       VALUES (%s, %s, 'like', %s, %s)""",
+                    (uid_yo, quien[k], pub_id, momento),
+                )
+                contadores["avisos"] += 1
 
         for k, texto, hace in p["comentarios"]:
+            momento = ahora - timedelta(minutes=hace)
             cur.execute(
                 """INSERT INTO public."Publicacion_Comentario" ("Id_Publicacion", "Id_Usuario", "Contenido", "Creado_En")
-                   VALUES (%s, %s, %s, %s)""",
-                (pub_id, quien[k], texto, ahora - timedelta(minutes=hace)),
+                   VALUES (%s, %s, %s, %s) RETURNING "Id_Comentario" """,
+                (pub_id, quien[k], texto, momento),
             )
+            comentario_id = cur.fetchone()[0]
             contadores["comentarios"] += 1
+            if es_mia and k != "yo":
+                cur.execute(
+                    """INSERT INTO public."Publicacion_Notificacion"
+                           ("Id_Usuario", "Id_Actor", "Tipo", "Id_Publicacion", "Id_Comentario", "Creada_En")
+                       VALUES (%s, %s, 'comentario', %s, %s, %s)""",
+                    (uid_yo, quien[k], pub_id, comentario_id, momento),
+                )
+                contadores["avisos"] += 1
     return contadores
 
 

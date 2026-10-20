@@ -217,6 +217,11 @@ def editar_grupo(group_id):
         return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 
     try:
+        racha_service.guardar_apariencia(
+            group_id,
+            request.form.get("marco_semanas"),
+            request.form.get("titulo_semanas"),
+        )
         group_auth_service.update_group(group_id, nombre, descripcion)
         # Solo un admin cambia "todos admin": sin esto un integrante común lo apagaría al guardar.
         if group_auth_service.is_admin(session.get("user_id"), group_id):

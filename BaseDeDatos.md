@@ -81,6 +81,58 @@ una semana sin reunión la pausa, y 14 días sin reunirse la reinician.
 | `Activa` | `boolean` | Not Null, Default `false` |
 | `Semanas` | `int4` | Not Null, Default `0` |
 | `Ultima_Reunion` | `date` | Nullable |
+| `Ultimo_Plan_Procesado` | `timestamp` | Nullable. Punto de control: los planes anteriores ya fueron contabilizados |
+| `Planes_Hechos` | `int4` | Not Null, Default `0`. Acumulado independiente de los planes que sigan en `Plan` |
+
+## Table `Grupo_Insignia`
+
+Guarda los hitos ganados permanentemente por cada grupo, aunque la racha
+actual se reinicie. Cada semana objetivo se registra una sola vez.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Grupo` | `uuid` | Primary, Foreign Key → `Grupos.Id_Grupo` (`ON DELETE CASCADE`) |
+| `Semanas` | `int4` | Primary. Hito: 3, 5, 10, 20, 30, 40, 50, 70, 90 o 100 |
+| `Desbloqueado_En` | `timestamptz` | Not Null, Default `now()` |
+
+Para crear esta tabla en Supabase:
+
+```sql
+CREATE TABLE IF NOT EXISTS public."Grupo_Insignia" (
+    "Id_Grupo" uuid NOT NULL
+        REFERENCES public."Grupos" ("Id_Grupo") ON DELETE CASCADE,
+    "Semanas" integer NOT NULL
+        CHECK ("Semanas" IN (3, 5, 10, 20, 30, 40, 50, 70, 90, 100)),
+    "Desbloqueado_En" timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY ("Id_Grupo", "Semanas")
+);
+```
+
+La apariencia elegida por el grupo se guarda aparte de los premios ganados:
+
+```sql
+CREATE TABLE IF NOT EXISTS public."Grupo_Apariencia" (
+    "Id_Grupo" uuid PRIMARY KEY
+        REFERENCES public."Grupos" ("Id_Grupo") ON DELETE CASCADE,
+    "Marco_Semanas" integer NULL,
+    "Titulo_Semanas" integer NULL,
+    CHECK ("Marco_Semanas" IS NULL OR "Marco_Semanas" IN (3, 10, 30, 70, 100)),
+    CHECK ("Titulo_Semanas" IS NULL OR "Titulo_Semanas" IN (3, 5, 10, 20, 30, 40, 50, 70, 90, 100))
+);
+```
+
+La aplicación valida que los hitos seleccionados estén desbloqueados en
+`Grupo_Insignia` antes de guardar la apariencia.
+
+Para actualizar una tabla `Rachas` que ya existe en Supabase:
+
+```sql
+ALTER TABLE public."Rachas"
+    ADD COLUMN IF NOT EXISTS "Ultimo_Plan_Procesado" timestamp without time zone,
+    ADD COLUMN IF NOT EXISTS "Planes_Hechos" integer NOT NULL DEFAULT 0;
+```
 
 ## Table `Usuario-Grupo`
 
@@ -383,6 +435,7 @@ Creada con `migraciones/social.sql`.
 | `Visibilidad` | `text` | Not Null, Default `'amigos'`. Check: `'amigos'` (autor y sus amigos) o `'publico'` (todos) |
 | `Creada_En` | `timestamptz` | Not Null, Default `now()` |
 | `Eliminada` | `boolean` | Not Null, Default `false` |
+| `Aspecto` | `text` | Not Null, Default `'cuadrada'`. Check: `'cuadrada'` o `'vertical'` (4:5). Formato en que se muestran sus fotos |
 
 Índices: `Publicacion_feed_idx` (`Creada_En` desc, solo no eliminadas), `Publicacion_autor_idx`,
 `Publicacion_plan_idx`, y `Publicacion_una_por_plan_idx` (UNIQUE `Id_Autor` + `Id_Plan`, solo no
@@ -447,6 +500,31 @@ revisa directo en la base (`SELECT * FROM "Publicacion_Reporte" WHERE NOT "Revis
 
 UNIQUE (`Id_Reportante`, `Tipo`, `Id_Objetivo`): cada persona reporta una vez lo mismo.
 
+## Table `Publicacion_Notificacion`
+
+Avisos para el autor de una publicación cuando alguien le da me gusta o le comenta.
+Se ven en Inbox > Publicaciones (los me gusta de una misma publicación se muestran
+juntos). Se borran al sacar el me gusta, borrar el comentario o eliminar la publicación.
+Creada con `migraciones/social_inbox.sql`.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Notificacion` | `uuid` | Primary, Default `gen_random_uuid()` |
+| `Id_Usuario` | `uuid` | Not Null, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`). Quién recibe el aviso |
+| `Id_Actor` | `uuid` | Not Null, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`). Quién dio me gusta o comentó |
+| `Tipo` | `text` | Not Null. Check: `'like'` o `'comentario'` |
+| `Id_Publicacion` | `uuid` | Not Null, Foreign Key → `Publicacion.Id_Publicacion` (`ON DELETE CASCADE`) |
+| `Id_Comentario` | `uuid` | Nullable, Foreign Key → `Publicacion_Comentario.Id_Comentario` (`ON DELETE CASCADE`). Solo en los avisos de comentario |
+| `Creada_En` | `timestamptz` | Not Null, Default `now()` |
+| `Leida` | `boolean` | Not Null, Default `false` |
+
+Índices: `Publicacion_Notificacion_usuario_idx` (`Id_Usuario`, `Creada_En` desc),
+`Publicacion_Notificacion_no_leidas_idx` (`Id_Usuario`, solo no leídas) y
+`Publicacion_Notificacion_like_uq` (UNIQUE `Id_Usuario` + `Id_Publicacion` + `Id_Actor`, solo
+`Tipo = 'like'`: un aviso de me gusta por persona y publicación).
+
 ## RLS Policies
 
 ### `Usuario-Grupo`
@@ -496,7 +574,7 @@ UNIQUE (`Id_Reportante`, `Tipo`, `Id_Objetivo`): cada persona reporta una vez lo
 | `usuario_edita_su_perfil` | UPDATE | public | PERMISSIVE | `(auth.uid() = "Id_Usuario")` | — |
 | `usuario_ve_su_perfil` | SELECT | public | PERMISSIVE | `(auth.uid() = "Id_Usuario")` | — |
 
-### Tablas de Social (`Publicacion`, `Publicacion_Foto`, `Publicacion_Like`, `Publicacion_Comentario`, `Publicacion_Reporte`)
+### Tablas de Social (`Publicacion`, `Publicacion_Foto`, `Publicacion_Like`, `Publicacion_Comentario`, `Publicacion_Reporte`, `Publicacion_Notificacion`)
 
 Tienen RLS activado y **sin políticas**: la API pública de Supabase (clave `anon`) no puede
 leerlas ni escribirlas. La app entra con el usuario de la base (`postgres`), que no pasa por

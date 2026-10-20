@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 from database import get_db_connection, release_db_connection
@@ -6,26 +6,84 @@ from database import get_db_connection, release_db_connection
 
 _MONTEVIDEO = ZoneInfo("America/Montevideo")
 _DIAS_SEMANA = ("L", "M", "M", "J", "V", "S", "D")
-_HITOS = (3, 5, 10, 20)
+_HITOS = (3, 5, 10, 20, 30, 40, 50, 70, 90, 100)
+_MARCOS = {3: "hierro", 10: "bronce", 30: "plata", 70: "oro", 100: "esmeralda"}
+_COLORES_TITULO = {
+    5: "amatista", 20: "plata", 40: "oro", 50: "magenta", 90: "hielo",
+}
+
+
+def _color_fuego(semanas):
+    if semanas <= 10:
+        return "normal"
+    if semanas <= 30:
+        return "verde"
+    if semanas <= 70:
+        return "violeta"
+    return "azul"
 
 
 class RachaService:
     """Calcula y persiste la racha de reuniones de un grupo."""
 
     def actualizar_racha(self, group_id):
-        """Actualiza la racha usando planes grupales que ya ocurrieron.
+        """Acumula solo planes nuevos y persiste el punto de control.
 
-        Una racha queda pausada luego de 7 días sin reunión y se reinicia
-        después de 14 días. Los planes separados por menos de 14 días
-        pertenecen a la misma racha; solo suma una vez por semana ISO.
+        Las semanas y los planes ya contabilizados quedan en Rachas, así que
+        borrar planes viejos no modifica el acumulado. Una semana ISO suma
+        como máximo una vez; la racha se pausa a los 7 días y se reinicia
+        a los 14 días sin reunión.
         """
         hoy = datetime.now(_MONTEVIDEO).date()
+        inicio_semana = hoy - timedelta(days=hoy.weekday())
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
                     '''
-                    SELECT "Fecha", "Hora", "Nombre"
+                    SELECT "Activa", "Semanas", "Ultima_Reunion",
+                           "Ultimo_Plan_Procesado", "Planes_Hechos"
+                    FROM public."Rachas"
+                    WHERE "Id_Grupo" = %s
+                    ''',
+                    (group_id,),
+                )
+                estado_guardado = cursor.fetchone()
+                if estado_guardado:
+                    _activa_guardada, semanas, ultima_reunion, ultimo_procesado, planes_hechos = estado_guardado
+                    planes_hechos = planes_hechos or 0
+                    # Migración gradual de filas creadas antes del checkpoint:
+                    # conserva el contador ya guardado y marca como procesado
+                    # todo lo que ocurrió hasta el último día contabilizado.
+                    if ultimo_procesado is None and ultima_reunion is not None:
+                        ultimo_procesado = datetime.combine(ultima_reunion, time.max)
+                        cursor.execute(
+                            '''
+                            SELECT COUNT(*)
+                            FROM public."Plan"
+                            WHERE "Grupo_id" = %s
+                              AND "Fecha" IS NOT NULL
+                              AND (
+                                "Estado" = 'archivado'
+                                OR (
+                                  "Estado" = 'confirmado'
+                                  AND "Fecha" + COALESCE("Hora", '00:00'::time)
+                                      <= (now() AT TIME ZONE 'America/Montevideo')
+                                )
+                              )
+                            ''',
+                            (group_id,),
+                        )
+                        planes_hechos = cursor.fetchone()[0]
+                else:
+                    semanas = 0
+                    ultima_reunion = None
+                    ultimo_procesado = None
+                    planes_hechos = 0
+
+                cursor.execute(
+                    '''
+                    SELECT "Fecha" + COALESCE("Hora", '00:00'::time) AS reunion
                     FROM public."Plan"
                     WHERE "Grupo_id" = %s
                       AND "Fecha" IS NOT NULL
@@ -37,28 +95,24 @@ class RachaService:
                               <= (now() AT TIME ZONE 'America/Montevideo')
                         )
                       )
-                    ORDER BY "Fecha", "Hora"
+                      AND "Fecha" + COALESCE("Hora", '00:00'::time)
+                          > COALESCE(%s::timestamp, '-infinity'::timestamp)
+                    ORDER BY reunion
                     ''',
-                    (group_id,),
+                    (group_id, ultimo_procesado),
                 )
-                planes = cursor.fetchall()
+                planes_nuevos = cursor.fetchall()
 
-                semanas = 0
-                semanas_contadas = set()
-                reunion_anterior = None
-                for fecha, _hora, _nombre in planes:
-                    if reunion_anterior and (fecha - reunion_anterior).days >= 14:
+                for (reunion_at,) in planes_nuevos:
+                    fecha = reunion_at.date()
+                    if ultima_reunion and (fecha - ultima_reunion).days >= 14:
                         semanas = 0
-                        semanas_contadas.clear()
-                    semana_iso = fecha.isocalendar()[:2]
-                    # Cada semana ISO suma como máximo una vez, aunque haya
-                    # varias juntadas o planes realizados en esa semana.
-                    if semana_iso not in semanas_contadas:
+                    if ultima_reunion is None or fecha.isocalendar()[:2] != ultima_reunion.isocalendar()[:2]:
                         semanas += 1
-                        semanas_contadas.add(semana_iso)
-                    reunion_anterior = fecha
+                    ultima_reunion = fecha
+                    ultimo_procesado = reunion_at
+                planes_hechos += len(planes_nuevos)
 
-                ultima_reunion = reunion_anterior
                 if ultima_reunion is None or (hoy - ultima_reunion).days >= 14:
                     semanas = 0
                     activa = False
@@ -68,23 +122,70 @@ class RachaService:
                 cursor.execute(
                     '''
                     INSERT INTO public."Rachas"
-                        ("Id_Grupo", "Activa", "Semanas", "Ultima_Reunion")
-                    VALUES (%s, %s, %s, %s)
+                        ("Id_Grupo", "Activa", "Semanas", "Ultima_Reunion",
+                         "Ultimo_Plan_Procesado", "Planes_Hechos")
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     ON CONFLICT ("Id_Grupo") DO UPDATE SET
                         "Activa" = EXCLUDED."Activa",
                         "Semanas" = EXCLUDED."Semanas",
-                        "Ultima_Reunion" = EXCLUDED."Ultima_Reunion"
+                        "Ultima_Reunion" = EXCLUDED."Ultima_Reunion",
+                        "Ultimo_Plan_Procesado" = EXCLUDED."Ultimo_Plan_Procesado",
+                        "Planes_Hechos" = EXCLUDED."Planes_Hechos"
                     ''',
-                    (group_id, activa, semanas, ultima_reunion),
+                    (group_id, activa, semanas, ultima_reunion, ultimo_procesado, planes_hechos),
                 )
 
+                # Los logros son permanentes aunque la racha actual se reinicie.
+                for hito in _HITOS:
+                    if semanas >= hito:
+                        cursor.execute(
+                            '''
+                            INSERT INTO public."Grupo_Insignia" ("Id_Grupo", "Semanas")
+                            VALUES (%s, %s)
+                            ON CONFLICT ("Id_Grupo", "Semanas") DO NOTHING
+                            ''',
+                            (group_id, hito),
+                        )
+                cursor.execute(
+                    'SELECT "Semanas" FROM public."Grupo_Insignia" WHERE "Id_Grupo" = %s',
+                    (group_id,),
+                )
+                hitos_desbloqueados = {fila[0] for fila in cursor.fetchall()}
+                cursor.execute(
+                    '''SELECT "Marco_Semanas", "Titulo_Semanas"
+                       FROM public."Grupo_Apariencia" WHERE "Id_Grupo" = %s''',
+                    (group_id,),
+                )
+                apariencia = cursor.fetchone()
+                marco_seleccionado, titulo_seleccionado = apariencia or (None, None)
+
+                cursor.execute(
+                    '''
+                    SELECT DISTINCT "Fecha"
+                    FROM public."Plan"
+                    WHERE "Grupo_id" = %s
+                      AND "Fecha" BETWEEN %s AND %s
+                      AND (
+                        "Estado" = 'archivado'
+                        OR (
+                          "Estado" = 'confirmado'
+                          AND "Fecha" + COALESCE("Hora", '00:00'::time)
+                              <= (now() AT TIME ZONE 'America/Montevideo')
+                        )
+                      )
+                    ''',
+                    (group_id, inicio_semana, hoy),
+                )
+                reuniones_semana = {fila[0] for fila in cursor.fetchall()}
+
             conn.commit()
-            proximo_hito = next((hito for hito in _HITOS if hito > semanas), ((semanas // 5) + 1) * 5)
-            inicio_semana = hoy - timedelta(days=hoy.weekday())
-            reuniones_semana = {
-                plan[0] for plan in planes
-                if inicio_semana <= plan[0] <= hoy
-            }
+            proximo_hito = next((hito for hito in _HITOS if hito not in hitos_desbloqueados), None)
+            marcos_desbloqueados = [hito for hito in _MARCOS if hito in hitos_desbloqueados]
+            titulos_desbloqueados = sorted(h for h in hitos_desbloqueados if h in _COLORES_TITULO)
+            if marco_seleccionado not in marcos_desbloqueados:
+                marco_seleccionado = max(marcos_desbloqueados) if marcos_desbloqueados else None
+            if titulo_seleccionado not in titulos_desbloqueados:
+                titulo_seleccionado = max(titulos_desbloqueados) if titulos_desbloqueados else None
             calendario = [
                 {
                     "dia": _DIAS_SEMANA[indice],
@@ -99,17 +200,62 @@ class RachaService:
                 "activa": activa,
                 "semanas": semanas,
                 "ultima_reunion": ultima_reunion,
-                "ultimo_plan": planes[-1][2] if planes and ultima_reunion else None,
-                "planes_hechos": len(planes),
+                "planes_hechos": planes_hechos,
                 "dias_desde_ultima": dias_desde_ultima,
                 "calendario": calendario,
+                "fuego": _color_fuego(semanas),
+                "marco": _MARCOS.get(marco_seleccionado),
+                "marco_semanas": marco_seleccionado,
+                "marcos_desbloqueados": marcos_desbloqueados,
+                "titulo_color": _COLORES_TITULO.get(titulo_seleccionado),
+                "titulo_semanas": titulo_seleccionado,
+                "titulos_desbloqueados": titulos_desbloqueados,
                 "hitos": [
-                    {"semanas": hito, "logrado": semanas >= hito, "proximo": hito == proximo_hito}
-                    for hito in sorted(set((*_HITOS, proximo_hito)))
+                    {
+                        "semanas": hito,
+                        "logrado": hito in hitos_desbloqueados,
+                        "proximo": hito == proximo_hito,
+                        "marco": _MARCOS.get(hito),
+                        "titulo_color": _COLORES_TITULO.get(hito),
+                        "fuego": _color_fuego(hito),
+                    }
+                    for hito in _HITOS
                 ],
                 "proximo_hito": proximo_hito,
-                "progreso_hito": min(100, round(semanas / proximo_hito * 100)) if proximo_hito else 0,
+                "progreso_hito": min(100, round(semanas / proximo_hito * 100)) if proximo_hito else 100,
             }
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            release_db_connection(conn)
+
+    def guardar_apariencia(self, group_id, marco_semanas, titulo_semanas):
+        """Guarda solo cosméticos que el grupo ya haya desbloqueado."""
+        marco_semanas = int(marco_semanas) if marco_semanas else None
+        titulo_semanas = int(titulo_semanas) if titulo_semanas else None
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    'SELECT "Semanas" FROM public."Grupo_Insignia" WHERE "Id_Grupo" = %s',
+                    (group_id,),
+                )
+                ganados = {fila[0] for fila in cursor.fetchall()}
+                if marco_semanas is not None and marco_semanas not in ganados.intersection(_MARCOS):
+                    raise ValueError("Ese marco todavía no está desbloqueado.")
+                if titulo_semanas is not None and titulo_semanas not in ganados.intersection(_COLORES_TITULO):
+                    raise ValueError("Ese título todavía no está desbloqueado.")
+                cursor.execute(
+                    '''INSERT INTO public."Grupo_Apariencia"
+                       ("Id_Grupo", "Marco_Semanas", "Titulo_Semanas")
+                       VALUES (%s, %s, %s)
+                       ON CONFLICT ("Id_Grupo") DO UPDATE SET
+                         "Marco_Semanas" = EXCLUDED."Marco_Semanas",
+                         "Titulo_Semanas" = EXCLUDED."Titulo_Semanas"''',
+                    (group_id, marco_semanas, titulo_semanas),
+                )
+            conn.commit()
         except Exception:
             conn.rollback()
             raise

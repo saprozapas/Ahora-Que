@@ -1040,3 +1040,242 @@
   opacity: 0.6;
   cursor: progress;
 }
+
+
+/* ==========================================================================
+   Inbox > Publicaciones (avisos de me gusta y comentarios) y retoques
+   ========================================================================== */
+
+.inbox-tabs {
+  justify-content: flex-start;
+  margin-top: 0;
+  margin-bottom: clamp(16px, 3vw, 28px);
+}
+
+.avisos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  max-width: 720px;
+}
+
+.aviso {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 12px 14px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+  color: inherit;
+  text-decoration: none;
+}
+
+.aviso:hover,
+.aviso:focus-visible {
+  border-color: var(--line-strong);
+}
+
+/* Lo que todavía no viste. */
+.aviso-nuevo {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.aviso-miniatura {
+  display: grid;
+  place-items: center;
+  flex: 0 0 52px;
+
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--on-accent);
+
+  font-weight: 700;
+}
+
+.aviso-miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aviso-cuerpo {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.aviso-texto {
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.aviso-hace {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.aviso-punto {
+  flex: 0 0 10px;
+
+  width: 10px;
+  height: 10px;
+
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}
+
+
+/* --- Foto vertical (4:5) ---------------------------------------------------------- */
+
+.soc-fotos[data-aspecto="vertical"] {
+  aspect-ratio: 4 / 5;
+}
+
+
+/* --- Grilla: me gusta y comentarios al pasar el mouse ------------------------------- */
+
+.soc-mini-datos {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+
+  font-weight: 700;
+  transition: opacity var(--fast) var(--ease);
+}
+
+.soc-mini-datos span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.soc-mini-datos .soc-ico {
+  width: 20px;
+  height: 20px;
+}
+
+.soc-mini-datos .soc-ico-corazon {
+  fill: currentColor;
+}
+
+.soc-miniatura:hover .soc-mini-datos,
+.soc-miniatura:focus-visible .soc-mini-datos {
+  opacity: 1;
+}
+
+/* En pantallas táctiles no hay "pasar el mouse": no se muestran. */
+@media (hover: none) {
+
+  .soc-mini-datos {
+    display: none;
+  }
+}
+
+
+/* --- Moderación: reportes pendientes ------------------------------------------------ */
+
+.mod {
+  max-width: 760px;
+  padding-bottom: clamp(48px, 7vw, 80px);
+}
+
+.mod-bajada {
+  margin: 0 0 20px;
+  color: var(--muted);
+}
+
+.mod-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mod-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding: 16px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+.mod-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.mod-hace {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.mod-eliminado {
+  color: var(--danger);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.mod-contenido {
+  display: flex;
+  gap: 14px;
+}
+
+.mod-contenido img {
+  flex: 0 0 72px;
+
+  width: 72px;
+  height: 72px;
+
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.mod-contenido p {
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.mod-texto {
+  color: var(--muted);
+}
+
+.mod-motivos {
+  margin: 0;
+  padding-left: 18px;
+
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.mod-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
