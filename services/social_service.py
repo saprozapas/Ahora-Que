@@ -45,6 +45,8 @@ MAX_COMENTARIOS_POR_MINUTO = 10
 MAX_REPORTES_POR_HORA = 20
 
 VISIBILIDADES = ("amigos", "publico")
+ASPECTOS = ("cuadrada", "vertical")
+MAX_AVISOS = 60
 PESTANAS = ("amigos", "descubrir")
 TIPOS_REPORTE = ("publicacion", "comentario")
 
@@ -65,6 +67,23 @@ def _numero(valor):
         return None
     numero = float(valor)
     return int(numero) if numero.is_integer() else numero
+
+
+def _hace(momento):
+    """"hace 5 min", "hace 2 h", "hace 3 días" o la fecha, para los avisos."""
+    segundos = (datetime.now(momento.tzinfo) - momento).total_seconds()
+    minutos = int(segundos // 60)
+    if minutos < 1:
+        return "ahora"
+    if minutos < 60:
+        return f"hace {minutos} min"
+    horas = minutos // 60
+    if horas < 24:
+        return f"hace {horas} h"
+    dias = horas // 24
+    if dias < 7:
+        return f"hace {dias} {'día' if dias == 1 else 'días'}"
+    return momento.strftime("%d/%m")
 
 
 def _hora(valor):
@@ -134,6 +153,7 @@ class SocialService:
                      WHERE x."Plan_id" = p."id_Plan"),
                    (SELECT COUNT(x."Puntaje") FROM public."Usuario-Plan" x
                      WHERE x."Plan_id" = p."id_Plan"),
+                   pub."Aspecto",
                    p."Precio_Min", p."Precio_Max"
             FROM public."Publicacion" pub
             JOIN public."Usuarios" u ON u."Id_Usuario" = pub."Id_Autor"
@@ -271,6 +291,7 @@ class SocialService:
                 "votos": f[19],
             },
             "fotos": [],
+            "aspecto": f[20],
             "likes_nombres": [],
             "comentarios_previa": [],
             "likes": f[14],
@@ -342,6 +363,20 @@ class SocialService:
         el total, para el perfil."""
         filtro = f'(pub."Id_Autor" = %(autor)s AND {self._visible_sql()})'
         return self._pagina(user_id, filtro, {"autor": autor_id}, antes, limite, con_total=True)
+
+    def obtener_publicacion(self, user_id, publicacion_id):
+        """Una publicación por su id (la página /social/p/<id> y los avisos del
+        Inbox). 404 si no existe, está eliminada o el usuario no la puede ver."""
+        filtro = f'(pub."Id_Publicacion" = %(pid)s AND {self._visible_sql()})'
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                resultado = self._consultar(cursor, user_id, filtro, {"pid": publicacion_id}, 1)
+        finally:
+            release_db_connection(connection)
+        if not resultado:
+            raise SocialError("No encontramos esa publicación.", 404)
+        return resultado[0]
 
     def _una(self, cursor, user_id, publicacion_id):
         filtro = 'pub."Id_Publicacion" = %(pid)s'
@@ -415,8 +450,10 @@ class SocialService:
                 raise SocialError("Las fotos tienen que ser imágenes JPEG válidas.")
         return fotos
 
-    def publicar(self, user_id, plan_id, texto, visibilidad, fotos=()):
+    def publicar(self, user_id, plan_id, texto, visibilidad, fotos=(), aspecto="cuadrada"):
         fotos = self._validar_fotos(fotos)
+        if aspecto not in ASPECTOS:
+            raise SocialError("Elegí si la foto es cuadrada o vertical.")
         texto = (texto or "").strip()
         if len(texto) > MAX_TEXTO:
             raise SocialError(f"El texto puede tener hasta {MAX_TEXTO} caracteres.")
@@ -464,11 +501,12 @@ class SocialService:
 
                 cursor.execute(
                     """
-                    INSERT INTO public."Publicacion" ("Id_Autor", "Id_Plan", "Texto", "Visibilidad")
-                    VALUES (%s, %s, %s, %s)
+                    INSERT INTO public."Publicacion"
+                        ("Id_Autor", "Id_Plan", "Texto", "Visibilidad", "Aspecto")
+                    VALUES (%s, %s, %s, %s, %s)
                     RETURNING "Id_Publicacion"
                     """,
-                    (user_id, plan_id, texto or None, visibilidad),
+                    (user_id, plan_id, texto or None, visibilidad, aspecto),
                 )
                 publicacion_id = cursor.fetchone()[0]
                 for orden, datos in enumerate(fotos):
@@ -510,6 +548,10 @@ class SocialService:
                     'DELETE FROM public."Publicacion_Foto" WHERE "Id_Publicacion" = %s',
                     (publicacion_id,),
                 )
+                cursor.execute(
+                    'DELETE FROM public."Publicacion_Notificacion" WHERE "Id_Publicacion" = %s',
+                    (publicacion_id,),
+                )
             connection.commit()
         except Exception:
             connection.rollback()
@@ -548,7 +590,7 @@ class SocialService:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                self._publicacion_visible(cursor, user_id, publicacion_id)
+                autor_id, _ = self._publicacion_visible(cursor, user_id, publicacion_id)
                 if me_gusta:
                     cursor.execute(
                         """
@@ -557,11 +599,19 @@ class SocialService:
                         """,
                         (publicacion_id, user_id),
                     )
+                    self._avisar(cursor, autor_id, user_id, "like", publicacion_id)
                 else:
                     cursor.execute(
                         """
                         DELETE FROM public."Publicacion_Like"
                         WHERE "Id_Publicacion" = %s AND "Id_Usuario" = %s
+                        """,
+                        (publicacion_id, user_id),
+                    )
+                    cursor.execute(
+                        """
+                        DELETE FROM public."Publicacion_Notificacion"
+                        WHERE "Tipo" = 'like' AND "Id_Publicacion" = %s AND "Id_Actor" = %s
                         """,
                         (publicacion_id, user_id),
                     )
@@ -651,7 +701,7 @@ class SocialService:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                _, _ = self._publicacion_visible(cursor, user_id, publicacion_id)
+                autor_id, _ = self._publicacion_visible(cursor, user_id, publicacion_id)
 
                 cursor.execute(
                     """
@@ -680,7 +730,9 @@ class SocialService:
                     """,
                     (publicacion_id, user_id, texto, publicacion_id),
                 )
-                comentario = self._comentario(cursor.fetchone(), user_id)
+                fila = cursor.fetchone()
+                comentario = self._comentario(fila, user_id)
+                self._avisar(cursor, autor_id, user_id, "comentario", publicacion_id, fila[0])
             connection.commit()
             return comentario
         except Exception:
@@ -708,6 +760,10 @@ class SocialService:
                 )
                 if cursor.rowcount == 0:
                     raise SocialError("No encontramos ese comentario.", 404)
+                cursor.execute(
+                    'DELETE FROM public."Publicacion_Notificacion" WHERE "Id_Comentario" = %s',
+                    (comentario_id,),
+                )
             connection.commit()
         except Exception:
             connection.rollback()
@@ -763,6 +819,140 @@ class SocialService:
                     ON CONFLICT ("Id_Reportante", "Tipo", "Id_Objetivo") DO NOTHING
                     """,
                     (tipo, objetivo_id, user_id, motivo or None),
+                )
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
+
+    # --- Avisos del Inbox ---------------------------------------------------
+
+    def _avisar(self, cursor, receptor_id, actor_id, tipo, publicacion_id, comentario_id=None):
+        """Crea el aviso de un me gusta o un comentario para el autor de la
+        publicación. Nadie se avisa a sí mismo."""
+        if str(receptor_id) == str(actor_id):
+            return
+        if tipo == "like":
+            cursor.execute(
+                """
+                INSERT INTO public."Publicacion_Notificacion"
+                    ("Id_Usuario", "Id_Actor", "Tipo", "Id_Publicacion")
+                VALUES (%s, %s, 'like', %s)
+                ON CONFLICT ("Id_Usuario", "Id_Publicacion", "Id_Actor") WHERE "Tipo" = 'like'
+                DO NOTHING
+                """,
+                (receptor_id, actor_id, publicacion_id),
+            )
+        else:
+            cursor.execute(
+                """
+                INSERT INTO public."Publicacion_Notificacion"
+                    ("Id_Usuario", "Id_Actor", "Tipo", "Id_Publicacion", "Id_Comentario")
+                VALUES (%s, %s, 'comentario', %s, %s)
+                """,
+                (receptor_id, actor_id, publicacion_id, comentario_id),
+            )
+
+    # Los avisos que valen: de una publicación que sigue ahí y, si es de un
+    # comentario, de uno que no se borró.
+    _AVISOS_VIGENTES = """
+        JOIN public."Publicacion" pub
+               ON pub."Id_Publicacion" = n."Id_Publicacion" AND NOT pub."Eliminada"
+        LEFT JOIN public."Publicacion_Comentario" c ON c."Id_Comentario" = n."Id_Comentario"
+        WHERE n."Id_Usuario" = %(uid)s
+          AND (n."Tipo" = 'like' OR (c."Id_Comentario" IS NOT NULL AND NOT c."Eliminado"))
+    """
+
+    def listar_avisos(self, user_id, limite=MAX_AVISOS):
+        """Los avisos de me gusta y comentarios, del más reciente al más viejo.
+
+        Los me gusta de una misma publicación se juntan en un solo aviso
+        ("Beto y Dani"); cada comentario es su propio aviso."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT n."Tipo", n."Creada_En", n."Leida", n."Id_Publicacion",
+                           a."Nombre", p."Nombre", c."Contenido",
+                           (SELECT f."Id_Foto" FROM public."Publicacion_Foto" f
+                             WHERE f."Id_Publicacion" = n."Id_Publicacion"
+                             ORDER BY f."Orden" LIMIT 1)
+                    FROM public."Publicacion_Notificacion" n
+                    JOIN public."Usuarios" a ON a."Id_Usuario" = n."Id_Actor"
+                    JOIN public."Publicacion" pub
+                           ON pub."Id_Publicacion" = n."Id_Publicacion" AND NOT pub."Eliminada"
+                    JOIN public."Plan" p ON p."id_Plan" = pub."Id_Plan"
+                    LEFT JOIN public."Publicacion_Comentario" c ON c."Id_Comentario" = n."Id_Comentario"
+                    WHERE n."Id_Usuario" = %(uid)s
+                      AND (n."Tipo" = 'like' OR (c."Id_Comentario" IS NOT NULL AND NOT c."Eliminado"))
+                    ORDER BY n."Creada_En" DESC
+                    LIMIT 300
+                    """,
+                    {"uid": user_id},
+                )
+                filas = cursor.fetchall()
+        finally:
+            release_db_connection(connection)
+
+        avisos = []
+        de_likes = {}   # publicación -> aviso de me gusta ya creado
+        for tipo, momento, leida, publicacion_id, actor, plan, texto, foto in filas:
+            publicacion_id = str(publicacion_id)
+            if tipo == "like":
+                aviso = de_likes.get(publicacion_id)
+                if aviso is None:
+                    aviso = {
+                        "tipo": "like", "publicacion_id": publicacion_id, "plan": plan,
+                        "foto": str(foto) if foto else None, "actores": [], "total": 0,
+                        "creada_en": momento.isoformat(), "hace": _hace(momento), "no_leida": False,
+                    }
+                    de_likes[publicacion_id] = aviso
+                    avisos.append(aviso)
+                aviso["total"] += 1
+                if len(aviso["actores"]) < 3:
+                    aviso["actores"].append(actor)
+                aviso["no_leida"] = aviso["no_leida"] or not leida
+            else:
+                avisos.append({
+                    "tipo": "comentario", "publicacion_id": publicacion_id, "plan": plan,
+                    "foto": str(foto) if foto else None, "actor": actor,
+                    "texto": texto if len(texto) <= 140 else texto[:139] + "…",
+                    "creada_en": momento.isoformat(), "hace": _hace(momento), "no_leida": not leida,
+                })
+        return avisos[:limite]
+
+    def contar_avisos_no_leidos(self, user_id):
+        """Cuántos avisos nuevos hay (los me gusta de una publicación cuentan
+        como uno). Es lo que suma al número de la barra lateral."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT COUNT(DISTINCT CASE WHEN n."Tipo" = 'like'
+                                               THEN n."Id_Publicacion"::text
+                                               ELSE n."Id_Notificacion"::text END)
+                    FROM public."Publicacion_Notificacion" n
+                    """ + self._AVISOS_VIGENTES + """
+                      AND NOT n."Leida"
+                    """,
+                    {"uid": user_id},
+                )
+                return cursor.fetchone()[0]
+        finally:
+            release_db_connection(connection)
+
+    def marcar_avisos_leidos(self, user_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'UPDATE public."Publicacion_Notificacion" SET "Leida" = true '
+                    'WHERE "Id_Usuario" = %s AND NOT "Leida"',
+                    (user_id,),
                 )
             connection.commit()
         except Exception:
