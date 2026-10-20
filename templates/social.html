@@ -180,6 +180,10 @@
       {% if pestana == 'amigos' %}lo que comparten tus amigos{% else %}lo que comparte la comunidad{% endif %}
     </p>
 
+    {% if es_moderador %}
+    <a class="soc-icono" href="{{ url_for('social_api.pagina_moderacion') }}" aria-label="Revisar reportes" title="Revisar reportes">{{ ico('bandera') }}</a>
+    {% endif %}
+
     <button class="lime-button" type="button" data-modal-open="soc-modal-publicar" data-soc-abrir-publicar>
       Compartir un plan <span aria-hidden="true">+</span>
     </button>

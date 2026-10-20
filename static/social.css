@@ -1192,3 +1192,90 @@
     display: none;
   }
 }
+
+
+/* --- Moderación: reportes pendientes ------------------------------------------------ */
+
+.mod {
+  max-width: 760px;
+  padding-bottom: clamp(48px, 7vw, 80px);
+}
+
+.mod-bajada {
+  margin: 0 0 20px;
+  color: var(--muted);
+}
+
+.mod-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mod-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  padding: 16px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+.mod-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.mod-hace {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.mod-eliminado {
+  color: var(--danger);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.mod-contenido {
+  display: flex;
+  gap: 14px;
+}
+
+.mod-contenido img {
+  flex: 0 0 72px;
+
+  width: 72px;
+  height: 72px;
+
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.mod-contenido p {
+  margin: 0 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.mod-texto {
+  color: var(--muted);
+}
+
+.mod-motivos {
+  margin: 0;
+  padding-left: 18px;
+
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.mod-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

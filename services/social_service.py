@@ -974,3 +974,130 @@ class SocialService:
             raise
         finally:
             release_db_connection(connection)
+
+    # --- Moderación ---------------------------------------------------------
+
+    def listar_reportes(self):
+        """Los reportes sin revisar, juntando los de un mismo contenido (con
+        cuántas personas lo reportaron y por qué). El más reciente primero."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT r."Tipo", r."Id_Objetivo", r."Motivo", r."Creado_En", rep."Nombre"
+                    FROM public."Publicacion_Reporte" r
+                    JOIN public."Usuarios" rep ON rep."Id_Usuario" = r."Id_Reportante"
+                    WHERE NOT r."Revisado"
+                    ORDER BY r."Creado_En" DESC
+                    """
+                )
+                filas = cursor.fetchall()
+
+                grupos = {}
+                for tipo, objetivo, motivo, momento, quien in filas:
+                    g = grupos.setdefault((tipo, str(objetivo)), {
+                        "tipo": tipo, "id": str(objetivo), "total": 0, "motivos": [],
+                        "ultimo": momento,
+                    })
+                    g["total"] += 1
+                    if motivo and len(g["motivos"]) < 5:
+                        g["motivos"].append(f"{quien}: {motivo}")
+
+                reportes = []
+                for g in grupos.values():
+                    if g["tipo"] == "publicacion":
+                        cursor.execute(
+                            """
+                            SELECT u."Nombre", p."Nombre", pub."Texto", pub."Eliminada", pub."Id_Publicacion",
+                                   (SELECT f."Id_Foto" FROM public."Publicacion_Foto" f
+                                     WHERE f."Id_Publicacion" = pub."Id_Publicacion"
+                                     ORDER BY f."Orden" LIMIT 1)
+                            FROM public."Publicacion" pub
+                            JOIN public."Usuarios" u ON u."Id_Usuario" = pub."Id_Autor"
+                            JOIN public."Plan" p ON p."id_Plan" = pub."Id_Plan"
+                            WHERE pub."Id_Publicacion" = %s
+                            """,
+                            (g["id"],),
+                        )
+                        fila = cursor.fetchone()
+                        if fila:
+                            g.update(autor=fila[0], plan=fila[1], texto=fila[2] or "",
+                                     eliminado=fila[3], publicacion_id=str(fila[4]),
+                                     foto=str(fila[5]) if fila[5] else None)
+                    else:
+                        cursor.execute(
+                            """
+                            SELECT u."Nombre", p."Nombre", c."Contenido", c."Eliminado", c."Id_Publicacion"
+                            FROM public."Publicacion_Comentario" c
+                            JOIN public."Usuarios" u ON u."Id_Usuario" = c."Id_Usuario"
+                            JOIN public."Publicacion" pub ON pub."Id_Publicacion" = c."Id_Publicacion"
+                            JOIN public."Plan" p ON p."id_Plan" = pub."Id_Plan"
+                            WHERE c."Id_Comentario" = %s
+                            """,
+                            (g["id"],),
+                        )
+                        fila = cursor.fetchone()
+                        if fila:
+                            g.update(autor=fila[0], plan=fila[1], texto=fila[2],
+                                     eliminado=fila[3], publicacion_id=str(fila[4]), foto=None)
+                    # Si el contenido ya no existe (se borró el plan), no hay nada que revisar.
+                    if "autor" in g:
+                        g["hace"] = _hace(g["ultimo"])
+                        reportes.append(g)
+                reportes.sort(key=lambda r: r["ultimo"], reverse=True)
+                return reportes
+        finally:
+            release_db_connection(connection)
+
+    def resolver_reportes(self, tipo, objetivo_id, accion):
+        """accion 'eliminar': borra el contenido reportado (y deja de mostrarse).
+        accion 'descartar': el contenido queda como está.
+        En los dos casos todos los reportes de ese contenido pasan a revisados."""
+        if tipo not in TIPOS_REPORTE:
+            raise SocialError("Tipo de reporte inválido.")
+        if accion not in ("eliminar", "descartar"):
+            raise SocialError("Acción inválida.")
+
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                if accion == "eliminar":
+                    if tipo == "publicacion":
+                        cursor.execute(
+                            'UPDATE public."Publicacion" SET "Eliminada" = true WHERE "Id_Publicacion" = %s',
+                            (objetivo_id,),
+                        )
+                        cursor.execute(
+                            'DELETE FROM public."Publicacion_Foto" WHERE "Id_Publicacion" = %s',
+                            (objetivo_id,),
+                        )
+                        cursor.execute(
+                            'DELETE FROM public."Publicacion_Notificacion" WHERE "Id_Publicacion" = %s',
+                            (objetivo_id,),
+                        )
+                    else:
+                        cursor.execute(
+                            'UPDATE public."Publicacion_Comentario" SET "Eliminado" = true WHERE "Id_Comentario" = %s',
+                            (objetivo_id,),
+                        )
+                        cursor.execute(
+                            'DELETE FROM public."Publicacion_Notificacion" WHERE "Id_Comentario" = %s',
+                            (objetivo_id,),
+                        )
+                cursor.execute(
+                    """
+                    UPDATE public."Publicacion_Reporte" SET "Revisado" = true
+                    WHERE "Tipo" = %s AND "Id_Objetivo" = %s
+                    """,
+                    (tipo, objetivo_id),
+                )
+                if cursor.rowcount == 0:
+                    raise SocialError("No encontramos ese reporte.", 404)
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
+

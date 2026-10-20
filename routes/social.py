@@ -9,6 +9,7 @@ Las reglas de quién puede qué viven en services/social_service.py.
 
 import base64
 import binascii
+import os
 import uuid
 
 from flask import Blueprint, Response, abort, jsonify, redirect, render_template, request, session
@@ -23,6 +24,14 @@ social_service = SocialService()
 
 # Dos fotos de hasta 400 KB, en base64 (+33 %), más el texto.
 MAX_BYTES_PUBLICAR = 1_200_000
+
+
+def es_moderador():
+    """Quién puede revisar reportes: los mails de SOCIAL_MODERADORES en el .env
+    (separados por coma). Si la variable no está, nadie."""
+    permitidos = {m.strip().lower() for m in os.environ.get("SOCIAL_MODERADORES", "").split(",") if m.strip()}
+    mail = ((session.get("user") or {}).get("email") or "").lower()
+    return bool(mail) and mail in permitidos
 
 
 def _error(mensaje, estado):
@@ -258,3 +267,31 @@ def pagina_publicacion(publicacion_id):
         publicacion_id=publicacion_id,
         abrir_comentarios=request.args.get("comentarios") == "1",
     )
+
+
+# ------------------------------------------------------------- Moderación
+
+@social_api.route("/moderacion", methods=["GET"])
+def pagina_moderacion():
+    """Los reportes sin revisar. Solo para los mails de SOCIAL_MODERADORES; para
+    el resto la página no existe (404, no se revela que está)."""
+    if not session.get("user_id"):
+        return redirect("/login")
+    if not es_moderador():
+        abort(404)
+    return render_template("social_moderacion.html", reportes=social_service.listar_reportes())
+
+
+@social_api.route("/moderacion/resolver", methods=["POST"])
+@_con_sesion
+def resolver_reporte(user_id):
+    if not es_moderador():
+        return _error("No encontramos eso.", 404)
+    datos = _cuerpo()
+    social_service.resolver_reportes(
+        str(datos.get("tipo") or ""),
+        _id_o_404(datos.get("id", "")),
+        str(datos.get("accion") or ""),
+    )
+    return jsonify({"ok": True})
+

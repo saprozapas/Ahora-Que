@@ -15,7 +15,7 @@ from routes.friends import friends_bp
 from routes.chat import chat
 from routes.grupo_planes import grupo_planes_bp
 from routes.chatbot import chatbot_bp
-from routes.social import social_api
+from routes.social import es_moderador, social_api
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
 from services.plan_service import PlanService
@@ -138,7 +138,7 @@ def social():
         pestana = 'amigos'
 
     if pestana != 'actividad':
-        return render_template('social.html', pestana=pestana)
+        return render_template('social.html', pestana=pestana, es_moderador=es_moderador())
 
     nivel_pedido = request.args.get('nivel', '4')
     if nivel_pedido == 'todos':
