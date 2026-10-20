@@ -55,6 +55,7 @@
   let siguiente = null;
   let ocupado = false;
 
+  let totalPublicaciones = null;     // solo en los perfiles ("Planes publicados (N)")
   const publicaciones = new Map();   // id -> publicación (para abrirla desde la grilla)
   const tarjetas = new Map();        // id -> tarjeta ya armada (grilla)
   const miniaturas = new Map();      // id -> celda de la grilla
@@ -473,6 +474,12 @@
     vacio.hidden = lista.children.length > 0 || ocupado || siguiente !== null;
   };
 
+  const pintarTotal = (n) => {
+    totalPublicaciones = Math.max(0, n);
+    const elemento = $("[data-soc-total]", raiz);
+    if (elemento) elemento.textContent = `(${totalPublicaciones})`;
+  };
+
   const quitarDeVista = (tarjeta) => {
     const id = tarjeta.dataset.publicacionId;
     tarjeta.remove();
@@ -482,6 +489,7 @@
     tarjetas.delete(id);
     publicaciones.delete(id);
     if (modalPost.open) modalPost.close();
+    if (totalPublicaciones !== null) pintarTotal(totalPublicaciones - 1);
     mostrarVacioSiHaceFalta();
   };
 
@@ -664,10 +672,14 @@
       tarjetas.set(id, tarjeta);
     }
     contenedorPost.replaceChildren(tarjeta);
-    modalPost.showModal();
+    if (!modalPost.open) modalPost.showModal();
   };
 
-  modalPost.addEventListener("close", () => contenedorPost.replaceChildren());
+  // Si el evento "close" llega después de haber abierto otra publicación, no
+  // se vacía el diálogo: solo se limpia cuando de verdad quedó cerrado.
+  modalPost.addEventListener("close", () => {
+    if (!modalPost.open) contenedorPost.replaceChildren();
+  });
 
 
   /* --- Cargar el feed ------------------------------------------------------ */
@@ -691,8 +703,7 @@
       lista.append(...datos.publicaciones.map(modoGrilla ? crearMiniatura : crearTarjeta));
       siguiente = datos.hay_mas ? datos.siguiente : null;
 
-      const total = $("[data-soc-total]", raiz);
-      if (total && datos.total != null) total.textContent = `(${datos.total})`;
+      if (datos.total != null) pintarTotal(datos.total);
     } catch (e) {
       mostrarError(avisoGeneral, e.message);
     }
