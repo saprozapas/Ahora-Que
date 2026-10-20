@@ -1005,3 +1005,38 @@
     width: calc(100% - 12px);
   }
 }
+
+
+/* --- Proponer el plan a un grupo ---------------------------------------------- */
+
+.soc-grupos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.soc-grupo {
+  min-height: 48px;
+  padding: 0 16px;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.soc-grupo:hover,
+.soc-grupo:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.soc-grupo:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}

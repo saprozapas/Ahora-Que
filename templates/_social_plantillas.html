@@ -40,6 +40,9 @@
       <button class="soc-accion" type="button" data-soc-comentarios aria-expanded="false" aria-label="Comentarios" title="Comentarios">
         {{ ico('comentario') }}<span class="soc-contador" data-soc-comentarios-n>0</span>
       </button>
+      <button class="soc-accion" type="button" data-soc-proponer aria-label="Proponer a mi grupo" title="Proponer a mi grupo">
+        {{ ico('enviar') }}
+      </button>
       <button class="soc-accion soc-accion-guardar" type="button" data-soc-guardar aria-pressed="false" aria-label="Guardar plan" title="Guardar plan">
         {{ ico('guardar') }}
       </button>
@@ -107,6 +110,32 @@
 <dialog class="modal soc-modal-post" id="soc-modal-post" aria-label="Publicación">
   <button class="soc-icono soc-modal-post-cerrar" type="button" data-soc-cerrar aria-label="Cerrar" title="Cerrar">{{ ico('cerrar') }}</button>
   <div data-soc-post-contenedor></div>
+</dialog>
+
+
+{# ------------------------- Diálogo: proponer el plan a un grupo ------------------------- #}
+
+<dialog class="modal" id="soc-modal-grupo" aria-labelledby="soc-modal-grupo-titulo">
+
+  <div class="modal-head">
+    <h2 class="modal-title" id="soc-modal-grupo-titulo">Proponer a mi grupo</h2>
+    <button class="modal-close" type="button" data-soc-cerrar aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <p class="soc-ayuda" data-soc-grupo-plan></p>
+    <div class="soc-grupos" data-soc-grupos-lista></div>
+    <p class="soc-ayuda" data-soc-grupos-vacio hidden>
+      Todavía no estás en ningún grupo. <a href="/grupos">Creá uno o unite a uno</a> para poder proponerles planes.
+    </p>
+    <p class="soc-aviso" data-soc-grupo-error role="alert" hidden></p>
+  </div>
+
 </dialog>
 
 

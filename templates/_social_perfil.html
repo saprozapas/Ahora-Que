@@ -20,6 +20,8 @@
   data-url-detalle="{{ url_for('planes.detalle', plan_id='__ID__') }}"
   data-url-perfil="{{ url_for('profile.perfil_publico', user_id='__ID__') }}"
   data-url-mi-perfil="{{ url_for('profile.perfil') }}"
+  data-url-grupos="{{ url_for('social_api.mis_grupos') }}"
+  data-url-postular="{{ url_for('grupo_planes.postular', group_id='__GID__') }}"
 >
 
   <h2 class="soc-perfil-titulo" id="planes-publicados">

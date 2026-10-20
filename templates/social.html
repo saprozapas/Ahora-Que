@@ -164,6 +164,8 @@
   data-modo="{{ 'grilla' if pestana == 'descubrir' else 'lista' }}"
   data-url-perfil="{{ url_for('profile.perfil_publico', user_id='__ID__') }}"
   data-url-mi-perfil="{{ url_for('profile.perfil') }}"
+  data-url-grupos="{{ url_for('social_api.mis_grupos') }}"
+  data-url-postular="{{ url_for('grupo_planes.postular', group_id='__GID__') }}"
   data-url-feed="{{ url_for('social_api.feed') }}"
   data-url-publicables="{{ url_for('social_api.publicables') }}"
   data-url-publicar="{{ url_for('social_api.publicar') }}"

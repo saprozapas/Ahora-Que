@@ -13,6 +13,7 @@ import uuid
 
 from flask import Blueprint, Response, jsonify, request, session
 
+from database_bridge.database_bridge import getGroupsForUser
 from services.social_service import MAX_FOTOS, SocialError, SocialService
 
 
@@ -103,6 +104,18 @@ def feed(user_id):
         request.args.get("antes") or None,
         **argumentos,
     ))
+
+
+@social_api.route("/mis-grupos", methods=["GET"])
+@_con_sesion
+def mis_grupos(user_id):
+    """Los grupos del usuario, para elegir a cuál proponer un plan."""
+    return jsonify({
+        "grupos": [
+            {"id": str(grupo.get_id()), "nombre": grupo.get_name()}
+            for grupo in getGroupsForUser(user_id)
+        ]
+    })
 
 
 @social_api.route("/publicables", methods=["GET"])

@@ -34,6 +34,7 @@
 
   const modalPublicar = document.getElementById("soc-modal-publicar");         // solo en /social
   const modalReportar = document.getElementById("soc-modal-reportar");
+  const modalGrupo = document.getElementById("soc-modal-grupo");
   const modalPost = document.getElementById("soc-modal-post");
   const contenedorPost = $("[data-soc-post-contenedor]", modalPost);
 
@@ -49,6 +50,8 @@
     detalle: raiz.dataset.urlDetalle,
     perfil: raiz.dataset.urlPerfil,
     miPerfil: raiz.dataset.urlMiPerfil,
+    grupos: raiz.dataset.urlGrupos,
+    postular: raiz.dataset.urlPostular,
     fotos: `${raiz.dataset.urlRaiz}/fotos/`,
   };
 
@@ -606,6 +609,7 @@
 
     if (boton.matches("[data-soc-like]")) darLike(tarjeta);
     else if (boton.matches("[data-soc-guardar]")) guardar(tarjeta);
+    else if (boton.matches("[data-soc-proponer]")) abrirProponer(tarjeta);
     else if (boton.matches("[data-soc-comentarios], [data-soc-ver-comentarios]")) {
       alternarComentarios(tarjeta, $("[data-soc-comentarios]", tarjeta));
     } else if (boton.matches("[data-soc-eliminar]")) eliminarPublicacion(tarjeta);
@@ -635,6 +639,74 @@
     zona.addEventListener("click", alClic);
     zona.addEventListener("submit", alEnviar);
   }
+
+
+  /* --- Proponer el plan a un grupo ------------------------------------------------
+     Se elige un grupo y se sigue a la pantalla de "Postular idea" de ese grupo con
+     el plan ya elegido. Postular exige tener el plan en Guardados, así que si todavía
+     no lo está se guarda antes (es lo mismo que tocar el marcador). */
+
+  const listaGrupos = $("[data-soc-grupos-lista]", modalGrupo);
+  const grupoVacio = $("[data-soc-grupos-vacio]", modalGrupo);
+  const grupoError = $("[data-soc-grupo-error]", modalGrupo);
+  let gruposCargados = null;
+  let tarjetaAProponer = null;
+
+  const elegirGrupo = async (grupo, boton) => {
+    const publicacion = tarjetaAProponer._publicacion;
+    limpiarError(grupoError);
+    boton.disabled = true;
+
+    try {
+      if (!publicacion.guardado) {
+        const datos = await pedir(
+          `${urls.raiz}/publicaciones/${publicacion.id}/guardar`,
+          { guardar: true }
+        );
+        publicacion.guardado = datos.guardado;
+        pintarGuardado(tarjetaAProponer, publicacion);
+      }
+      window.location.href =
+        `${urls.postular.replace("__GID__", grupo.id)}?idea_id=${encodeURIComponent(publicacion.plan.id)}`;
+    } catch (e) {
+      mostrarError(grupoError, e.message);
+      boton.disabled = false;
+    }
+  };
+
+  const pintarGrupos = (grupos) => {
+    listaGrupos.replaceChildren(
+      ...grupos.map((grupo) => {
+        const boton = document.createElement("button");
+        boton.type = "button";
+        boton.className = "soc-grupo";
+        boton.textContent = grupo.nombre;
+        boton.addEventListener("click", () => elegirGrupo(grupo, boton));
+        return boton;
+      })
+    );
+    grupoVacio.hidden = grupos.length > 0;
+  };
+
+  const abrirProponer = async (tarjeta) => {
+    tarjetaAProponer = tarjeta;
+    $("[data-soc-grupo-plan]", modalGrupo).textContent =
+      `Plan: ${tarjeta._publicacion.plan.nombre}. Elegí a qué grupo se lo proponés; después ponés la fecha y el grupo lo vota.`;
+    limpiarError(grupoError);
+    modalGrupo.showModal();
+
+    if (gruposCargados === null) {
+      listaGrupos.replaceChildren();
+      grupoVacio.hidden = true;
+      try {
+        gruposCargados = (await pedir(urls.grupos)).grupos;
+      } catch (e) {
+        mostrarError(grupoError, e.message);
+        return;
+      }
+    }
+    pintarGrupos(gruposCargados);
+  };
 
 
   /* --- Grilla: miniaturas que abren la publicación en un diálogo ------------- */
