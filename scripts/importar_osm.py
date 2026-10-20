@@ -116,7 +116,7 @@ def _overpass(consulta, espera_http=240):
             )
             with urllib.request.urlopen(pedido, timeout=espera_http) as respuesta:
                 return json.load(respuesta)
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
+        except (OSError, json.JSONDecodeError) as e:   # URLError, timeouts y resets de conexión son OSError
             ultimo = e
             codigo = getattr(e, "code", None)
             # Un 400 es una consulta mal armada: reintentar no sirve.
