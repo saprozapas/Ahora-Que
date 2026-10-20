@@ -10,3 +10,4 @@ psycopg2-binary>=2.9  # conexión a PostgreSQL / Supabase
 python-dotenv>=1.0    # lee el archivo .env
 groq>=0.9             # cliente de la API de Groq (chatbot)
 cryptography>=42      # AES-GCM para cifrar los mensajes del chat
+tzdata>=2024.1        # zonas horarias (America/Montevideo) en Windows, que no las trae el sistema
