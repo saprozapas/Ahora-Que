@@ -3,7 +3,15 @@
    Solo tokens de Sereno (tokens.css). Los marcos de insignia no se dibujan.
    ========================================================================== */
 
+/* ---------- Variantes del botón de ícono (van después de .icon-btn, en brand.css) ---------- */
+.icon-btn--danger { color: var(--danger); }
+.icon-btn--danger:hover { background: var(--danger-soft); color: var(--danger); }
+.icon-btn--solid { background: var(--ink); color: var(--on-ink); box-shadow: var(--sh-btn); }
+.icon-btn--solid:hover { background: color-mix(in srgb, var(--ink) 86%, var(--paper)); color: var(--on-ink); }
+.icon-btn--solid:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ---------- Cabecera del grupo ---------- */
+.group-page > .tabs { margin-bottom: var(--s-6); }
 .group-head__title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-4); }
 .group-head__title .h2 { margin: 0; overflow-wrap: anywhere; }
 .no-description { color: var(--ink-3); }
@@ -140,3 +148,6 @@
   .racha-stats { grid-template-columns: minmax(0, 1fr); }
   .racha-hitos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* La llama de la racha en la tarjeta del grupo mide lo que su contenido, no el ancho de la tarjeta. */
+.group-tile .racha-chip { align-self: flex-start; }

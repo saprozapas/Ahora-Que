@@ -220,11 +220,6 @@
 /* ---------- Variantes de botón ---------- */
 .btn--danger-text { color: var(--danger); }
 .btn--danger-text:hover { background: var(--danger-soft); color: var(--danger); }
-.icon-btn--danger { color: var(--danger); }
-.icon-btn--danger:hover { background: var(--danger-soft); color: var(--danger); }
-.icon-btn--solid { background: var(--ink); color: var(--on-ink); box-shadow: var(--sh-btn); }
-.icon-btn--solid:hover { background: color-mix(in srgb, var(--ink) 86%, var(--paper)); color: var(--on-ink); }
-.icon-btn--solid:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ---------- Etiqueta de estado ---------- */
 .tag--ok { background: var(--ok-soft); color: var(--ok); }
