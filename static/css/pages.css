@@ -472,3 +472,6 @@
 /* ---------- Inbox: pestañas ---------- */
 .inbox__tabs { margin-bottom: var(--s-6); }
 .inbox .empty-state { padding-top: var(--s-4); }
+
+/* "Ver todas" de las secciones del inicio: objetivo táctil completo. */
+.dash-more { display: inline-flex; align-items: center; min-height: var(--hit); }

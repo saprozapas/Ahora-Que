@@ -1156,7 +1156,7 @@
   justify-content: center;
   gap: 18px;
 
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   color: #fff;
   opacity: 0;
   pointer-events: none;
@@ -1323,3 +1323,7 @@
 /* Enlaces y botones de texto del feed: objetivo táctil de 44 px sin cambiar el aspecto. */
 .soc-plan-nombre a { display: inline-block; padding-block: 8px; }
 .soc-ver-comentarios { min-height: var(--control-h); }
+
+
+/* Objetivos táctiles: el nombre del plan en cada tarjeta. */
+.soc-plan-nombre a { display: inline-flex; align-items: center; min-height: var(--hit); }
