@@ -439,7 +439,7 @@ dialog.modal::backdrop { background: var(--scrim); }
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink) 7%, transparent);
 }
 
-.modal-member-link { border-radius: var(--r-md); }
+.modal-member-link { display: flex; align-items: center; min-height: var(--hit); padding-block: 4px; border-radius: var(--r-md); }
 .modal-member-link:hover,
 .modal-member-link:focus-visible { background: var(--surface-2); }
 
@@ -1013,3 +1013,16 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 .app-footer__col a { display: inline-flex; align-items: center; min-height: var(--control-h); }
 .app-footer__col { gap: 0; }
 .app-footer__title { margin-bottom: var(--s-2); }
+
+
+/* ---------- 28. Texto grande y pantallas angostas: nada empuja la página hacia el costado ---------- */
+
+.container :is(h1, h2, h3, h4, p, dd, dt, li, .meta) { overflow-wrap: anywhere; }
+.page-head, .page-head > *, .item__top, .item__name { min-width: 0; }
+.friend-row { flex-wrap: wrap; }
+.friend-row__who { flex: 1 1 14rem; }
+
+@media (max-width: 480px) {
+  .btn { max-width: 100%; height: auto; min-height: var(--h); padding-block: 10px; white-space: normal; text-align: center; line-height: 1.2; }
+}
+.profile-row__value, .profile-row__value span { min-width: 0; overflow-wrap: anywhere; }

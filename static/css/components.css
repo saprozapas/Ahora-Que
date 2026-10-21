@@ -141,7 +141,7 @@
 .item { display: flex; align-items: center; gap: 14px; padding: 14px 18px 14px 14px; }
 .item__body { min-width: 0; flex: 1; }
 .item__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); }
-.item__name { font-weight: 600; font-size: 1rem; color: var(--ink); letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item__name { display: block; font-weight: 600; font-size: 1rem; color: var(--ink); letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item__text { margin: 2px 0 0; color: var(--ink-2); font-size: var(--t-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item__time { flex: none; }
 .item__time--alert { color: var(--alert); font-weight: 550; }
