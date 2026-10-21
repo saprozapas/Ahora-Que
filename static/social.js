@@ -293,6 +293,12 @@
     );
 
     if (publicacion.fotos.length > 1) {
+      // Se recorre con las flechas del teclado; los puntos son solo un indicador visual.
+      contenedor.tabIndex = 0;
+      contenedor.setAttribute("role", "group");
+      contenedor.setAttribute("aria-roledescription", "carrusel");
+      contenedor.setAttribute("aria-label", `Fotos de ${nombre}`);
+      puntos.setAttribute("aria-hidden", "true");
       puntos.hidden = false;
       puntos.replaceChildren(
         ...publicacion.fotos.map((_, i) => {
