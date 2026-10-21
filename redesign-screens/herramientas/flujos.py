@@ -57,8 +57,8 @@ with sync_playwright() as p:
     @paso("2. Crear grupo")
     def crear_grupo():
         pg.goto(BASE + "/grupos/nuevo"); esperar(pg)
-        pg.fill("input[name=name], input[name=nombre], #name, #nombre", f"{PREFIJO} grupo")
-        pg.fill("textarea", "Grupo de prueba de la migracion a Sereno. Se borra solo.")
+        pg.fill("#name", f"{PREFIJO} grupo")
+        pg.fill("#description", "Grupo de prueba de la migracion a Sereno. Se borra solo.")
         pg.click("form button[type=submit]"); esperar(pg, 1500)
         m = re.search(r"/grupos/([0-9a-f-]{36})", pg.url)
         if not m:

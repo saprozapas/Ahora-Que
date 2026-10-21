@@ -66,7 +66,7 @@ try:
         vistos.add((t, c)); filtrados.append((t, c, ids))
     print("\nTablas con filas de prueba:")
     for t, c, ids in filtrados:
-        cur.execute(f'SELECT COUNT(*) FROM public."{t}" WHERE "{c}" = ANY(%s)', (ids,))
+        cur.execute(f'SELECT COUNT(*) FROM public."{t}" WHERE "{c}"::text = ANY(%s)', ([str(i) for i in ids],))
         n = cur.fetchone()[0]
         if n:
             print(f"   {t}.{c}: {n}")
@@ -79,13 +79,14 @@ try:
         print("ATENCION: hay grupos de prueba con integrantes; no se borra nada:", [g[1] for g in con_miembros])
         sys.exit(1)
 
+    cur.execute("BEGIN")  # la conexion del proyecto es autocommit: la transaccion se abre a mano
     pendientes = [(t, c, ids) for t, c, ids in filtrados]
     for pasada in range(1, 7):
         siguientes = []
         for t, c, ids in pendientes:
             cur.execute("SAVEPOINT s")
             try:
-                cur.execute(f'DELETE FROM public."{t}" WHERE "{c}" = ANY(%s)', (ids,))
+                cur.execute(f'DELETE FROM public."{t}" WHERE "{c}"::text = ANY(%s)', ([str(i) for i in ids],))
                 if cur.rowcount:
                     print(f"   pasada {pasada}: {t}.{c} -> {cur.rowcount} filas")
             except Exception as ex:
@@ -96,16 +97,19 @@ try:
             break
     for tabla, col, ids in (("Conversacion", "Id_Conversacion", cids), ("Grupo_Encuesta", "Id_Encuesta", eids), ("Plan", "id_Plan", pids), ("Grupos", "Id_Grupo", gids)):
         if ids:
-            cur.execute(f'DELETE FROM public."{tabla}" WHERE "{col}" = ANY(%s)', (ids,))
+            cur.execute(f'DELETE FROM public."{tabla}" WHERE "{col}"::text = ANY(%s)', ([str(i) for i in ids],))
             print(f"   {tabla}: {cur.rowcount} filas")
-    conn.commit()
+    cur.execute("COMMIT")
     cur.execute('SELECT COUNT(*) FROM public."Grupos" WHERE "Nombre" LIKE %s', (PREFIJO,)); g = cur.fetchone()[0]
     cur.execute('SELECT COUNT(*) FROM public."Plan" WHERE "Nombre" LIKE %s', (PREFIJO,)); p = cur.fetchone()[0]
     print(f"\nquedan: grupos={g} planes={p}; tablas sin poder borrar: {[(t, c) for t, c, _ in pendientes]}")
 except SystemExit:
     raise
 except Exception:
-    conn.rollback()
+    try:
+        cur.execute("ROLLBACK")
+    except Exception:
+        pass
     raise
 finally:
     release_db_connection(conn)
