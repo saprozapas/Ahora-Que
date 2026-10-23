@@ -8,3 +8,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Etiquetas de OpenStreetMap descargadas por scripts/estimar_precios.py (se vuelven a bajar solas)
+datos/osm_tags.json

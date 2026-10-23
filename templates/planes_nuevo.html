@@ -66,25 +66,37 @@
         </form>
 
 
-        <!-- ===================== BUSCADOR DE LUGARES ===================== -->
+        <!-- ===================== BUSCADOR DE LUGARES =====================
+             Al escribir en un campo de texto aparece, debajo, una lista con los
+             lugares que coinciden (static/sereno-ui.js). Tocar uno lo agrega a la
+             idea. "Ver todos los resultados" arma la lista completa. -->
 
         <div class="planner__search">
 
           <h2 class="planner__title">Buscar lugares</h2>
 
+          <p class="meta planner__help">
+            Escribí en cualquiera de los campos y te mostramos los lugares que coinciden.
+            Tocá uno para agregarlo a la idea.
+          </p>
+
           <div class="planner__query">
 
-            <input class="input" id="busqueda-texto" type="search"
-                   placeholder="Nombre o tipo de lugar" aria-label="Buscar lugares" />
+            <div class="field">
+              <label for="busqueda-texto">Nombre del lugar</label>
+              <input class="input filtro-sugerencias" id="busqueda-texto" type="search"
+                     placeholder="Probá con “café”, “pizza” o “plaza”…" />
+            </div>
 
-            <select class="select" id="busqueda-tipo" aria-label="Tipo de lugar">
-              <option value="">Todos los tipos</option>
-              {% for tipo in tipos %}
-              <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
-              {% endfor %}
-            </select>
-
-            <button class="btn btn--secondary btn--lg" type="button" id="boton-buscar">Buscar</button>
+            <div class="field">
+              <label for="busqueda-tipo">Tipo de lugar</label>
+              <select class="select" id="busqueda-tipo">
+                <option value="">Todos los tipos</option>
+                {% for tipo in tipos %}
+                <option value="{{ tipo.id }}">{{ tipo.nombre }}</option>
+                {% endfor %}
+              </select>
+            </div>
 
           </div>
 
@@ -145,13 +157,19 @@
                 <label for="filtro-{{ filtro.id }}">{{ filtro.etiqueta }}</label>
                 <input id="filtro-{{ filtro.id }}"
                        type="{{ 'number' if filtro.tipo == 'numero' else 'text' }}"
-                       class="input filtro-lugar" data-filtro="{{ filtro.id }}" />
+                       class="input filtro-lugar{% if filtro.tipo == 'texto' %} filtro-sugerencias{% endif %}"
+                       data-filtro="{{ filtro.id }}"
+                       {% if filtro.tipo == 'texto' %}placeholder="{{ 'Ej.: Pocitos' if filtro.id == 'barrio' else 'Ej.: tranquilo' }}"{% endif %} />
               </div>
 
               {% endif %}
 
             {% endfor %}
 
+          </div>
+
+          <div class="planner__actions">
+            <button class="btn btn--secondary" type="button" id="boton-buscar">Ver todos los resultados</button>
           </div>
 
           <ul class="planner__results" id="resultados"></ul>
@@ -172,21 +190,33 @@
 
 
 <script>
-(function () {
+// Espera al DOMContentLoaded: sereno-ui.js se carga con "defer" y tiene que estar listo antes.
+document.addEventListener("DOMContentLoaded", function () {
   "use strict";
 
-  // Rangos de precio por nivel (0 a 4), solo para mostrarle al usuario
-  // una estimación mientras arma el plan. El cálculo real y definitivo
-  // lo hace el servidor con services/precio_lugar.py — si cambian los
-  // montos ahí, conviene actualizar esta tabla también para que la
-  // vista previa no quede desalineada.
+  // Categorías de precio (0 a 5) tal como las muestra la app. Los montos son los de
+  // services/precio_lugar.py: si cambian allá, hay que cambiarlos acá también para que
+  // la vista previa no quede desalineada. El cálculo definitivo lo hace el servidor.
   var RANGOS_POR_NIVEL = {
     0: [0, 0],
     1: [100, 300],
     2: [300, 600],
     3: [600, 1000],
-    4: [1000, 2000]
+    4: [1000, 2000],
+    5: [2000, 4000]   // "más de 2000": sin tope real, se estima con 4000
   };
+
+  var TEXTO_DE_RANGO = {
+    0: "Gratis",
+    1: "$100 a $300",
+    2: "$300 a $600",
+    3: "$600 a $1000",
+    4: "$1000 a $2000",
+    5: "más de $2000"
+  };
+
+  // Estos orígenes significan que el precio es una estimación (ver Lugar.Precio_Origen).
+  var ORIGENES_ESTIMADOS = ["marca", "cocina", "nombre", "tipo"];
 
   var listaElegidos     = document.getElementById("lista-elegidos");
   var contador          = document.getElementById("contador-lugares");
@@ -194,7 +224,25 @@
   var precioEstimado    = document.getElementById("precio-estimado");
   var resultados        = document.getElementById("resultados");
   var mensajeResultados = document.getElementById("mensaje-resultados");
-  var formulario        = document.getElementById("form-plan");
+
+  // --- Textos de precio -----------------------------------------------------
+
+  // "$$" / "Gratis" / "" si no hay dato.
+  function simbolos(nivel) {
+    if (nivel === null || nivel === undefined || nivel === "") { return ""; }
+    nivel = parseInt(nivel, 10);
+    return nivel === 0 ? "Gratis" : new Array(nivel + 1).join("$");
+  }
+
+  // "$$ · $300 a $600 · estimado"
+  function precioCompleto(lugar) {
+    var nivel = lugar.nivel_precio;
+    if (nivel === null || nivel === undefined) { return "Sin dato de precio"; }
+    var partes = [simbolos(nivel)];
+    if (nivel > 0 && TEXTO_DE_RANGO[nivel]) { partes.push(TEXTO_DE_RANGO[nivel]); }
+    if (ORIGENES_ESTIMADOS.indexOf(lugar.precio_origen) !== -1) { partes.push("estimado"); }
+    return partes.join(" · ");
+  }
 
   function idsElegidos() {
     var ids = [];
@@ -208,6 +256,7 @@
   function actualizarResumen() {
     var items = listaElegidos.children;
     var total = items.length;
+
     contador.textContent = total === 1 ? "1 elegido" : total + " elegidos";
     mensajeSinLugares.hidden = total > 0;
 
@@ -233,7 +282,7 @@
 
   // --- Agregar una parada al plan -----------------------------------------
 
-  function agregarLugar(idLugar, nombre, nivelPrecio, hora) {
+  function agregarLugar(idLugar, nombre, nivelPrecio, hora, lugar) {
     if (idLugar && idsElegidos().indexOf(idLugar) !== -1) {
       preguntar("Ese lugar ya está en el plan.", false);
       return;
@@ -243,9 +292,27 @@
     item.className = "planner-stop";
     item.dataset.nivelPrecio = (nivelPrecio === null || nivelPrecio === undefined) ? "" : nivelPrecio;
 
+    var bloque = document.createElement("span");
+    bloque.className = "planner-stop__body";
+
     var titulo = document.createElement("span");
     titulo.className = "planner-stop__name";
     titulo.textContent = nombre;
+    bloque.appendChild(titulo);
+
+    // Debajo del nombre: barrio y precio, para saber qué se está sumando.
+    if (lugar) {
+      var detalle = [];
+      if (lugar.barrio) { detalle.push(lugar.barrio); }
+      var precio = precioCompleto(lugar);
+      if (precio) { detalle.push(precio); }
+      if (detalle.length) {
+        var sub = document.createElement("small");
+        sub.className = "planner-stop__detail";
+        sub.textContent = detalle.join(" · ");
+        bloque.appendChild(sub);
+      }
+    }
 
     var inputId = document.createElement("input");
     inputId.type = "hidden";
@@ -276,49 +343,49 @@
     quitar.addEventListener("click", function () {
       item.remove();
       actualizarResumen();
+      refrescarResultadosAgregados();
     });
 
-    item.appendChild(titulo);
+    item.appendChild(bloque);
     item.appendChild(inputHora);
     item.appendChild(quitar);
     item.appendChild(inputId);
     item.appendChild(inputNombre);
     item.appendChild(inputNivel);
-
     listaElegidos.appendChild(item);
+
     actualizarResumen();
+    refrescarResultadosAgregados();
   }
 
   // --- Búsqueda -----------------------------------------------------------
 
-  function buscar() {
-    var parametros = new URLSearchParams();
-    parametros.set("texto", document.getElementById("busqueda-texto").value);
-    parametros.set("tipo", document.getElementById("busqueda-tipo").value);
+  // Arma los parámetros con lo que haya escrito/elegido en TODOS los campos.
+  function parametros(limite) {
+    var p = new URLSearchParams();
+    p.set("texto", document.getElementById("busqueda-texto").value);
+    p.set("tipo", document.getElementById("busqueda-tipo").value);
 
-    // Recorre los filtros que haya en la página, sean los que sean.
     var campos = document.querySelectorAll(".filtro-lugar");
     for (var i = 0; i < campos.length; i++) {
       var campo = campos[i];
-      // El precio máximo va como radios: solo cuenta el marcado.
       if (campo.type === "radio" && !campo.checked) { continue; }
-      var valor = campo.type === "checkbox"
-        ? (campo.checked ? "1" : "")
-        : campo.value;
-      if (valor) {
-        parametros.set(campo.dataset.filtro, valor);
-      }
+      var valor = campo.type === "checkbox" ? (campo.checked ? "1" : "") : campo.value;
+      if (valor) { p.set(campo.dataset.filtro, valor); }
     }
 
+    if (limite) { p.set("limite", limite); }
+    return p;
+  }
+
+  function buscarLista() {
     mensajeResultados.hidden = false;
     mensajeResultados.textContent = "Buscando...";
     resultados.innerHTML = "";
 
-    fetch("/planes/buscar-lugares?" + parametros.toString())
+    fetch("/planes/buscar-lugares?" + parametros().toString(), { credentials: "same-origin" })
       .then(function (respuesta) { return respuesta.json(); })
-      .then(function (datos) {
-        mostrarResultados(datos.resultados || []);
-      })
+      .then(function (datos) { mostrarResultados(datos.resultados || []); })
       .catch(function () {
         mensajeResultados.hidden = false;
         mensajeResultados.textContent = "No se pudo buscar. Intentá de nuevo.";
@@ -339,6 +406,7 @@
     lugares.forEach(function (lugar) {
       var item = document.createElement("li");
       item.className = "planner-result";
+      item.dataset.lugarId = lugar.id;
 
       var datos = document.createElement("span");
       datos.className = "planner-result__data";
@@ -347,48 +415,104 @@
       nombre.textContent = lugar.nombre;
       datos.appendChild(nombre);
 
-      var detalle = [];
-      if (lugar.direccion) { detalle.push(lugar.direccion); }
-      if (lugar.ambiente) { detalle.push(lugar.ambiente); }
-      if (lugar.nivel_precio) {
-        detalle.push(new Array(lugar.nivel_precio + 1).join("$"));
-      }
-      if (detalle.length) {
-        var sub = document.createElement("small");
-        sub.textContent = detalle.join(" · ");
-        datos.appendChild(sub);
-      }
+      var lineas = [];
+      var donde = [lugar.tipos, lugar.barrio, lugar.direccion].filter(Boolean).join(" · ");
+      if (donde) { lineas.push(donde); }
+      if (lugar.ambiente) { lineas.push("Ambiente: " + lugar.ambiente); }
+      lineas.push(precioCompleto(lugar));
 
-      var yaElegido = lugar.id && idsElegidos().indexOf(lugar.id) !== -1;
+      lineas.forEach(function (texto) {
+        var sub = document.createElement("small");
+        sub.textContent = texto;
+        datos.appendChild(sub);
+      });
 
       var agregar = document.createElement("button");
       agregar.type = "button";
       agregar.className = "btn btn--secondary btn--sm planner-result__add";
-      agregar.textContent = yaElegido ? "Ya agregado" : "Agregar";
-      agregar.disabled = yaElegido;
       agregar.addEventListener("click", function () {
-        agregarLugar(lugar.id, lugar.nombre, lugar.nivel_precio);
-        agregar.textContent = "Ya agregado";
-        agregar.disabled = true;
+        agregarLugar(lugar.id, lugar.nombre, lugar.nivel_precio, null, lugar);
       });
 
       item.appendChild(datos);
       item.appendChild(agregar);
       resultados.appendChild(item);
     });
+
+    refrescarResultadosAgregados();
   }
 
-  document.getElementById("boton-buscar").addEventListener("click", buscar);
+  // Marca como "Ya agregado" los resultados que ya están en el plan.
+  function refrescarResultadosAgregados() {
+    var elegidos = idsElegidos();
+    var filas = resultados.querySelectorAll(".planner-result");
+    for (var i = 0; i < filas.length; i++) {
+      var ya = elegidos.indexOf(filas[i].dataset.lugarId) !== -1;
+      var boton = filas[i].querySelector(".planner-result__add");
+      boton.textContent = ya ? "Ya agregado" : "Agregar";
+      boton.disabled = ya;
+    }
+  }
+
+  // --- Sugerencias al escribir -------------------------------------------------
+
+  function activarSugerencias(campo) {
+    SerenoUI.autocompletar(campo, {
+      minimo: 1,
+      retardo: 180,
+      vacio: "No hay lugares que coincidan con eso.",
+      limpiar: false,
+      buscar: function (texto, senal) {
+        return fetch("/planes/buscar-lugares?" + parametros(8).toString(), {
+          credentials: "same-origin",
+          signal: senal
+        })
+          .then(function (respuesta) { return respuesta.json(); })
+          .then(function (datos) { return datos.resultados || []; });
+      },
+      describir: function (lugar) {
+        var ya = idsElegidos().indexOf(lugar.id) !== -1;
+        return {
+          titulo: lugar.nombre,
+          detalle: [lugar.tipos, lugar.barrio].filter(Boolean).join(" · "),
+          etiqueta: ya ? "Ya agregado" : simbolos(lugar.nivel_precio),
+          deshabilitado: ya
+        };
+      },
+      alElegir: function (lugar) {
+        agregarLugar(lugar.id, lugar.nombre, lugar.nivel_precio, null, lugar);
+      }
+    });
+  }
+
+  var camposConSugerencias = document.querySelectorAll(".filtro-sugerencias");
+  for (var c = 0; c < camposConSugerencias.length; c++) {
+    activarSugerencias(camposConSugerencias[c]);
+  }
+
+  // Los menús (tipo de lugar, precio máximo) actualizan la lista completa al cambiar.
+  var menus = document.querySelectorAll("#busqueda-tipo, select.filtro-lugar");
+  for (var m = 0; m < menus.length; m++) {
+    menus[m].addEventListener("change", buscarLista);
+  }
+
+  var radios = document.querySelectorAll("input[type=radio].filtro-lugar");
+  for (var r = 0; r < radios.length; r++) {
+    radios[r].addEventListener("change", buscarLista);
+  }
+
+  document.getElementById("boton-buscar").addEventListener("click", buscarLista);
 
   document.getElementById("busqueda-texto").addEventListener("keydown", function (evento) {
-    if (evento.key === "Enter") {
+    // Enter sin ninguna sugerencia elegida: arma la lista completa.
+    if (evento.key === "Enter" && !evento.defaultPrevented) {
       evento.preventDefault();
-      buscar();
+      buscarLista();
     }
   });
 
   actualizarResumen();
-})();
+});
 </script>
 
 {% endblock %}

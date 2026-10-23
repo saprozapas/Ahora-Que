@@ -29,12 +29,13 @@ Esta es la base de datos del proyecto
 | `Opcion_Vegana` | `bool` |  Nullable |
 | `Ambiente` | `text` |  Nullable |
 | `Direccion` | `text` |  Nullable |
-| `Nivel_Precio` | `int4` |  Nullable |
+| `Nivel_Precio` | `int4` |  Nullable. Check: 0 a 5. Categoría de precio: 0 Gratis · 1 `$` (100 a 300 pesos) · 2 `$$` (300 a 600) · 3 `$$$` (600 a 1000) · 4 `$$$$` (1000 a 2000) · 5 `$$$$$` (más de 2000). Los montos están en `services/precio_lugar.py`; NULL = sin dato |
 | `Imagen_Url` | `text` |  Nullable |
 | `Osm_Id` | `text` |  Nullable Unique. Id en OpenStreetMap (`node/123`, `way/456`, `relation/789`); lo usa `scripts/importar_osm.py` |
 | `Fuente` | `text` | Default `'manual'`. `'osm'` si vino de OpenStreetMap |
 | `Verificado` | `bool` | Default `false`. `true` = corregido a mano: la importación de OSM no lo pisa |
 | `Barrio` | `text` |  Nullable. Nombre tal cual lo da OSM |
+| `Precio_Origen` | `text` | Nullable. Check: `'marca'`, `'cocina'`, `'nombre'`, `'tipo'` o `'manual'`. De dónde salió `Nivel_Precio`: `marca` cadena o lugar conocido, `cocina` etiqueta de OpenStreetMap, `nombre` palabras del nombre, `tipo` lo normal para ese tipo de lugar (la menos confiable), `manual` lo puso una persona (`scripts/estimar_precios.py` nunca lo pisa). NULL = no es una estimación (gratis cargados con la importación) o sin precio |
 
 ## Table `Plan`
 

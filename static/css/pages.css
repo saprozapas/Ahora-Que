@@ -207,7 +207,7 @@
 .planner__idea,
 .planner__search { min-width: 0; }
 
-.planner__query { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) auto; gap: var(--s-2); }
+.planner__query { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr); gap: var(--s-2); }
 
 .planner__filters { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); padding-bottom: var(--s-2); }
 .planner__checks { flex-wrap: wrap; }
@@ -475,3 +475,11 @@
 
 /* "Ver todas" de las secciones del inicio: objetivo táctil completo. */
 .dash-more { display: inline-flex; align-items: center; min-height: var(--hit); }
+
+
+/* Buscador de lugares: ayuda, detalle de cada parada y acciones (sereno-ui completa con sugerencias). */
+.planner__help { margin: calc(var(--s-2) * -1) 0 0; }
+.planner__actions { display: flex; justify-content: flex-end; }
+.planner-stop__body { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.planner-stop__detail { color: var(--ink-3); font-size: var(--t-meta); }
+.planner__query .field { min-width: 0; }

@@ -37,7 +37,7 @@ from ia_bridge import tipos_por_lugar
 from services.grupo_plan_service import GrupoPlanError, GrupoPlanService
 from services.lugar_service import LugarService
 from services.plan_reglas import roles_de, validar
-from services.precio_lugar import RANGOS_POR_NIVEL, rango_de_nivel, sumar_rangos
+from services.precio_lugar import RANGOS_POR_NIVEL, etiqueta_de_nivel, rango_de_nivel, sumar_rangos
 
 # Cuántas paradas puede tener como máximo un plan armado por encuesta.
 MAX_PARADAS = 3
@@ -55,11 +55,12 @@ RESTRICCIONES = ("apto_menores", "opcion_celiacos", "opcion_vegana")
 
 
 def opciones_de_precio():
-    """[(nivel, "$100 - $300"), ...] a partir de precio_lugar.RANGOS_POR_NIVEL,
-    para que el monto que se muestra sea siempre el que usa el código."""
+    """[(nivel, "$100 - $300"), ..., (5, "Más de $2000")] a partir de
+    precio_lugar.RANGOS_POR_NIVEL, para que el monto que se muestra sea
+    siempre el que usa el código."""
     return [
-        (nivel, f"${minimo:g} - ${maximo:g}")
-        for nivel, (minimo, maximo) in sorted(RANGOS_POR_NIVEL.items())
+        (nivel, etiqueta_de_nivel(nivel))
+        for nivel in sorted(RANGOS_POR_NIVEL)
         if nivel > 0
     ]
 

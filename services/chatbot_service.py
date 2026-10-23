@@ -22,7 +22,7 @@ from services import plan_reglas
 from services.llm_service import chat_completion_stream
 from services.lugar_filtros import FILTROS_LUGAR
 from services.lugar_service import LugarService
-from services.precio_lugar import RANGOS_POR_NIVEL
+from services.precio_lugar import RANGOS_POR_NIVEL, etiqueta_de_nivel
 
 lugar_service = LugarService()
 
@@ -36,7 +36,7 @@ MAX_DESCRIPCION = 600
 _HORA = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 
 _PRECIOS = "; ".join(
-    f"nivel {nivel} = ${minimo}-{maximo}" for nivel, (minimo, maximo) in RANGOS_POR_NIVEL.items() if nivel
+    f"nivel {nivel} = {etiqueta_de_nivel(nivel)}" for nivel in RANGOS_POR_NIVEL if nivel
 )
 
 SYSTEM_PROMPT = (

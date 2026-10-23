@@ -1,0 +1,292 @@
+/* ==========================================================================
+   Componentes de interfaz estilo Sereno
+
+     .ss        menú desplegable propio. Reemplaza al <select> nativo (que cada
+                navegador dibuja a su manera). static/sereno-ui.js lo arma solo
+                a partir de cada <select>; el <select> original queda adentro,
+                oculto, y se mantiene sincronizado: formularios y scripts que
+                ya lo usaban siguen funcionando sin cambios.
+     .ac-lista  lista de sugerencias que aparece debajo de un campo mientras se
+                escribe (por ejemplo, los lugares que coinciden).
+
+   Las variables --ss-* leen los tokens de Sereno si existen (--surface, --r-md,
+   --sh-float...) y, si no, los de la app actual (--page, --radius-sm...). Así el
+   mismo archivo sirve ahora y cuando se migre al sistema Sereno completo.
+   ========================================================================== */
+
+.ss,
+.ac-lista {
+  --ss-fondo: var(--surface, var(--page));
+  --ss-tinta: var(--ink);
+  --ss-tinta-suave: var(--ink-3, var(--muted));
+  --ss-linea: var(--line);
+  --ss-linea-fuerte: var(--line-strong);
+  --ss-acento: var(--accent);
+  --ss-foco: var(--focus, color-mix(in srgb, var(--accent) 55%, transparent));
+  --ss-r-control: var(--r-md, 11px);
+  --ss-r-menu: var(--r-lg, 14px);
+  --ss-r-opcion: var(--r-sm, 9px);
+  --ss-hover: color-mix(in srgb, var(--ink) 6%, transparent);
+  --ss-sombra: var(--sh-float,
+    0 0 0 1px var(--line),
+    0 2px 4px rgb(21 21 21 / 0.04),
+    0 16px 32px -12px rgb(21 21 21 / 0.18),
+    0 32px 64px -32px rgb(21 21 21 / 0.16));
+  --ss-dur: var(--d-fast, 140ms);
+  --ss-ease: var(--ease-out, cubic-bezier(0.2, 0.7, 0.2, 1));
+}
+
+
+/* --- Menú desplegable ------------------------------------------------------- */
+
+.ss {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+/* El <select> real sigue en el formulario, invisible y fuera del orden de tabulación. */
+.ss-nativo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ss-boton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  width: 100%;
+  min-height: 46px;
+  padding: 0 12px 0 14px;
+
+  border: 1px solid var(--ss-linea-fuerte);
+  border-radius: var(--ss-r-control);
+  background: var(--ss-fondo);
+  color: var(--ss-tinta);
+
+  font: inherit;
+  font-size: var(--text-ui, 1rem);
+  letter-spacing: -0.011em;
+  text-align: left;
+  cursor: pointer;
+
+  transition:
+    border-color var(--ss-dur) var(--ss-ease),
+    box-shadow var(--ss-dur) var(--ss-ease),
+    background-color var(--ss-dur) var(--ss-ease);
+}
+
+.ss-boton:hover {
+  border-color: var(--ss-tinta-suave);
+}
+
+.ss-boton:focus-visible {
+  outline: 2px solid var(--ss-foco);
+  outline-offset: 2px;
+}
+
+.ss[data-abierto] .ss-boton {
+  border-color: var(--ss-acento);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ss-acento) 22%, transparent);
+}
+
+.ss-boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ss-valor {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Valor "vacío" (por ejemplo "Cualquiera"): se ve más suave que una elección. */
+.ss-valor.es-vacio {
+  color: var(--ss-tinta-suave);
+}
+
+.ss-flecha {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+
+  fill: none;
+  stroke: var(--ss-tinta-suave);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  transition: transform var(--ss-dur) var(--ss-ease);
+}
+
+.ss[data-abierto] .ss-flecha {
+  transform: rotate(180deg);
+}
+
+
+/* --- Listas flotantes (las usan el menú y las sugerencias) ---------------------- */
+
+.ss-lista,
+.ac-lista {
+  position: fixed;
+  z-index: 1000;
+
+  box-sizing: border-box;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+
+  list-style: none;
+  scrollbar-width: thin;
+
+  border: 1px solid var(--ss-linea);
+  border-radius: var(--ss-r-menu);
+  background: var(--ss-fondo);
+  box-shadow: var(--ss-sombra);
+
+  font-size: var(--text-ui, 1rem);
+  letter-spacing: -0.011em;
+
+  animation: ss-entrada var(--ss-dur) var(--ss-ease);
+}
+
+.ss-lista[hidden],
+.ac-lista[hidden] {
+  display: none;
+}
+
+@keyframes ss-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.ss-opcion,
+.ac-opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 9px 12px;
+
+  border-radius: var(--ss-r-opcion);
+  color: var(--ss-tinta);
+  cursor: pointer;
+}
+
+.ss-opcion[data-activa],
+.ac-opcion[data-activa] {
+  background: var(--ss-hover);
+}
+
+.ss-opcion[aria-selected="true"] {
+  font-weight: 600;
+}
+
+.ss-opcion[aria-disabled="true"],
+.ac-opcion[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ss-check {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+
+  fill: none;
+  stroke: var(--ss-acento);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  visibility: hidden;
+}
+
+.ss-opcion[aria-selected="true"] .ss-check {
+  visibility: visible;
+}
+
+
+/* --- Sugerencias al escribir ------------------------------------------------------ */
+
+.ac-opcion {
+  align-items: flex-start;
+}
+
+.ac-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ac-titulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.ac-detalle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ss-tinta-suave);
+  font-size: var(--text-meta, 0.875rem);
+}
+
+.ac-etiqueta {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+
+  border: 1px solid var(--ss-linea);
+  border-radius: 999px;
+
+  color: var(--ss-tinta-suave);
+  font-size: var(--text-meta, 0.8125rem);
+  white-space: nowrap;
+}
+
+.ac-opcion mark {
+  padding: 0 1px;
+
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ss-acento) 22%, transparent);
+  color: inherit;
+}
+
+.ac-estado {
+  padding: 12px;
+
+  color: var(--ss-tinta-suave);
+  font-size: var(--text-meta, 0.875rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .ss-lista,
+  .ac-lista {
+    animation: none;
+  }
+
+  .ss-boton,
+  .ss-flecha {
+    transition: none;
+  }
+}

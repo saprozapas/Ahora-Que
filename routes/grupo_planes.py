@@ -247,7 +247,7 @@ def nueva_encuesta(group_id):
 def responder_encuesta(group_id, encuesta_id):
     def accion():
         nivel = request.form.get("nivel_precio", "").strip()
-        if nivel not in ("", "1", "2", "3", "4"):
+        if nivel not in ("", "1", "2", "3", "4", "5"):
             raise GrupoPlanError("El precio máximo no es válido.")
         return grupo_encuesta_service.responder(
             group_id, encuesta_id, session["user_id"],
