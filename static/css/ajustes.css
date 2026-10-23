@@ -144,3 +144,39 @@
   .group-page--fija .group-head { margin-bottom: var(--s-3); }
   .group-page--fija .group-brief { margin-bottom: var(--s-3); }
 }
+
+/* ==========================================================================
+   Planes del grupo: cada sección es una fila que se recorre hacia los costados
+   (3 por página en escritorio, 2 en tablet, 1 en celular), sin scroll vertical.
+   ========================================================================== */
+
+.board { max-width: none; gap: var(--s-6); }
+.board__section { min-width: 0; gap: var(--s-3); }
+.board__nav { display: inline-flex; align-items: center; gap: var(--s-1); margin-left: auto; align-self: center; }
+.board__nav[hidden] { display: none; }
+.board__nav .meta { margin-right: var(--s-2); }
+
+.board-pista {
+  --por-pagina: 3; --hueco: var(--s-4);
+  display: grid; grid-auto-flow: column; gap: var(--hueco);
+  grid-auto-columns: calc((100% - (var(--por-pagina) - 1) * var(--hueco)) / var(--por-pagina));
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory;
+  scrollbar-width: none; padding: 2px; margin: -2px;
+}
+.board-pista::-webkit-scrollbar { display: none; }
+.board-pista > .board-plan { scroll-snap-align: start; min-width: 0; align-content: start; }
+@media (max-width: 900px) { .board-pista { --por-pagina: 2; } }
+@media (max-width: 650px) { .board-pista { --por-pagina: 1; } }
+
+/* Tarjetas angostas: el contenido se apila y los votos caben en una columna. */
+.board-pista .board-plan { padding: var(--s-4); gap: var(--s-3); }
+.board-pista .board-plan__votes { gap: var(--s-3); }
+.board-pista .board-plan__form { gap: var(--s-3); }
+.board-pista .board-slots > li { padding: var(--s-2) var(--s-3); }
+
+@media (max-width: 650px) {
+  .board__head { flex-wrap: nowrap; }
+  .board__head > .meta { white-space: nowrap; }
+  .board__nav .meta { white-space: nowrap; margin-right: var(--s-1); }
+  .board__head > .meta:not(.board__nav .meta) { display: none; }
+}
