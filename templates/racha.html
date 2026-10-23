@@ -24,7 +24,7 @@
       {# ================= RACHA ACTUAL ================= #}
       <div class="racha-tablero">
 
-      <div class="card racha-hero{% if racha.marco %} marco-tarjeta marco--{{ racha.marco }} rango--{{ racha.marco }}{% endif %}">
+      <div class="card racha-hero{% if racha.marco %} rango--{{ racha.marco }}{% endif %}">
 
         <div class="racha-numero{% if not racha.activa %} is-inactiva{% endif %}" role="img" aria-label="{{ racha.semanas }} semanas de racha">
           <span class="racha-numero__llama">{{ llama() }}</span>
@@ -159,7 +159,7 @@
 
               <div class="modal-body racha-hito-modal-body">
 
-                <div class="racha-hito-preview{% if hito.marco %} marco-tarjeta marco--{{ hito.marco }}{% endif %}">
+                <div class="racha-hito-preview{% if hito.marco %} rango--{{ hito.marco }}{% endif %}">
                   {{ emblema(group.get_name(), none, 44) }}
                   <span class="racha-hito-preview__nombre">{{ group.get_name() }}</span>
                   <span class="racha-chip">{{ llama() }}<span class="racha-chip__n">{{ hito.semanas }}</span>{% if hito.titulo_color %}<span class="racha-chip__titulo">{{ nombre_rango(hito.titulo_color) | trim }}</span>{% endif %}</span>

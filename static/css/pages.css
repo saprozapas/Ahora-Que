@@ -649,3 +649,13 @@
   .encuesta-acciones form, .encuesta-acciones .btn { width: 100%; }
   .encuesta-acciones .btn { justify-content: center; }
 }
+
+
+
+/* ---------- Enlace "← Volver": solo mide lo que su texto y deja aire debajo ---------- */
+.back-link { align-self: flex-start; width: fit-content; margin-bottom: var(--s-2); }
+
+/* ---------- Grupo abierto: sin marco; el nombre del grupo lleva el color de su rango ---------- */
+.group-head[class*="rango--"] .h2 { color: color-mix(in srgb, var(--rango) 62%, var(--ink)); }
+.group-head[class*="rango--"] .emblema { background: color-mix(in srgb, var(--rango) 22%, var(--surface)); color: color-mix(in srgb, var(--rango) 62%, var(--ink)); }
+.racha-hito-preview[class*="rango--"] { box-shadow: inset 0 0 0 1.5px var(--rango); }

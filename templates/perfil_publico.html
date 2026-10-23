@@ -4,15 +4,17 @@
 
 {% block content %}
 
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
 
-    <section class="container page profile">
+    <section class="container page profile perfil-pantalla">
 
       <a class="back-link" href="javascript:history.back()">← Volver</a>
+
+      <div class="perfil-izq">
 
       <header class="profile__head">
         <span class="avatar" style="--h: {{ (usuario.get_name() | length * 47) % 360 }}; --size: 64px" aria-hidden="true">{{ usuario.get_name()[:1] | upper }}</span>
@@ -47,9 +49,13 @@
 
       </div>
 
-    </section>
+      </div>
 
-    {% with autor_id=autor_id %}{% include '_social_perfil.html' %}{% endwith %}
+      <div class="perfil-der">
+        {% with autor_id=autor_id %}{% include '_social_perfil.html' %}{% endwith %}
+      </div>
+
+    </section>
 
   </div>
 

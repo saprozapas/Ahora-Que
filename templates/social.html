@@ -17,7 +17,7 @@
 
 
 {% if logueado %}
-<div class="dashboard-layout dashboard-layout-page{% if pestana != 'actividad' %} dashboard-layout--fija{% endif %}">
+<div class="dashboard-layout dashboard-layout-page{% if pestana != 'actividad' %} dashboard-layout--fija{% else %} dashboard-layout--fija-grupo{% endif %}">
 
   {% include '_dashboard_sidebar.html' %}
 
