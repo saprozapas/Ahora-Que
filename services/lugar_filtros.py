@@ -21,24 +21,36 @@ Las columnas se escriben entre comillas dobles porque el esquema usa
 mayúsculas (ver "Plan_Lugar", "Nivel_Precio", etc).
 """
 
+import unicodedata
+
+
+def quitar_tildes(texto):
+    """Minúsculas y sin tildes: es lo mismo que hace la parte de SQL con translate()
+    (no se usa la extensión unaccent porque no está en todas las bases)."""
+    texto = unicodedata.normalize("NFD", str(texto or "").lower())
+    return unicodedata.normalize("NFC", "".join(c for c in texto if unicodedata.category(c) != "Mn"))
+
 
 FILTROS_LUGAR = [
     {
         "id": "apto_menores",
         "etiqueta": "Apto menores",
         "tipo": "checkbox",
+        "en_formulario": False,   # no se muestra al crear un plan a mano (el chatbot y las encuestas lo siguen usando)
         "sql": 'l."Apto_Menores" IS NOT FALSE',  # NULL = desconocido: no se descarta
     },
     {
         "id": "opcion_celiacos",
         "etiqueta": "Opción celíaca",
         "tipo": "checkbox",
+        "en_formulario": False,
         "sql": 'l."Opcion_Celiacos" = true',
     },
     {
         "id": "opcion_vegana",
         "etiqueta": "Opción vegana",
         "tipo": "checkbox",
+        "en_formulario": False,
         "sql": 'l."Opcion_Vegana" = true',
     },
     {
@@ -60,16 +72,15 @@ FILTROS_LUGAR = [
         "id": "ambiente",
         "etiqueta": "Ambiente",
         "tipo": "texto",
-        "sql": 'l."Ambiente" ILIKE %s',
-        "transformar": lambda valor: f"%{valor}%",
+        "sql": 'translate(lower(l."Ambiente"), \'áéíóúüñ\', \'aeiouun\') LIKE %s',
+        "transformar": lambda valor: f"%{quitar_tildes(valor)}%",
     },
     {
         "id": "barrio",
         "etiqueta": "Barrio",
         "tipo": "texto",
-        "sql": 'l."Barrio" ILIKE %s',
-        # ponytail: no ignora tildes ("Cordon" no encuentra "Cordón"); pasar a "select" cuando esté la lista de barrios.
-        "transformar": lambda valor: f"%{valor}%",
+        "sql": 'translate(lower(l."Barrio"), \'áéíóúüñ\', \'aeiouun\') LIKE %s',
+        "transformar": lambda valor: f"%{quitar_tildes(valor)}%",
     },
 ]
 

@@ -3,6 +3,9 @@ from services.plan_service import PlanService
 from services.lugar_service import LugarService
 from services.lugar_filtros import FILTROS_LUGAR
 
+# Los filtros que se ofrecen al crear un plan a mano (algunos existen solo para el chatbot y las encuestas).
+FILTROS_FORMULARIO = [f for f in FILTROS_LUGAR if f.get("en_formulario", True)]
+
 planes_bp = Blueprint("planes", __name__, url_prefix="/planes")
 plan_service = PlanService()
 lugar_service = LugarService()
@@ -177,7 +180,7 @@ def nueva_idea():
 
         return render_template(
             "planes_nuevo.html",
-            filtros=FILTROS_LUGAR,
+            filtros=FILTROS_FORMULARIO,
             tipos=lugar_service.listar_tipos(),
             error=error,
             valores=request.form,
@@ -185,7 +188,7 @@ def nueva_idea():
 
     return render_template(
         "planes_nuevo.html",
-        filtros=FILTROS_LUGAR,
+        filtros=FILTROS_FORMULARIO,
         tipos=lugar_service.listar_tipos(),
         error="",
         valores={},
@@ -198,10 +201,13 @@ def buscar_lugares():
     if _sin_sesion():
         return jsonify(resultados=[]), 401
 
+    # "limite" lo usa el desplegable que aparece al escribir (pocos resultados).
+    limite = request.args.get("limite", default=30, type=int)
     resultados = lugar_service.buscar(
         texto=request.args.get("texto", ""),
         tipo_id=request.args.get("tipo", ""),
         filtros=request.args,
+        limite=limite,
     )
     return jsonify(resultados=resultados)
 
