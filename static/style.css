@@ -2953,6 +2953,76 @@
     color: var(--muted);
     font-size: var(--text-xs);
   }
+
+  /* Campos con etiqueta del buscador (nombre del lugar, tipo, filtros). */
+  .crear-plan-ayuda {
+    margin: 0 0 4px;
+
+    color: var(--muted);
+    font-size: var(--text-sm);
+  }
+
+  .crear-plan-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    min-width: 200px;
+
+    font-size: var(--text-sm);
+  }
+
+  .crear-plan-campo-ancho {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .crear-plan-campo input[type="search"] {
+    width: 100%;
+    flex: none;
+  }
+
+  /* Los menús propios (.ss) ocupan el ancho de su columna. */
+  /* Los filtros se reparten el ancho por igual (menús y campos de texto). */
+  .crear-plan-filtros .crear-plan-filtro {
+    flex: 1 1 200px;
+  }
+
+  .crear-plan-filtro input[type="text"],
+  .crear-plan-filtro input[type="number"] {
+    width: 100%;
+  }
+
+  /* La "x" nativa del campo de búsqueda desentona con el resto. */
+  .crear-plan-campo input[type="search"]::-webkit-search-cancel-button {
+    appearance: none;
+  }
+
+  .crear-plan-filtro .ss-boton {
+    min-height: 38px;
+    padding: 0 10px 0 12px;
+
+    font-size: var(--text-base);
+  }
+
+  .crear-plan-acciones-busqueda {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-bottom: 12px;
+  }
+
+  .crear-plan-elegido-bloque {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .crear-plan-elegido-detalle {
+    color: var(--muted);
+    font-size: var(--text-xs);
+  }
 }
 
 

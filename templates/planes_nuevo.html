@@ -141,7 +141,8 @@
 </div>
 
 <script>
-(function () {
+// Espera al DOMContentLoaded: sereno-ui.js se carga con "defer" y tiene que estar listo antes.
+document.addEventListener("DOMContentLoaded", function () {
   "use strict";
 
   // Categorías de precio (0 a 5) tal como las muestra la app. Los montos son los de
@@ -456,7 +457,7 @@
   });
 
   actualizarResumen();
-})();
+});
 </script>
 
 {% endblock %}

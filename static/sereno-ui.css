@@ -150,6 +150,7 @@
   overflow-y: auto;
 
   list-style: none;
+  scrollbar-width: thin;
 
   border: 1px solid var(--ss-linea);
   border-radius: var(--ss-r-menu);
