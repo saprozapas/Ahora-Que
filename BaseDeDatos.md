@@ -35,6 +35,7 @@ Esta es la base de datos del proyecto
 | `Fuente` | `text` | Default `'manual'`. `'osm'` si vino de OpenStreetMap |
 | `Verificado` | `bool` | Default `false`. `true` = corregido a mano: la importación de OSM no lo pisa |
 | `Barrio` | `text` |  Nullable. Nombre tal cual lo da OSM |
+| `Precio_Origen` | `text` | Nullable. Check: `'marca'`, `'cocina'`, `'nombre'`, `'tipo'` o `'manual'`. De dónde salió `Nivel_Precio`: `marca` cadena o lugar conocido, `cocina` etiqueta de OpenStreetMap, `nombre` palabras del nombre, `tipo` lo normal para ese tipo de lugar (la menos confiable), `manual` lo puso una persona (`scripts/estimar_precios.py` nunca lo pisa). NULL = no es una estimación (gratis cargados con la importación) o sin precio |
 
 ## Table `Plan`
 
