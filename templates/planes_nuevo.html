@@ -101,6 +101,32 @@
           </div>
 
 
+          <!-- Cerca de mí: con la ubicación del navegador, cada lugar muestra a cuánto
+               queda y la lista va del más cercano al más lejano. La ubicación solo viaja
+               en la búsqueda (para calcular distancias): no se guarda. -->
+          <div class="planner__near" id="bloque-ubicacion" hidden>
+
+            <button class="btn btn--secondary" type="button" id="boton-ubicacion" aria-pressed="false">
+              Usar mi ubicación
+            </button>
+
+            <div class="field planner__near-km" id="campo-distancia" hidden>
+              <label for="busqueda-distancia">Hasta</label>
+              <select class="select" id="busqueda-distancia">
+                <option value="">Cualquier distancia</option>
+                <option value="0.5">500 m</option>
+                <option value="1">1 km</option>
+                <option value="2">2 km</option>
+                <option value="5">5 km</option>
+                <option value="10">10 km</option>
+              </select>
+            </div>
+
+            <p class="meta planner__near-estado" id="estado-ubicacion" role="status"></p>
+
+          </div>
+
+
           <!-- Los filtros se generan solos desde services/lugar_filtros.py:
                las casillas van como chips, los select de pocas opciones como
                segmented (radios reales) y el resto como campo. -->
@@ -157,7 +183,7 @@
                 <label for="filtro-{{ filtro.id }}">{{ filtro.etiqueta }}</label>
                 <input id="filtro-{{ filtro.id }}"
                        type="{{ 'number' if filtro.tipo == 'numero' else 'text' }}"
-                       class="input filtro-lugar{% if filtro.tipo == 'texto' %} filtro-sugerencias{% endif %}"
+                       class="input filtro-lugar{% if filtro.id == 'barrio' %} filtro-barrio{% elif filtro.tipo == 'texto' %} filtro-sugerencias{% endif %}"
                        data-filtro="{{ filtro.id }}"
                        {% if filtro.tipo == 'texto' %}placeholder="{{ 'Ej.: Pocitos' if filtro.id == 'barrio' else 'Ej.: tranquilo' }}"{% endif %} />
               </div>
@@ -224,6 +250,16 @@ document.addEventListener("DOMContentLoaded", function () {
   var precioEstimado    = document.getElementById("precio-estimado");
   var resultados        = document.getElementById("resultados");
   var mensajeResultados = document.getElementById("mensaje-resultados");
+
+  // Ubicación de quien busca ({lat, lon}) o null. Vive solo en esta página.
+  var ubicacion = null;
+
+  // "a 140 m" / "a 2,3 km" / "" si no hay ubicación.
+  function distanciaTexto(km) {
+    if (km === null || km === undefined) { return ""; }
+    if (km < 1) { return "a " + (Math.round(km * 100) * 10) + " m"; }
+    return "a " + km.toFixed(1).replace(".", ",") + " km";
+  }
 
   // --- Textos de precio -----------------------------------------------------
 
@@ -303,6 +339,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Debajo del nombre: barrio y precio, para saber qué se está sumando.
     if (lugar) {
       var detalle = [];
+      if (distanciaTexto(lugar.distancia_km)) { detalle.push(distanciaTexto(lugar.distancia_km)); }
       if (lugar.barrio) { detalle.push(lugar.barrio); }
       var precio = precioCompleto(lugar);
       if (precio) { detalle.push(precio); }
@@ -374,6 +411,13 @@ document.addEventListener("DOMContentLoaded", function () {
       if (valor) { p.set(campo.dataset.filtro, valor); }
     }
 
+    if (ubicacion) {
+      p.set("lat", ubicacion.lat);
+      p.set("lon", ubicacion.lon);
+      var maxKm = document.getElementById("busqueda-distancia").value;
+      if (maxKm) { p.set("max_km", maxKm); }
+    }
+
     if (limite) { p.set("limite", limite); }
     return p;
   }
@@ -416,7 +460,7 @@ document.addEventListener("DOMContentLoaded", function () {
       datos.appendChild(nombre);
 
       var lineas = [];
-      var donde = [lugar.tipos, lugar.barrio, lugar.direccion].filter(Boolean).join(" · ");
+      var donde = [distanciaTexto(lugar.distancia_km), lugar.tipos, lugar.barrio, lugar.direccion].filter(Boolean).join(" · ");
       if (donde) { lineas.push(donde); }
       if (lugar.ambiente) { lineas.push("Ambiente: " + lugar.ambiente); }
       lineas.push(precioCompleto(lugar));
@@ -474,7 +518,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var ya = idsElegidos().indexOf(lugar.id) !== -1;
         return {
           titulo: lugar.nombre,
-          detalle: [lugar.tipos, lugar.barrio].filter(Boolean).join(" · "),
+          detalle: [distanciaTexto(lugar.distancia_km), lugar.tipos, lugar.barrio].filter(Boolean).join(" · "),
           etiqueta: ya ? "Ya agregado" : simbolos(lugar.nivel_precio),
           deshabilitado: ya
         };
@@ -488,6 +532,95 @@ document.addEventListener("DOMContentLoaded", function () {
   var camposConSugerencias = document.querySelectorAll(".filtro-sugerencias");
   for (var c = 0; c < camposConSugerencias.length; c++) {
     activarSugerencias(camposConSugerencias[c]);
+  }
+
+  // El campo Barrio sugiere BARRIOS (no lugares). Al elegir uno, queda escrito en el
+  // campo y se arma la lista de lugares de ese barrio con el resto de los filtros.
+  function activarSugerenciasDeBarrio(campo) {
+    SerenoUI.autocompletar(campo, {
+      minimo: 1,
+      retardo: 150,
+      vacio: "No hay barrios que coincidan con eso.",
+      limpiar: false,
+      buscar: function (texto, senal) {
+        return fetch("/planes/buscar-barrios?" + new URLSearchParams({ texto: texto, limite: 8 }).toString(), {
+          credentials: "same-origin",
+          signal: senal
+        })
+          .then(function (respuesta) { return respuesta.json(); })
+          .then(function (datos) { return datos.resultados || []; });
+      },
+      describir: function (barrio) {
+        return {
+          titulo: barrio.nombre,
+          detalle: barrio.lugares === 1 ? "1 lugar" : barrio.lugares + " lugares"
+        };
+      },
+      alElegir: function (barrio) {
+        campo.value = barrio.nombre;
+        buscarLista();
+      }
+    });
+  }
+
+  var camposDeBarrio = document.querySelectorAll(".filtro-barrio");
+  for (var b = 0; b < camposDeBarrio.length; b++) {
+    activarSugerenciasDeBarrio(camposDeBarrio[b]);
+  }
+
+  // --- Cerca de mí ----------------------------------------------------------------
+
+  var bloqueUbicacion = document.getElementById("bloque-ubicacion");
+  var botonUbicacion  = document.getElementById("boton-ubicacion");
+  var campoDistancia  = document.getElementById("campo-distancia");
+  var estadoUbicacion = document.getElementById("estado-ubicacion");
+
+  function ubicacionActiva(coordenadas) {
+    ubicacion = coordenadas;
+    var activa = !!coordenadas;
+    botonUbicacion.textContent = activa ? "Quitar mi ubicación" : "Usar mi ubicación";
+    botonUbicacion.setAttribute("aria-pressed", activa ? "true" : "false");
+    botonUbicacion.disabled = false;
+    campoDistancia.hidden = !activa;
+    estadoUbicacion.textContent = activa
+      ? "Los lugares van del más cercano al más lejano. Tu ubicación solo se usa para calcular distancias."
+      : "";
+    if (!activa) { document.getElementById("busqueda-distancia").value = ""; }
+  }
+
+  // Sin geolocalización en el navegador (o sin conexión segura) el bloque ni se muestra.
+  if (bloqueUbicacion && navigator.geolocation) {
+    bloqueUbicacion.hidden = false;
+
+    botonUbicacion.addEventListener("click", function () {
+      if (ubicacion) {
+        ubicacionActiva(null);
+        buscarLista();
+        return;
+      }
+
+      botonUbicacion.disabled = true;
+      estadoUbicacion.textContent = "Buscando tu ubicación...";
+
+      navigator.geolocation.getCurrentPosition(
+        function (posicion) {
+          ubicacionActiva({
+            lat: Math.round(posicion.coords.latitude * 10000) / 10000,   // ~10 m: de sobra
+            lon: Math.round(posicion.coords.longitude * 10000) / 10000
+          });
+          buscarLista();
+        },
+        function (error) {
+          botonUbicacion.disabled = false;
+          estadoUbicacion.textContent = error.code === 1
+            ? "No tenemos permiso para ver tu ubicación. Podés habilitarlo en el navegador y probar de nuevo."
+            : "No pudimos determinar tu ubicación. Probá de nuevo en un rato.";
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+      );
+    });
+
+    document.getElementById("busqueda-distancia").addEventListener("change", buscarLista);
   }
 
   // Los menús (tipo de lugar, precio máximo) actualizan la lista completa al cambiar.

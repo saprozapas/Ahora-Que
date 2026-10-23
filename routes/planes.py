@@ -203,11 +203,29 @@ def buscar_lugares():
 
     # "limite" lo usa el desplegable que aparece al escribir (pocos resultados).
     limite = request.args.get("limite", default=30, type=int)
+    # "lat" y "lon" (opcionales) son la ubicación de quien busca: se usan solo para
+    # calcular distancias en esta consulta; no se guardan.
     resultados = lugar_service.buscar(
         texto=request.args.get("texto", ""),
         tipo_id=request.args.get("tipo", ""),
         filtros=request.args,
         limite=limite,
+        lat=request.args.get("lat"),
+        lon=request.args.get("lon"),
+        max_km=request.args.get("max_km"),
+    )
+    return jsonify(resultados=resultados)
+
+
+@planes_bp.route("/buscar-barrios")
+def buscar_barrios():
+    """Barrios que coinciden con lo escrito (para el campo Barrio del buscador)."""
+    if _sin_sesion():
+        return jsonify(resultados=[]), 401
+
+    resultados = lugar_service.buscar_barrios(
+        texto=request.args.get("texto", ""),
+        limite=request.args.get("limite", default=8, type=int),
     )
     return jsonify(resultados=resultados)
 

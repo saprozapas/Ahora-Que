@@ -483,3 +483,10 @@
 .planner-stop__body { display: grid; gap: 2px; flex: 1; min-width: 0; }
 .planner-stop__detail { color: var(--ink-3); font-size: var(--t-meta); }
 .planner__query .field { min-width: 0; }
+
+/* Cerca de mí: botón de ubicación, distancia máxima y estado. */
+.planner__near { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-3) var(--s-4); }
+.planner__near[hidden], .planner__near-km[hidden] { display: none; }
+.planner__near-km { min-width: 180px; flex: 0 1 220px; }
+.planner__near-estado { flex: 1 1 100%; margin: 0; }
+.planner__near-estado:empty { display: none; }
