@@ -34,7 +34,9 @@ def _volver_a(destino, plan_id):
 def menu():
     if _sin_sesion():
         return redirect(url_for("auth.login"))
-    return render_template("planes_menu.html")
+    # "Mis planes" abre en la primera pestaña (Confirmados); desde ahí se llega al
+    # resto de las listas y al calendario. Crear algo nuevo vive en el botón "+ Crear".
+    return redirect(url_for("planes.confirmados"))
 
 
 @planes_bp.route("/confirmados")
@@ -228,6 +230,16 @@ def buscar_barrios():
         limite=request.args.get("limite", default=8, type=int),
     )
     return jsonify(resultados=resultados)
+
+
+@planes_bp.route("/barrio-cercano")
+def barrio_cercano():
+    """El barrio más cercano a la ubicación que manda el navegador (para sugerir el de la encuesta).
+    Las coordenadas se usan solo para esta consulta; no se guardan."""
+    if _sin_sesion():
+        return jsonify(barrio=None), 401
+    barrio = lugar_service.barrio_cercano(request.args.get("lat"), request.args.get("lon"))
+    return jsonify(barrio=barrio)
 
 
 @planes_bp.route("/<plan_id>/guardar", methods=["POST"])

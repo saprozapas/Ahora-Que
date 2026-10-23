@@ -38,14 +38,14 @@
     />
 
     <!-- Sereno: tokens → componentes → marca → pantallas → grupos, social y asistente. -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261020-sereno-int') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261020-sereno-int') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261020-sereno-int') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261020-sereno-int') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261020-sereno-int') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261020-sereno-int') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261020-sereno-int') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261023-sereno-ui-v2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261023-barra5') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261023-barra5') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261023-barra5') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261023-barra5') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261023-barra5') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261023-barra5') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261023-barra5') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261023-sereno-ui-v3') }}" />
 
     <link
       rel="icon"
@@ -56,12 +56,12 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20261020-sereno-int') }}"
+      src="{{ url_for('static', filename='app.js', v='20261023-barra5') }}"
     ></script>
 
     <script
       defer
-      src="{{ url_for('static', filename='sereno-ui.js', v='20261023-sereno-ui-v2') }}"
+      src="{{ url_for('static', filename='sereno-ui.js', v='20261023-sereno-ui-v3') }}"
     ></script>
 
   </head>
@@ -93,7 +93,7 @@
             width="26"
             height="26"
           />
-          Ahora Qué
+          <span class="logo__text">Ahora Qué</span>
         </a>
 
 
@@ -137,6 +137,35 @@
 
 
         <div class="app-header__controls">
+
+          {# Solo celular y con sesión: lo que en escritorio vive en la barra lateral
+             (+ Crear, Inbox y Perfil). Ver _dashboard_sidebar.html. #}
+          {% if logueado %}
+
+            <div class="app-header__solo-celular">
+
+              {% with variante = 'cabecera' %}{% include '_crear_menu.html' %}{% endwith %}
+
+              <a class="icon-btn app-header__inbox" href="/inbox" aria-label="Inbox{% if notificaciones_pendientes %}, {{ notificaciones_pendientes }} sin leer{% endif %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M22 12h-6l-2 3h-4l-2-3H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" />
+                  <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" />
+                </svg>
+                {% if notificaciones_pendientes and notificaciones_pendientes > 0 %}
+                <span class="badge app-header__badge" aria-hidden="true">{{ notificaciones_pendientes }}</span>
+                {% endif %}
+              </a>
+
+              <a class="icon-btn" href="/perfil" aria-label="Tu perfil">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" />
+                  <path d="M5 20c.7-3.5 3-5.3 7-5.3s6.3 1.8 7 5.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+              </a>
+
+            </div>
+
+          {% endif %}
 
           <button
             class="icon-btn"

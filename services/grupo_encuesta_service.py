@@ -3,8 +3,8 @@
 Flujo (columna "Grupo_Encuesta"."Estado"):
 
     abierta
-        Cada integrante responde SUS filtros (precio máximo, restricciones,
-        tipos de lugar) y cuándo puede (hasta 3 franjas con día y horas).
+        Cada integrante responde SUS filtros (precio máximo, tipos de lugar y
+        zona: barrio y distancia) y cuándo puede (hasta 3 franjas con día y horas).
         Se pasa a "eligiendo" cuando respondieron todos, o antes si quien
         creó la encuesta la cierra. En ese momento:
           - se calcula el horario donde puede más gente (elegir_horario);
@@ -50,8 +50,8 @@ MAX_INTENTOS = 10
 # Franjas de disponibilidad que puede cargar cada integrante.
 MAX_FRANJAS = 3
 
-# Campos de la respuesta que son restricciones (se suman: si uno la pide, vale).
-RESTRICCIONES = ("apto_menores", "opcion_celiacos", "opcion_vegana")
+# Distancias entre las que se puede elegir "hasta qué distancia" de su barrio (km).
+DISTANCIAS_KM = (1, 2, 5, 10)
 
 
 def opciones_de_precio():
@@ -65,11 +65,39 @@ def opciones_de_precio():
     ]
 
 
+def opciones_de_distancia():
+    """[(1, "1 km"), (2, "2 km"), ...] para el menú "Hasta qué distancia"."""
+    return [(km, f"{km} km") for km in DISTANCIAS_KM]
+
+
+def combinar_zona(respuestas, centros):
+    """Junta el barrio y la distancia de todos en condiciones para el buscador.
+
+    respuestas: dicts con barrio (str o None) y distancia_km (int o None).
+    centros: {barrio: (lat, lon)} (LugarService.centros_de_barrios).
+
+    Devuelve {"barrios": [...], "cerca_de": [(lat, lon, km), ...]}:
+      - Con barrio Y distancia, el lugar tiene que quedar a esa distancia del barrio
+        de esa persona, y vale para todas las que lo pidieron (gana el más restrictivo).
+      - Un barrio sin distancia es "me queda bien esa zona": si nadie pidió distancia,
+        los lugares son de alguno de los barrios elegidos. Si alguien sí la pidió, mandan
+        las distancias.
+    """
+    cerca_de = []
+    for r in respuestas:
+        barrio, km = r.get("barrio"), r.get("distancia_km")
+        if barrio and km and barrio in centros:
+            lat, lon = centros[barrio]
+            cerca_de.append((lat, lon, float(km)))
+    if cerca_de:
+        return {"barrios": [], "cerca_de": cerca_de}
+    return {"barrios": sorted({r["barrio"] for r in respuestas if r.get("barrio")}), "cerca_de": []}
+
+
 def combinar_respuestas(respuestas):
     """Junta las respuestas de todos en filtros para el buscador de lugares.
 
-    respuestas: lista de dicts con nivel_precio (int o None), apto_menores,
-    opcion_celiacos, opcion_vegana (bool) y tipos (lista de ids).
+    respuestas: lista de dicts con nivel_precio (int o None) y tipos (lista de ids).
 
     Devuelve (filtros, tipos): `filtros` con las mismas claves que
     FILTROS_LUGAR (services/lugar_filtros.py) y `tipos` ordenados de más a
@@ -79,10 +107,6 @@ def combinar_respuestas(respuestas):
     niveles = [r["nivel_precio"] for r in respuestas if r.get("nivel_precio")]
     if niveles:
         filtros["nivel_precio"] = str(min(niveles))
-
-    for campo in RESTRICCIONES:
-        if any(r.get(campo) for r in respuestas):
-            filtros[campo] = "1"
 
     votos_por_tipo = Counter(t for r in respuestas for t in r.get("tipos", []))
     tipos = [tipo for tipo, _ in votos_por_tipo.most_common()]
@@ -216,14 +240,14 @@ class GrupoEncuestaService:
     def _respuestas(self, cursor, encuesta_id):
         cursor.execute(
             """
-            SELECT "Nivel_Precio_Max", "Apto_Menores", "Opcion_Celiacos", "Opcion_Vegana", "Tipos"
+            SELECT "Nivel_Precio_Max", "Tipos", "Barrio", "Distancia_Max_Km"
             FROM public."Grupo_Encuesta_Respuesta" WHERE "Id_Encuesta" = %s
             """,
             (encuesta_id,),
         )
         return [
-            {"nivel_precio": f[0], "apto_menores": f[1], "opcion_celiacos": f[2],
-             "opcion_vegana": f[3], "tipos": list(f[4] or [])}
+            {"nivel_precio": f[0], "tipos": list(f[1] or []),
+             "barrio": f[2], "distancia_km": f[3]}
             for f in cursor.fetchall()
         ]
 
@@ -267,8 +291,8 @@ class GrupoEncuestaService:
 
     # --- Responder (filtros + disponibilidad) -----------------------------------
 
-    def responder(self, group_id, encuesta_id, user_id, nivel_precio, apto_menores,
-                  celiacos, vegana, tipos, franjas):
+    def responder(self, group_id, encuesta_id, user_id, nivel_precio, tipos, franjas,
+                  barrio=None, distancia_km=None):
         """Guarda (o cambia) la respuesta. `franjas`: [(fecha, desde, hasta)]
         con date/time. Si con ésta ya respondieron todos, se arman las
         opciones. Devuelve 'opciones', 'sin_lugares' (respondieron todos pero
@@ -287,6 +311,16 @@ class GrupoEncuestaService:
         tipos_validos = {str(t["id"]) for t in self._lugares.listar_tipos()}
         tipos = [str(t) for t in tipos if str(t) in tipos_validos]
 
+        # Zona: el barrio tiene que existir (se guarda con el nombre exacto de la base) y la
+        # distancia solo vale con un barrio de referencia.
+        barrio = self._lugares.barrio_canonico(barrio) if (barrio or "").strip() else None
+        try:
+            distancia_km = int(distancia_km) if distancia_km not in (None, "") else None
+        except (TypeError, ValueError):
+            distancia_km = None
+        if distancia_km not in DISTANCIAS_KM or not barrio:
+            distancia_km = None
+
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -294,18 +328,16 @@ class GrupoEncuestaService:
                 cursor.execute(
                     """
                     INSERT INTO public."Grupo_Encuesta_Respuesta"
-                        ("Id_Encuesta", "Id_Usuario", "Nivel_Precio_Max", "Apto_Menores",
-                         "Opcion_Celiacos", "Opcion_Vegana", "Tipos")
-                    VALUES (%s, %s, %s, %s, %s, %s, %s::text[])
+                        ("Id_Encuesta", "Id_Usuario", "Nivel_Precio_Max", "Tipos", "Barrio", "Distancia_Max_Km")
+                    VALUES (%s, %s, %s, %s::text[], %s, %s)
                     ON CONFLICT ("Id_Encuesta", "Id_Usuario") DO UPDATE SET
                         "Nivel_Precio_Max" = EXCLUDED."Nivel_Precio_Max",
-                        "Apto_Menores" = EXCLUDED."Apto_Menores",
-                        "Opcion_Celiacos" = EXCLUDED."Opcion_Celiacos",
-                        "Opcion_Vegana" = EXCLUDED."Opcion_Vegana",
                         "Tipos" = EXCLUDED."Tipos",
+                        "Barrio" = EXCLUDED."Barrio",
+                        "Distancia_Max_Km" = EXCLUDED."Distancia_Max_Km",
                         "Respondida_En" = now()
                     """,
-                    (encuesta_id, user_id, nivel_precio, apto_menores, celiacos, vegana, tipos),
+                    (encuesta_id, user_id, nivel_precio, tipos, barrio, distancia_km),
                 )
                 cursor.execute(
                     'DELETE FROM public."Grupo_Encuesta_Disponibilidad" WHERE "Id_Encuesta" = %s AND "Id_Usuario" = %s',
@@ -411,16 +443,20 @@ class GrupoEncuestaService:
     def _generar(self, respuestas, ya_usados):
         """Arma las opciones de una ronda: lista de listas de lugares."""
         filtros, tipos = combinar_respuestas(respuestas)
+        centros = self._lugares.centros_de_barrios([r.get("barrio") for r in respuestas])
+        zona = combinar_zona(respuestas, centros)
         opciones = armar_opciones(
             lambda excluir: elegir_lugares(
-                lambda tipo, f: self._lugares.buscar(tipo_id=tipo, filtros=f, limite=15, aleatorio=True),
+                lambda tipo, f: self._lugares.buscar(
+                    tipo_id=tipo, filtros=f, limite=15, aleatorio=True,
+                    barrios=zona["barrios"], cerca_de=zona["cerca_de"]),
                 self._roles, filtros, tipos, excluir),
             ya_usados,
         )
         if not opciones:
             raise GrupoPlanError(
                 "No encontré lugares que cumplan los filtros de todos. "
-                "Pueden cambiar sus respuestas (por ejemplo subir el tope de precio) y probar de nuevo."
+                "Pueden cambiar sus respuestas (por ejemplo subir el tope de precio o la distancia) y probar de nuevo."
             )
         return opciones
 
@@ -658,10 +694,10 @@ class GrupoEncuestaService:
                            (SELECT COUNT(*) FROM public."Grupo_Encuesta_Respuesta" r
                              WHERE r."Id_Encuesta" = e."Id_Encuesta"),
                            (SELECT COUNT(*) FROM public."Usuario-Grupo" x WHERE x."Id_Grupo" = e."Id_Grupo"),
-                           m."Nivel_Precio_Max", m."Apto_Menores", m."Opcion_Celiacos",
-                           m."Opcion_Vegana", m."Tipos", (m."Id_Usuario" IS NOT NULL),
+                           m."Nivel_Precio_Max", m."Tipos", (m."Id_Usuario" IS NOT NULL),
                            (SELECT COUNT(*) FROM public."Grupo_Encuesta_Voto" v
-                             WHERE v."Id_Encuesta" = e."Id_Encuesta" AND v."Ronda" = e."Ronda")
+                             WHERE v."Id_Encuesta" = e."Id_Encuesta" AND v."Ronda" = e."Ronda"),
+                           m."Barrio", m."Distancia_Max_Km"
                     FROM public."Grupo_Encuesta" e
                     LEFT JOIN public."Usuarios" u ON u."Id_Usuario" = e."Creado_Por"
                     LEFT JOIN public."Grupo_Encuesta_Respuesta" m
@@ -677,9 +713,9 @@ class GrupoEncuestaService:
                         "ronda": f[5], "desempate": f[6],
                         "es_creador": str(f[7]) == str(user_id), "creador": f[8],
                         "respondieron": f[9], "miembros": f[10],
-                        "mi_nivel": f[11], "mi_menores": bool(f[12]), "mi_celiaco": bool(f[13]),
-                        "mi_vegano": bool(f[14]), "mis_tipos": list(f[15] or []),
-                        "yo_respondi": bool(f[16]), "votaron": f[17],
+                        "mi_nivel": f[11], "mis_tipos": list(f[12] or []),
+                        "yo_respondi": bool(f[13]), "votaron": f[14],
+                        "mi_barrio": f[15], "mi_distancia": f[16],
                         "franjas": [], "opciones": [], "mi_voto": None, "votos_ninguna": 0,
                     }
                     for f in cursor.fetchall()

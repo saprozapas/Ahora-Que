@@ -1,0 +1,58 @@
+{#
+  Botón "+ Crear": un solo lugar para empezar algo nuevo.
+
+  Se incluye dos veces con `variante`:
+    lateral   en la barra lateral (escritorio). La lista se abre en el lugar, sin
+              flotar, porque la barra tiene scroll propio y la cortaría.
+    cabecera  en el encabezado (celular), como botón de ícono con la lista flotante.
+
+  Se cierra con Escape y al tocar afuera (iniciarMenusDesplegables, app.js).
+#}
+<details class="idea-menu crear-menu crear-menu--{{ variante }}">
+
+  <summary
+    {% if variante == 'lateral' %}
+    class="btn btn--primary btn--block crear-menu__boton"
+    {% else %}
+    class="icon-btn crear-menu__icono" aria-label="Crear"
+    {% endif %}
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+    {% if variante == 'lateral' %}<span class="crear-menu__texto">Crear</span>{% endif %}
+  </summary>
+
+  <div class="idea-menu__panel crear-menu__panel">
+
+    <a class="idea-menu__item" href="/planes/nueva-idea">
+      <span class="menu-item__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3.5a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3.5ZM9.8 20h4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      </span>
+      <span class="crear-menu__item-texto">
+        <strong>Nueva idea</strong>
+        <small>Armala vos, con lugares</small>
+      </span>
+    </a>
+
+    <a class="idea-menu__item" href="/planes/nueva-idea/asistente">
+      <span class="menu-item__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false"><path d="m12 3 1.7 4.6L18.3 9l-4.6 1.4L12 15l-1.7-4.6L5.7 9l4.6-1.4ZM18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
+      </span>
+      <span class="crear-menu__item-texto">
+        <strong>Con el asistente</strong>
+        <small>Contale qué querés hacer</small>
+      </span>
+    </a>
+
+    <a class="idea-menu__item" href="/grupos/nuevo">
+      <span class="menu-item__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M3.5 19c.6-3 2.4-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 15c2.7-.3 4.7 1 5.3 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+      </span>
+      <span class="crear-menu__item-texto">
+        <strong>Nuevo grupo</strong>
+        <small>Para planear con amigos</small>
+      </span>
+    </a>
+
+  </div>
+
+</details>

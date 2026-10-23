@@ -33,27 +33,6 @@ def quitar_tildes(texto):
 
 FILTROS_LUGAR = [
     {
-        "id": "apto_menores",
-        "etiqueta": "Apto menores",
-        "tipo": "checkbox",
-        "en_formulario": False,   # no se muestra al crear un plan a mano (el chatbot y las encuestas lo siguen usando)
-        "sql": 'l."Apto_Menores" IS NOT FALSE',  # NULL = desconocido: no se descarta
-    },
-    {
-        "id": "opcion_celiacos",
-        "etiqueta": "Opción celíaca",
-        "tipo": "checkbox",
-        "en_formulario": False,
-        "sql": 'l."Opcion_Celiacos" = true',
-    },
-    {
-        "id": "opcion_vegana",
-        "etiqueta": "Opción vegana",
-        "tipo": "checkbox",
-        "en_formulario": False,
-        "sql": 'l."Opcion_Vegana" = true',
-    },
-    {
         "id": "nivel_precio",
         "etiqueta": "Precio máximo",
         "tipo": "select",

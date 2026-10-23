@@ -1,11 +1,13 @@
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from services.auth_service import AuthService
+from services.plan_service import PlanService
 from database_bridge.database_bridge import getUser
 from werkzeug.security import check_password_hash, generate_password_hash
 from services.password_policy import validar_contrasena
 
 profile = Blueprint("profile", __name__)
 auth_service = AuthService()
+plan_service = PlanService()
 
 @profile.route("/perfil", methods=["GET", "POST"])
 def perfil():
@@ -54,13 +56,18 @@ def perfil():
             if es_ajax:
                 return jsonify(ok=ok, error=error, value=descripcion)
 
+    # Los tres contadores de abajo (antes llegaban listas vacías y siempre decían 0).
+    try:
+        resumen = plan_service.contar_resumen_perfil(session["user_id"])
+    except Exception as error:
+        print(f"No se pudo armar el resumen del perfil: {error}")
+        resumen = {"grupos": 0, "publicados": 0, "guardados": 0}
+
     return render_template(
         "perfil.html",
         user=user,
-        groups=[],
+        resumen=resumen,
         autor_id=session["user_id"],
-        published_plans=[],
-        saved_plans=[],
         error_name=error_name,
         error_username=error_username,
         error_descripcion=error_descripcion,
