@@ -4,15 +4,6 @@
 
 {% block content %}
 
-{# Pestañas entre las cuatro listas. Solo la actual muestra cuántos planes
-   tiene: es el único número que la ruta le pasa al template. #}
-{% set pestanas = [
-  ('/planes/confirmados', 'Confirmados'),
-  ('/planes/grupo', 'De grupo'),
-  ('/planes/guardados', 'Ideas guardadas'),
-  ('/planes/archivados', 'Archivados'),
-] %}
-
 {# Qué hacer cuando la lista está vacía, según cuál sea. #}
 {% set acciones_vacio = {
   '/planes/confirmados': ('/planes/grupo', 'Ver planes de grupo'),
@@ -29,21 +20,14 @@
 
     <section class="container page">
 
-      <a class="back-link" href="/planes">← Planes</a>
+      <a class="back-link" href="/dashboard">← Inicio</a>
 
       <header class="page-head">
         <h1 class="h2">{{ titulo }}</h1>
         <p class="lead">{{ subtitulo }}</p>
       </header>
 
-      <nav class="chips planes-tabs" aria-label="Tus planes">
-        {% for href, etiqueta in pestanas %}
-        <a class="chip" href="{{ href }}" {% if request.path == href %}aria-current="page"{% endif %}>
-          {{ etiqueta }}
-          {% if request.path == href %}<span class="chip__count">{{ planes | length }}</span>{% endif %}
-        </a>
-        {% endfor %}
-      </nav>
+      {% include '_planes_tabs.html' %}
 
 
       {% if planes %}

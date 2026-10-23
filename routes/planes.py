@@ -34,7 +34,9 @@ def _volver_a(destino, plan_id):
 def menu():
     if _sin_sesion():
         return redirect(url_for("auth.login"))
-    return render_template("planes_menu.html")
+    # "Mis planes" abre en la primera pestaña (Confirmados); desde ahí se llega al
+    # resto de las listas y al calendario. Crear algo nuevo vive en el botón "+ Crear".
+    return redirect(url_for("planes.confirmados"))
 
 
 @planes_bp.route("/confirmados")

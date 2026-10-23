@@ -231,9 +231,10 @@
 
 
 /* ---------- 07. Layout del dashboard y barra lateral ----------
-   Mantiene las clases de siempre (las usan todos los templates con sesión
-   y app.js: contraer y reordenar). Ítem activo como un .chip apretado:
-   superficie blanca con filete, ícono en el acento. */
+   Escritorio: "+ Crear", Inicio e Inbox, los grupos PLANEAR y GENTE, y el perfil
+   abajo del todo; se contrae a solo íconos (app.js). Ítem activo como un .chip
+   apretado: superficie blanca con filete, ícono en el acento.
+   Celular: una fila de 5 destinos que entran sin deslizar (ver el @media). */
 
 .dashboard-layout {
   display: grid;
@@ -269,7 +270,27 @@
 .dashboard-sidebar-toggle:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
 .dashboard-sidebar-toggle svg { width: 18px; height: 18px; }
 
-.dashboard-sidebar-nav { display: grid; gap: 2px; }
+/* "+ Crear": botón principal arriba; la lista de opciones se abre en el lugar. */
+.dashboard-sidebar-crear { margin-bottom: var(--s-5); }
+.crear-menu__boton { gap: var(--s-2); cursor: pointer; }
+.crear-menu__boton svg { width: 18px; height: 18px; flex: none; }
+.crear-menu--lateral .crear-menu__panel {
+  position: static; width: auto; margin-top: var(--s-2); padding: var(--s-1);
+  background: var(--surface); box-shadow: var(--sh-hair);
+}
+.crear-menu--lateral .idea-menu__item { padding: var(--s-2) var(--s-2); }
+.crear-menu--lateral .idea-menu__item .menu-item__icon { width: 32px; height: 32px; flex: none; }
+.crear-menu--lateral .idea-menu__item .menu-item__icon svg { width: 18px; height: 18px; }
+.crear-menu__item-texto { min-width: 0; }
+
+.dashboard-sidebar-nav { display: grid; gap: var(--s-5); }
+.dashboard-sidebar-group { display: grid; gap: 2px; align-content: start; }
+
+.dashboard-sidebar-heading {
+  margin: 0; padding: 0 var(--s-3) var(--s-1);
+  color: var(--ink-3); font-size: var(--t-meta); font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
 
 .dashboard-sidebar-link {
   position: relative;
@@ -304,23 +325,59 @@
 
 .dashboard-sidebar-badge { margin-left: auto; max-width: none; opacity: 1; }
 
-.dashboard-sidebar-link.is-dragging {
-  z-index: 1; background: var(--surface); color: var(--ink); box-shadow: var(--sh-float);
+/* Perfil: la cuenta de quien usa la app, abajo del todo. */
+.dashboard-sidebar-perfil {
+  display: flex; align-items: center; gap: var(--s-3);
+  margin-top: auto; padding: var(--s-2); border-radius: var(--r-md);
+  color: var(--ink); text-decoration: none;
+  transition: background-color var(--d-fast) var(--ease-out), box-shadow var(--d-fast) var(--ease-out);
 }
+.dashboard-sidebar-perfil .avatar { --size: 36px; }
+.dashboard-sidebar-perfil:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.dashboard-sidebar-perfil.is-active { background: var(--surface); box-shadow: var(--sh-hair), 0 1px 2px rgb(21 21 21 / 0.06); }
+.dashboard-sidebar-perfil__texto { display: grid; min-width: 0; line-height: 1.25; }
+.dashboard-sidebar-perfil__texto strong { overflow: hidden; font-size: var(--t-ui); font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.dashboard-sidebar-perfil__texto small { color: var(--ink-3); font-size: var(--t-meta); }
 
-/* Contraída: solo íconos; el contador queda como una pastilla sobre el ícono. */
+/* Contraída: solo íconos; los grupos se separan con una línea y el contador queda
+   como una pastilla sobre el ícono. */
 .dashboard-layout.is-collapsed .dashboard-sidebar { padding-inline: var(--s-2); }
 .dashboard-layout.is-collapsed .dashboard-sidebar-top { justify-content: center; }
 .dashboard-layout.is-collapsed .dashboard-sidebar-toggle { transform: rotate(180deg); }
 .dashboard-layout.is-collapsed .dashboard-sidebar-link { justify-content: center; gap: 0; padding: 0; }
-.dashboard-layout.is-collapsed .dashboard-sidebar-label { display: none; }
+.dashboard-layout.is-collapsed .dashboard-sidebar-label,
+.dashboard-layout.is-collapsed .dashboard-sidebar-heading,
+.dashboard-layout.is-collapsed .crear-menu__texto,
+.dashboard-layout.is-collapsed .crear-menu__item-texto,
+.dashboard-layout.is-collapsed .dashboard-sidebar-perfil__texto { display: none; }
+.dashboard-layout.is-collapsed .dashboard-sidebar-nav { gap: var(--s-3); }
+.dashboard-layout.is-collapsed .dashboard-sidebar-group + .dashboard-sidebar-group { padding-top: var(--s-3); border-top: 1px solid var(--line); }
+.dashboard-layout.is-collapsed .crear-menu__boton { padding: 0; }
+.dashboard-layout.is-collapsed .crear-menu--lateral .idea-menu__item { justify-content: center; }
+.dashboard-layout.is-collapsed .dashboard-sidebar-perfil { justify-content: center; padding: var(--s-1); }
 
 .dashboard-layout.is-collapsed .dashboard-sidebar-badge {
   display: inline-grid; position: absolute; top: 2px; right: 4px;
   min-width: 18px; height: 18px; padding: 0 4px; margin: 0; font-size: 12px;
 }
 
-/* En celular la barra es una fila de pestañas con el look de .chips. */
+/* Controles de cuenta del encabezado: solo celular (en escritorio están en la barra). */
+.app-header__solo-celular { display: none; align-items: center; gap: var(--s-1); }
+.app-header__inbox { position: relative; }
+.app-header__badge {
+  position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding: 0 4px;
+  font-size: 12px; pointer-events: none;
+}
+.idea-menu.crear-menu--cabecera { position: static; }
+.crear-menu--cabecera .idea-menu__panel.crear-menu__panel {
+  top: calc(100% + var(--s-2)); left: auto; right: var(--gutter);
+  width: min(320px, calc(100vw - 2 * var(--gutter)));
+}
+.crear-menu__icono { cursor: pointer; }
+.crear-menu__icono svg { width: 22px; height: 22px; }
+
+/* Celular: la barra es una fila de 5 destinos iguales (ícono sobre la etiqueta), sin
+   deslizar. El Inbox, el Perfil y "+ Crear" pasan al encabezado. */
 @media (max-width: 900px) {
   .dashboard-layout,
   .dashboard-layout.is-collapsed { grid-template-columns: minmax(0, 1fr); min-height: 0; }
@@ -332,43 +389,44 @@
     border-right: 0; border-bottom: 1px solid var(--line);
   }
 
-  .dashboard-sidebar-top { display: none; }
+  .dashboard-sidebar-top,
+  .solo-escritorio,
+  .dashboard-sidebar-heading { display: none !important; }
 
   .dashboard-sidebar-nav {
-    display: flex; gap: 2px; width: 100%; padding: 3px;
-    overflow-x: auto; scrollbar-width: none;
+    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; width: 100%; padding: 3px;
     background: var(--paper-deep); border-radius: calc(var(--r-sm) + 3px);
   }
 
+  .dashboard-sidebar-group,
+  .dashboard-layout.is-collapsed .dashboard-sidebar-group + .dashboard-sidebar-group { display: contents; padding: 0; border: 0; }
+
   .dashboard-sidebar-link,
   .dashboard-layout.is-collapsed .dashboard-sidebar-link {
-    flex: none; justify-content: center; gap: var(--s-2); padding: 0 var(--s-3);
+    flex-direction: column; justify-content: center; gap: 2px;
+    height: auto; min-height: 52px; padding: 6px 2px; text-align: center;
+    font-size: var(--t-meta);
   }
+
+  .dashboard-sidebar-label,
+  .dashboard-layout.is-collapsed .dashboard-sidebar-label { display: block; max-width: 100%; }
 
   .dashboard-sidebar-link:hover { background: transparent; }
   .dashboard-sidebar-link.is-active:hover { background: var(--surface); }
 
-  /* Hay más destinos fuera de la vista: el borde se desvanece del lado que falta. */
-  .dashboard-sidebar-nav { scroll-snap-type: x proximity; }
-  .dashboard-sidebar-link { scroll-snap-align: center; }
-  .dashboard-sidebar-nav.tiene-mas-derecha {
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
-            mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
-  }
-  .dashboard-sidebar-nav.tiene-mas-izquierda {
-    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent);
-            mask-image: linear-gradient(to left, #000 calc(100% - 36px), transparent);
-  }
-  .dashboard-sidebar-nav.tiene-mas-izquierda.tiene-mas-derecha {
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
-            mask-image: linear-gradient(to right, transparent, #000 36px, #000 calc(100% - 36px), transparent);
-  }
+  .app-header__solo-celular { display: flex; }
+}
 
-  .dashboard-layout.is-collapsed .dashboard-sidebar-label { display: inline; }
+/* A 320 px "Mis planes" no entra en una línea: la etiqueta puede partirse en dos. */
+@media (max-width: 360px) {
+  .dashboard-sidebar-label,
+  .dashboard-layout.is-collapsed .dashboard-sidebar-label { white-space: normal; line-height: 1.15; overflow-wrap: anywhere; }
+}
 
-  .dashboard-layout.is-collapsed .dashboard-sidebar-badge {
-    position: static; min-width: 22px; height: 22px; padding: 0 6px; margin-left: 2px; font-size: 12px;
-  }
+/* En celulares angostos el encabezado necesita el lugar: queda solo la marca. */
+@media (max-width: 480px) {
+  .app-header--app .logo__text { display: none; }
+  .app-header--app .logo { min-width: var(--hit); min-height: var(--hit); justify-content: center; }
 }
 
 
@@ -1004,7 +1062,6 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 .modal-group-item { width: 100%; border: 0; background: none; color: inherit; text-align: left; cursor: pointer; font: inherit; }
 .modal-group-item[hidden] { display: none; }
 .flash-message-texto { flex: 1; }
-.dashboard-sidebar-nav.is-reordering, .dashboard-sidebar-nav.is-reordering .dashboard-sidebar-link { cursor: grabbing; }
 .groups-carousel { min-width: 0; }
 
 

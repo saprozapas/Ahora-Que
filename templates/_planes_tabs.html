@@ -1,0 +1,19 @@
+{# Pestañas de "Mis planes": las cuatro listas y el calendario.
+   Solo la lista actual muestra cuántos planes tiene (la ruta le pasa `planes`
+   al template; el calendario no tiene ese número). #}
+{% set pestanas = [
+  ('/planes/confirmados', 'Confirmados'),
+  ('/planes/grupo', 'De grupo'),
+  ('/planes/guardados', 'Ideas guardadas'),
+  ('/planes/archivados', 'Archivados'),
+  ('/calendario', 'Calendario'),
+] %}
+
+<nav class="chips planes-tabs" aria-label="Mis planes">
+  {% for href, etiqueta in pestanas %}
+  <a class="chip" href="{{ href }}" {% if request.path == href %}aria-current="page"{% endif %}>
+    {{ etiqueta }}
+    {% if request.path == href and planes is defined %}<span class="chip__count">{{ planes | length }}</span>{% endif %}
+  </a>
+  {% endfor %}
+</nav>
