@@ -136,7 +136,7 @@
 (function () {
   "use strict";
 
-  // Rangos de precio por nivel (0 a 4), solo para mostrarle al usuario
+  // Rangos de precio por nivel (0 a 5), solo para mostrarle al usuario
   // una estimación mientras arma el plan. El cálculo real y definitivo
   // lo hace el servidor con services/precio_lugar.py — si cambian los
   // montos ahí, conviene actualizar esta tabla también para que la
@@ -146,7 +146,8 @@
     1: [100, 300],
     2: [300, 600],
     3: [600, 1000],
-    4: [1000, 2000]
+    4: [1000, 2000],
+    5: [2000, 4000]   // "más de 2000": sin tope real, se estima con 4000
   };
 
   var listaElegidos     = document.getElementById("lista-elegidos");

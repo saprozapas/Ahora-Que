@@ -47,10 +47,12 @@ FILTROS_LUGAR = [
         "tipo": "select",
         "opciones": [
             ("", "Cualquiera"),
-            ("1", "$"),
-            ("2", "$$"),
-            ("3", "$$$"),
-            ("4", "$$$$"),
+            ("0", "Gratis"),
+            ("1", "$ (100 a 300)"),
+            ("2", "$$ (300 a 600)"),
+            ("3", "$$$ (600 a 1000)"),
+            ("4", "$$$$ (1000 a 2000)"),
+            ("5", "$$$$$ (más de 2000)"),
         ],
         "sql": '(l."Nivel_Precio" IS NULL OR l."Nivel_Precio" <= %s)',  # sin dato: no se descarta
     },
