@@ -96,6 +96,39 @@ class ChatService:
             release_db_connection(conn)
 
 
+    # Mensajes que invocan al bot: "@AhoraQue ...", "@Ahora Que ..." o "@bot ...".
+    PATRON_BOT = r"@(ahora\s*que|ahoraque|bot)\M"
+
+    def eliminar_mensajes(self, group_id, solo_bot=False, de_usuario=None):
+        """Borra mensajes del chat de un grupo y devuelve cuántos.
+
+        solo_bot:   solo los que mencionan al bot (@AhoraQue / @bot).
+        de_usuario: si se indica, solo los que escribió ese usuario."""
+        condiciones = ['"Id_Grupo" = %s']
+        parametros = [group_id]
+        if solo_bot:
+            condiciones.append('"Contenido" ~* %s')
+            parametros.append(self.PATRON_BOT)
+        if de_usuario is not None:
+            condiciones.append('"Id_Usuario" = %s')
+            parametros.append(de_usuario)
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    'DELETE FROM public."Mensajes" WHERE ' + " AND ".join(condiciones),
+                    parametros,
+                )
+                borrados = cursor.rowcount
+            conn.commit()
+            return borrados
+        except Exception as e:
+            conn.rollback()
+            print(f"Error al eliminar mensajes: {e}")
+            raise
+        finally:
+            release_db_connection(conn)
+
     def crear_mensaje(self, group_id, user_id, mensaje):
         """Guarda el mensaje. Si falla, el error sube a la ruta para que no
         le diga "ok" al usuario cuando el mensaje se perdió."""

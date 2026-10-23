@@ -108,9 +108,10 @@ class LugarService:
 
         texto = quitar_tildes((texto or "").strip())
         if texto:
+            nombre_l_sin_tildes = _SIN_TILDES.format(col='l."Nombre"')
+            nombre_t_sin_tildes = _SIN_TILDES.format(col='t."Nombre"')
             condiciones.append(
-                f'({_SIN_TILDES.format(col="l.\"Nombre\"")} LIKE %s'
-                f' OR {_SIN_TILDES.format(col="t.\"Nombre\"")} LIKE %s)'
+                f"({nombre_l_sin_tildes} LIKE %s OR {nombre_t_sin_tildes} LIKE %s)"
             )
             parametros.extend([f"%{texto}%", f"%{texto}%"])
 
@@ -149,8 +150,8 @@ class LugarService:
         elif coordenadas:
             orden, parametros_orden = 'u.distancia_km, u."Nombre"', []
         elif texto:
-            orden = (f'CASE WHEN {_SIN_TILDES.format(col="u.\"Nombre\"")} LIKE %s THEN 0 ELSE 1 END, '
-                     'u."Nombre"')
+            nombre_u_sin_tildes = _SIN_TILDES.format(col='u."Nombre"')
+            orden = f'CASE WHEN {nombre_u_sin_tildes} LIKE %s THEN 0 ELSE 1 END, u."Nombre"'
             parametros_orden = [f"{texto}%"]
         else:
             orden, parametros_orden = 'u."Nombre"', []

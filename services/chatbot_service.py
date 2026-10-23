@@ -126,6 +126,14 @@ def schema_tools():
         "description": "Cuánto quiere gastar cada persona, en pesos uruguayos (ej: 430).",
     }
 
+    # El modelo suele mandar null en los parámetros que no usa, y la API
+    # rechaza la llamada si el esquema no lo admite. Todos son opcionales:
+    # se acepta null (ejecutar_buscar_lugares ya ignora los valores None).
+    for definicion in props.values():
+        definicion["type"] = [definicion["type"], "null"]
+        if "enum" in definicion:
+            definicion["enum"] = definicion["enum"] + [None]
+
     return [
         {
             "type": "function",

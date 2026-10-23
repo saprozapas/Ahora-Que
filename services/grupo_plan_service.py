@@ -88,15 +88,16 @@ class GrupoPlanService:
                    (SELECT COUNT(*) FROM public."Usuario-Grupo" x WHERE x."Id_Grupo" = p."Grupo_id"),
                    COUNT(v."Id_Usuario"),
                    COUNT(*) FILTER (WHERE v."Me_Gusta"),
-                   COUNT(*) FILTER (WHERE v."Puedo")
+                   COUNT(*) FILTER (WHERE v."Puedo"),
+                   p."Fecha" IS NULL
             FROM public."Plan" p
             LEFT JOIN public."Plan_Voto" v ON v."Id_Plan" = p."id_Plan"
             WHERE p."id_Plan" = %s
-            GROUP BY p."id_Plan", p."Estado", p."Grupo_id"
+            GROUP BY p."id_Plan", p."Estado", p."Grupo_id", p."Fecha"
             """,
             (plan_id,),
         )
-        estado, miembros, votos, gustan, pueden = cursor.fetchone()
+        estado, miembros, votos, gustan, pueden, sin_fecha = cursor.fetchone()
         if estado != "votacion" or votos == 0:
             return None
         if votos < miembros and not forzar:
@@ -104,6 +105,10 @@ class GrupoPlanService:
 
         if gustan / votos < UMBRAL_GUSTA:
             nuevo = "rechazado"
+        elif sin_fecha:
+            # Se postuló sin fecha (desde el chat): solo se votó si gusta, y
+            # el horario se arma después en "esperando_horario".
+            nuevo = "esperando_horario"
         elif pueden / votos >= UMBRAL_PUEDEN:
             nuevo = "confirmado"
             cursor.execute(
@@ -273,13 +278,17 @@ class GrupoPlanService:
 
     # --- Postular -------------------------------------------------------------
 
-    def postular_idea(self, group_id, user_id, idea_id, fecha, hora):
+    def postular_idea(self, group_id, user_id, idea_id, fecha=None, hora=None):
         """Copia una idea del usuario (guardada o archivada) como plan nuevo
         del grupo, con la fecha y hora que eligió, y la pone en votación.
         El que la postula ya cuenta como "me gusta" y "puedo".
 
         Se copia (en vez de mover) para que la idea original le siga
-        quedando al usuario y la pueda postular en otros grupos."""
+        quedando al usuario y la pueda postular en otros grupos.
+
+        fecha/hora pueden ser None (postulación desde el chat del grupo): el
+        plan entra en votación solo por "¿te gusta?" y el horario se pide
+        después, en "esperando_horario"."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -326,9 +335,9 @@ class GrupoPlanService:
                 cursor.execute(
                     """
                     INSERT INTO public."Plan_Voto" ("Id_Plan", "Id_Usuario", "Me_Gusta", "Puedo")
-                    VALUES (%s, %s, true, true)
+                    VALUES (%s, %s, true, %s)
                     """,
-                    (plan_id, user_id),
+                    (plan_id, user_id, fecha is not None),
                 )
                 # Si el grupo es de una sola persona, se resuelve ya.
                 self._resolver_votacion(cursor, plan_id)
@@ -344,13 +353,16 @@ class GrupoPlanService:
 
     def votar_plan(self, group_id, plan_id, user_id, me_gusta, puedo):
         """Guarda (o cambia) el voto. Devuelve el estado nuevo si con este
-        voto se resolvió la votación, o None."""
+        voto se resolvió la votación, o None. Si el plan no tiene fecha
+        todavía, "puedo" no aplica y se guarda como False."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 estado, _, _ = self._plan_del_grupo(cursor, plan_id, group_id, user_id)
                 if estado != "votacion":
                     raise GrupoPlanError("La votación de este plan ya se cerró.")
+                if puedo is None:
+                    puedo = False
                 cursor.execute(
                     """
                     INSERT INTO public."Plan_Voto" ("Id_Plan", "Id_Usuario", "Me_Gusta", "Puedo")

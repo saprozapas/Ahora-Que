@@ -11,6 +11,7 @@ guardar devuelve el link para postular la idea en ese grupo.
 """
 import json
 import time
+from datetime import datetime
 
 import psycopg2
 from cryptography.exceptions import InvalidTag
@@ -21,9 +22,11 @@ from services.chatbot_service import historial_para_llm, procesar_mensaje_bot, p
 from services.crypto_service import ClaveMaestraFaltante
 from services.llm_service import LLMNoConfigurado
 from services.plan_service import PlanService
+from services.grupo_plan_service import GrupoPlanError, GrupoPlanService
 
 chatbot_bp = Blueprint("chatbot", __name__, url_prefix="/chatbot")
 plan_service = PlanService()
+grupo_plan_service = GrupoPlanService()
 
 MAX_LARGO_MENSAJE = 1000
 LIMITE_HISTORIAL = 20
@@ -109,6 +112,10 @@ def _preparar_turno(user_id, datos):
     # contenido tiene que terminar en un plan (no en una tanda de preguntas).
     hay_borrador = any(m["tipo"] == "borrador" for m in historial_guardado)
     forzar_plan = not hay_borrador and len(texto_usuario.split()) >= 4
+    # Desde un grupo, cada pedido con contenido tiene que terminar en una
+    # propuesta que se pueda postular a votación (también los ajustes).
+    if grupo is not None and len(texto_usuario.split()) >= 3:
+        forzar_plan = True
 
     return {
         "user_id": user_id,
@@ -211,6 +218,11 @@ def enviar_mensaje_stream():
     )
 
 
+def request_desde_chat(datos):
+    """El chat del grupo manda "desde_chat": postula sin fecha ni hora."""
+    return bool(datos.get("desde_chat"))
+
+
 @chatbot_bp.route("/confirmar_plan", methods=["POST"])
 def confirmar_plan():
     user_id = session.get("user_id")
@@ -245,6 +257,24 @@ def confirmar_plan():
     if not lugares:
         return _error("Los lugares de este borrador ya no existen. Pedile al asistente otra propuesta.", 409)
 
+    grupo_id = str(datos.get("grupo_id") or "").strip()
+    fecha = str(datos.get("fecha") or "").strip()
+    hora = str(datos.get("hora") or "").strip()
+    momento = None
+    if grupo_id:
+        if not ia_bridge.contexto_grupo(user_id, grupo_id):
+            return _error("No sos parte de ese grupo.", 403)
+        # Desde el chat no se pide horario: se define en la votación del grupo.
+        if bool(fecha) != bool(hora):
+            return _error("Elegí fecha y hora, o ninguna de las dos.", 400)
+        if fecha and hora:
+            try:
+                momento = datetime.strptime(f"{fecha} {hora}", "%Y-%m-%d %H:%M")
+            except ValueError:
+                return _error("La fecha o la hora no tienen un formato válido.", 400)
+            if momento <= datetime.now():
+                return _error("Elegí una fecha y hora que todavía no hayan pasado.", 400)
+
     try:
         plan_id = plan_service.crear_idea(
             user_id=user_id,
@@ -258,10 +288,26 @@ def confirmar_plan():
 
     respuesta = {"status": "ok", "plan_id": str(plan_id), "url": url_for("planes.detalle", plan_id=plan_id)}
 
-    # Desde un grupo: el link lleva a postular la idea recién creada.
-    grupo_id = str(datos.get("grupo_id") or "").strip()
-    if grupo_id and ia_bridge.contexto_grupo(user_id, grupo_id):
-        respuesta["postular_url"] = url_for("grupo_planes.postular", group_id=grupo_id, idea_id=plan_id)
+    if grupo_id and (momento or request_desde_chat(datos)):
+        try:
+            plan_grupo_id = grupo_plan_service.postular_idea(
+                grupo_id, user_id, plan_id, fecha or None, hora or None
+            )
+        except GrupoPlanError as e:
+            return _error(str(e), 400)
+        except Exception as e:
+            print(f"Error al abrir la votación del chatbot: {e}")
+            return _error("La idea se guardó, pero no se pudo abrir la votación.", 500)
+        respuesta["plan_grupo_id"] = str(plan_grupo_id)
+        respuesta["votacion_url"] = (
+            url_for("group_auth.detalle_grupo", group_id=grupo_id)
+            + f"#plan-{plan_grupo_id}"
+        )
+    elif grupo_id:
+        # El asistente de la página dedicada conserva el flujo de postulación.
+        respuesta["postular_url"] = url_for(
+            "grupo_planes.postular", group_id=grupo_id, idea_id=str(plan_id)
+        )
     return jsonify(respuesta)
 
 

@@ -151,3 +151,43 @@
 
 /* La llama de la racha en la tarjeta del grupo mide lo que su contenido, no el ancho de la tarjeta. */
 .group-tile .racha-chip { align-self: flex-start; }
+
+
+/* ---------- Comando rápido del chatbot en el chat grupal ---------- */
+.chat-compose { position: relative; max-width: 880px; }
+.chat-compose .chat-bar { max-width: none; }
+.chat-slash-menu {
+  position: absolute; z-index: 30; left: 0; bottom: calc(100% + var(--s-2));
+  width: min(340px, 100%); padding: var(--s-1); border: 1px solid var(--line);
+  border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-card);
+}
+.chat-slash-menu[hidden] { display: none; }
+.chat-slash-option {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center;
+  gap: var(--s-2); width: 100%; padding: var(--s-2) var(--s-3); border: 0;
+  border-radius: var(--r-sm); background: var(--ink); color: var(--on-ink);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.chat-slash-option__icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--r-sm); background: color-mix(in srgb, var(--on-ink) 14%, transparent); }
+.chat-slash-option strong, .chat-slash-option small { display: block; }
+.chat-slash-option small { margin-top: 2px; color: color-mix(in srgb, var(--on-ink) 72%, transparent); font-size: var(--t-meta); }
+.chat-slash-option kbd { padding: 2px 7px; border: 1px solid color-mix(in srgb, var(--on-ink) 30%, transparent); border-radius: var(--r-xs); font: inherit; font-size: var(--t-meta); }
+
+
+/* "Pensando…" mientras el chatbot arma la propuesta */
+.chat-pensando { color: var(--ink-3); font-style: italic; }
+.chat-pensando::after { content: "…"; display: inline-block; width: 1.2em; text-align: left; animation: chat-pensando-puntos 1.2s steps(4, end) infinite; }
+@keyframes chat-pensando-puntos { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75%, 100% { content: "..."; } }
+@media (prefers-reduced-motion: reduce) { .chat-pensando::after { animation: none; content: "..."; } }
+
+.chat__toolbar { display: flex; justify-content: flex-end; padding-bottom: var(--s-2); }
+
+/* Opciones del cartel "Limpiar conversación" */
+.chat-limpiar-opciones { display: grid; gap: var(--s-3); }
+.chat-limpiar-opcion {
+  display: grid; gap: 2px; padding: var(--s-3) var(--s-4); text-align: left; cursor: pointer;
+  background: var(--surface); color: var(--ink); border: 0; border-radius: var(--r-lg); box-shadow: var(--sh-hair);
+}
+.chat-limpiar-opcion:hover, .chat-limpiar-opcion:focus-visible { box-shadow: 0 0 0 1.5px var(--ink); }
+.chat-limpiar-opcion small { color: var(--ink-3); font-size: var(--t-meta); }
+.chat-limpiar-opcion--peligro strong { color: var(--danger); }

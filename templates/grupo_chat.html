@@ -22,6 +22,10 @@
   <!-- CONTENEDOR COMÚN: mensajes e input comparten el mismo ancho -->
   <div class="chat">
 
+  <div class="chat__toolbar">
+    <button class="btn btn--ghost btn--sm" id="chat-limpiar" type="button" data-modal-open="modal-limpiar-chat">Limpiar conversación</button>
+  </div>
+
   <!-- MENSAJES DEL CHAT -->
   <div
     class="chat__messages"
@@ -35,15 +39,27 @@
 
 
   <!-- INPUT DEL CHAT -->
-  <div class="chat-bar">
+  <div class="chat-compose">
+
+    <div class="chat-slash-menu" id="chat-slash-menu" role="listbox" aria-label="Comandos" hidden>
+      <button class="chat-slash-option" id="chat-slash-chatbot" type="button" role="option" aria-selected="true">
+        <span class="chat-slash-option__icon" aria-hidden="true">✦</span>
+        <span><strong>Chatbot</strong><small>Armar un plan con el asistente</small></span>
+        <kbd>↵</kbd>
+      </button>
+    </div>
+
+    <div class="chat-bar">
 
     <textarea
       class="chat-bar__input input"
       id="group-chat-input"
       name="mensaje"
       rows="1"
-      placeholder="Escribile al grupo…"
+      placeholder="Escribile al grupo… Escribí / para usar el chatbot"
       aria-label="Escribir mensaje"
+      aria-haspopup="listbox"
+      aria-expanded="false"
     ></textarea>
 
     <button
@@ -58,7 +74,9 @@
       </svg>
     </button>
 
-  </div>
+    </div>
+
+  </div><!-- /chat-compose -->
 
   </div><!-- /group-chat-box -->
 
@@ -66,6 +84,33 @@
 
 
 {% include 'grupo_modales.html' %}
+
+<dialog class="modal" id="modal-limpiar-chat" aria-labelledby="modal-limpiar-chat-title">
+  <div class="modal-head">
+    <h2 class="modal-title" id="modal-limpiar-chat-title">Limpiar conversación</h2>
+    <button class="modal-close" type="button" data-cerrar-dialogo aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+  <div class="modal-body chat-limpiar-opciones">
+    <button class="chat-limpiar-opcion" type="button" data-limpiar="bot">
+      <strong>Limpiar el bot</strong>
+      <small>Borra tu conversación con el asistente y los mensajes que mencionan a @AhoraQue{% if not (es_admin or todos_admin) %} (los tuyos){% endif %}.</small>
+    </button>
+    {% if es_admin or todos_admin %}
+    <button class="chat-limpiar-opcion chat-limpiar-opcion--peligro" type="button" data-limpiar="todo">
+      <strong>Vaciar todo</strong>
+      <small>Borra todos los mensajes del grupo, de todos los integrantes. No se puede deshacer.</small>
+    </button>
+    {% endif %}
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn--secondary" type="button" data-cerrar-dialogo>Cancelar</button>
+  </div>
+</dialog>
 
 
 {% if logueado %}
@@ -82,6 +127,10 @@
 const chatMessages = document.getElementById("group-chat-messages");
 const chatInput = document.getElementById("group-chat-input");
 const chatSend = document.getElementById("group-chat-send");
+const slashMenu = document.getElementById("chat-slash-menu");
+const slashChatbot = document.getElementById("chat-slash-chatbot");
+let slashMenuActivo = false;
+let borradorVotableActivo = null;
 
 // Id del usuario logueado, para alinear a la derecha sus propios mensajes
 const MI_USER_ID = "{{ session.get('user_id', '') }}";
@@ -143,9 +192,17 @@ async function cargarMensajes() {
 
         });
 
+        const respuestasBot = Array.from(chatMessages.querySelectorAll("[data-bot-efimero]"));
         chatMessages.replaceChildren(fragmento);
+        respuestasBot.forEach(function (respuestaBot) {
+            const ancla = Array.from(chatMessages.querySelectorAll("[data-chat-message-id]"))
+                .find(function (nodo) { return nodo.dataset.chatMessageId === respuestaBot.dataset.afterMessageId; });
+            if (ancla) ancla.insertAdjacentElement("afterend", respuestaBot);
+            else chatMessages.appendChild(respuestaBot);
+        });
 
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        return datos.mensajes;
 
     } catch (error) {
 
@@ -174,6 +231,7 @@ function agregarMensaje(mensaje, anterior, destino = chatMessages) {
     const mensajeDiv = document.createElement("div");
 
     mensajeDiv.classList.add("chat-message");
+    mensajeDiv.dataset.chatMessageId = mensaje.id;
 
     if (esMio) {
         mensajeDiv.classList.add("is-own");
@@ -247,6 +305,19 @@ async function enviarMensaje() {
 
     try {
 
+        const invocacion = mensaje.match(/^@(?:ahora\s*que|ahoraque|bot)\b[:,]?\s*/i);
+        const contenido = invocacion ? mensaje.slice(invocacion[0].length).trim() : mensaje;
+        if (invocacion && !contenido) {
+            window.preguntar("Después de /Chatbot escribí qué plan querés armar.", false);
+            return;
+        }
+
+        if (borradorVotableActivo && /\b(?:si|sí|dale|me cierra|me gusta|de una|aprobado)\b/i.test(contenido)) {
+            chatInput.value = "";
+            await confirmarBorradorVotable();
+            return;
+        }
+
         const respuesta = await fetch(
             "{{ url_for('chat.enviar_mensaje', group_id=group.get_id()) }}",
             {
@@ -257,7 +328,7 @@ async function enviarMensaje() {
                 },
 
                 body: JSON.stringify({
-                    mensaje: mensaje
+                    mensaje: mensaje   // con el @AhoraQue incluido: así "Limpiar el bot" lo encuentra
                 })
             }
         );
@@ -271,7 +342,14 @@ async function enviarMensaje() {
 
         chatInput.value = "";
 
-        await cargarMensajes();
+        const indicador = invocacion ? crearIndicadorPensando("") : null;
+        const mensajesActuales = await cargarMensajes();
+        if (invocacion) {
+            const mensajeDelGrupo = (mensajesActuales || []).slice().reverse().find(function (item) {
+                return String(item.user_id) === MI_USER_ID && item.message === mensaje;
+            });
+            await pedirPlanAlAsistente(contenido, mensajeDelGrupo && mensajeDelGrupo.id, indicador);
+        }
 
     } catch (error) {
 
@@ -287,6 +365,208 @@ async function enviarMensaje() {
     }
 }
 
+
+function crearIndicadorPensando(anclaMensajeId) {
+    const esperando = document.createElement("div");
+    esperando.className = "chat-message chat-message--pensando";
+    // Marcado como efímero: cargarMensajes() lo vuelve a insertar en vez de borrarlo.
+    esperando.dataset.botEfimero = "1";
+    esperando.dataset.afterMessageId = anclaMensajeId || "";
+    esperando.setAttribute("role", "status");
+    esperando.setAttribute("aria-live", "polite");
+    const nombreEspera = document.createElement("span");
+    nombreEspera.className = "chat-message-author";
+    nombreEspera.textContent = "Ahora Qué";
+    esperando.appendChild(nombreEspera);
+    const burbujaEspera = document.createElement("div");
+    burbujaEspera.className = "chat-bubble";
+    const textoEspera = document.createElement("p");
+    textoEspera.className = "chat-pensando";
+    textoEspera.textContent = "Pensando";
+    burbujaEspera.appendChild(textoEspera);
+    esperando.appendChild(burbujaEspera);
+    chatMessages.appendChild(esperando);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return esperando;
+}
+
+
+async function pedirPlanAlAsistente(pedido, anclaMensajeId, esperando) {
+    esperando = esperando || crearIndicadorPensando(anclaMensajeId);
+    if (anclaMensajeId) esperando.dataset.afterMessageId = anclaMensajeId;
+
+    try {
+        const respuesta = await fetch("/chatbot/mensaje", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mensaje: pedido, grupo_id: "{{ group.get_id() }}" })
+        });
+        const datos = await respuesta.json();
+        if (!respuesta.ok) throw new Error(datos.error || "No se pudo armar el plan.");
+        esperando.remove();
+
+        const salida = document.createElement("div");
+        salida.className = "chat-message";
+        salida.dataset.botEfimero = "1";
+        salida.dataset.afterMessageId = anclaMensajeId || "";
+        const nombre = document.createElement("span");
+        nombre.className = "chat-message-author";
+        nombre.textContent = "Ahora Qué";
+        salida.appendChild(nombre);
+        const burbuja = document.createElement("div");
+        burbuja.className = "chat-bubble";
+        const parrafo = document.createElement("p");
+        const textoRespuesta = String(datos.respuesta || "").trim();
+        const pareceJson = /^(?:\{|\[)/.test(textoRespuesta);
+        parrafo.textContent = datos.borrador
+            ? "Armé esta propuesta para el grupo. Si les cierra, postúlenla: el horario se define en la votación."
+            : (pareceJson ? "No pude armar una propuesta legible. Probá describiendo de nuevo qué plan quieren." : textoRespuesta);
+        burbuja.appendChild(parrafo);
+        if (!datos.borrador) salida.appendChild(burbuja);
+
+        if (datos.borrador) {
+            const tarjeta = document.createElement("div");
+            tarjeta.className = "chatbot-borrador";
+            const etiqueta = document.createElement("p");
+            etiqueta.className = "chatbot-borrador-etiqueta";
+            etiqueta.textContent = "Propuesta lista para votar";
+            tarjeta.appendChild(etiqueta);
+            const titulo = document.createElement("p");
+            titulo.className = "chatbot-borrador-nombre";
+            titulo.textContent = datos.borrador.nombre;
+            tarjeta.appendChild(titulo);
+            if (datos.borrador.descripcion) {
+                const descripcion = document.createElement("p");
+                descripcion.className = "chatbot-borrador-descripcion";
+                descripcion.textContent = datos.borrador.descripcion;
+                tarjeta.appendChild(descripcion);
+            }
+            const lugares = document.createElement("p");
+            lugares.textContent = (datos.borrador.lugares || []).map(function (lugar) { return lugar.nombre; }).join(" → ");
+            tarjeta.appendChild(lugares);
+
+            const publicar = document.createElement("button");
+            publicar.type = "button";
+            publicar.className = "btn btn--primary";
+            publicar.textContent = "Postular al grupo para votar →";
+            const estaTarjeta = {
+                mensajeId: datos.borrador.mensaje_id,
+                boton: publicar,
+                tarjeta: tarjeta
+            };
+            // Cada tarjeta postula SU propia propuesta; la última queda como
+            // la que se confirma al escribir "dale" / "sí".
+            borradorVotableActivo = estaTarjeta;
+            publicar.addEventListener("click", function () { confirmarBorradorVotable(estaTarjeta); });
+            tarjeta.appendChild(publicar);
+            salida.appendChild(tarjeta);
+        }
+        chatMessages.appendChild(salida);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    } catch (error) {
+        esperando.remove();
+        window.preguntar(error.message, false);
+    }
+}
+
+
+async function confirmarBorradorVotable(borrador) {
+    borrador = borrador || borradorVotableActivo;
+    if (!borrador) return;
+    borrador.boton.disabled = true;
+    borrador.boton.textContent = "Postulando…";
+    try {
+        const guardado = await fetch("/chatbot/confirmar_plan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                mensaje_id: borrador.mensajeId,
+                grupo_id: "{{ group.get_id() }}",
+                desde_chat: true   // el horario se define después, en la votación
+            })
+        });
+        const resultado = await guardado.json();
+        if (!guardado.ok) throw new Error(resultado.error || "No se pudo abrir la votación.");
+        window.location.href = resultado.votacion_url;
+    } catch (error) {
+        borrador.boton.disabled = false;
+        borrador.boton.textContent = error.message || "Postular al grupo para votar →";
+    }
+}
+
+
+function actualizarMenuSlash() {
+    slashMenuActivo = chatInput.value === "/" && chatInput.selectionStart === 1;
+    slashMenu.hidden = !slashMenuActivo;
+    chatInput.setAttribute("aria-expanded", slashMenuActivo ? "true" : "false");
+}
+
+function elegirChatbot() {
+    chatInput.value = "@AhoraQue ";
+    slashMenuActivo = false;
+    slashMenu.hidden = true;
+    chatInput.setAttribute("aria-expanded", "false");
+    chatInput.focus();
+}
+
+chatInput.addEventListener("input", actualizarMenuSlash);
+chatInput.addEventListener("keydown", function(event) {
+    if (slashMenuActivo && (event.key === "Enter" || event.key === "Tab" || event.key === "ArrowDown")) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        elegirChatbot();
+    } else if (slashMenuActivo && event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        chatInput.value = "";
+        actualizarMenuSlash();
+    }
+});
+slashChatbot.addEventListener("click", elegirChatbot);
+
+
+const dialogoLimpiar = document.getElementById("modal-limpiar-chat");
+
+const TEXTOS_LIMPIAR = {
+    bot: {
+        pregunta: "¿Limpiar el bot? Se borra tu conversación con el asistente y los mensajes que mencionan a @AhoraQue.",
+        listo: "Listo, se limpió."
+    },
+    todo: {
+        pregunta: "¿Vaciar todo el chat? Se borran TODOS los mensajes del grupo, de todos los integrantes. No se puede deshacer.",
+        listo: "Listo, el chat quedó vacío."
+    }
+};
+
+async function limpiarChat(modo) {
+    dialogoLimpiar.close();
+    // Cartel propio de la app (window.preguntar), no el confirm() del navegador.
+    if (!await window.preguntar(TEXTOS_LIMPIAR[modo].pregunta)) return;
+
+    try {
+        const respuesta = await fetch(
+            "{{ url_for('chat.limpiar_chat', group_id=group.get_id()) }}",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ modo: modo })
+            }
+        );
+        const datos = await respuesta.json().catch(function () { return {}; });
+        if (!respuesta.ok) throw new Error(datos.error || "No se pudo limpiar el chat.");
+
+        chatMessages.querySelectorAll("[data-bot-efimero]").forEach(function (nodo) { nodo.remove(); });
+        borradorVotableActivo = null;
+        await cargarMensajes();
+        await window.preguntar(TEXTOS_LIMPIAR[modo].listo, false);
+    } catch (error) {
+        await window.preguntar(error.message, false);
+    }
+}
+
+dialogoLimpiar.querySelectorAll("[data-limpiar]").forEach(function (boton) {
+    boton.addEventListener("click", function () { limpiarChat(boton.dataset.limpiar); });
+});
 
 chatSend.addEventListener("click", enviarMensaje);
 

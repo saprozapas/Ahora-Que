@@ -6,7 +6,7 @@
 {% block content %}
 
 {% macro cuando(plan) -%}
-  {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} a las {{ plan.hora.strftime('%H:%M') }}{% endif %}
+  {% if plan.fecha %}{{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} a las {{ plan.hora.strftime('%H:%M') }}{% endif %}{% else %}una fecha a definir{% endif %}
 {%- endmacro %}
 
 {% macro si_no(nombre, valor) %}
@@ -138,8 +138,9 @@
         </header>
 
         <p class="meta board-plan__count">
-          {{ plan.votos }} de {{ plan.miembros }} votaron · {{ plan.gustan }} les gusta · {{ plan.pueden }} pueden
+          {{ plan.votos }} de {{ plan.miembros }} votaron · {{ plan.gustan }} les gusta{% if plan.fecha %} · {{ plan.pueden }} pueden{% endif %}
         </p>
+        {% if not plan.fecha %}<p class="meta">Si le gusta al grupo, después se elige el horario.</p>{% endif %}
 
         <form class="board-plan__form" method="post"
               action="{{ url_for('grupo_planes.votar', group_id=group.get_id(), plan_id=plan.id) }}">
@@ -148,10 +149,12 @@
               <legend>¿Te gusta la idea?</legend>
               <div class="seg">{{ si_no('me_gusta', plan.mi_gusta) }}</div>
             </fieldset>
+            {% if plan.fecha %}
             <fieldset class="field-group">
               <legend>¿Podés el {{ cuando(plan) }}?</legend>
               <div class="seg">{{ si_no('puedo', plan.mi_puedo) }}</div>
             </fieldset>
+            {% endif %}
           </div>
           <button class="btn btn--secondary" type="submit">
             {% if plan.mi_gusta is none %}Votar{% else %}Cambiar mi voto{% endif %}

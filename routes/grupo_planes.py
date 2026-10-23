@@ -142,9 +142,10 @@ def _ejecutar(group_id, accion, ok="Listo.", ancla="planes-grupo", mensajes=MENS
 @grupo_planes_bp.route("/planes/<plan_id>/votar", methods=["POST"])
 def votar(group_id, plan_id):
     def accion():
-        return grupo_plan_service.votar_plan(
-            group_id, plan_id, session["user_id"], _si_no("me_gusta"), _si_no("puedo")
-        )
+        me_gusta = _si_no("me_gusta")
+        # Un plan sin fecha todavía no pregunta "¿podés?": el campo no viene.
+        puedo = _si_no("puedo") if "puedo" in request.form else None
+        return grupo_plan_service.votar_plan(group_id, plan_id, session["user_id"], me_gusta, puedo)
     return _ejecutar(group_id, accion, "Voto guardado.", f"plan-{plan_id}")
 
 
