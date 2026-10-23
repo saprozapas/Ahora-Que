@@ -22,7 +22,9 @@
 
 
       {# ================= RACHA ACTUAL ================= #}
-      <div class="card racha-hero{% if racha.marco %} marco-tarjeta marco--{{ racha.marco }}{% endif %}">
+      <div class="racha-tablero">
+
+      <div class="card racha-hero{% if racha.marco %} marco-tarjeta marco--{{ racha.marco }} rango--{{ racha.marco }}{% endif %}">
 
         <div class="racha-numero{% if not racha.activa %} is-inactiva{% endif %}" role="img" aria-label="{{ racha.semanas }} semanas de racha">
           <span class="racha-numero__llama">{{ llama() }}</span>
@@ -71,8 +73,10 @@
       </div>
 
 
+      <div class="racha-lado">
+
       {# ================= ESTA SEMANA ================= #}
-      <section class="racha-bloque" aria-labelledby="racha-semana-titulo">
+      <section class="card racha-bloque racha-semana-card" aria-labelledby="racha-semana-titulo">
         <h2 class="h3" id="racha-semana-titulo">Esta semana</h2>
         <div class="racha-semana">
           {% for dia in racha.calendario %}
@@ -119,6 +123,11 @@
       </div>
 
 
+      </div>
+
+      </div>
+
+
       {# ================= HITOS ================= #}
       <section class="racha-bloque" aria-labelledby="racha-hitos-titulo">
 
@@ -127,13 +136,13 @@
         <div class="racha-hitos">
           {% for hito in racha.hitos %}
           <button
-            class="racha-hito{% if hito.logrado %} is-logrado{% elif hito.proximo %} is-proximo{% else %} is-bloqueado{% endif %}"
+            class="racha-hito{% if hito.logrado %} is-logrado{% elif hito.proximo %} is-proximo{% else %} is-bloqueado{% endif %}{% if hito.marco %} rango--{{ hito.marco }}{% endif %}"
             type="button"
             data-modal-open="modal-hito-{{ hito.semanas }}"
             aria-haspopup="dialog"
           >
             <strong>{{ hito.semanas }}</strong>
-            <span>semanas · {% if hito.logrado %}logrado{% elif hito.proximo %}próximo{% else %}bloqueado{% endif %}</span>
+            <span>{% if hito.marco %}{{ nombre_rango(hito.marco) | trim }}{% else %}semanas{% endif %} · {% if hito.logrado %}logrado{% elif hito.proximo %}próximo{% else %}bloqueado{% endif %}</span>
           </button>
 
           <dialog class="modal" id="modal-hito-{{ hito.semanas }}" aria-labelledby="modal-hito-{{ hito.semanas }}-title">

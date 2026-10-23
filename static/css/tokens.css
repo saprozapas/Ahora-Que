@@ -85,6 +85,7 @@
 
   /* ---------- 8. ESTADOS (decisión: --ok y --danger apagados, siempre con texto o ícono) ---------- */
   --ok:           #2E6B4A;   /* confirmado, guardado, aceptar */
+  --llama:           #C9742B;   /* la llama de una racha activa que todavía no tiene rango */
   /* Rangos y marcos de grupo (rachas): los planetas, un color sobrio por cada uno. */
   --marco-mercurio:  #7A7F86;   /* gris piedra */
   --marco-venus:     #D6A357;   /* ámbar pálido */
@@ -135,6 +136,7 @@
   --alert: #E8695F;
   --ok: #7CC79A;
   --info: #8DB6E2;
+  --llama:           #EE9A5D;
   --marco-mercurio:  #A3A8AF;
   --marco-venus:     #E3B672;
   --marco-tierra:    #6FA3DB;

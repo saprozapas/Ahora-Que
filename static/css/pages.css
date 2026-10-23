@@ -542,3 +542,26 @@
   .cal-dia__head { flex-wrap: nowrap; align-items: center; }
   .cal-dia__num { font-size: 1.25rem; }
 }
+
+
+/* ---------- Hero: las tarjetas del montón reaccionan al pasar el mouse ----------
+   La tarjeta se endereza, sube un poco y se acerca; las demás no se mueven. Solo con mouse. */
+.landing-pile > .item { transition: transform var(--d-base) var(--ease-out), box-shadow var(--d-base) var(--ease-out); will-change: transform; }
+.landing-pile .avatar { transition: transform var(--d-base) var(--ease-out); }
+.landing-demo__seg span { transition: background-color var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out); }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .landing-pile > .item:hover {
+    position: relative; z-index: 1;
+    transform: translateX(calc(var(--x, 0px) - 8px)) translateY(-4px) rotate(0deg) scale(1.02);
+    box-shadow: var(--sh-float);
+  }
+  .landing-pile > .item:hover .avatar { transform: scale(1.1); }
+  .landing-pile > .item:hover .item__name { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 0.2em; }
+  .landing-demo__seg span:not(.is-on):hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+}
+
+/* El selector de público se queda de su propio alto y centrado con los chips de al lado
+   (el contenedor flex lo estiraba y la pastilla quedaba arriba, con aire de más abajo). */
+.landing-demo__filters { align-items: center; }
+.landing-demo__seg { align-self: center; align-content: center; }

@@ -30,8 +30,8 @@
 
 {% macro racha_chip(racha, enlace=none) %}
 {% set titulo = nombre_titulo(racha.titulo_color) | trim if racha.titulo_color else '' %}
-{% if enlace %}<a class="racha-chip{% if not racha.activa %} is-inactiva{% endif %}" href="{{ enlace }}" aria-label="Racha del grupo: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
-{% else %}<span class="racha-chip{% if not racha.activa %} is-inactiva{% endif %}" aria-label="Racha: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
+{% if enlace %}<a class="racha-chip{% if racha.marco %} rango--{{ racha.marco }}{% endif %}{% if not racha.activa %} is-inactiva{% endif %}" href="{{ enlace }}" aria-label="Racha del grupo: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
+{% else %}<span class="racha-chip{% if racha.marco %} rango--{{ racha.marco }}{% endif %}{% if not racha.activa %} is-inactiva{% endif %}" aria-label="Racha: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
 {% endif %}
   {{ llama() }}<span class="racha-chip__n">{{ racha.semanas }}</span>{% if titulo %}<span class="racha-chip__titulo">{{ titulo }}</span>{% endif %}
 {% if enlace %}</a>{% else %}</span>{% endif %}

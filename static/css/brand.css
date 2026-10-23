@@ -830,7 +830,7 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 
 /* Segmented con radios reales (precio máximo, puntaje). Si no entra en
    el ancho, se desplaza como .chips en vez de ensanchar la página. */
-.seg { max-width: 100%; flex-wrap: wrap; }
+.seg { max-width: 100%; flex-wrap: wrap; align-content: flex-start; }
 .seg label { position: relative; display: inline-flex; }
 .seg label input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .seg label span {
