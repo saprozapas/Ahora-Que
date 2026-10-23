@@ -53,6 +53,50 @@
 <span class="avatar emblema{% if marco %} marco marco--{{ marco }}{% endif %}" style="--h: {{ (nombre | length * 47) % 360 }}; --size: {{ tam }}px"{% if marco %} title="Rango {{ nombre_rango(marco) | trim }}"{% endif %} aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
 {%- endmacro %}
 
+{# Planeta del rango (mercurio, venus, tierra, marte, jupiter o saturno): un dibujo plano, en el color del rango,
+   con el detalle justo para reconocerlo. Sin rango todavía no se dibuja nada. #}
+{% macro planeta(clave, tam=64) -%}
+{% if clave %}
+<svg class="planeta planeta--{{ clave }}" viewBox="0 0 64 64" width="{{ tam }}" height="{{ tam }}" role="img" aria-label="{{ nombre_rango(clave) | trim }}" focusable="false">
+  <defs>
+    <radialGradient id="pl-luz-{{ clave }}" cx="34%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".38" />
+      <stop offset=".55" stop-color="#fff" stop-opacity="0" />
+      <stop offset="1" stop-color="#000" stop-opacity=".26" />
+    </radialGradient>
+    <clipPath id="pl-clip-{{ clave }}"><circle cx="32" cy="32" r="{{ 15 if clave == 'saturno' else 22 }}" /></clipPath>
+  </defs>
+  {% if clave == 'saturno' %}
+  <g transform="rotate(-18 32 32)">
+    <ellipse cx="32" cy="32" rx="29" ry="8" fill="none" stroke="var(--planeta-anillo)" stroke-width="3.5" />
+    <ellipse cx="32" cy="32" rx="23" ry="5.8" fill="none" stroke="var(--planeta-anillo)" stroke-width="1.4" opacity=".7" />
+  </g>
+  {% endif %}
+  <circle cx="32" cy="32" r="{{ 15 if clave == 'saturno' else 22 }}" fill="var(--planeta)" />
+  <g clip-path="url(#pl-clip-{{ clave }})">
+    {% if clave == 'mercurio' %}
+    <circle cx="24" cy="26" r="4" fill="#000" opacity=".16" /><circle cx="39" cy="38" r="5.5" fill="#000" opacity=".16" /><circle cx="28" cy="43" r="2.6" fill="#000" opacity=".16" />
+    {% elif clave == 'venus' %}
+    <path d="M8 26c9 5 17-5 26 0s15-3 22 1" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="3" stroke-linecap="round" />
+    <path d="M8 38c9 5 17-5 26 0s15-3 22 1" fill="none" stroke="#fff" stroke-opacity=".38" stroke-width="3" stroke-linecap="round" />
+    {% elif clave == 'tierra' %}
+    <path d="M18 24c4-5 9-4 11 0s-2 7-5 8-8 0-6-8Z" fill="var(--planeta-tierra)" /><path d="M35 34c5-3 11 0 10 6s-6 8-10 5-3-8 0-11Z" fill="var(--planeta-tierra)" />
+    <path d="M12 40c9-3 14 4 22 1s11-1 18 2" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.4" stroke-linecap="round" />
+    {% elif clave == 'marte' %}
+    <path d="M20 30c5-4 9 0 13-3s9 1 7 6-8 4-13 3-10 1-7-6Z" fill="#000" opacity=".16" /><ellipse cx="32" cy="12" rx="8" ry="3.4" fill="#fff" opacity=".6" />
+    {% elif clave == 'jupiter' %}
+    <rect x="8" y="20" width="48" height="5" fill="#fff" opacity=".34" /><rect x="8" y="30" width="48" height="6" fill="#000" opacity=".16" /><rect x="8" y="41" width="48" height="4" fill="#fff" opacity=".3" />
+    <ellipse cx="40" cy="38.5" rx="4.6" ry="2.6" fill="var(--planeta-mancha)" />
+    {% endif %}
+  </g>
+  <circle cx="32" cy="32" r="{{ 15 if clave == 'saturno' else 22 }}" fill="url(#pl-luz-{{ clave }})" />
+  {% if clave == 'saturno' %}
+  <g transform="rotate(-18 32 32)"><path d="M3 32a29 8 0 0 0 58 0" fill="none" stroke="var(--planeta-anillo)" stroke-width="3.5" /></g>
+  {% endif %}
+</svg>
+{% endif %}
+{%- endmacro %}
+
 {% macro racha_chip(racha, enlace=none) %}
 {% set titulo = nombre_titulo(racha.titulo_color) | trim if racha.titulo_color else '' %}
 {% if enlace %}<a class="racha-chip{% if racha.marco %} rango--{{ racha.marco }}{% endif %}{% if not racha.activa %} is-inactiva{% endif %}" href="{{ enlace }}" aria-label="Racha del grupo: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">

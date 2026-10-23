@@ -147,7 +147,7 @@
 
 /* ==========================================================================
    Planes del grupo: cada sección es una fila que se recorre hacia los costados
-   (3 por página en escritorio, 2 en tablet, 1 en celular), sin scroll vertical.
+   (2 por página en escritorio y tablet, 1 en celular), sin scroll vertical.
    ========================================================================== */
 
 .board { max-width: none; gap: var(--s-6); }
@@ -157,7 +157,7 @@
 .board__nav .meta { margin-right: var(--s-2); }
 
 .board-pista {
-  --por-pagina: 3; --hueco: var(--s-4);
+  --por-pagina: 2; --hueco: var(--s-4);
   display: grid; grid-auto-flow: column; gap: var(--hueco);
   grid-auto-columns: calc((100% - (var(--por-pagina) - 1) * var(--hueco)) / var(--por-pagina));
   overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory;
@@ -165,7 +165,6 @@
 }
 .board-pista::-webkit-scrollbar { display: none; }
 .board-pista > .board-plan { scroll-snap-align: start; min-width: 0; align-content: start; }
-@media (max-width: 900px) { .board-pista { --por-pagina: 2; } }
 @media (max-width: 650px) { .board-pista { --por-pagina: 1; } }
 
 /* Tarjetas angostas: el contenido se apila y los votos caben en una columna. */
@@ -180,3 +179,18 @@
   .board__nav .meta { white-space: nowrap; margin-right: var(--s-1); }
   .board__head > .meta:not(.board__nav .meta) { display: none; }
 }
+
+/* Planeta del rango en la tarjeta de cada grupo (esquina superior derecha). */
+.planeta {
+  --planeta: var(--marco-mercurio); --planeta-anillo: color-mix(in srgb, var(--marco-saturno) 80%, #fff);
+  --planeta-tierra: #4C8A5C; --planeta-mancha: #8E4A2E;
+  display: block; flex: none; filter: drop-shadow(0 6px 8px color-mix(in srgb, var(--planeta) 35%, transparent));
+}
+.planeta--mercurio { --planeta: var(--marco-mercurio); }
+.planeta--venus    { --planeta: var(--marco-venus); }
+.planeta--tierra   { --planeta: var(--marco-tierra); }
+.planeta--marte    { --planeta: var(--marco-marte); }
+.planeta--jupiter  { --planeta: var(--marco-jupiter); }
+.planeta--saturno  { --planeta: var(--marco-saturno); --planeta-anillo: color-mix(in srgb, var(--marco-saturno) 70%, var(--ink)); }
+.group-tile { position: relative; }
+.group-tile__planeta { position: absolute; top: var(--s-4); right: var(--s-4); line-height: 0; pointer-events: none; }
