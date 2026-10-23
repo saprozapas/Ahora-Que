@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import racha_chip %}
+{% from '_macros.html' import racha_chip, nombre_rango %}
 
 {% block title %}Grupos — Ahora Qué{% endblock %}
 
@@ -79,7 +79,7 @@
 
       <li data-grupo>
         {% if group_id %}
-        <a class="card plan-tile group-tile{% if group_racha and group_racha.marco %} marco-tarjeta marco--{{ group_racha.marco }}{% endif %}" href="/grupos/{{ group_id }}"{% if group_racha and group_racha.marco %} title="Marco de {{ group_racha.marco }}"{% endif %}>
+        <a class="card plan-tile group-tile{% if group_racha and group_racha.marco %} marco-tarjeta marco--{{ group_racha.marco }}{% endif %}" href="/grupos/{{ group_id }}"{% if group_racha and group_racha.marco %} title="Rango {{ nombre_rango(group_racha.marco) | trim }}"{% endif %}>
           {{ contenido_de_tarjeta(group, group_racha) }}
         </a>
         {% else %}

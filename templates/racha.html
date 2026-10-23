@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import llama, nombre_titulo, emblema %}
+{% from '_macros.html' import llama, nombre_rango, emblema %}
 
 {% block title %}Racha — {{ group.get_name() }} — Ahora Qué{% endblock %}
 
@@ -43,13 +43,12 @@
             <p>La racha comienza cuando el grupo completa un plan.</p>
           {% endif %}
 
-          {% if racha.titulo_color %}
-          <p class="meta">Título del grupo: <strong>{{ nombre_titulo(racha.titulo_color) | trim }}</strong></p>
-          {% endif %}
-
           <p class="racha-marco">
             {{ emblema(group.get_name(), none, 44) }}
-            <span class="meta">{% if racha.marco %}Marco de {{ racha.marco }}.{% else %}Todavía sin marco: el primero llega a las 3 semanas.{% endif %}</span>
+            <span class="meta">
+              {% if racha.marco %}Rango actual: <strong>{{ nombre_rango(racha.marco) | trim }}</strong>. Que siga el viaje.
+              {% else %}Todavía sin rango: el primero, Mercurio, llega a las 3 semanas.{% endif %}
+            </span>
           </p>
 
           <div class="progreso">
@@ -154,31 +153,18 @@
                 <div class="racha-hito-preview{% if hito.marco %} marco-tarjeta marco--{{ hito.marco }}{% endif %}">
                   {{ emblema(group.get_name(), none, 44) }}
                   <span class="racha-hito-preview__nombre">{{ group.get_name() }}</span>
-                  <span class="racha-chip">{{ llama() }}<span class="racha-chip__n">{{ hito.semanas }}</span>{% if hito.titulo_color %}<span class="racha-chip__titulo">{{ nombre_titulo(hito.titulo_color) | trim }}</span>{% endif %}</span>
+                  <span class="racha-chip">{{ llama() }}<span class="racha-chip__n">{{ hito.semanas }}</span>{% if hito.titulo_color %}<span class="racha-chip__titulo">{{ nombre_rango(hito.titulo_color) | trim }}</span>{% endif %}</span>
                 </div>
 
-                {% if hito.semanas == 3 %}
-                  <div class="racha-premio"><strong>Marco de hierro</strong><span>Un marco para el grupo.</span></div>
-                {% elif hito.semanas == 5 %}
-                  <div class="racha-premio"><strong>Título amatista</strong><span>El grupo suma el título «Amatista».</span></div>
-                {% elif hito.semanas == 10 %}
-                  <div class="racha-premio"><strong>Marco de bronce</strong><span>Un marco para el grupo.</span></div>
-                {% elif hito.semanas == 20 %}
-                  <div class="racha-premio"><strong>Invitación + título plata</strong><span>Una salida para comer o tomar algo y el título «Plata».</span></div>
-                {% elif hito.semanas == 30 %}
-                  <div class="racha-premio"><strong>Marco de plata</strong><span>Un marco para el grupo.</span></div>
-                {% elif hito.semanas == 40 %}
-                  <div class="racha-premio"><strong>Invitación + título oro</strong><span>Una salida para comer o tomar algo y el título «Oro».</span></div>
-                {% elif hito.semanas == 50 %}
-                  <div class="racha-premio"><strong>Título magenta</strong><span>El grupo suma el título «Magenta».</span></div>
-                {% elif hito.semanas == 70 %}
-                  <div class="racha-premio"><strong>Marco de oro</strong><span>Un marco para el grupo.</span></div>
+                {% if hito.marco %}
+                  <div class="racha-premio">
+                    <strong>Alcanzaron {{ nombre_rango(hito.marco) | trim }}.</strong>
+                    <span>Que siga el viaje. El grupo suma el rango y el marco de {{ nombre_rango(hito.marco) | trim }}{% if hito.semanas in [20, 40] %}, y una invitación para comer o tomar algo{% endif %}.</span>
+                  </div>
                 {% elif hito.semanas == 90 %}
-                  <div class="racha-premio"><strong>Invitación + título hielo</strong><span>Una salida para comer o tomar algo y el título «Hielo».</span></div>
-                {% elif hito.semanas == 100 %}
-                  <div class="racha-premio"><strong>Marco de esmeralda</strong><span>Un marco para el grupo.</span></div>
+                  <div class="racha-premio"><strong>Invitación</strong><span>Una salida para comer o tomar algo. Que siga el viaje.</span></div>
                 {% else %}
-                  <div class="racha-premio"><strong>Nuevo título</strong><span>Un título nuevo para el grupo.</span></div>
+                  <div class="racha-premio"><strong>Otra marca en el viaje</strong><span>{{ hito.semanas }} semanas juntos. Que siga el viaje.</span></div>
                 {% endif %}
 
                 {% if hito.semanas in [20, 40, 90] %}

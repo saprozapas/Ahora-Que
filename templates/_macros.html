@@ -12,18 +12,20 @@
 {%- endmacro %}
 
 
-{# Nombre del título de la racha (antes era un color). Sin color: ícono + etiqueta. #}
-{% macro nombre_titulo(clave) -%}
-{{ {'amatista': 'Amatista', 'plata': 'Plata', 'oro': 'Oro', 'magenta': 'Magenta', 'hielo': 'Hielo'}.get(clave, '') }}
+{# Rango de la racha: un planeta (Mercurio, Venus, Tierra, Marte, Júpiter o Saturno). Es a la vez el
+   título que muestra el chip y el marco de la tarjeta del grupo. #}
+{% macro nombre_rango(clave) -%}
+{{ {'mercurio': 'Mercurio', 'venus': 'Venus', 'tierra': 'Tierra', 'marte': 'Marte', 'jupiter': 'Júpiter', 'saturno': 'Saturno'}.get(clave, '') }}
 {%- endmacro %}
+{% macro nombre_titulo(clave) -%}{{ nombre_rango(clave) }}{%- endmacro %}
 
 
 {# Chip de racha: llama + semanas y, si el grupo ganó un título, su nombre.
    `enlace` (opcional) lo vuelve un link a la pantalla de la racha. #}
-{# Emblema del grupo: su inicial en un avatar. Con `marco` (hierro, bronce, plata, oro o esmeralda,
-   según la racha) lleva un anillo del color de ese marco. #}
+{# Emblema del grupo: su inicial en un avatar. Con `marco` (el rango: mercurio, venus, tierra, marte,
+   jupiter o saturno) lleva un anillo del color de ese rango. #}
 {% macro emblema(nombre, marco=none, tam=56) -%}
-<span class="avatar emblema{% if marco %} marco marco--{{ marco }}{% endif %}" style="--h: {{ (nombre | length * 47) % 360 }}; --size: {{ tam }}px"{% if marco %} title="Marco de {{ marco }}"{% endif %} aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
+<span class="avatar emblema{% if marco %} marco marco--{{ marco }}{% endif %}" style="--h: {{ (nombre | length * 47) % 360 }}; --size: {{ tam }}px"{% if marco %} title="Rango {{ nombre_rango(marco) | trim }}"{% endif %} aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
 {%- endmacro %}
 
 {% macro racha_chip(racha, enlace=none) %}

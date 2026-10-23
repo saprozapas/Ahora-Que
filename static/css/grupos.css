@@ -249,14 +249,22 @@
 
 
 /* ---------- Marcos de grupo (rachas) ----------
-   El marco rodea TODA la tarjeta del grupo: un filete del color del rango y un velo muy suave del mismo
+   El marco rodea TODA la tarjeta del grupo: un filete del color del rango (un planeta) y un velo muy suave del mismo
    color arriba. Cuanto más alto el rango, un poco más de brillo; sin degradados fuertes ni animaciones,
    para seguir siendo Sereno. Los colores salen de --marco-*, así que cambiar los nombres no toca el CSS. */
-.marco--hierro    { --marco: var(--marco-hierro);    --brillo: 0%; }
-.marco--bronce    { --marco: var(--marco-bronce);    --brillo: 0%; }
-.marco--plata     { --marco: var(--marco-plata);     --brillo: 35%; }
-.marco--oro       { --marco: var(--marco-oro);       --brillo: 50%; }
-.marco--esmeralda { --marco: var(--marco-esmeralda); --brillo: 55%; }
+.marco--mercurio { --marco: var(--marco-mercurio); --brillo: 0%; }
+.marco--venus    { --marco: var(--marco-venus);    --brillo: 0%; }
+.marco--tierra   { --marco: var(--marco-tierra);   --brillo: 30%; }
+.marco--marte    { --marco: var(--marco-marte);    --brillo: 35%; }
+.marco--jupiter  { --marco: var(--marco-jupiter);  --brillo: 45%; }
+.marco--saturno  { --marco: var(--marco-saturno);  --brillo: 55%; }
+
+/* Saturno tiene anillos: su marco lleva un segundo filete, separado del primero por un respiro. */
+.marco-tarjeta.marco--saturno,
+.marco-panel.marco--saturno {
+  box-shadow: 0 0 0 1.5px var(--marco), 0 0 0 4px var(--surface), 0 0 0 5.5px var(--marco),
+              0 8px 22px -12px color-mix(in srgb, var(--marco) var(--brillo), transparent), var(--sh-card);
+}
 
 .marco-tarjeta,
 .marco-panel {
@@ -275,5 +283,5 @@ a.marco-tarjeta:hover { box-shadow: 0 0 0 2px var(--marco), 0 10px 26px -12px co
 
 /* Muestra de color en el selector de "Editar grupo". */
 .cosmetic-choice--marco { gap: var(--s-2); }
-.marco-muestra { flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--marco, var(--marco-hierro)); box-shadow: 0 0 0 2px var(--surface); }
+.marco-muestra { flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--marco, var(--marco-mercurio)); box-shadow: 0 0 0 2px var(--surface); }
 .cosmetic-choice--marco[aria-pressed="true"] .marco-muestra { box-shadow: 0 0 0 2px var(--ink); }

@@ -1,4 +1,4 @@
-{% from '_macros.html' import nombre_titulo %}
+{% from '_macros.html' import nombre_rango %}
 <!-- =========================================================================
      MODAL — INVITAR
      ========================================================================== -->
@@ -338,31 +338,20 @@
       </div>
 
       <div class="modal-field">
-        <span class="modal-field-label" id="editar-titulo-label">Título de la racha</span>
-        <input type="hidden" name="titulo_semanas" value="{{ racha.titulo_semanas or '' }}" data-cosmetic-value="titulo">
-        <div class="cosmetic-carousel" role="group" aria-labelledby="editar-titulo-label">
-          <button class="chip cosmetic-choice" type="button" data-cosmetic-choice="titulo" data-value="" aria-pressed="{{ 'true' if not racha.titulo_semanas else 'false' }}">Ninguno</button>
-          {% for hito in racha.hitos if hito.titulo_color %}
-          <button class="chip cosmetic-choice" type="button" data-cosmetic-choice="titulo" data-value="{{ hito.semanas }}" aria-pressed="{{ 'true' if hito.semanas == racha.titulo_semanas else 'false' }}" {% if not hito.logrado %}disabled{% endif %}>
-            {{ nombre_titulo(hito.titulo_color) | trim }}{% if not hito.logrado %} <span class="meta">· {{ hito.semanas }} sem.</span>{% endif %}
-          </button>
-          {% endfor %}
-        </div>
-      </div>
-
-      <div class="modal-field">
-        <span class="modal-field-label" id="editar-marco-label">Marco del grupo</span>
-        <input type="hidden" name="marco_semanas" value="{{ racha.marco_semanas or '' }}" data-cosmetic-value="marco">
+        <span class="modal-field-label" id="editar-rango-label">Rango del grupo</span>
+        {# El rango es a la vez el título del chip y el marco de la tarjeta: un solo control escribe los dos campos. #}
+        <input type="hidden" name="titulo_semanas" value="{{ racha.titulo_semanas or '' }}" data-cosmetic-value="rango">
+        <input type="hidden" name="marco_semanas" value="{{ racha.marco_semanas or '' }}" data-cosmetic-value="rango">
         {% if racha.marcos_desbloqueados %}
-        <div class="cosmetic-carousel" role="group" aria-labelledby="editar-marco-label">
+        <div class="cosmetic-carousel" role="group" aria-labelledby="editar-rango-label">
           {% for hito in racha.hitos if hito.marco %}
-          <button class="chip cosmetic-choice cosmetic-choice--marco" type="button" data-cosmetic-choice="marco" data-value="{{ hito.semanas }}" aria-pressed="{{ 'true' if hito.semanas == racha.marco_semanas else 'false' }}" {% if not hito.logrado %}disabled{% endif %}>
-            <span class="marco-muestra marco--{{ hito.marco }}" aria-hidden="true"></span>{{ hito.marco | capitalize }}{% if not hito.logrado %} <span class="meta">· {{ hito.semanas }} sem.</span>{% endif %}
+          <button class="chip cosmetic-choice cosmetic-choice--marco" type="button" data-cosmetic-choice="rango" data-value="{{ hito.semanas }}" aria-pressed="{{ 'true' if hito.semanas == racha.marco_semanas else 'false' }}" {% if not hito.logrado %}disabled{% endif %}>
+            <span class="marco-muestra marco--{{ hito.marco }}" aria-hidden="true"></span>{{ nombre_rango(hito.marco) | trim }}{% if not hito.logrado %} <span class="meta">· {{ hito.semanas }} sem.</span>{% endif %}
           </button>
           {% endfor %}
         </div>
         {% else %}
-        <p class="meta">El primer marco (hierro) se desbloquea a las 3 semanas de racha.</p>
+        <p class="meta">El primer rango, Mercurio, llega a las 3 semanas de racha.</p>
         {% endif %}
       </div>
 
@@ -454,9 +443,9 @@
       if (choice.disabled) return;
       var kind = choice.dataset.cosmeticChoice;
       var carousel = choice.closest('.cosmetic-carousel');
-      var hidden = document.querySelector('[data-cosmetic-value="' + kind + '"]');
-      if (!carousel || !hidden) return;
-      hidden.value = choice.dataset.value;
+      var campos = document.querySelectorAll('[data-cosmetic-value="' + kind + '"]');
+      if (!carousel || !campos.length) return;
+      campos.forEach(function (campo) { campo.value = choice.dataset.value; });
       carousel.querySelectorAll('[data-cosmetic-choice]').forEach(function (item) {
         var selected = item === choice;
         item.setAttribute('aria-pressed', selected ? 'true' : 'false');

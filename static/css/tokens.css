@@ -85,12 +85,13 @@
 
   /* ---------- 8. ESTADOS (decisión: --ok y --danger apagados, siempre con texto o ícono) ---------- */
   --ok:           #2E6B4A;   /* confirmado, guardado, aceptar */
-  /* Marcos de grupo (rachas): un anillo en el avatar, sobrio. */
-  --marco-hierro:    #6F757C;
-  --marco-bronce:    #B5784A;
-  --marco-plata:     #9AA4AF;
-  --marco-oro:       #C79E3C;
-  --marco-esmeralda: #2F9573;
+  /* Rangos y marcos de grupo (rachas): los planetas, un color sobrio por cada uno. */
+  --marco-mercurio:  #7A7F86;   /* gris piedra */
+  --marco-venus:     #D6A357;   /* ámbar pálido */
+  --marco-tierra:    #3F78B6;   /* azul océano */
+  --marco-marte:     #B4533C;   /* terracota */
+  --marco-jupiter:   #BC7F4B;   /* ocre cobrizo */
+  --marco-saturno:   #C7B681;   /* dorado pálido */
   --info:         #2B5C8E;   /* en curso / respondiendo (AA sobre claro) */
   --info-soft:    color-mix(in srgb, var(--info) 11%, var(--surface));
   --ok-soft:      color-mix(in srgb, var(--ok) 11%, var(--surface));
@@ -134,11 +135,12 @@
   --alert: #E8695F;
   --ok: #7CC79A;
   --info: #8DB6E2;
-  --marco-hierro:    #9AA0A8;
-  --marco-bronce:    #D49A6A;
-  --marco-plata:     #C4CCD6;
-  --marco-oro:       #E2BE62;
-  --marco-esmeralda: #5CC7A0;
+  --marco-mercurio:  #A3A8AF;
+  --marco-venus:     #E3B672;
+  --marco-tierra:    #6FA3DB;
+  --marco-marte:     #DB7C65;
+  --marco-jupiter:   #D49B69;
+  --marco-saturno:   #E0D1A1;
   --danger: #EE8C83;
   --on-danger: #151515;
 
