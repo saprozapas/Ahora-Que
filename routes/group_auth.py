@@ -129,9 +129,19 @@ def chat_grupo(group_id):
     group.set_user(getUser(session.get("user_id")))
     racha = racha_service.actualizar_racha(group_id)
     es_admin, todos_admin = group_auth_service.get_rol(session.get("user_id"), group_id)
+    integrantes = getUsersInGroupWithIds(group_id)
+    # Quiénes se pueden mencionar con @ en el chat: se los nombra por su username (o su nombre sin espacios).
+    integrantes_chat = [
+        {
+            "id": str(i["id"]),
+            "handle": "".join(ChatService._nombre_visible(i["user"].get_username(), i["user"].get_name()).split()),
+            "nombre": i["user"].get_name(),
+        }
+        for i in integrantes
+    ]
     return render_template("grupo_chat.html", group=group, groups_page=True,
-                           users=getUsersInGroupWithIds(group_id), seccion="chat", racha=racha,
-                           es_admin=es_admin, todos_admin=todos_admin)
+                           users=integrantes, seccion="chat", racha=racha,
+                           es_admin=es_admin, todos_admin=todos_admin, integrantes_chat=integrantes_chat)
 
 
 @group_auth.route("/grupos/<group_id>/invitables")

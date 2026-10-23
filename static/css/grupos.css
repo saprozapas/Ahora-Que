@@ -456,3 +456,21 @@ a.marco-tarjeta:hover { box-shadow: 0 0 0 2.5px var(--marco), 0 10px 26px -12px 
 /* En la pantalla fija del chat, la barra de escribir (con el menú "/") queda pegada abajo. */
 .chat > .chat-compose { position: sticky; bottom: 0; z-index: 5; padding-block: var(--s-3); background: var(--paper); }
 .chat-compose .chat-bar { position: static; padding-block: 0; background: none; }
+
+/* ---------- Menciones en el chat (@AhoraQue, @all, @integrante) ---------- */
+.chat-mention-menu { max-height: 260px; overflow-y: auto; display: grid; gap: 2px; }
+.chat-mention-menu .chat-slash-option { background: transparent; color: var(--ink); }
+.chat-mention-menu .chat-slash-option__icon { background: var(--paper-deep); color: var(--ink-2); font-weight: 600; }
+.chat-mention-menu .chat-slash-option small { color: var(--ink-3); }
+.chat-mention-menu .chat-slash-option:hover,
+.chat-mention-menu .chat-slash-option.is-activa { background: var(--ink); color: var(--on-ink); }
+.chat-mention-menu .chat-slash-option:hover small,
+.chat-mention-menu .chat-slash-option.is-activa small { color: color-mix(in srgb, var(--on-ink) 72%, transparent); }
+.chat-mention-menu .chat-slash-option:hover .chat-slash-option__icon,
+.chat-mention-menu .chat-slash-option.is-activa .chat-slash-option__icon { background: color-mix(in srgb, var(--on-ink) 16%, transparent); color: var(--on-ink); }
+
+/* La mención queda marcada dentro de la burbuja; la del bot y @all, y las que te nombran a vos, un poco más. */
+.chat-mencion { padding: 0 5px; border-radius: var(--r-xs); font-weight: 600; background: var(--info-soft); color: var(--info); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--info) 28%, transparent); }
+.chat-mencion--bot, .chat-mencion--all { background: color-mix(in srgb, var(--info) 18%, var(--surface)); }
+.chat-mencion--yo { background: var(--info); color: var(--on-danger); box-shadow: none; }
+.chat-message.is-own .chat-mencion { background: color-mix(in srgb, var(--on-ink) 20%, transparent); color: var(--on-ink); box-shadow: none; }

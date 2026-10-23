@@ -43,13 +43,7 @@
   <!-- INPUT DEL CHAT -->
   <div class="chat-compose">
 
-    <div class="chat-slash-menu" id="chat-slash-menu" role="listbox" aria-label="Comandos" hidden>
-      <button class="chat-slash-option" id="chat-slash-chatbot" type="button" role="option" aria-selected="true">
-        <span class="chat-slash-option__icon" aria-hidden="true">✦</span>
-        <span><strong>Chatbot</strong><small>Armar un plan con el asistente</small></span>
-        <kbd>↵</kbd>
-      </button>
-    </div>
+    <div class="chat-slash-menu chat-mention-menu" id="chat-mention-menu" role="listbox" aria-label="Mencionar" hidden></div>
 
     <div class="chat-bar">
 
@@ -58,7 +52,7 @@
       id="group-chat-input"
       name="mensaje"
       rows="1"
-      placeholder="Escribile al grupo… Escribí / para usar el chatbot"
+      placeholder="Escribile al grupo… Escribí @ para mencionar o llamar al chatbot"
       aria-label="Escribir mensaje"
       aria-haspopup="listbox"
       aria-expanded="false"
@@ -131,13 +125,34 @@
 const chatMessages = document.getElementById("group-chat-messages");
 const chatInput = document.getElementById("group-chat-input");
 const chatSend = document.getElementById("group-chat-send");
-const slashMenu = document.getElementById("chat-slash-menu");
-const slashChatbot = document.getElementById("chat-slash-chatbot");
-let slashMenuActivo = false;
+const mentionMenu = document.getElementById("chat-mention-menu");
 let borradorVotableActivo = null;
 
 // Id del usuario logueado, para alinear a la derecha sus propios mensajes
 const MI_USER_ID = "{{ session.get('user_id', '') }}";
+
+// Integrantes mencionables. El "handle" es cómo se los identifica en el chat: su username
+// (o su nombre sin espacios si el username es un mail o está vacío).
+const INTEGRANTES = {{ integrantes_chat | tojson }};
+
+const MENCIONES_ESPECIALES = [
+    { handle: "AhoraQue", etiqueta: "AhoraQue", detalle: "Chatbot · armar un plan con el asistente", tipo: "bot", icono: "✦" },
+    { handle: "all", etiqueta: "all", detalle: "Avisar a todo el grupo", tipo: "all", icono: "@" }
+];
+
+// Sin acentos y en minúsculas, para comparar lo que se escribe con los handles.
+function normalizar(texto) {
+    return String(texto || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+// Alias con los que se reconoce una mención ya escrita.
+const ALIAS_MENCION = new Map();
+[["ahoraque", "bot"], ["bot", "bot"], ["all", "all"], ["todos", "all"]].forEach(function (par) {
+    ALIAS_MENCION.set(par[0], par[1]);
+});
+INTEGRANTES.forEach(function (persona) {
+    ALIAS_MENCION.set(normalizar(persona.handle), String(persona.id) === MI_USER_ID ? "yo" : "persona");
+});
 
 // Si pasan más de 30 min entre dos mensajes, se muestra la hora al lado
 const GAP_HORA_MS = 30 * 60 * 1000;
@@ -236,6 +251,40 @@ async function cargarMensajes() {
 }
 
 
+// Escribe el texto en `nodo` resaltando las menciones reconocidas (@AhoraQue, @all, @integrante).
+// Todo va como texto, nunca como HTML.
+function pintarConMenciones(nodo, texto) {
+
+    const patron = /(^|[^\p{L}\p{N}_@])@([\p{L}\p{N}_.\-]+)/gu;
+    let desde = 0;
+    let coincidencia;
+
+    while ((coincidencia = patron.exec(texto)) !== null) {
+
+        const tipo = ALIAS_MENCION.get(normalizar(coincidencia[2]));
+
+        if (!tipo) {
+            continue;
+        }
+
+        const inicio = coincidencia.index + coincidencia[1].length;
+
+        nodo.appendChild(document.createTextNode(texto.slice(desde, inicio)));
+
+        const marca = document.createElement("span");
+
+        marca.className = "chat-mencion chat-mencion--" + tipo;
+        marca.textContent = "@" + coincidencia[2];
+
+        nodo.appendChild(marca);
+
+        desde = inicio + 1 + coincidencia[2].length;
+    }
+
+    nodo.appendChild(document.createTextNode(texto.slice(desde)));
+}
+
+
 function agregarMensaje(mensaje, anterior, destino = chatMessages) {
 
     const fecha = new Date(mensaje.created_at);
@@ -293,7 +342,7 @@ function agregarMensaje(mensaje, anterior, destino = chatMessages) {
 
     const contenido = document.createElement("p");
 
-    contenido.textContent = mensaje.message;
+    pintarConMenciones(contenido, mensaje.message);
 
     burbuja.appendChild(contenido);
     linea.appendChild(burbuja);
@@ -332,7 +381,7 @@ async function enviarMensaje() {
         const invocacion = mensaje.match(/^@(?:ahora\s*que|ahoraque|bot)\b[:,]?\s*/i);
         const contenido = invocacion ? mensaje.slice(invocacion[0].length).trim() : mensaje;
         if (invocacion && !contenido) {
-            window.preguntar("Después de /Chatbot escribí qué plan querés armar.", false);
+            window.preguntar("Después de @AhoraQue escribí qué plan querés armar.", false);
             return;
         }
 
@@ -519,34 +568,152 @@ async function confirmarBorradorVotable(borrador) {
 }
 
 
-function actualizarMenuSlash() {
-    slashMenuActivo = chatInput.value === "/" && chatInput.selectionStart === 1;
-    slashMenu.hidden = !slashMenuActivo;
-    chatInput.setAttribute("aria-expanded", slashMenuActivo ? "true" : "false");
+// ---------- Menú de menciones: aparece al escribir "@" y se filtra con lo que sigue ----------
+
+let mencionesVisibles = [];
+let mencionActiva = 0;
+
+// La mención que se está escribiendo justo antes del cursor, o null.
+function mencionEnCurso() {
+
+    const antes = chatInput.value.slice(0, chatInput.selectionStart);
+    const coincidencia = antes.match(/(^|\s)@([^\s@]*)$/u);
+
+    if (!coincidencia) {
+        return null;
+    }
+
+    return { filtro: coincidencia[2], desde: antes.length - coincidencia[2].length - 1 };
 }
 
-function elegirChatbot() {
-    chatInput.value = "@AhoraQue ";
-    slashMenuActivo = false;
-    slashMenu.hidden = true;
+function cerrarMenuMenciones() {
+    mencionesVisibles = [];
+    mentionMenu.hidden = true;
     chatInput.setAttribute("aria-expanded", "false");
+}
+
+function pintarMenuMenciones() {
+
+    mentionMenu.replaceChildren();
+
+    mencionesVisibles.forEach(function (opcion, indice) {
+
+        const boton = document.createElement("button");
+
+        boton.type = "button";
+        boton.className = "chat-slash-option" + (indice === mencionActiva ? " is-activa" : "");
+        boton.setAttribute("role", "option");
+        boton.setAttribute("aria-selected", indice === mencionActiva ? "true" : "false");
+
+        const icono = document.createElement("span");
+        icono.className = "chat-slash-option__icon";
+        icono.setAttribute("aria-hidden", "true");
+        icono.textContent = opcion.icono || (opcion.etiqueta || "?").slice(0, 1).toUpperCase();
+
+        const texto = document.createElement("span");
+        const titulo = document.createElement("strong");
+        titulo.textContent = "@" + opcion.etiqueta;
+        texto.appendChild(titulo);
+
+        if (opcion.detalle) {
+            const detalle = document.createElement("small");
+            detalle.textContent = opcion.detalle;
+            texto.appendChild(detalle);
+        }
+
+        boton.append(icono, texto);
+
+        // mousedown (no click) para que el textarea no pierda el foco antes de insertar.
+        boton.addEventListener("mousedown", function (evento) {
+            evento.preventDefault();
+            elegirMencion(opcion);
+        });
+
+        mentionMenu.appendChild(boton);
+    });
+}
+
+function actualizarMenuMenciones() {
+
+    const mencion = mencionEnCurso();
+
+    if (!mencion) {
+        cerrarMenuMenciones();
+        return;
+    }
+
+    const filtro = normalizar(mencion.filtro);
+
+    const personas = INTEGRANTES
+        .filter(function (persona) { return String(persona.id) !== MI_USER_ID; })
+        .map(function (persona) {
+            return { handle: persona.handle, etiqueta: persona.handle, detalle: persona.nombre !== persona.handle ? persona.nombre : "Integrante del grupo", tipo: "persona" };
+        });
+
+    mencionesVisibles = MENCIONES_ESPECIALES.concat(personas).filter(function (opcion) {
+        return normalizar(opcion.handle).startsWith(filtro)
+            || normalizar(opcion.detalle).split(/\s+/).some(function (palabra) { return palabra.startsWith(filtro); });
+    });
+
+    if (!mencionesVisibles.length) {
+        cerrarMenuMenciones();
+        return;
+    }
+
+    mencionActiva = Math.min(mencionActiva, mencionesVisibles.length - 1);
+    pintarMenuMenciones();
+    mentionMenu.hidden = false;
+    chatInput.setAttribute("aria-expanded", "true");
+}
+
+function elegirMencion(opcion) {
+
+    const mencion = mencionEnCurso();
+
+    if (!mencion) {
+        return;
+    }
+
+    const despues = chatInput.value.slice(chatInput.selectionStart);
+    const insertado = "@" + opcion.handle + " ";
+
+    chatInput.value = chatInput.value.slice(0, mencion.desde) + insertado + despues.replace(/^ /, "");
+    chatInput.setSelectionRange(mencion.desde + insertado.length, mencion.desde + insertado.length);
+
+    mencionActiva = 0;
+    cerrarMenuMenciones();
     chatInput.focus();
 }
 
-chatInput.addEventListener("input", actualizarMenuSlash);
-chatInput.addEventListener("keydown", function(event) {
-    if (slashMenuActivo && (event.key === "Enter" || event.key === "Tab" || event.key === "ArrowDown")) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        elegirChatbot();
-    } else if (slashMenuActivo && event.key === "Escape") {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        chatInput.value = "";
-        actualizarMenuSlash();
+chatInput.addEventListener("input", function () {
+    mencionActiva = 0;
+    actualizarMenuMenciones();
+});
+
+chatInput.addEventListener("click", actualizarMenuMenciones);
+chatInput.addEventListener("blur", function () { setTimeout(cerrarMenuMenciones, 120); });
+
+chatInput.addEventListener("keydown", function (evento) {
+
+    if (mentionMenu.hidden) {
+        return;
+    }
+
+    if (evento.key === "ArrowDown" || evento.key === "ArrowUp") {
+        evento.preventDefault();
+        const total = mencionesVisibles.length;
+        mencionActiva = (mencionActiva + (evento.key === "ArrowDown" ? 1 : total - 1)) % total;
+        pintarMenuMenciones();
+    } else if (evento.key === "Enter" || evento.key === "Tab") {
+        evento.preventDefault();
+        evento.stopImmediatePropagation();
+        elegirMencion(mencionesVisibles[mencionActiva]);
+    } else if (evento.key === "Escape") {
+        evento.preventDefault();
+        evento.stopImmediatePropagation();
+        cerrarMenuMenciones();
     }
 });
-slashChatbot.addEventListener("click", elegirChatbot);
 
 
 const dialogoLimpiar = document.getElementById("modal-limpiar-chat");
