@@ -3,7 +3,7 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
-from flask import Flask, g, render_template, request, redirect, session
+from flask import Flask, g, render_template, request, redirect, send_from_directory, session
 from routes.auth import auth
 from routes.group_auth import group_auth
 from routes.profile import profile
@@ -47,6 +47,14 @@ PLANS = [
     {"id": 2, "slug": "feria-y-merienda", "title": "Feria, algo rico y una plaza", "type": "compartir", "description": "Un recorrido breve por una feria cercana, una merienda compartida y un rato al aire libre.", "time": "2 h 15 min", "cost": "$$", "distance": "2,4 km", "mood": "Compartir", "tone": "moss"},
     {"id": 3, "slug": "noche-de-preguntas", "title": "Noche de preguntas sin pantallas", "type": "en casa", "description": "Armen equipos, preparen algo para tomar y dejen que las preguntas hagan el resto.", "time": "1 h 30 min", "cost": "$", "distance": "0 km", "mood": "Bajar un cambio", "tone": "lilac"},
 ]
+
+# iOS pide /apple-touch-icon.png en la raíz cuando una página no declara el ícono (o lo declara tarde);
+# se sirve el mismo archivo de static.
+@app.route("/apple-touch-icon.png")
+@app.route("/apple-touch-icon-precomposed.png")
+def apple_touch_icon():
+    return send_from_directory(app.static_folder, "apple-touch-icon.png", max_age=86400)
+
 
 # Fechas en lenguaje de todos los días ("hoy", "mañana", "el sábado"): ver services/fechas.py.
 from services.fechas import cuando as _cuando, dia_relativo as _dia_relativo

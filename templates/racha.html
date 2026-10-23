@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -142,7 +142,7 @@
             aria-haspopup="dialog"
           >
             <strong>{{ hito.semanas }}</strong>
-            <span>{% if hito.marco %}{{ nombre_rango(hito.marco) | trim }}{% else %}semanas{% endif %} · {% if hito.logrado %}logrado{% elif hito.proximo %}próximo{% else %}bloqueado{% endif %}</span>
+            <span>{% if hito.marco %}{{ nombre_rango(hito.marco) | trim }}{% else %}semanas{% endif %}<span class="visually-hidden"> · {% if hito.logrado %}logrado{% elif hito.proximo %}próximo{% else %}bloqueado{% endif %}</span></span>
           </button>
 
           <dialog class="modal" id="modal-hito-{{ hito.semanas }}" aria-labelledby="modal-hito-{{ hito.semanas }}-title">

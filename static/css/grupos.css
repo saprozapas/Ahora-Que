@@ -170,9 +170,12 @@
 .racha-hito:hover { box-shadow: var(--sh-float); }
 .racha-hito strong { font-size: 1.75rem; font-weight: 650; letter-spacing: var(--track-h3); line-height: 1.1; font-variant-numeric: tabular-nums; }
 .racha-hito > span { color: var(--ink-3); font-size: var(--t-meta); }
-.racha-hito.is-logrado { background: var(--ink); color: var(--on-ink); box-shadow: var(--sh-btn); }
-.racha-hito.is-logrado > span { color: color-mix(in srgb, var(--on-ink) 75%, transparent); }
-.racha-hito.is-proximo { box-shadow: 0 0 0 1.5px var(--ink), var(--sh-card); }
+.racha-hito.is-logrado {
+  background: color-mix(in srgb, var(--rango, var(--ink-3)) 16%, var(--surface)); color: var(--ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rango, var(--ink-3)) 50%, transparent);
+}
+.racha-hito.is-logrado > span { color: var(--ink-2); }
+.racha-hito.is-proximo { box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--ink) 45%, transparent), var(--sh-card); }
 .racha-hito.is-bloqueado { background: var(--paper-deep); box-shadow: none; }
 
 .racha-hito-modal-body { display: grid; gap: var(--s-4); }
@@ -334,7 +337,7 @@ a.marco-tarjeta:hover { box-shadow: 0 0 0 2.5px var(--marco), 0 10px 26px -12px 
   border-left-color: color-mix(in srgb, var(--rango) 55%, transparent);
   color: color-mix(in srgb, var(--rango) 55%, var(--ink)); font-weight: 650;
 }
-.racha-hito[class*="rango--"].is-logrado { box-shadow: 0 0 0 2px var(--rango), var(--sh-btn); }
+.racha-hito[class*="rango--"].is-logrado { box-shadow: inset 0 0 0 1.5px var(--rango), 0 6px 16px -10px color-mix(in srgb, var(--rango) 60%, transparent); }
 .racha-hito[class*="rango--"].is-proximo { box-shadow: 0 0 0 1.5px var(--rango), var(--sh-card); }
 
 @media (max-width: 900px) {
@@ -351,3 +354,17 @@ a.marco-tarjeta:hover { box-shadow: 0 0 0 2.5px var(--marco), 0 10px 26px -12px 
 .racha-chip:not(.is-inactiva) svg path,
 .racha-numero:not(.is-inactiva) .racha-numero__llama svg path { fill: color-mix(in srgb, var(--rango, var(--llama)) 38%, transparent); }
 .racha-page { padding-bottom: var(--s-6); }
+
+
+/* Hitos en una sola fila (el estado se ve por el estilo y se lee con el texto oculto), y la pantalla de
+   racha no scrollea como página: si la ventana es muy baja, solo se desplaza su contenido. */
+@media (min-width: 901px) {
+  .racha-page { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; }
+  .racha-page > .racha-nota { margin-top: calc(var(--s-2) * -1); }
+}
+@media (min-width: 981px) {
+  .racha-hitos { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+  .racha-hito { gap: 0; padding: var(--s-3) var(--s-2); text-align: center; justify-items: center; }
+  .racha-hito strong { font-size: 1.25rem; }
+  .racha-hito > span { font-size: var(--t-meta); }
+}

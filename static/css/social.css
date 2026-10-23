@@ -1373,3 +1373,46 @@
   }
   .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-portada { aspect-ratio: auto; height: clamp(240px, calc(100svh - 430px), 520px); }
 }
+
+
+/* ---------- Social (escritorio ≥ 1000 px): la publicación es una tarjeta horizontal que entra entera ----------
+   A la izquierda la foto, cuadrada y con el alto que queda en pantalla; a la derecha, autor, nombre del plan,
+   datos, texto, comentarios y acciones. Así una publicación se ve completa sin importar cuántos comentarios
+   o líneas tenga (lo que sobre se desplaza dentro de la columna derecha). */
+@media (min-width: 1000px) {
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) {
+    --alto-tarjeta: max(340px, calc(100svh - 290px));
+  }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-barra,
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-lista,
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-vacio,
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-cargando,
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) > .soc-aviso,
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .social-ver-mas { max-width: calc(var(--alto-tarjeta) + 420px); }
+
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-scroll { scroll-snap-type: y proximity; }
+
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-tarjeta {
+    display: grid; grid-template-columns: var(--alto-tarjeta) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    height: var(--alto-tarjeta); overflow: hidden; scroll-snap-align: start;
+  }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-media { grid-column: 1; grid-row: 1 / -1; min-height: 0; }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-fotos,
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-fotos[data-aspecto="vertical"],
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-portada { height: 100%; aspect-ratio: auto; }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-autor   { grid-column: 2; grid-row: 1; }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-cuerpo  { display: block; grid-column: 2; grid-row: 2; min-height: 0; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid var(--line); }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-acciones { grid-column: 2; grid-row: 3; border-top: 1px solid var(--line); }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-likes   { grid-column: 2; grid-row: 4; }
+
+  /* Datos del plan en una sola línea que se parte; texto y descripción acotados. */
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-datos { display: flex; flex-wrap: wrap; gap: 2px var(--s-3); }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-datos li:empty { display: none; }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-plan-descripcion,
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-texto { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+}
+.soc-cuerpo { display: contents; }
+@media (min-width: 1000px) {
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-likes { padding-bottom: var(--s-3); }
+}

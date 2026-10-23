@@ -68,7 +68,9 @@ class RachaService:
                 marcos = sorted(hitos.intersection(_MARCOS))
                 titulos = sorted(hitos.intersection(_COLORES_TITULO))
                 marco = marco_guardado if marco_guardado in marcos else (max(marcos) if marcos else None)
-                titulo = titulo_guardado if titulo_guardado in titulos else (max(titulos) if titulos else None)
+                # El rango es uno solo: el título del chip siempre es el mismo planeta que el marco.
+                # (El "Titulo_Semanas" viejo de la base puede quedar en otro rango y se ignora.)
+                titulo = marco
                 resumenes[group_id] = {
                     "activa": activa,
                     "semanas": semanas,
@@ -239,8 +241,8 @@ class RachaService:
             titulos_desbloqueados = sorted(h for h in hitos_desbloqueados if h in _COLORES_TITULO)
             if marco_seleccionado not in marcos_desbloqueados:
                 marco_seleccionado = max(marcos_desbloqueados) if marcos_desbloqueados else None
-            if titulo_seleccionado not in titulos_desbloqueados:
-                titulo_seleccionado = max(titulos_desbloqueados) if titulos_desbloqueados else None
+            # Un solo rango: el título es siempre el mismo planeta que el marco.
+            titulo_seleccionado = marco_seleccionado
             calendario = [
                 {
                     "dia": _DIAS_SEMANA[indice],
