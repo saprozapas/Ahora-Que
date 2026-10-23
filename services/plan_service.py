@@ -4,6 +4,7 @@ import time
 import psycopg2
 
 from database import get_db_connection, release_db_connection
+from services.lugar_service import url_mapa
 from services.precio_lugar import rango_de_nivel, sumar_rangos
 
 
@@ -41,10 +42,12 @@ class PlanService:
         """
         cursor.execute(
             """
-            SELECT "Nombre", "Precio_Min", "Precio_Max", "Hora"
-            FROM public."Plan_Lugar"
-            WHERE "Id_Plan" = %s
-            ORDER BY "Orden", "Id_Plan_Lugar"
+            SELECT pl."Nombre", pl."Precio_Min", pl."Precio_Max", pl."Hora",
+                   l."Direccion", l."Barrio", l."Lat"::float8, l."Long"::float8
+            FROM public."Plan_Lugar" pl
+            LEFT JOIN public."Lugar" l ON l."Id_Lugar" = pl."Id_Lugar"
+            WHERE pl."Id_Plan" = %s
+            ORDER BY pl."Orden", pl."Id_Plan_Lugar"
             """,
             (plan_id,),
         )
@@ -54,6 +57,9 @@ class PlanService:
                 "precio_min": fila[1],
                 "precio_max": fila[2],
                 "hora": fila[3],
+                "direccion": fila[4],
+                "barrio": fila[5],
+                "mapa_url": url_mapa(fila[6], fila[7]),
             }
             for fila in cursor.fetchall()
         ]
@@ -125,10 +131,12 @@ class PlanService:
 
         cursor.execute(
             """
-            SELECT "Id_Plan", "Nombre", "Precio_Min", "Precio_Max", "Hora"
-            FROM public."Plan_Lugar"
-            WHERE "Id_Plan" IN %s
-            ORDER BY "Id_Plan", "Orden", "Id_Plan_Lugar"
+            SELECT pl."Id_Plan", pl."Nombre", pl."Precio_Min", pl."Precio_Max", pl."Hora",
+                   l."Direccion", l."Barrio", l."Lat"::float8, l."Long"::float8
+            FROM public."Plan_Lugar" pl
+            LEFT JOIN public."Lugar" l ON l."Id_Lugar" = pl."Id_Lugar"
+            WHERE pl."Id_Plan" IN %s
+            ORDER BY pl."Id_Plan", pl."Orden", pl."Id_Plan_Lugar"
             """,
             (tuple(plan_ids),),
         )
@@ -138,6 +146,9 @@ class PlanService:
                 "precio_min": fila[2],
                 "precio_max": fila[3],
                 "hora": fila[4],
+                "direccion": fila[5],
+                "barrio": fila[6],
+                "mapa_url": url_mapa(fila[7], fila[8]),
             })
 
         # Fallback a "Plan"."Lugar_id" para los planes viejos sin Plan_Lugar.
@@ -145,7 +156,8 @@ class PlanService:
         if sin_lugares:
             cursor.execute(
                 """
-                SELECT p."id_Plan", l."Nombre", l."Nivel_Precio"
+                SELECT p."id_Plan", l."Nombre", l."Nivel_Precio",
+                       l."Direccion", l."Barrio", l."Lat"::float8, l."Long"::float8
                 FROM public."Plan" p
                 JOIN public."Lugar" l ON l."Id_Lugar" = p."Lugar_id"
                 WHERE p."id_Plan" IN %s
@@ -155,6 +167,9 @@ class PlanService:
             for fila in cursor.fetchall():
                 rango = rango_de_nivel(fila[2])
                 resultado[fila[0]] = [{
+                    "direccion": fila[3],
+                    "barrio": fila[4],
+                    "mapa_url": url_mapa(fila[5], fila[6]),
                     "nombre": fila[1],
                     "precio_min": rango[0] if rango else None,
                     "precio_max": rango[1] if rango else None,

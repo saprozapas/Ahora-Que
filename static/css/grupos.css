@@ -368,3 +368,46 @@ a.marco-tarjeta:hover { box-shadow: 0 0 0 2.5px var(--marco), 0 10px 26px -12px 
   .racha-hito strong { font-size: 1.25rem; }
   .racha-hito > span { font-size: var(--t-meta); }
 }
+
+
+/* ---------- Paradas de un plan: número, nombre, dirección y "Cómo llegar" ---------- */
+.paradas { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+.parada { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3); border-radius: var(--r-md); background: var(--paper-deep); }
+.parada__num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--surface); color: var(--ink-2); font-size: var(--t-meta); font-weight: 650; font-variant-numeric: tabular-nums; box-shadow: var(--sh-hair); }
+.parada__cuerpo { display: grid; gap: 1px; min-width: 0; }
+.parada__nombre { font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.parada__donde { color: var(--ink-3); font-size: var(--t-meta); overflow-wrap: anywhere; }
+.parada__mapa {
+  display: inline-flex; align-items: center; gap: var(--s-1); min-height: var(--hit); padding: 0 var(--s-3);
+  border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-hair);
+  color: var(--ink); font-size: var(--t-meta); font-weight: 550; text-decoration: none; white-space: nowrap;
+}
+.parada__mapa svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
+.parada__mapa:hover { box-shadow: var(--sh-float); }
+.stops__mapa { justify-self: start; display: inline-flex; align-items: center; min-height: var(--hit); color: var(--ink); font-size: var(--t-meta); font-weight: 550; text-underline-offset: 0.18em; }
+@media (max-width: 520px) {
+  .parada { grid-template-columns: auto minmax(0, 1fr); }
+  .parada__mapa { grid-column: 2; justify-self: start; }
+}
+
+/* ---------- Encuesta de una sola instancia: opciones para elegir ---------- */
+.encuesta-opciones { display: grid; gap: var(--s-3); }
+.encuesta-opcion { position: relative; display: block; cursor: pointer; }
+.encuesta-opcion > input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.encuesta-opcion__caja {
+  display: grid; gap: var(--s-3); padding: var(--s-4); border-radius: var(--r-lg); background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-control); transition: box-shadow var(--d-fast) var(--ease-out), background-color var(--d-fast) var(--ease-out);
+}
+.encuesta-opcion:hover .encuesta-opcion__caja { box-shadow: inset 0 0 0 1px var(--ink-3); }
+.encuesta-opcion > input:checked + .encuesta-opcion__caja { box-shadow: inset 0 0 0 2px var(--ink); background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
+.encuesta-opcion > input:focus-visible + .encuesta-opcion__caja { outline: 2px solid var(--focus); outline-offset: 2px; }
+.encuesta-opcion__cab { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s-1) var(--s-3); }
+.encuesta-opcion__nombre { display: inline-flex; align-items: center; gap: var(--s-2); font-size: 1.0625rem; }
+.encuesta-opcion__nombre::before { content: ""; flex: none; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-3); }
+.encuesta-opcion > input:checked + .encuesta-opcion__caja .encuesta-opcion__nombre::before { background: radial-gradient(circle, var(--ink) 0 45%, transparent 50%); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.encuesta-opcion--ninguna .encuesta-opcion__caja { background: var(--paper-deep); }
+.encuesta-aviso { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--paper-deep); color: var(--ink-2); }
+
+/* Formulario de creación de la encuesta. */
+.nueva-encuesta__cuando, .nueva-encuesta__donde { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+@media (max-width: 420px) { .nueva-encuesta__donde { grid-template-columns: minmax(0, 1fr); } }

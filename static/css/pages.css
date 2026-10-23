@@ -565,3 +565,87 @@
    (el contenedor flex lo estiraba y la pastilla quedaba arriba, con aire de más abajo). */
 .landing-demo__filters { align-items: center; }
 .landing-demo__seg { align-self: center; align-content: center; }
+
+
+
+/* ==========================================================================
+   Celular: simetría y alineación
+   Las filas de pestañas y chips se reparten en columnas iguales (nada queda "colgado" a la izquierda),
+   las acciones se acomodan en grillas parejas y los botones principales ocupan todo el ancho.
+   ========================================================================== */
+
+.tag { width: fit-content; justify-self: start; align-self: flex-start; }
+
+@media (max-width: 600px) {
+
+  /* Pestañas, chips y selectores: columnas iguales (3 si son 3, 5 o más; 2 en el resto). */
+  .chips, .tabs, .seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; max-width: 100%; }
+  .chips:has(> :nth-child(3):last-child), .tabs:has(> :nth-child(3):last-child), .seg:has(> :nth-child(3):last-child),
+  .chips:has(> :nth-child(5)), .tabs:has(> :nth-child(5)), .seg:has(> :nth-child(5)) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .chip, .tab, .seg > button { justify-content: center; text-align: center; min-width: 0; padding-inline: var(--s-2); }
+  .seg label { width: 100%; min-width: 0; }
+  .seg label span { width: 100%; justify-content: center; }
+
+  /* Portada: selector de público a lo ancho, en 4 columnas, y los chips en 2 por fila. */
+  .landing-demo__seg { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .landing-demo__seg span { justify-content: center; padding-inline: var(--s-1); }
+  .landing-demo__group { display: grid; gap: 2px; }
+
+  /* Plan público: datos en tres columnas iguales y botones a lo ancho. */
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
+  .plan-publico__acciones { display: grid; gap: var(--s-2); }
+  .plan-publico__acciones .btn { width: 100%; justify-content: center; }
+
+  /* Amigos: la fila de acciones ocupa todo el ancho, con el botón principal estirado. */
+  .friend-row__actions { flex: 1 1 100%; width: 100%; }
+  .friend-row__actions .btn { flex: 1; }
+  .friend-row__actions .btn:only-child { flex: none; }
+
+  /* Social: la barra "Lo que comparten…" + bandera arriba y el botón a lo ancho. */
+  .soc-barra { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); }
+  .soc-barra > .btn { grid-column: 1 / -1; width: 100%; justify-content: center; }
+  .soc-barra__titulo { min-width: 0; }
+
+  /* Grupo: acciones en una grilla de dos columnas (Idea | Invitar, Editar | Abandonar). */
+  .group-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); width: 100%; }
+  .group-actions .idea-menu { flex: none; }
+  .group-actions .idea-menu > summary, .group-actions > .btn { width: 100%; justify-content: center; }
+  .group-actions > .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2); width: 100%; height: var(--control-h);
+    border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-hair); color: var(--ink);
+  }
+  .group-actions > .icon-btn::after { content: "Editar"; font-size: var(--t-ui); font-weight: 550; letter-spacing: var(--track-ui); }
+
+  /* La racha y el perfil: bloques centrados y columnas parejas. */
+  .racha-marco { flex-direction: column; text-align: center; gap: var(--s-2); }
+  .racha-hero__copy .progreso { width: 100%; }
+  .profile__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: center; }
+}
+
+/* Chat del grupo en celular: el encabezado se reduce al nombre para que la conversación empiece arriba. */
+@media (max-width: 900px) {
+  .group-page--chat .group-head > .lead,
+  .group-page--chat .group-head > .group-members,
+  .group-page--chat .group-head > .group-actions { display: none; }
+}
+
+/* Pantallas de error (404 y 500). */
+.error-pagina { display: grid; justify-items: center; gap: var(--s-3); padding-block: var(--s-16); text-align: center; }
+.error-pagina__codigo { margin: 0; color: var(--ink-3); font-size: var(--t-meta); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+.error-pagina .lead { max-width: 42ch; margin: 0; }
+.error-pagina .actions { justify-content: center; margin-top: var(--s-3); }
+
+/* Celulares muy angostos (≤ 380 px): en la tira de navegación el ícono va arriba y la etiqueta abajo,
+   en una sola línea, para que "Calendario" y "Mis planes" no se partan. */
+@media (max-width: 380px) {
+  .dashboard-sidebar-link, .dashboard-layout.is-collapsed .dashboard-sidebar-link { flex-direction: column; gap: 2px; min-height: 54px; padding: 6px 2px; }
+  .dashboard-sidebar-label, .dashboard-layout.is-collapsed .dashboard-sidebar-label { white-space: nowrap; overflow-wrap: normal; line-height: 1.15; }
+  .soc-perfil-titulo { padding-left: 3px; }
+}
+
+@media (max-width: 600px) {
+  /* Acciones de quien creó la encuesta: dos botones parejos, a lo ancho. */
+  .encuesta-acciones { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
+  .encuesta-acciones form, .encuesta-acciones .btn { width: 100%; }
+  .encuesta-acciones .btn { justify-content: center; }
+}

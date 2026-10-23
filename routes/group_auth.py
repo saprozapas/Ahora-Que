@@ -112,10 +112,7 @@ def detalle_grupo(group_id):
     return render_template("grupo.html", group=group, groups_page=True, users=users, racha=racha,
                            es_admin=es_admin, todos_admin=todos_admin,
                            seccion="planes", tablero=tablero, hoy=date.today().isoformat(),
-                           encuestas=encuestas,
-                           tipos=lugar_service.listar_tipos() if encuestas else [],
-                           opciones_precio=opciones_de_precio(), max_franjas=MAX_FRANJAS,
-                           opciones_distancia=opciones_de_distancia())
+                           encuestas=encuestas)
 
 
 @group_auth.route("/grupos/<group_id>/chat")

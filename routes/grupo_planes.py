@@ -6,7 +6,7 @@ from datetime import datetime
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
-from services.grupo_encuesta_service import GrupoEncuestaService
+from services.grupo_encuesta_service import GrupoEncuestaService, opciones_de_distancia, opciones_de_precio
 from services.grupo_plan_service import GrupoPlanError, GrupoPlanService
 from services.lugar_service import LugarService
 from services.plan_service import PlanService
@@ -31,9 +31,6 @@ MENSAJES_HORARIO = {
 
 
 MENSAJES_ENCUESTA = {
-    "opciones": "¡Listo! Se armaron varias opciones de plan: elijan una, o voten que ninguna les convence.",
-    "sin_lugares": "Respondieron todos, pero no hay lugares que cumplan los filtros. "
-                   "Cambien sus respuestas (por ejemplo, subir el tope de precio) o cierren la encuesta de nuevo.",
     "otros_planes": "Ganó «ninguna me convence»: se armaron otros planes para elegir.",
     "desempate": "Hubo empate: se vota de nuevo entre las opciones más votadas.",
     "plan_creado": "¡Ya hay plan elegido! Ahora el grupo vota si le gusta la idea y si puede en ese horario.",
@@ -189,34 +186,9 @@ def cerrar_horario(group_id, horario_id):
 
 # --- Encuestas: armar un plan entre todos ---------------------------------------
 
-def _leer_franjas():
-    """Las franjas de disponibilidad del formulario (hasta 3 filas con día,
-    desde y hasta). Las filas vacías se ignoran; una a medias es un error."""
-    franjas = []
-    filas = zip(request.form.getlist("disp_fecha"),
-                request.form.getlist("disp_desde"),
-                request.form.getlist("disp_hasta"))
-    for fecha, desde, hasta in filas:
-        fecha, desde, hasta = fecha.strip(), desde.strip(), hasta.strip()
-        if not (fecha or desde or hasta):
-            continue
-        if not (fecha and desde and hasta):
-            raise GrupoPlanError("Completá día, «desde» y «hasta» en cada horario que cargues.")
-        try:
-            franjas.append((
-                datetime.strptime(fecha, "%Y-%m-%d").date(),
-                datetime.strptime(desde, "%H:%M").time(),
-                datetime.strptime(hasta, "%H:%M").time(),
-            ))
-        except ValueError:
-            raise GrupoPlanError("Hay un día u horario que no es válido.")
-    if not franjas:
-        raise GrupoPlanError("Cargá al menos un día y horario en el que puedas.")
-    return franjas
-
-
 @grupo_planes_bp.route("/encuestas/nueva", methods=["GET", "POST"])
 def nueva_encuesta(group_id):
+    """Una sola instancia: se completa el formulario, se arman las opciones y el grupo vota."""
     user_id = session["user_id"]
     if not isUserInGroup(user_id, group_id):
         return redirect(url_for("group_auth.grupos"))
@@ -224,14 +196,30 @@ def nueva_encuesta(group_id):
     error = ""
     if request.method == "POST":
         try:
-            grupo_encuesta_service.crear(group_id, user_id, request.form.get("titulo", ""))
+            fecha = request.form.get("fecha", "").strip()
+            hora = request.form.get("hora", "").strip()
+            try:
+                fecha = datetime.strptime(fecha, "%Y-%m-%d").date() if fecha else None
+                hora = datetime.strptime(hora, "%H:%M").time() if hora else None
+            except ValueError:
+                raise GrupoPlanError("El día o la hora no es válido.")
+            nivel = request.form.get("nivel_precio", "").strip()
+            if nivel not in ("", "1", "2", "3", "4", "5"):
+                raise GrupoPlanError("El precio máximo no es válido.")
+            grupo_encuesta_service.crear(
+                group_id, user_id, request.form.get("titulo", ""), fecha, hora,
+                nivel_precio=int(nivel) if nivel else None,
+                tipos=request.form.getlist("tipos"),
+                barrio=request.form.get("barrio", "").strip(),
+                distancia_km=request.form.get("distancia_km", "").strip(),
+            )
         except GrupoPlanError as e:
             error = str(e)
         except Exception as e:
             print(f"Error al crear encuesta: {e}")
             error = "No se pudo crear la encuesta. Intentá de nuevo."
         else:
-            flash("Encuesta creada: cada integrante elige sus filtros y cuándo puede, y con eso se arman las opciones.")
+            flash("¡Listo! Se armaron opciones de plan: elijan una, o voten que ninguna les convence.")
             return _volver(group_id, "encuestas-grupo")
 
     return render_template(
@@ -239,26 +227,12 @@ def nueva_encuesta(group_id):
         group=getGroupById(group_id),
         error=error,
         valores=request.form,
+        tipos=lugar_service.listar_tipos(),
+        opciones_precio=opciones_de_precio(),
+        opciones_distancia=opciones_de_distancia(),
+        hoy=datetime.now().date().isoformat(),
         groups_page=True,
     )
-
-
-@grupo_planes_bp.route("/encuestas/<encuesta_id>/responder", methods=["POST"])
-def responder_encuesta(group_id, encuesta_id):
-    def accion():
-        nivel = request.form.get("nivel_precio", "").strip()
-        if nivel not in ("", "1", "2", "3", "4", "5"):
-            raise GrupoPlanError("El precio máximo no es válido.")
-        return grupo_encuesta_service.responder(
-            group_id, encuesta_id, session["user_id"],
-            int(nivel) if nivel else None,
-            request.form.getlist("tipos"),
-            _leer_franjas(),
-            barrio=request.form.get("barrio", "").strip(),
-            distancia_km=request.form.get("distancia_km", "").strip(),
-        )
-    return _ejecutar(group_id, accion, "Respuesta guardada. Cuando respondan todos se arman las opciones.",
-                     "encuestas-grupo", mensajes=MENSAJES_ENCUESTA)
 
 
 @grupo_planes_bp.route("/encuestas/<encuesta_id>/elegir", methods=["POST"])

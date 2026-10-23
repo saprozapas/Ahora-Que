@@ -1332,18 +1332,18 @@
 /* ---------- Social (Amigos y Descubrir): la página no scrollea, solo las publicaciones ----------
    El título, el subtítulo, las pestañas y la barra "Compartir un plan" quedan siempre a la vista. */
 
-.dashboard-layout--fija { height: calc(100svh - var(--header-h)); min-height: 0; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
-.dashboard-layout--fija .dashboard-main { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-.social-page--fija { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; }
-.social-page--fija .page-head { margin: var(--s-2) 0 var(--s-4); }
-.social-page--fija .soc-tabs { margin-bottom: var(--s-4); flex: none; }
-.social-page--fija > .soc-feed { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; }
-.social-page--fija .soc-barra { flex: none; width: 100%; margin-bottom: var(--s-3); }
-.social-page--fija .soc-aviso { flex: none; }
-.soc-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: var(--s-10); }
+.soc-scroll { flex: 1; min-height: 0; padding-bottom: var(--s-10); }
 
-@media (max-width: 900px) {
-  .dashboard-layout--fija { grid-template-rows: auto minmax(0, 1fr); }
+@media (min-width: 901px) {
+  .dashboard-layout--fija { height: calc(100svh - var(--header-h)); min-height: 0; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+  .dashboard-layout--fija .dashboard-main { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .social-page--fija { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; }
+  .social-page--fija .page-head { margin: var(--s-2) 0 var(--s-4); }
+  .social-page--fija .soc-tabs { margin-bottom: var(--s-4); flex: none; }
+  .social-page--fija > .soc-feed { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; }
+  .social-page--fija .soc-barra { flex: none; width: 100%; margin-bottom: var(--s-3); }
+  .social-page--fija .soc-aviso { flex: none; }
+  .soc-scroll { overflow-y: auto; overscroll-behavior: contain; }
 }
 
 

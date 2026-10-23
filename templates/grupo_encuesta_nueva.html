@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Armar plan entre todos — {{ group.get_name() }} — Ahora Qué{% endblock %}
+{% block title %}Elegir plan entre todos — {{ group.get_name() }} — Ahora Qué{% endblock %}
 
 {% block content %}
 
@@ -17,14 +17,13 @@
         <div class="auth__inner auth__inner--wide">
 
           <header class="auth__head">
-            <h1 class="h2">Armá un plan entre todos.</h1>
+            <h1 class="h2">Elegir plan entre todos.</h1>
             <p class="lead">
-              Cada integrante dice qué precio, qué tipo de lugares y cuándo puede.
-              Con eso se arman varias opciones de plan y el grupo elige una.
+              Decí cuándo y qué buscan. Se arman opciones de plan al instante y cada integrante vota una: gana la más votada.
             </p>
           </header>
 
-          <form class="auth__form" method="post">
+          <form class="auth__form nueva-encuesta" method="post">
 
             {% if error %}
             <p class="notice notice--error" role="alert">{{ error }}</p>
@@ -33,12 +32,78 @@
             <div class="field">
               <label for="titulo">Nombre del plan</label>
               <input class="input" id="titulo" name="titulo" type="text" maxlength="80"
-                     placeholder="Ej. Salida del sábado"
-                     value="{{ valores.get('titulo', '') }}" required />
+                     placeholder="Ej. Salida del sábado" value="{{ valores.get('titulo', '') }}" required />
             </div>
 
+            <fieldset class="field-group">
+              <legend>¿Cuándo?</legend>
+              <div class="nueva-encuesta__cuando">
+                <div class="field">
+                  <label for="fecha">Día</label>
+                  <input class="input" id="fecha" name="fecha" type="date" min="{{ hoy }}" value="{{ valores.get('fecha', '') }}" required />
+                </div>
+                <div class="field">
+                  <label for="hora">Hora</label>
+                  <input class="input" id="hora" name="hora" type="time" value="{{ valores.get('hora', '') }}" required />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="field-group">
+              <legend>¿Dónde? <span class="meta">(opcional)</span></legend>
+              <div class="nueva-encuesta__donde">
+                <div class="field">
+                  <label for="barrio">Barrio</label>
+                  <input class="input" id="barrio" name="barrio" type="text" autocomplete="off" maxlength="80"
+                         placeholder="Ej.: Pocitos" value="{{ valores.get('barrio', '') }}" data-barrio-encuesta />
+                </div>
+                <div class="field">
+                  <label for="distancia_km">Hasta qué distancia</label>
+                  <select class="select" id="distancia_km" name="distancia_km">
+                    <option value="">Cualquiera</option>
+                    {% for km, etiqueta in opciones_distancia %}
+                    <option value="{{ km }}" {% if valores.get('distancia_km') == km | string %}selected{% endif %}>{{ etiqueta }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn--ghost btn--sm encuesta-ubicacion" type="button" data-usar-ubicacion hidden>Usar mi ubicación</button>
+              <p class="meta encuesta-zona__estado" data-ubicacion-estado role="status"></p>
+            </fieldset>
+
+            <details class="encuesta-prefs"{% if valores.get('nivel_precio') or valores.getlist('tipos') %} open{% endif %}>
+              <summary>Preferencias <span class="meta">(opcional)</span></summary>
+              <div class="encuesta-prefs__cuerpo">
+
+                <div class="field">
+                  <label for="nivel_precio">Precio máximo por lugar</label>
+                  <select class="select" id="nivel_precio" name="nivel_precio">
+                    <option value="">Cualquiera</option>
+                    {% for nivel, etiqueta in opciones_precio %}
+                    <option value="{{ nivel }}" {% if valores.get('nivel_precio') == nivel | string %}selected{% endif %}>{{ etiqueta }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                {% if tipos %}
+                <details class="tipos-menu">
+                  <summary class="tipos-menu__boton" data-todos="Cualquier tipo de lugar">Cualquier tipo de lugar</summary>
+                  <div class="tipos-menu__panel" role="group" aria-label="Tipos de lugares">
+                    {% for t in tipos %}
+                    <label class="chip chip-check">
+                      <input type="checkbox" name="tipos" value="{{ t.id }}" {% if t.id | string in valores.getlist('tipos') %}checked{% endif %}>
+                      <span>{{ t.nombre }}</span>
+                    </label>
+                    {% endfor %}
+                  </div>
+                </details>
+                {% endif %}
+
+              </div>
+            </details>
+
             <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">
-              Crear encuesta <span class="btn__hint" aria-hidden="true">↵</span>
+              Armar opciones y votar <span class="btn__hint" aria-hidden="true">↵</span>
             </button>
 
           </form>
@@ -51,5 +116,99 @@
   </div>
 
 </div>
+
+<script>
+(() => {
+  "use strict";
+
+  const iniciar = () => {
+
+    // Barrio: sugiere BARRIOS mientras se escribe.
+    document.querySelectorAll("[data-barrio-encuesta]").forEach((campo) => {
+      if (!window.SerenoUI) return;
+      SerenoUI.autocompletar(campo, {
+        minimo: 1,
+        retardo: 150,
+        vacio: "No hay barrios que coincidan con eso.",
+        limpiar: false,
+        buscar: (texto, senal) =>
+          fetch("/planes/buscar-barrios?" + new URLSearchParams({ texto, limite: 8 }), { credentials: "same-origin", signal: senal })
+            .then((r) => r.json()).then((d) => d.resultados || []),
+        describir: (b) => ({ titulo: b.nombre, detalle: b.lugares === 1 ? "1 lugar" : `${b.lugares} lugares` }),
+        alElegir: (b) => { campo.value = b.nombre; },
+      });
+    });
+
+    // "Usar mi ubicación": el navegador da dónde está la persona y el servidor devuelve el barrio más
+    // cercano. Las coordenadas no se guardan: solo se usa el nombre del barrio.
+    if (navigator.geolocation) {
+      document.querySelectorAll("[data-usar-ubicacion]").forEach((boton) => {
+        boton.hidden = false;
+        const zona = boton.closest("fieldset");
+        const estado = zona.querySelector("[data-ubicacion-estado]");
+        const campo = zona.querySelector("[data-barrio-encuesta]");
+        boton.addEventListener("click", () => {
+          boton.disabled = true;
+          estado.textContent = "Buscando tu ubicación...";
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const p = new URLSearchParams({
+                lat: Math.round(pos.coords.latitude * 10000) / 10000,
+                lon: Math.round(pos.coords.longitude * 10000) / 10000,
+              });
+              fetch("/planes/barrio-cercano?" + p, { credentials: "same-origin" })
+                .then((r) => r.json())
+                .then((d) => {
+                  boton.disabled = false;
+                  if (d.barrio) {
+                    campo.value = d.barrio;
+                    estado.textContent = `Estás cerca de ${d.barrio}.`;
+                  } else {
+                    estado.textContent = "No pudimos ubicar un barrio cerca tuyo.";
+                  }
+                })
+                .catch(() => { boton.disabled = false; estado.textContent = "No pudimos ubicar tu barrio. Probá de nuevo."; });
+            },
+            (error) => {
+              boton.disabled = false;
+              estado.textContent = error.code === 1
+                ? "No tenemos permiso para ver tu ubicación. Podés escribir el barrio."
+                : "No pudimos determinar tu ubicación. Podés escribir el barrio.";
+            },
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+          );
+        });
+      });
+    }
+
+    // Resumen del menú de tipos: "Cualquier tipo", los nombres (hasta dos) o "N tipos".
+    const resumir = (menu) => {
+      const marcados = [...menu.querySelectorAll("input:checked")].map((i) => i.nextElementSibling.textContent.trim());
+      const boton = menu.querySelector(".tipos-menu__boton");
+      boton.textContent = !marcados.length ? boton.dataset.todos
+        : marcados.length <= 2 ? marcados.join(", ")
+        : `${marcados.length} tipos de lugar`;
+    };
+    document.querySelectorAll(".tipos-menu").forEach((menu) => {
+      resumir(menu);
+      menu.addEventListener("change", () => resumir(menu));
+      menu.addEventListener("keydown", (evento) => {
+        if (evento.key === "Escape" && menu.open) {
+          menu.open = false;
+          menu.querySelector("summary").focus();
+        }
+      });
+    });
+    document.addEventListener("click", (evento) => {
+      document.querySelectorAll(".tipos-menu[open]").forEach((menu) => {
+        if (!menu.contains(evento.target)) menu.open = false;
+      });
+    });
+  };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
+  else iniciar();
+})();
+</script>
 
 {% endblock %}

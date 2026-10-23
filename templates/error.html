@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }} — Ahora Qué{% endblock %}
+
+{% block content %}
+<section class="container page error-pagina">
+  <p class="error-pagina__codigo">Error {{ codigo }}</p>
+  <h1 class="h2">{{ titulo }}</h1>
+  <p class="lead">{{ detalle }}</p>
+  <div class="actions">
+    <a class="btn btn--primary btn--lg" href="{{ '/dashboard' if logueado else '/' }}">Volver al inicio</a>
+    <a class="btn btn--ghost btn--lg" href="javascript:history.back()">Ir a la página anterior</a>
+  </div>
+</section>
+{% endblock %}

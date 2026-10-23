@@ -19,6 +19,15 @@ _HAVERSINE_KM = (
 )
 
 
+def url_mapa(lat, lon):
+    """Enlace a un mapa (Google Maps abre la app o el navegador en cualquier teléfono) con el punto exacto
+    del lugar. None si el lugar no tiene coordenadas."""
+    try:
+        return f"https://www.google.com/maps/search/?api=1&query={float(lat):.6f},{float(lon):.6f}"
+    except (TypeError, ValueError):
+        return None
+
+
 def _coordenadas_validas(lat, lon):
     """(lat, lon) como floats si son una ubicación posible; si no, None."""
     try:
@@ -79,6 +88,30 @@ class LugarService:
                     (f"%{texto}%", f"{texto}%", limite),
                 )
                 return [{"nombre": fila[0], "lugares": fila[1]} for fila in cursor.fetchall()]
+        except psycopg2.Error:
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def detalles(self, ids):
+        """{id: {"direccion", "barrio", "mapa_url"}} de los lugares con esos ids (una sola consulta)."""
+        ids = [str(i) for i in ids if i]
+        if not ids:
+            return {}
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT l."Id_Lugar"::text, l."Direccion", l."Barrio", l."Lat"::float8, l."Long"::float8
+                    FROM public."Lugar" l WHERE l."Id_Lugar"::text = ANY(%s)
+                    """,
+                    (ids,),
+                )
+                return {
+                    f[0]: {"direccion": f[1], "barrio": f[2], "mapa_url": url_mapa(f[3], f[4])}
+                    for f in cursor.fetchall()
+                }
         except psycopg2.Error:
             raise
         finally:

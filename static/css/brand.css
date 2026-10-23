@@ -420,7 +420,7 @@
 /* En celular angosto 6 destinos no entran en una fila con su etiqueta: van en dos filas de tres. */
 @media (max-width: 600px) {
   .dashboard-sidebar-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .dashboard-sidebar-link, .dashboard-layout.is-collapsed .dashboard-sidebar-link { flex-direction: row; gap: var(--s-2); min-height: 44px; padding: 6px var(--s-2); text-align: left; justify-content: flex-start; }
+  .dashboard-sidebar-link, .dashboard-layout.is-collapsed .dashboard-sidebar-link { flex-direction: row; gap: var(--s-2); min-height: 44px; padding: 6px var(--s-2); text-align: center; justify-content: center; }
 }
 
 /* A 320 px "Mis planes" no entra en una línea: la etiqueta puede partirse en dos. */

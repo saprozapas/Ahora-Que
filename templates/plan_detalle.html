@@ -79,7 +79,10 @@
               <span class="stops__num">{{ loop.index }}</span>
               <span class="stops__body">
                 <span class="stops__name">{{ lugar.nombre }}</span>
+                {% set donde = [lugar.direccion, lugar.barrio] | select | join(' · ') %}
+                {% if donde %}<span class="meta">{{ donde }}</span>{% endif %}
                 {% if lugar.hora %}<span class="meta">{{ lugar.hora.strftime('%H:%M') }}</span>{% endif %}
+                {% if lugar.mapa_url %}<a class="stops__mapa" href="{{ lugar.mapa_url }}" target="_blank" rel="noopener" aria-label="Cómo llegar a {{ lugar.nombre }} (abre el mapa)">Cómo llegar</a>{% endif %}
               </span>
               {% if lugar.precio_min is not none and lugar.precio_max is not none %}
               <span class="meta stops__side">{{ precio(lugar.precio_min, lugar.precio_max) }}</span>

@@ -1,10 +1,10 @@
 {#
-  Encuestas en curso del grupo. Dos etapas:
-    - abierta:   cada integrante responde sus filtros y cuándo puede.
-    - eligiendo: se votan las opciones armadas (o "ninguna me convence").
-  Usa `encuestas`, `tipos`, `opciones_precio`, `max_franjas` y `hoy`
-  (los pasa routes/group_auth.py).
+  Encuestas en curso del grupo: UNA sola instancia. Ya nacen con sus opciones; cada integrante elige
+  una (o "ninguna me convence") y listo. Cuando votan todos, o cuando quien la creó cierra la elección,
+  gana la más votada y se crea el plan en el grupo.
+  Usa `encuestas` (los pasa routes/group_auth.py).
 #}
+{% from '_macros.html' import paradas %}
 {% if encuestas %}
 
 <div class="board board--encuestas" id="encuestas-grupo">
@@ -12,22 +12,20 @@
   <section class="board__section" aria-labelledby="encuestas-titulo">
 
     <div class="board__head">
-      <h2 class="h3" id="encuestas-titulo">Armando un plan entre todos</h2>
+      <h2 class="h3" id="encuestas-titulo">Elegir plan entre todos</h2>
       <span class="meta">{{ encuestas | length }} en curso</span>
     </div>
 
     {% for e in encuestas %}
 
-    <article class="card board-plan" id="encuesta-{{ e.id }}">
+    <article class="card board-plan encuesta-card" id="encuesta-{{ e.id }}">
 
       <header class="board-plan__head encuesta-cabecera">
         <div class="encuesta-cabecera__fila">
-          <span class="tag {{ 'tag--info' if e.estado == 'abierta' else 'tag--ok' }}">{{ 'Respondiendo' if e.estado == 'abierta' else 'Eligiendo plan' }}</span>
           {% if e.estado == 'abierta' %}
-          <span class="meta">
-            {{ e.respondieron }} de {{ e.miembros }} respondieron{% if e.yo_respondi %} · ya respondiste (podés cambiar tu respuesta){% endif %}
-          </span>
+          <span class="tag">Formato anterior</span>
           {% else %}
+          <span class="tag tag--info">Para votar</span>
           <span class="meta">
             {{ e.votaron }} de {{ e.miembros }} votaron{% if e.desempate %} · desempate entre las más votadas{% elif e.ronda > 1 %} · nueva tanda de planes{% endif %}
           </span>
@@ -35,130 +33,17 @@
         </div>
         <h3 class="encuesta-titulo">{{ e.titulo }}</h3>
         <p class="meta">
-          Creada por {{ e.creador }}
-          {% if e.estado == 'eligiendo' and e.fecha %}· {{ e.fecha | cuando(e.hora) }}{% endif %}
+          Creada por {{ e.creador }}{% if e.fecha %} · {{ e.fecha | cuando(e.hora) | capitalize }}{% endif %}
         </p>
       </header>
 
 
       {% if e.estado == 'abierta' %}
 
-      {# Lo único obligatorio es cuándo podés: un horario, con atajos Mañana / Tarde / Noche.
-         Todo lo demás (precio y tipos de lugar) es opcional y va plegado. #}
-      {% set tiene_prefs = e.mi_nivel or e.mis_tipos %}
-
-      <form class="encuesta-form encuesta-form--compacta" method="post"
-            action="{{ url_for('grupo_planes.responder_encuesta', group_id=group.get_id(), encuesta_id=e.id) }}">
-
-        <div class="encuesta-columnas">
-
-        <fieldset class="field-group encuesta-cuando">
-          <legend>¿Cuándo podés? <span class="meta">(hasta {{ max_franjas }} horarios)</span></legend>
-
-          <div class="encuesta-franjas">
-            {% for i in range(max_franjas) %}
-            {% set f = e.franjas[i] if i < e.franjas | length else none %}
-            <div class="encuesta-franja"{% if i > 0 and not f %} hidden data-franja-extra{% endif %}>
-              <div class="field">
-                <label for="disp-fecha-{{ e.id }}-{{ i }}">Día</label>
-                <input class="input" id="disp-fecha-{{ e.id }}-{{ i }}" type="date" name="disp_fecha" min="{{ hoy }}"
-                       value="{{ f.fecha.isoformat() if f else '' }}" {% if i == 0 %}required{% endif %}>
-              </div>
-              <div class="field">
-                <label for="disp-desde-{{ e.id }}-{{ i }}">Desde</label>
-                <input class="input" id="disp-desde-{{ e.id }}-{{ i }}" type="time" name="disp_desde"
-                       value="{{ f.desde.strftime('%H:%M') if f else '' }}" {% if i == 0 %}required{% endif %}>
-              </div>
-              <div class="field">
-                <label for="disp-hasta-{{ e.id }}-{{ i }}">Hasta</label>
-                <input class="input" id="disp-hasta-{{ e.id }}-{{ i }}" type="time" name="disp_hasta"
-                       value="{{ f.hasta.strftime('%H:%M') if f else '' }}" {% if i == 0 %}required{% endif %}>
-              </div>
-              <div class="encuesta-atajos" role="group" aria-label="Franja rápida">
-                <button class="chip" type="button" data-desde="09:00" data-hasta="13:00">Mañana</button>
-                <button class="chip" type="button" data-desde="14:00" data-hasta="19:00">Tarde</button>
-                <button class="chip" type="button" data-desde="19:00" data-hasta="23:30">Noche</button>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-
-          {% if max_franjas > 1 %}
-          <button class="btn btn--ghost btn--sm encuesta-agregar" type="button" data-agregar-franja
-                  {% if e.franjas | length >= max_franjas %}hidden{% endif %}>
-            + Agregar otro horario
-          </button>
-          {% endif %}
-        </fieldset>
-
-        {# Zona: el barrio desde donde salen y hasta qué distancia. Con eso las opciones se arman
-           cerca de todos (se calcula con la ubicación de los lugares). La ubicación del navegador
-           solo sirve para sugerir el barrio: no se guarda. #}
-        <fieldset class="field-group encuesta-zona">
-          <legend>¿Dónde? <span class="meta">(opcional)</span></legend>
-
-          <div class="field">
-            <label for="barrio-{{ e.id }}">Barrio</label>
-            <input class="input" id="barrio-{{ e.id }}" name="barrio" type="text" autocomplete="off"
-                   maxlength="80" placeholder="Ej.: Pocitos" value="{{ e.mi_barrio or '' }}" data-barrio-encuesta>
-          </div>
-
-          <div class="field">
-            <label for="distancia-{{ e.id }}">Hasta qué distancia</label>
-            <select class="select" id="distancia-{{ e.id }}" name="distancia_km">
-              <option value="">Cualquiera</option>
-              {% for km, etiqueta in opciones_distancia %}
-              <option value="{{ km }}" {% if e.mi_distancia == km %}selected{% endif %}>{{ etiqueta }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <button class="btn btn--ghost btn--sm encuesta-ubicacion" type="button" data-usar-ubicacion hidden>
-            Usar mi ubicación
-          </button>
-          <p class="meta encuesta-zona__estado" data-ubicacion-estado role="status"></p>
-        </fieldset>
-
-        </div>
-
-        <details class="encuesta-prefs"{% if tiene_prefs %} open{% endif %}>
-          <summary>Preferencias <span class="meta">(opcional)</span></summary>
-
-          <div class="encuesta-prefs__cuerpo">
-
-            <div class="field">
-              <label for="precio-{{ e.id }}">Precio máximo por lugar</label>
-              <select class="select" id="precio-{{ e.id }}" name="nivel_precio">
-                <option value="">Cualquiera</option>
-                {% for nivel, etiqueta in opciones_precio %}
-                <option value="{{ nivel }}" {% if e.mi_nivel == nivel %}selected{% endif %}>{{ etiqueta }}</option>
-                {% endfor %}
-              </select>
-            </div>
-
-            {% if tipos %}
-            {# Los tipos de lugar van en un menú: son muchos y casi nadie elige más de unos pocos. #}
-            <details class="tipos-menu">
-              <summary class="tipos-menu__boton" data-todos="Cualquier tipo de lugar">Cualquier tipo de lugar</summary>
-              <div class="tipos-menu__panel" role="group" aria-label="Tipos de lugares que te gustan">
-                {% for t in tipos %}
-                <label class="chip chip-check">
-                  <input type="checkbox" name="tipos" value="{{ t.id }}" {% if t.id | string in e.mis_tipos %}checked{% endif %}>
-                  <span>{{ t.nombre }}</span>
-                </label>
-                {% endfor %}
-              </div>
-            </details>
-            {% endif %}
-
-          </div>
-        </details>
-
-        <button class="btn btn--primary btn--lg btn--block" type="submit">
-          {{ 'Cambiar mi respuesta' if e.yo_respondi else 'Responder' }}
-        </button>
-
-      </form>
+      <p class="encuesta-aviso">
+        Esta encuesta es del formato anterior, que ya no existe: ahora se arma de una vez y el grupo solo vota.
+        {% if e.es_creador %}Cancelala y creá una nueva.{% else %}Quien la creó puede cancelarla y armar una nueva.{% endif %}
+      </p>
 
       {% else %}
 
@@ -166,32 +51,40 @@
             action="{{ url_for('grupo_planes.elegir_opcion', group_id=group.get_id(), encuesta_id=e.id) }}">
 
         <fieldset class="field-group">
-          <legend>Elegí el plan que más te guste</legend>
+          <legend class="visually-hidden">Elegí el plan que más te guste</legend>
 
-          <div class="postular__ideas">
+          <div class="encuesta-opciones">
+
             {% for o in e.opciones %}
-            <label class="card plan-tile pick-card">
+            <label class="encuesta-opcion">
               <input type="radio" name="opcion" value="{{ o.id }}" required {% if e.mi_voto == o.id %}checked{% endif %} />
-              <span class="plan-tile__title">{{ o.nombre }}</span>
-              <span class="meta">
-                {{ o.lugares | length }} parada{{ 's' if o.lugares | length != 1 }}
-                {% if o.precio_min is not none and o.precio_max is not none %}
-                · ${{ o.precio_min | int }}{% if o.precio_min != o.precio_max %} - ${{ o.precio_max | int }}{% endif %}
-                {% endif %}
-                · {{ o.votos }} voto{{ 's' if o.votos != 1 }}
+              <span class="encuesta-opcion__caja">
+                <span class="encuesta-opcion__cab">
+                  <strong class="encuesta-opcion__nombre">Opción {{ loop.index }}</strong>
+                  <span class="meta">
+                    {% if o.precio_min is not none and o.precio_max is not none %}${{ o.precio_min | int }}{% if o.precio_min != o.precio_max %} - ${{ o.precio_max | int }}{% endif %} · {% endif %}{{ o.votos }} voto{{ 's' if o.votos != 1 }}
+                  </span>
+                </span>
+                {{ paradas(o.lugares) }}
               </span>
             </label>
             {% endfor %}
 
-            <label class="card plan-tile pick-card">
+            <label class="encuesta-opcion encuesta-opcion--ninguna">
               <input type="radio" name="opcion" value="ninguna" required {% if e.mi_voto == 'ninguna' %}checked{% endif %} />
-              <span class="plan-tile__title">Ninguna me convence</span>
-              <span class="meta">Si gana, se arman otros planes · {{ e.votos_ninguna }} voto{{ 's' if e.votos_ninguna != 1 }}</span>
+              <span class="encuesta-opcion__caja">
+                <span class="encuesta-opcion__cab">
+                  <strong class="encuesta-opcion__nombre">Ninguna me convence</strong>
+                  <span class="meta">{{ e.votos_ninguna }} voto{{ 's' if e.votos_ninguna != 1 }}</span>
+                </span>
+                <span class="meta">Si gana, se arman otros planes.</span>
+              </span>
             </label>
+
           </div>
         </fieldset>
 
-        <button class="btn btn--primary btn--lg" type="submit">
+        <button class="btn btn--primary btn--lg btn--block" type="submit">
           {{ 'Cambiar mi voto' if e.mi_voto else 'Votar' }}
         </button>
 
@@ -203,11 +96,11 @@
       {% if e.es_creador %}
       <div class="actions encuesta-acciones">
 
+        {% if e.estado == 'eligiendo' %}
         <form method="post" action="{{ url_for('grupo_planes.cerrar_encuesta', group_id=group.get_id(), encuesta_id=e.id) }}">
-          <button class="btn btn--secondary" type="submit">
-            {{ 'Cerrar y armar opciones ahora' if e.estado == 'abierta' else 'Cerrar la elección ahora' }}
-          </button>
+          <button class="btn btn--secondary" type="submit">Cerrar la elección ahora</button>
         </form>
+        {% endif %}
 
         <form method="post" action="{{ url_for('grupo_planes.cancelar_encuesta', group_id=group.get_id(), encuesta_id=e.id) }}">
           <button class="btn btn--ghost" type="submit">Cancelar encuesta</button>
@@ -224,122 +117,4 @@
 
 </div>
 
-{% endif %}
-{% if encuestas %}
-<script>
-(() => {
-  "use strict";
-
-  const iniciar = () => {
-
-    // Atajos Mañana / Tarde / Noche: completan "Desde" y "Hasta" de esa franja.
-    document.addEventListener("click", (evento) => {
-      const atajo = evento.target.closest(".encuesta-atajos [data-desde]");
-      if (!atajo) return;
-      const franja = atajo.closest(".encuesta-franja");
-      const [desde, hasta] = franja.querySelectorAll('input[name="disp_desde"], input[name="disp_hasta"]');
-      desde.value = atajo.dataset.desde;
-      hasta.value = atajo.dataset.hasta;
-      [desde, hasta].forEach((campo) => campo.dispatchEvent(new Event("change", { bubbles: true })));
-      franja.querySelectorAll(".encuesta-atajos .chip").forEach((b) => b.removeAttribute("aria-pressed"));
-      atajo.setAttribute("aria-pressed", "true");
-    });
-
-    // "Agregar otro horario": muestra la siguiente franja y se esconde al llegar al máximo.
-    document.addEventListener("click", (evento) => {
-      const boton = evento.target.closest("[data-agregar-franja]");
-      if (!boton) return;
-      const oculta = boton.closest("fieldset").querySelector("[data-franja-extra][hidden]");
-      if (oculta) oculta.hidden = false;
-      if (!boton.closest("fieldset").querySelector("[data-franja-extra][hidden]")) boton.hidden = true;
-    });
-
-    // Barrio: sugiere BARRIOS mientras se escribe.
-    const barrios = document.querySelectorAll("[data-barrio-encuesta]");
-    barrios.forEach((campo) => {
-      if (!window.SerenoUI) return;
-      SerenoUI.autocompletar(campo, {
-        minimo: 1,
-        retardo: 150,
-        vacio: "No hay barrios que coincidan con eso.",
-        limpiar: false,
-        buscar: (texto, senal) =>
-          fetch("/planes/buscar-barrios?" + new URLSearchParams({ texto, limite: 8 }), { credentials: "same-origin", signal: senal })
-            .then((r) => r.json()).then((d) => d.resultados || []),
-        describir: (b) => ({ titulo: b.nombre, detalle: b.lugares === 1 ? "1 lugar" : `${b.lugares} lugares` }),
-        alElegir: (b) => { campo.value = b.nombre; },
-      });
-    });
-
-    // "Usar mi ubicación": el navegador da dónde está la persona y el servidor devuelve el barrio
-    // más cercano. Las coordenadas no se guardan: solo se usa el nombre del barrio.
-    if (navigator.geolocation) {
-      document.querySelectorAll("[data-usar-ubicacion]").forEach((boton) => {
-        boton.hidden = false;
-        const zona = boton.closest(".encuesta-zona");
-        const estado = zona.querySelector("[data-ubicacion-estado]");
-        const campo = zona.querySelector("[data-barrio-encuesta]");
-        boton.addEventListener("click", () => {
-          boton.disabled = true;
-          estado.textContent = "Buscando tu ubicación...";
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              const p = new URLSearchParams({
-                lat: Math.round(pos.coords.latitude * 10000) / 10000,
-                lon: Math.round(pos.coords.longitude * 10000) / 10000,
-              });
-              fetch("/planes/barrio-cercano?" + p, { credentials: "same-origin" })
-                .then((r) => r.json())
-                .then((d) => {
-                  boton.disabled = false;
-                  if (d.barrio) {
-                    campo.value = d.barrio;
-                    estado.textContent = `Estás cerca de ${d.barrio}.`;
-                  } else {
-                    estado.textContent = "No pudimos ubicar un barrio cerca tuyo.";
-                  }
-                })
-                .catch(() => { boton.disabled = false; estado.textContent = "No pudimos ubicar tu barrio. Probá de nuevo."; });
-            },
-            (error) => {
-              boton.disabled = false;
-              estado.textContent = error.code === 1
-                ? "No tenemos permiso para ver tu ubicación. Podés escribir el barrio."
-                : "No pudimos determinar tu ubicación. Podés escribir el barrio.";
-            },
-            { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
-          );
-        });
-      });
-    }
-
-    // Resumen del menú de tipos: "Cualquier tipo", los nombres (hasta dos) o "N tipos".
-    const resumir = (menu) => {
-      const marcados = [...menu.querySelectorAll("input:checked")].map((i) => i.nextElementSibling.textContent.trim());
-      const boton = menu.querySelector(".tipos-menu__boton");
-      boton.textContent = !marcados.length ? boton.dataset.todos
-        : marcados.length <= 2 ? marcados.join(", ")
-        : `${marcados.length} tipos de lugar`;
-    };
-    document.querySelectorAll(".tipos-menu").forEach((menu) => {
-      resumir(menu);
-      menu.addEventListener("change", () => resumir(menu));
-      menu.addEventListener("keydown", (evento) => {
-        if (evento.key === "Escape" && menu.open) {
-          menu.open = false;
-          menu.querySelector("summary").focus();
-        }
-      });
-    });
-    document.addEventListener("click", (evento) => {
-      document.querySelectorAll(".tipos-menu[open]").forEach((menu) => {
-        if (!menu.contains(evento.target)) menu.open = false;
-      });
-    });
-  };
-
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar);
-  else iniciar();
-})();
-</script>
 {% endif %}

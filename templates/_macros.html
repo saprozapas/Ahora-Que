@@ -12,6 +12,31 @@
 {%- endmacro %}
 
 
+{# Las paradas de un plan: número, nombre, dirección y barrio, y un botón "Cómo llegar" que abre el mapa.
+   `lugares` son dicts con nombre y, si los hay, direccion, barrio, hora y mapa_url. #}
+{% macro paradas(lugares, mapa=true) %}
+<ol class="paradas">
+  {% for l in lugares %}
+  <li class="parada">
+    <span class="parada__num" aria-hidden="true">{{ loop.index }}</span>
+    <span class="parada__cuerpo">
+      <span class="parada__nombre">{{ l.nombre }}</span>
+      {% set donde = [l.direccion, l.barrio] | select | join(' · ') %}
+      {% if donde %}<span class="parada__donde">{{ donde }}</span>{% endif %}
+      {% if l.hora %}<span class="parada__donde">A las {{ l.hora.strftime('%H:%M') }}</span>{% endif %}
+    </span>
+    {% if mapa and l.mapa_url %}
+    <a class="parada__mapa" href="{{ l.mapa_url }}" target="_blank" rel="noopener" aria-label="Cómo llegar a {{ l.nombre }} (abre el mapa)">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 1 1 13 0C18.5 15.4 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="10.5" r="2.3" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+      <span>Cómo llegar</span>
+    </a>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ol>
+{% endmacro %}
+
+
 {# Rango de la racha: un planeta (Mercurio, Venus, Tierra, Marte, Júpiter o Saturno). Es a la vez el
    título que muestra el chip y el marco de la tarjeta del grupo. #}
 {% macro nombre_rango(clave) -%}

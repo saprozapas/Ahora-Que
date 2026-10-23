@@ -48,6 +48,18 @@ PLANS = [
     {"id": 3, "slug": "noche-de-preguntas", "title": "Noche de preguntas sin pantallas", "type": "en casa", "description": "Armen equipos, preparen algo para tomar y dejen que las preguntas hagan el resto.", "time": "1 h 30 min", "cost": "$", "distance": "0 km", "mood": "Bajar un cambio", "tone": "lilac"},
 ]
 
+@app.errorhandler(404)
+def pagina_no_encontrada(error):
+    return render_template("error.html", codigo=404, titulo="No encontramos esa página.",
+                           detalle="Puede que el enlace esté viejo o que la dirección tenga un error."), 404
+
+
+@app.errorhandler(500)
+def error_del_servidor(error):
+    return render_template("error.html", codigo=500, titulo="Algo salió mal de nuestro lado.",
+                           detalle="Probá de nuevo en un momento. Si sigue pasando, contanos desde Contacto."), 500
+
+
 # iOS pide /apple-touch-icon.png en la raíz cuando una página no declara el ícono (o lo declara tarde);
 # se sirve el mismo archivo de static.
 @app.route("/apple-touch-icon.png")

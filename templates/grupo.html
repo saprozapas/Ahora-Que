@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import chispa %}
+{% from '_macros.html' import chispa, paradas %}
 
 {% block title %}Planes — {{ group.get_name() }} — Ahora Qué{% endblock %}
 
@@ -140,6 +140,9 @@
           {% if plan.descripcion %}<p class="quote">“{{ plan.descripcion }}”</p>{% endif %}
         </header>
 
+        {# Dónde es: cada parada con su dirección y barrio, y cómo llegar. #}
+        {% if plan.lugares %}{{ paradas(plan.lugares) }}{% endif %}
+
         <p class="meta board-plan__count">
           {{ plan.votos }} de {{ plan.miembros }} votaron · {{ plan.gustan }} les gusta · {{ plan.pueden }} pueden
         </p>
@@ -193,6 +196,8 @@
           <h3 class="plan-tile__title"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
           <p class="meta">Al grupo le gustó, pero no podían el {{ cuando(plan) }}. Propongan otro horario.</p>
         </header>
+
+        {% if plan.lugares %}{{ paradas(plan.lugares) }}{% endif %}
 
         {% if plan.horarios %}
         <ul class="board-slots">
@@ -262,6 +267,8 @@
           <p class="meta">{{ cuando(plan) }} · {{ plan.resumen_lugares }}</p>
           <p class="meta">Van: {{ plan.van | join(', ') if plan.van else 'nadie todavía' }}</p>
         </header>
+
+        {% if plan.lugares %}{{ paradas(plan.lugares) }}{% endif %}
 
         {% if plan.confirmado %}
         <p class="board-plan__ok">
