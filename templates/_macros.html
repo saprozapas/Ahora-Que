@@ -64,7 +64,7 @@
       <stop offset=".55" stop-color="#fff" stop-opacity="0" />
       <stop offset="1" stop-color="#000" stop-opacity=".26" />
     </radialGradient>
-    <clipPath id="pl-clip-{{ clave }}"><circle cx="32" cy="32" r="{{ 15 if clave == 'saturno' else 22 }}" /></clipPath>
+    <clipPath id="pl-clip-{{ clave }}"><circle cx="32" cy="32" r="{{ 18 if clave == 'saturno' else 22 }}" /></clipPath>
   </defs>
   {% if clave == 'saturno' %}
   <g transform="rotate(-18 32 32)">
@@ -72,7 +72,7 @@
     <ellipse cx="32" cy="32" rx="23" ry="5.8" fill="none" stroke="var(--planeta-anillo)" stroke-width="1.4" opacity=".7" />
   </g>
   {% endif %}
-  <circle cx="32" cy="32" r="{{ 15 if clave == 'saturno' else 22 }}" fill="var(--planeta)" />
+  <circle cx="32" cy="32" r="{{ 18 if clave == 'saturno' else 22 }}" fill="var(--planeta)" />
   <g clip-path="url(#pl-clip-{{ clave }})">
     {% if clave == 'mercurio' %}
     <circle cx="24" cy="26" r="4" fill="#000" opacity=".16" /><circle cx="39" cy="38" r="5.5" fill="#000" opacity=".16" /><circle cx="28" cy="43" r="2.6" fill="#000" opacity=".16" />
@@ -89,7 +89,7 @@
     <ellipse cx="40" cy="38.5" rx="4.6" ry="2.6" fill="var(--planeta-mancha)" />
     {% endif %}
   </g>
-  <circle cx="32" cy="32" r="{{ 15 if clave == 'saturno' else 22 }}" fill="url(#pl-luz-{{ clave }})" />
+  <circle cx="32" cy="32" r="{{ 18 if clave == 'saturno' else 22 }}" fill="url(#pl-luz-{{ clave }})" />
   {% if clave == 'saturno' %}
   <g transform="rotate(-18 32 32)"><path d="M3 32a29 8 0 0 0 58 0" fill="none" stroke="var(--planeta-anillo)" stroke-width="3.5" /></g>
   {% endif %}

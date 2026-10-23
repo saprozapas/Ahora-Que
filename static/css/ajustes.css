@@ -180,7 +180,7 @@
   .board__head > .meta:not(.board__nav .meta) { display: none; }
 }
 
-/* Planeta del rango en la tarjeta de cada grupo (esquina superior derecha). */
+/* Planeta del rango en la tarjeta de cada grupo. */
 .planeta {
   --planeta: var(--marco-mercurio); --planeta-anillo: color-mix(in srgb, var(--marco-saturno) 80%, #fff);
   --planeta-tierra: #4C8A5C; --planeta-mancha: #8E4A2E;
@@ -192,5 +192,8 @@
 .planeta--marte    { --planeta: var(--marco-marte); }
 .planeta--jupiter  { --planeta: var(--marco-jupiter); }
 .planeta--saturno  { --planeta: var(--marco-saturno); --planeta-anillo: color-mix(in srgb, var(--marco-saturno) 70%, var(--ink)); }
-.group-tile { position: relative; }
-.group-tile__planeta { position: absolute; top: var(--s-4); right: var(--s-4); line-height: 0; pointer-events: none; }
+.group-tile { position: relative; overflow: hidden; }
+/* El planeta asoma desde la esquina superior derecha, cortado por el borde de la tarjeta. */
+.group-tile__planeta { position: absolute; top: -66px; right: -66px; line-height: 0; pointer-events: none; }
+.group-tile__planeta .planeta { filter: none; }
+.group-tile__planeta ~ .plan-tile__title { padding-right: 96px; }
