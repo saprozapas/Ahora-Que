@@ -109,7 +109,7 @@ class LugarService:
                     (ids,),
                 )
                 return {
-                    f[0]: {"direccion": f[1], "barrio": f[2], "mapa_url": url_mapa(f[3], f[4])}
+                    f[0]: {"direccion": f[1], "barrio": f[2], "mapa_url": url_mapa(f[3], f[4]), "lat": f[3], "lon": f[4]}
                     for f in cursor.fetchall()
                 }
         except psycopg2.Error:

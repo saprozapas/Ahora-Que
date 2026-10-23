@@ -458,6 +458,155 @@
 
 
   /* ========================================================================
+     10a. AVISOS DE VOTACIÓN DEL INICIO ("Te toca a vos")
+
+     El panel se vuelve a pedir al servidor cada pocos segundos (y al volver a la pestaña), así que una
+     votación nueva de cualquier grupo aparece sola. Son solo avisos: cada tarjeta lleva al grupo, donde
+     se vota, se elige el horario o se puntúa.
+     ======================================================================== */
+
+  const iniciarPendientes = () => {
+
+    const cuerpo = $("[data-pend]");
+
+    if (!cuerpo) {
+      return;
+    }
+
+    const url = cuerpo.dataset.url;
+    const intervalo = Number(cuerpo.dataset.intervalo) || 8000;
+    const contador = $("[data-pend-contador]");
+    const nav = $("[data-pend-nav]");
+    const etiquetaPagina = $("[data-pend-pagina]");
+
+    let ultimo = cuerpo.innerHTML.trim();
+    let pidiendo = false;
+
+    const pista = () => $(".pend-lista", cuerpo);
+
+    // Las votaciones van en una fila que se recorre hacia los costados: de a tres, dos o una según el ancho.
+    const paso = () => {
+      const fila = pista();
+      return fila ? fila.clientWidth + parseFloat(getComputedStyle(fila).columnGap || 0) : 1;
+    };
+
+    const actualizarContador = (total) => {
+
+      if (!contador) {
+        return;
+      }
+
+      contador.textContent = total;
+      contador.hidden = !Number(total);
+    };
+
+    const actualizarNavegacion = () => {
+
+      const fila = pista();
+
+      if (!nav) {
+        return;
+      }
+
+      const desborda = Boolean(fila) && fila.scrollWidth > fila.clientWidth + 2;
+      nav.hidden = !desborda;
+
+      if (!desborda) {
+        return;
+      }
+
+      const paginas = Math.max(1, Math.round(fila.scrollWidth / paso()));
+      const actual = Math.min(paginas, Math.round(fila.scrollLeft / paso()) + 1);
+
+      etiquetaPagina.textContent = actual + " de " + paginas;
+      $("[data-pend-prev]", nav).disabled = fila.scrollLeft <= 2;
+      $("[data-pend-next]", nav).disabled = fila.scrollLeft + fila.clientWidth >= fila.scrollWidth - 2;
+    };
+
+    const refrescar = async () => {
+
+      if (pidiendo || document.hidden) {
+        return;
+      }
+
+      pidiendo = true;
+
+      try {
+
+        const respuesta = await fetch(url, { cache: "no-store", credentials: "same-origin", headers: { "X-Requested-With": "fetch" } });
+
+        if (respuesta.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+
+        if (!respuesta.ok) {
+          return;
+        }
+
+        const html = (await respuesta.text()).trim();
+        actualizarContador(respuesta.headers.get("X-Pendientes") || 0);
+
+        if (html === ultimo) {
+          return;
+        }
+
+        const antes = new Set($$("[data-pend-clave]", cuerpo).map((item) => item.dataset.pendClave));
+        const desplazado = pista() ? pista().scrollLeft : 0;
+
+        cuerpo.innerHTML = html;
+        ultimo = html;
+
+        // La fila sigue en la misma página después de actualizarse.
+        if (pista() && desplazado) {
+          pista().scrollLeft = desplazado;
+        }
+
+        $$("[data-pend-clave]", cuerpo).forEach((item) => {
+          if (!antes.has(item.dataset.pendClave)) {
+            item.classList.add("is-nueva");
+          }
+        });
+
+        actualizarNavegacion();
+
+        if (window.AQDistancia) {
+          window.AQDistancia.actualizar();
+        }
+
+      } catch (error) {
+        // Sin conexión por un rato: se reintenta en el próximo ciclo.
+      } finally {
+        pidiendo = false;
+      }
+    };
+
+    const anterior = nav && $("[data-pend-prev]", nav);
+    const siguiente = nav && $("[data-pend-next]", nav);
+
+    if (anterior && siguiente) {
+      anterior.addEventListener("click", () => pista() && pista().scrollBy({ left: -paso(), behavior: "smooth" }));
+      siguiente.addEventListener("click", () => pista() && pista().scrollBy({ left: paso(), behavior: "smooth" }));
+    }
+
+    // "scroll" no burbujea: se escucha en la fase de captura para enterarse del de la fila.
+    cuerpo.addEventListener("scroll", actualizarNavegacion, true);
+    window.addEventListener("resize", actualizarNavegacion);
+    actualizarNavegacion();
+
+    setInterval(refrescar, intervalo);
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        refrescar();
+      }
+    });
+
+    window.addEventListener("online", refrescar);
+  };
+
+
+  /* ========================================================================
      10b. PISTAS DE PLANES DEL GRUPO
 
      Cada sección del tablero (en votación, confirmados…) es una fila que
@@ -1290,6 +1439,7 @@
   iniciarFiltrosDePlanes();
   iniciarCarruselDeGrupos();
   iniciarPistasDePlanes();
+  iniciarPendientes();
   iniciarCopiarEnlace();
   iniciarCamposEditables();
   iniciarModales();

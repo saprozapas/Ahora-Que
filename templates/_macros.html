@@ -24,6 +24,7 @@
       {% set donde = [l.direccion, l.barrio] | select | join(' · ') %}
       {% if donde %}<span class="parada__donde">{{ donde }}</span>{% endif %}
       {% if l.hora %}<span class="parada__donde">A las {{ l.hora.strftime('%H:%M') }}</span>{% endif %}
+      {% if l.lat and l.lon %}<span class="parada__donde dist" data-dist data-lat="{{ l.lat }}" data-lon="{{ l.lon }}"></span>{% endif %}
     </span>
     {% if mapa and l.mapa_url %}
     <a class="parada__mapa" href="{{ l.mapa_url }}" target="_blank" rel="noopener" aria-label="Cómo llegar a {{ l.nombre }} (abre el mapa)">

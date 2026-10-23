@@ -21,7 +21,7 @@
 {% set pendientes = notificaciones_pendientes | default(0, true) %}
 {% set tonos = {'coral': 15, 'moss': 140, 'lilac': 270} %}
 
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -69,44 +69,33 @@
 
     <section class="container page dash-body">
 
-      <div class="dash-section">
-        <h2 class="h3">Accesos</h2>
+      <div class="dash-section dash-pend">
 
-        <ul class="menu-list dash-shortcuts">
-          <li>
-            <a class="card item menu-item" href="/grupos">
-              <span class="menu-item__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M3.5 19c.6-3 2.4-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 15c2.7-.3 4.7 1 5.3 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
-              </span>
-              <span class="item__body">
-                <span class="item__name">Tus grupos</span>
-                <span class="item__text">Votaciones y planes de cada grupo.</span>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a class="card item menu-item" href="/planes/">
-              <span class="menu-item__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false"><rect x="4" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="13" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="4" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="13" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>
-              </span>
-              <span class="item__body">
-                <span class="item__name">Tus planes</span>
-                <span class="item__text">Ideas guardadas, confirmados y archivados.</span>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a class="card item menu-item" href="/calendario">
-              <span class="menu-item__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false"><rect x="3.5" y="5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M3.5 9.5h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
-              </span>
-              <span class="item__body">
-                <span class="item__name">Calendario</span>
-                <span class="item__text">Los planes confirmados, mes a mes.</span>
-              </span>
-            </a>
-          </li>
-        </ul>
+        <div class="dash-pend__cab">
+          <h2 class="h3">Te toca a vos</h2>
+          <span class="meta">Avisos de votación de tus grupos</span>
+          <span class="badge dash-pend__total" data-pend-contador{% if not pendientes_datos or not pendientes_datos.total %} hidden{% endif %}>{{ pendientes_datos.total if pendientes_datos else 0 }}</span>
+          <span class="board__nav dash-pend__nav" data-pend-nav hidden>
+            <span class="meta" data-pend-pagina>1 de 1</span>
+            <button class="icon-btn" type="button" data-pend-prev aria-label="Votaciones anteriores">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </button>
+            <button class="icon-btn" type="button" data-pend-next aria-label="Votaciones siguientes">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </button>
+          </span>
+        </div>
+
+        {# Se actualiza solo: app.js vuelve a pedir el panel cada pocos segundos (y al volver a la pestaña). #}
+        <div class="dash-pend__cuerpo" data-pend data-url="/inicio/pendientes" data-intervalo="8000" aria-live="polite">
+          {% if pendientes_datos is none %}
+          <div class="pend-vacio"><p class="voice"><strong>No pudimos cargar tus votaciones.</strong> Reintentamos en unos segundos.</p></div>
+          {% else %}
+          {% set p = pendientes_datos %}
+          {% include '_inicio_pendientes.html' %}
+          {% endif %}
+        </div>
+
       </div>
 
     </section>

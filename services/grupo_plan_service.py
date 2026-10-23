@@ -276,6 +276,120 @@ class GrupoPlanService:
         finally:
             release_db_connection(connection)
 
+    # --- Pendientes de todos los grupos (el Inicio) ------------------------------
+
+    def get_pendientes(self, user_id):
+        """Lo que espera una respuesta de este usuario en CUALQUIERA de sus grupos, para mostrarlo en el
+        Inicio sin pasar por cada grupo:
+
+          votar      planes en votación en los que todavía no votó
+          horarios   horarios propuestos (planes esperando horario) que no votó
+          encuestas  encuestas en elección en las que todavía no votó
+          puntuar    planes a los que fue y todavía no puntuó
+
+        Devuelve {"votar": [...], "horarios": [...], "encuestas": [...], "puntuar": [...], "total": n}.
+        Cada plan trae su grupo (grupo_id, grupo) y sus lugares, igual que en el tablero."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT p."id_Plan", p."Nombre", p."Fecha", p."Hora", p."Precio", p."Estado",
+                           p."Grupo_id", g."Nombre", uc."Nombre",
+                           cv.votos, mv."Me_Gusta",
+                           (SELECT COUNT(*) FROM public."Usuario-Grupo" x WHERE x."Id_Grupo" = p."Grupo_id"),
+                           p."Precio_Min", p."Precio_Max"
+                    FROM public."Usuario-Grupo" ug
+                    JOIN public."Plan" p ON p."Grupo_id" = ug."Id_Grupo"
+                    JOIN public."Grupos" g ON g."Id_Grupo" = p."Grupo_id"
+                    LEFT JOIN public."Usuarios" uc ON uc."Id_Usuario" = p."Creado_Por"
+                    LEFT JOIN LATERAL (
+                        SELECT COUNT(*) AS votos FROM public."Plan_Voto" v WHERE v."Id_Plan" = p."id_Plan"
+                    ) cv ON true
+                    LEFT JOIN public."Plan_Voto" mv
+                           ON mv."Id_Plan" = p."id_Plan" AND mv."Id_Usuario" = %(uid)s
+                    LEFT JOIN public."Usuario-Plan" mp
+                           ON mp."Plan_id" = p."id_Plan" AND mp."Usuario_id" = %(uid)s
+                    WHERE ug."Id_Usuario" = %(uid)s
+                      AND (   (p."Estado" = 'votacion' AND mv."Me_Gusta" IS NULL)
+                           OR  p."Estado" = 'esperando_horario'
+                           OR (p."Estado" = 'archivado' AND mp."Confirmado" AND mp."Puntaje" IS NULL))
+                    ORDER BY p."Fecha" NULLS LAST, p."Hora"
+                    """,
+                    {"uid": user_id},
+                )
+                planes = self._planes._armar_planes(
+                    cursor,
+                    cursor.fetchall(),
+                    lambda f: {
+                        "grupo_id": str(f[6]),
+                        "grupo": f[7],
+                        "creador": f[8],
+                        "votos": f[9],
+                        "miembros": f[11],
+                        "horarios": [],
+                    },
+                )
+
+                esperando = {p["id"]: p for p in planes if p["estado"] == "esperando_horario"}
+                if esperando:
+                    cursor.execute(
+                        """
+                        SELECT h."Id_Horario", h."Id_Plan", h."Fecha", h."Hora", u."Nombre",
+                               (SELECT COUNT(*) FROM public."Plan_Horario_Voto" x WHERE x."Id_Horario" = h."Id_Horario"),
+                               EXISTS (SELECT 1 FROM public."Plan_Horario_Voto" y
+                                        WHERE y."Id_Horario" = h."Id_Horario" AND y."Id_Usuario" = %(uid)s)
+                        FROM public."Plan_Horario" h
+                        JOIN public."Usuarios" u ON u."Id_Usuario" = h."Propuesto_Por"
+                        WHERE h."Id_Plan" IN %(ids)s AND h."Estado" = 'votacion'
+                        ORDER BY h."Fecha", h."Hora"
+                        """,
+                        {"uid": user_id, "ids": tuple(esperando)},
+                    )
+                    for f in cursor.fetchall():
+                        if not f[6]:  # solo los horarios que todavía no voté
+                            esperando[f[1]]["horarios"].append({
+                                "id": f[0], "fecha": f[2], "hora": f[3], "propuesto_por": f[4], "votos": f[5],
+                            })
+
+                cursor.execute(
+                    """
+                    SELECT e."Id_Encuesta", e."Titulo", e."Fecha_Plan", e."Hora_Plan", e."Id_Grupo", g."Nombre",
+                           (SELECT COUNT(*) FROM public."Usuario-Grupo" x WHERE x."Id_Grupo" = e."Id_Grupo"),
+                           (SELECT COUNT(*) FROM public."Grupo_Encuesta_Voto" v
+                             WHERE v."Id_Encuesta" = e."Id_Encuesta" AND v."Ronda" = e."Ronda")
+                    FROM public."Usuario-Grupo" ug
+                    JOIN public."Grupo_Encuesta" e ON e."Id_Grupo" = ug."Id_Grupo"
+                    JOIN public."Grupos" g ON g."Id_Grupo" = e."Id_Grupo"
+                    WHERE ug."Id_Usuario" = %(uid)s AND e."Estado" = 'eligiendo'
+                      AND NOT EXISTS (SELECT 1 FROM public."Grupo_Encuesta_Voto" mv
+                                       WHERE mv."Id_Encuesta" = e."Id_Encuesta" AND mv."Ronda" = e."Ronda"
+                                         AND mv."Id_Usuario" = %(uid)s)
+                    ORDER BY e."Creada_En"
+                    """,
+                    {"uid": user_id},
+                )
+                encuestas = [
+                    {"id": str(f[0]), "titulo": f[1], "fecha": f[2], "hora": f[3], "grupo_id": str(f[4]),
+                     "grupo": f[5], "miembros": f[6], "votaron": f[7]}
+                    for f in cursor.fetchall()
+                ]
+
+            votar = [p for p in planes if p["estado"] == "votacion"]
+            horarios = [p for p in esperando.values() if p["horarios"]]
+            puntuar = [p for p in planes if p["estado"] == "archivado"]
+            return {
+                "votar": votar,
+                "horarios": horarios,
+                "encuestas": encuestas,
+                "puntuar": puntuar,
+                "total": len(votar) + len(horarios) + len(encuestas) + len(puntuar),
+            }
+        except psycopg2.Error:
+            raise
+        finally:
+            release_db_connection(connection)
+
     # --- Postular -------------------------------------------------------------
 
     def postular_idea(self, group_id, user_id, idea_id, fecha=None, hora=None):

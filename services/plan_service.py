@@ -60,6 +60,8 @@ class PlanService:
                 "direccion": fila[4],
                 "barrio": fila[5],
                 "mapa_url": url_mapa(fila[6], fila[7]),
+                "lat": fila[6],
+                "lon": fila[7],
             }
             for fila in cursor.fetchall()
         ]
@@ -149,6 +151,8 @@ class PlanService:
                 "direccion": fila[5],
                 "barrio": fila[6],
                 "mapa_url": url_mapa(fila[7], fila[8]),
+                "lat": fila[7],
+                "lon": fila[8],
             })
 
         # Fallback a "Plan"."Lugar_id" para los planes viejos sin Plan_Lugar.
@@ -170,6 +174,8 @@ class PlanService:
                     "direccion": fila[3],
                     "barrio": fila[4],
                     "mapa_url": url_mapa(fila[5], fila[6]),
+                    "lat": fila[5],
+                    "lon": fila[6],
                     "nombre": fila[1],
                     "precio_min": rango[0] if rango else None,
                     "precio_max": rango[1] if rango else None,

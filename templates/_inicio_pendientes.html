@@ -1,0 +1,115 @@
+{% from '_macros.html' import emblema %}
+
+{#
+  Panel "Te toca a vos" del Inicio: lo que espera tu respuesta en TODOS tus grupos. Lo arma
+  /inicio/pendientes y app.js lo vuelve a pedir cada pocos segundos (data-pend en home.html).
+
+  p = {"votar": [...], "horarios": [...], "encuestas": [...], "puntuar": [...], "total": n}
+
+  Son avisos: cada tarjeta lleva al grupo (votación, horario, encuesta o puntuación); no se vota desde acá.
+  Cada tarjeta lleva data-pend-clave: así el JS sabe cuáles ya estaban y cuáles son nuevas.
+#}
+
+{% macro cuando(plan) -%}
+  {{ plan.fecha | cuando(plan.hora) if plan.fecha else 'sin fecha todavía' }}
+{%- endmacro %}
+
+{# Distancia al primer lugar con coordenadas: dist.js la completa con la ubicación de quien mira. #}
+{% macro distancia(plan) -%}
+  {% set con_mapa = plan.lugares | selectattr('lat') | list %}
+  {% if con_mapa %}<span class="dist" data-dist data-lat="{{ con_mapa[0].lat }}" data-lon="{{ con_mapa[0].lon }}"></span>{% endif %}
+{%- endmacro %}
+
+{% macro grupo_link(grupo_id, nombre) -%}
+  <a class="pend-grupo" href="/grupos/{{ grupo_id }}">{{ emblema(nombre, none, 22) }}<span>{{ nombre }}</span></a>
+{%- endmacro %}
+
+<div class="pend" data-pend-total="{{ p.total }}">
+
+{% if not p.total %}
+
+  <div class="pend-vacio">
+    <span class="pend-vacio__marca" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false"><path d="m5 12.5 4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </span>
+    <p class="voice"><strong>Todo al día.</strong> No hay votaciones esperándote. Cuando alguien de tus grupos proponga algo, aparece acá en el momento.</p>
+  </div>
+
+{% else %}
+
+  <ul class="pend-lista">
+
+    {# ----------------------------- Planes para votar ----------------------------- #}
+    {% for plan in p.votar %}
+    <li class="card pend-card" data-pend-clave="plan-{{ plan.id }}">
+      <header class="pend-card__cab">
+        <span class="tag">En votación</span>
+        {{ grupo_link(plan.grupo_id, plan.grupo) }}
+      </header>
+      <h3 class="pend-titulo"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+      <p class="meta pend-meta">{{ cuando(plan) }} · {{ plan.resumen_lugares }} {{ distancia(plan) }}</p>
+      <p class="meta pend-meta">{{ plan.creador }} la postuló · votaron {{ plan.votos }} de {{ plan.miembros }}</p>
+
+      <a class="btn btn--primary btn--sm pend-ir" href="/grupos/{{ plan.grupo_id }}#plan-{{ plan.id }}">Ir a votar</a>
+    </li>
+    {% endfor %}
+
+
+    {# --------------------------- Horarios para votar --------------------------- #}
+    {% for plan in p.horarios %}
+    <li class="card pend-card" data-pend-clave="horario-{{ plan.id }}-{{ plan.horarios | map(attribute='id') | join('-') }}">
+      <header class="pend-card__cab">
+        <span class="tag">Buscando horario</span>
+        {{ grupo_link(plan.grupo_id, plan.grupo) }}
+      </header>
+      <h3 class="pend-titulo"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+      <p class="meta pend-meta">{{ plan.resumen_lugares }} {{ distancia(plan) }}</p>
+
+      <ul class="pend-horarios">
+        {% for h in plan.horarios %}
+        <li><strong>{{ h.fecha | cuando(h.hora) }}</strong><small>{{ h.propuesto_por }} lo propuso</small></li>
+        {% endfor %}
+      </ul>
+
+      <a class="btn btn--primary btn--sm pend-ir" href="/grupos/{{ plan.grupo_id }}#plan-{{ plan.id }}">Elegir horario</a>
+    </li>
+    {% endfor %}
+
+
+    {# ------------------------------ Encuestas ------------------------------ #}
+    {% for e in p.encuestas %}
+    <li class="card pend-card" data-pend-clave="encuesta-{{ e.id }}">
+      <header class="pend-card__cab">
+        <span class="tag">Encuesta</span>
+        {{ grupo_link(e.grupo_id, e.grupo) }}
+      </header>
+      <h3 class="pend-titulo"><a href="/grupos/{{ e.grupo_id }}#encuesta-{{ e.id }}">{{ e.titulo }}</a></h3>
+      <p class="meta pend-meta">{% if e.fecha %}{{ e.fecha | cuando(e.hora) }} · {% endif %}votaron {{ e.votaron }} de {{ e.miembros }}</p>
+      <a class="btn btn--primary btn--sm pend-ir" href="/grupos/{{ e.grupo_id }}#encuesta-{{ e.id }}">Elegir una opción</a>
+    </li>
+    {% endfor %}
+
+
+    {# ------------------------------ Para puntuar ------------------------------ #}
+    {% for plan in p.puntuar %}
+    <li class="card pend-card" data-pend-clave="puntuar-{{ plan.id }}">
+      <header class="pend-card__cab">
+        <span class="tag">Para puntuar</span>
+        {{ grupo_link(plan.grupo_id, plan.grupo) }}
+      </header>
+      <h3 class="pend-titulo"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
+      <p class="meta pend-meta">¿Qué tal estuvo? · {{ plan.resumen_lugares }}</p>
+
+      <a class="btn btn--primary btn--sm pend-ir" href="/grupos/{{ plan.grupo_id }}#plan-{{ plan.id }}">Puntuar</a>
+    </li>
+    {% endfor %}
+
+    {# Huecos invisibles para que la última página se arme de a tres (escritorio) o de a dos (tablet) sin repetir tarjetas. #}
+    {% for _ in range((3 - p.total % 3) % 3) %}<li class="pend-relleno pend-relleno--3" aria-hidden="true"></li>{% endfor %}
+    {% for _ in range((2 - p.total % 2) % 2) %}<li class="pend-relleno pend-relleno--2" aria-hidden="true"></li>{% endfor %}
+
+  </ul>
+
+{% endif %}
+
+</div>

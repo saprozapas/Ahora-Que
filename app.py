@@ -15,6 +15,8 @@ from routes.friends import friends_bp
 from routes.chat import chat
 from routes.grupo_planes import grupo_planes_bp
 from routes.chatbot import chatbot_bp
+from routes.inicio import inicio_bp
+from services.grupo_plan_service import GrupoPlanService
 from routes.social import es_moderador, social_api
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
@@ -35,6 +37,7 @@ app.register_blueprint(friends_bp)
 app.register_blueprint(grupo_planes_bp)
 app.register_blueprint(chat)
 app.register_blueprint(chatbot_bp)
+app.register_blueprint(inicio_bp)
 app.register_blueprint(social_api)
 invitation_service = InvitationService()
 friend_service = FriendService()
@@ -148,8 +151,14 @@ def dashboard():
     if not session.get('user_id'):
         return redirect('/login')
     invitaciones, _ = _inbox_guardado(session["user_id"])
+    # Lo que espera tu voto en todos tus grupos (se refresca solo desde el navegador, ver routes/inicio.py).
+    try:
+        pendientes_datos = GrupoPlanService().get_pendientes(session["user_id"])
+    except Exception as e:
+        print(f"No se pudieron leer las votaciones pendientes: {e}")
+        pendientes_datos = None
     return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True,
-                           invitaciones=invitaciones)
+                           invitaciones=invitaciones, pendientes_datos=pendientes_datos)
 
 @app.route('/tutorial')
 def tutorial():
