@@ -1345,3 +1345,31 @@
 @media (max-width: 900px) {
   .dashboard-layout--fija { grid-template-rows: auto minmax(0, 1fr); }
 }
+
+
+/* ---------- Social fijo (escritorio): encabezado en una fila y publicaciones que se ven enteras ---------- */
+@media (min-width: 901px) {
+  .social-page--fija { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr); column-gap: var(--s-5); align-content: start; }
+  .social-page--fija > .back-link { display: none; }
+  .social-page--fija > .page-head { grid-column: 1; grid-row: 1; margin: var(--s-2) 0 var(--s-3); }
+  .social-page--fija > .page-head .h2 { font-size: clamp(1.75rem, 1.3rem + 1.1vw, 2.5rem); }
+  .social-page--fija > .page-head .lead { margin: 0; font-size: 1.0625rem; }
+  .social-page--fija > .soc-tabs { grid-column: 2; grid-row: 1; align-self: end; margin-bottom: var(--s-3); }
+  .social-page--fija > .soc-feed { grid-column: 1 / -1; grid-row: 2; }
+
+  /* Una columna algo más ancha y la barra de "Compartir" en una línea. */
+  .social-page--fija .soc-barra,
+  .social-page--fija .soc-lista,
+  .social-page--fija .soc-vacio,
+  .social-page--fija .soc-cargando,
+  .social-page--fija .soc-feed > .soc-aviso,
+  .social-page--fija .soc-feed .social-ver-mas { max-width: 640px; }
+  .social-page--fija .soc-barra { margin-bottom: var(--s-3); padding-bottom: var(--s-3); }
+
+  /* La foto toma el alto que queda: la publicación entera cabe en la pantalla, sin recortes raros. */
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-fotos,
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-fotos[data-aspecto="vertical"] {
+    aspect-ratio: auto; height: clamp(300px, calc(100svh - 430px), 640px);
+  }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-portada { aspect-ratio: auto; height: clamp(240px, calc(100svh - 430px), 520px); }
+}

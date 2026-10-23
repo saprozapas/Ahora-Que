@@ -1135,6 +1135,98 @@
 
 
   /* ========================================================================
+     ACTUALIZACIÓN AUTOMÁTICA (pantalla de un grupo)
+
+     Si alguien propone un plan, vota o responde una encuesta, no hace falta
+     apretar F5: la pantalla pregunta cada tanto al servidor y, si el contenido
+     cambió, se recarga sola. No lo hace cuando:
+       - la pestaña está en segundo plano;
+       - hay un diálogo abierto;
+       - la persona tocó algún formulario (para no borrarle lo que escribió).
+     Al recargar vuelve a la misma posición. Se activa con data-autorecarga="ms"
+     en el contenedor del contenido.
+     ======================================================================== */
+
+  const iniciarActualizacionAutomatica = () => {
+
+    const zona = $("[data-autorecarga]");
+    if (!zona) return;
+
+    const cada = Math.max(5000, Number(zona.dataset.autorecarga) || 15000);
+    const clave = `ahoraque-scroll:${location.pathname}`;
+
+    // Vuelve a donde estaba antes de la recarga automática.
+    try {
+      const guardado = sessionStorage.getItem(clave);
+      if (guardado !== null) {
+        zona.scrollTop = Number(guardado) || 0;
+        sessionStorage.removeItem(clave);
+      }
+    } catch (error) {
+      // Sin sessionStorage solo se pierde la posición.
+    }
+
+    let sucio = false;
+    const marcar = (evento) => {
+      if (evento.isTrusted && evento.target.closest("form")) sucio = true;
+    };
+    document.addEventListener("input", marcar);
+    document.addEventListener("change", marcar);
+
+    // Huella del contenido tal como lo manda el servidor (sin scripts ni avisos).
+    const huella = (html) => {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const contenido = doc.querySelector("[data-autorecarga]");
+      if (!contenido) return null;
+      contenido.querySelectorAll("script, [data-ignorar-recarga]").forEach((el) => el.remove());
+      return contenido.innerHTML.replace(/\s+/g, " ");
+    };
+
+    const traer = async () => {
+      const respuesta = await fetch(location.href, {
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "X-Requested-With": "autorecarga" },
+      });
+      if (!respuesta.ok || respuesta.redirected) return null;
+      return huella(await respuesta.text());
+    };
+
+    let base = null;
+    let revisando = false;
+
+    const revisar = async () => {
+      if (revisando || document.hidden || sucio || $("dialog[open]")) return;
+      revisando = true;
+      try {
+        const nueva = await traer();
+        if (nueva === null) return;
+        if (base === null) {
+          base = nueva;
+        } else if (nueva !== base && !sucio && !$("dialog[open]")) {
+          try {
+            sessionStorage.setItem(clave, String(zona.scrollTop));
+          } catch (error) {
+            // Sin sessionStorage vuelve arriba.
+          }
+          location.reload();
+        }
+      } catch (error) {
+        // Sin conexión: se vuelve a intentar en la próxima vuelta.
+      } finally {
+        revisando = false;
+      }
+    };
+
+    revisar();
+    setInterval(revisar, cada);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) revisar();
+    });
+  };
+
+
+  /* ========================================================================
      ARRANQUE
      ======================================================================== */
 
@@ -1153,4 +1245,5 @@
   iniciarConfirmaciones();
   iniciarAvisos();
   iniciarMenusDesplegables();
+  iniciarActualizacionAutomatica();
 })();

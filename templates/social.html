@@ -75,7 +75,7 @@
               Fueron {{ plan.amigos[0] }} y {{ plan.amigos | length - 1 }} amigos más
             {% endif %}
           </strong>
-          <small class="meta">{{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</small>
+          <small class="meta">{{ plan.fecha | dia_rel | capitalize }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</small>
         </div>
       </div>
 

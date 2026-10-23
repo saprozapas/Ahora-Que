@@ -376,8 +376,8 @@
 .crear-menu__icono { cursor: pointer; }
 .crear-menu__icono svg { width: 22px; height: 22px; }
 
-/* Celular: la barra es una fila de 5 destinos iguales (ícono sobre la etiqueta), sin
-   deslizar. El Inbox, el Perfil y "+ Crear" pasan al encabezado. */
+/* Celular: la barra es una fila de 6 destinos iguales (ícono sobre la etiqueta, o dos filas de tres
+   en pantallas angostas), sin deslizar. El Inbox, el Perfil y "+ Crear" pasan al encabezado. */
 @media (max-width: 900px) {
   .dashboard-layout,
   .dashboard-layout.is-collapsed { grid-template-columns: minmax(0, 1fr); min-height: 0; }
@@ -394,7 +394,7 @@
   .dashboard-sidebar-heading { display: none !important; }
 
   .dashboard-sidebar-nav {
-    display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; width: 100%; padding: 3px;
+    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; width: 100%; padding: 3px;
     background: var(--paper-deep); border-radius: calc(var(--r-sm) + 3px);
   }
 
@@ -415,6 +415,12 @@
   .dashboard-sidebar-link.is-active:hover { background: var(--surface); }
 
   .app-header__solo-celular { display: flex; }
+}
+
+/* En celular angosto 6 destinos no entran en una fila con su etiqueta: van en dos filas de tres. */
+@media (max-width: 600px) {
+  .dashboard-sidebar-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .dashboard-sidebar-link, .dashboard-layout.is-collapsed .dashboard-sidebar-link { flex-direction: row; gap: var(--s-2); min-height: 44px; padding: 6px var(--s-2); text-align: left; justify-content: flex-start; }
 }
 
 /* A 320 px "Mis planes" no entra en una línea: la etiqueta puede partirse en dos. */

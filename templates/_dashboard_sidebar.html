@@ -2,11 +2,11 @@
   Navegación de la app con sesión.
 
   Escritorio: barra lateral que se puede contraer (app.js). De arriba a abajo:
-    "+ Crear" · Inicio e Inbox · PLANEAR (Mis planes, Grupos) ·
+    "+ Crear" · Inicio e Inbox · PLANEAR (Mis planes, Calendario, Grupos) ·
     GENTE (Amigos, Social) · y, abajo del todo, el Perfil.
 
-  Celular (≤ 900 px): una fila de 5 destinos que entran sin deslizar (Inicio,
-  Mis planes, Grupos, Amigos, Social). El Inbox, el Perfil y "+ Crear" pasan al
+  Celular (≤ 900 px): 6 destinos que entran sin deslizar (Inicio, Mis planes,
+  Calendario, Grupos, Amigos, Social). El Inbox, el Perfil y "+ Crear" pasan al
   encabezado (base.html). Lo que solo va en escritorio lleva .solo-escritorio.
 
   Estilos en static/css/brand.css (sección 07).
@@ -25,6 +25,9 @@
   <rect x="13" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" />
   <rect x="4" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" />
   <rect x="13" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" />
+  {%- elif nombre == 'calendario' %}
+  <rect x="3.5" y="5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" />
+  <path d="M3.5 9.5h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
   {%- elif nombre == 'grupos' %}
   <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" />
   <circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" />
@@ -57,7 +60,7 @@
 
 {% set ruta = request.path %}
 {# "Crear" empieza en /planes/nueva-idea: ahí el destino activo no es Mis planes. #}
-{% set en_planes = (ruta.startswith('/planes') and not ruta.startswith('/planes/nueva-idea')) or ruta.startswith('/calendario') %}
+{% set en_planes = ruta.startswith('/planes') and not ruta.startswith('/planes/nueva-idea') %}
 {% set nombre_usuario = current_user.name | default(current_user.username | default('', true), true) %}
 
 
@@ -99,6 +102,7 @@
     <div class="dashboard-sidebar-group" role="group" aria-labelledby="sidebar-planear">
       <p class="dashboard-sidebar-heading" id="sidebar-planear">Planear</p>
       {{ destino('/planes', 'planes', 'Mis planes', en_planes) }}
+      {{ destino('/calendario', 'calendario', 'Calendario', ruta.startswith('/calendario')) }}
       {{ destino('/grupos', 'grupos', 'Grupos', ruta.startswith('/grupos') or ruta.startswith('/racha')) }}
     </div>
 

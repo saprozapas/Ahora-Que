@@ -20,6 +20,12 @@
 
 {# Chip de racha: llama + semanas y, si el grupo ganó un título, su nombre.
    `enlace` (opcional) lo vuelve un link a la pantalla de la racha. #}
+{# Emblema del grupo: su inicial en un avatar. Con `marco` (hierro, bronce, plata, oro o esmeralda,
+   según la racha) lleva un anillo del color de ese marco. #}
+{% macro emblema(nombre, marco=none, tam=56) -%}
+<span class="avatar emblema{% if marco %} marco marco--{{ marco }}{% endif %}" style="--h: {{ (nombre | length * 47) % 360 }}; --size: {{ tam }}px"{% if marco %} title="Marco de {{ marco }}"{% endif %} aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
+{%- endmacro %}
+
 {% macro racha_chip(racha, enlace=none) %}
 {% set titulo = nombre_titulo(racha.titulo_color) | trim if racha.titulo_color else '' %}
 {% if enlace %}<a class="racha-chip{% if not racha.activa %} is-inactiva{% endif %}" href="{{ enlace }}" aria-label="Racha del grupo: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">

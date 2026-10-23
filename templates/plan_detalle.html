@@ -31,7 +31,7 @@
             {% else %}
               <span class="tag{% if plan.estado == 'confirmado' %} tag--ink{% endif %}">{{ plan.estado_texto }}</span>
               {% if plan.fecha %}
-              <span class="meta">{{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
+              <span class="meta">{{ plan.fecha | dia_rel | capitalize }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
               {% endif %}
             {% endif %}
 

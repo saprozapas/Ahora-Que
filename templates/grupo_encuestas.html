@@ -36,7 +36,7 @@
         <h3 class="encuesta-titulo">{{ e.titulo }}</h3>
         <p class="meta">
           Creada por {{ e.creador }}
-          {% if e.estado == 'eligiendo' and e.fecha %}· el {{ e.fecha.strftime('%d/%m') }} a las {{ e.hora.strftime('%H:%M') }}{% endif %}
+          {% if e.estado == 'eligiendo' and e.fecha %}· {{ e.fecha | cuando(e.hora) }}{% endif %}
         </p>
       </header>
 

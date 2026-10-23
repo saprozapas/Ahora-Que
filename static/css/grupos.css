@@ -246,3 +246,34 @@
   .dashboard-layout--fija-grupo { height: calc(100svh - var(--header-h)); min-height: 0; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
   .dashboard-layout--fija-grupo .dashboard-main { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 }
+
+
+/* ---------- Marcos de grupo (rachas) ----------
+   El marco rodea TODA la tarjeta del grupo: un filete del color del rango y un velo muy suave del mismo
+   color arriba. Cuanto más alto el rango, un poco más de brillo; sin degradados fuertes ni animaciones,
+   para seguir siendo Sereno. Los colores salen de --marco-*, así que cambiar los nombres no toca el CSS. */
+.marco--hierro    { --marco: var(--marco-hierro);    --brillo: 0%; }
+.marco--bronce    { --marco: var(--marco-bronce);    --brillo: 0%; }
+.marco--plata     { --marco: var(--marco-plata);     --brillo: 35%; }
+.marco--oro       { --marco: var(--marco-oro);       --brillo: 50%; }
+.marco--esmeralda { --marco: var(--marco-esmeralda); --brillo: 55%; }
+
+.marco-tarjeta,
+.marco-panel {
+  box-shadow: 0 0 0 1.5px var(--marco), 0 8px 22px -12px color-mix(in srgb, var(--marco) var(--brillo, 0%), transparent), var(--sh-card);
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--marco) 9%, var(--surface)) 0%, var(--surface) 62%);
+}
+.marco-panel { margin-bottom: var(--s-4); padding: var(--s-4) var(--s-5); border-radius: var(--r-xl); background-color: var(--surface); }
+.group-page--fija .group-head.marco-panel { margin-bottom: var(--s-4); }
+a.marco-tarjeta:hover { box-shadow: 0 0 0 2px var(--marco), 0 10px 26px -12px color-mix(in srgb, var(--marco) calc(var(--brillo, 0%) + 15%), transparent), var(--sh-float); }
+
+.emblema { font-size: 1.25rem; }
+.group-head__title .emblema { margin-right: var(--s-1); }
+.racha-marco { display: flex; align-items: center; gap: var(--s-4); margin: var(--s-2) 0 0; }
+.racha-marco .meta { margin: 0; }
+.racha-hito-preview.marco-tarjeta { background-color: var(--surface); }
+
+/* Muestra de color en el selector de "Editar grupo". */
+.cosmetic-choice--marco { gap: var(--s-2); }
+.marco-muestra { flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--marco, var(--marco-hierro)); box-shadow: 0 0 0 2px var(--surface); }
+.cosmetic-choice--marco[aria-pressed="true"] .marco-muestra { box-shadow: 0 0 0 2px var(--ink); }

@@ -6,7 +6,7 @@
 {% block content %}
 
 {% macro cuando(plan) -%}
-  {{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} a las {{ plan.hora.strftime('%H:%M') }}{% endif %}
+  {{ plan.fecha | cuando(plan.hora) }}
 {%- endmacro %}
 
 {% macro si_no(nombre, valor) %}
@@ -34,7 +34,7 @@
   {% include 'grupo_cabecera.html' %}
 
   {# La pantalla no scrollea: el encabezado y las pestañas quedan fijos y solo el contenido se desplaza. #}
-  <div class="group-scroll" data-group-scroll>
+  <div class="group-scroll" data-group-scroll data-autorecarga="15000">
 
   {% include 'grupo_encuestas.html' %}
 
@@ -199,7 +199,7 @@
           {% for h in plan.horarios %}
           <li>
             <div class="board-slots__info">
-              <strong>{{ h.fecha.strftime('%d/%m') }} a las {{ h.hora.strftime('%H:%M') }}</strong>
+              <strong>{{ h.fecha | cuando(h.hora) }}</strong>
               <span class="meta">Propuesto por {{ h.propuesto_por }} · {{ h.pueden }} de {{ plan.miembros }} pueden ({{ h.votos }} votaron)</span>
             </div>
 

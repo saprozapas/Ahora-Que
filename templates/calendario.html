@@ -13,16 +13,20 @@
 {% endif %}
 
 
-<section class="container page cal">
+<section class="container page cal cal--{{ vista }}">
 
   <a class="back-link" href="/dashboard">← Inicio</a>
-
-  {% include '_planes_tabs.html' %}
 
   <header class="cal__head">
 
     <div>
       <h1 class="h2">Calendario.</h1>
+      {% if vista == 'semana' %}
+      <p class="voice cal__voice">
+        <strong>{% if total %}{{ total }} plan{{ 'es' if total != 1 }} esta semana.{% else %}Semana sin planes todavía.{% endif %}</strong>
+        Los que confirmás con tus grupos aparecen acá.
+      </p>
+      {% else %}
       {# Cuántos planes hay en el mes que se está mirando. #}
       {% set cuenta = namespace(n=0) %}
       {% for semana in semanas %}{% for dia in semana %}{% set cuenta.n = cuenta.n + dia.planes | length %}{% endfor %}{% endfor %}
@@ -30,21 +34,77 @@
         <strong>{% if cuenta.n %}{{ cuenta.n }} plan{{ 'es' if cuenta.n != 1 }} en {{ nombre_mes | lower }}.{% else %}{{ nombre_mes }}, sin planes todavía.{% endif %}</strong>
         Los que confirmás con tus grupos aparecen acá.
       </p>
+      {% endif %}
     </div>
 
-    <nav class="cal__nav" aria-label="Cambiar de mes">
-      <a class="icon-btn" href="/calendario?mes={{ mes_anterior }}&anio={{ anio_anterior }}" aria-label="Mes anterior">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-      </a>
-      <span class="cal__month">{{ nombre_mes }} {{ anio }}</span>
-      <a class="icon-btn" href="/calendario?mes={{ mes_siguiente }}&anio={{ anio_siguiente }}" aria-label="Mes siguiente">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-      </a>
-    </nav>
+    <div class="cal__controles">
+
+      <nav class="tabs cal__vistas" aria-label="Vista del calendario">
+        <a class="tab" href="{{ url_for('calendario.ver_calendario', vista='semana') }}"
+           {% if vista == 'semana' %}aria-current="page"{% endif %}>Semana</a>
+        <a class="tab" href="{{ url_for('calendario.ver_calendario') }}"
+           {% if vista == 'mes' %}aria-current="page"{% endif %}>Mes</a>
+      </nav>
+
+      {% if vista == 'semana' %}
+      <nav class="cal__nav" aria-label="Cambiar de semana">
+        <a class="icon-btn" href="{{ url_for('calendario.ver_calendario', vista='semana', fecha=semana_anterior) }}" aria-label="Semana anterior">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </a>
+        <span class="cal__month">{{ rango }}</span>
+        <a class="icon-btn" href="{{ url_for('calendario.ver_calendario', vista='semana', fecha=semana_siguiente) }}" aria-label="Semana siguiente">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </a>
+        {% if not es_esta_semana %}<a class="btn btn--ghost btn--sm" href="{{ url_for('calendario.ver_calendario', vista='semana') }}">Hoy</a>{% endif %}
+      </nav>
+      {% else %}
+      <nav class="cal__nav" aria-label="Cambiar de mes">
+        <a class="icon-btn" href="/calendario?mes={{ mes_anterior }}&anio={{ anio_anterior }}" aria-label="Mes anterior">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </a>
+        <span class="cal__month">{{ nombre_mes }} {{ anio }}</span>
+        <a class="icon-btn" href="/calendario?mes={{ mes_siguiente }}&anio={{ anio_siguiente }}" aria-label="Mes siguiente">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </a>
+        {% if not es_este_mes %}<a class="btn btn--ghost btn--sm" href="/calendario">Hoy</a>{% endif %}
+      </nav>
+      {% endif %}
+
+    </div>
 
   </header>
 
 
+  {% if vista == 'semana' %}
+
+  {# ============================== SEMANA ============================== #}
+  <div class="cal-semana">
+    {% for d in dias %}
+    <section class="cal-dia{% if d.es_hoy %} is-today{% endif %}{% if not d.planes %} is-vacio{% endif %}" aria-label="{{ d.nombre }} {{ d.numero }}">
+
+      <header class="cal-dia__head">
+        <span class="cal-dia__nombre">{{ d.nombre }}</span>
+        <span class="cal-dia__num">{{ d.numero }}</span>
+        {% if d.relativo %}<span class="tag{% if d.es_hoy %} tag--info{% endif %} cal-dia__rel">{{ d.relativo | capitalize }}</span>{% endif %}
+      </header>
+
+      {% for plan in d.planes %}
+      <a class="cal-evento" href="/planes/{{ plan.id }}">
+        <span class="cal-evento__hora">{{ plan.hora.strftime('%H:%M') if plan.hora else 'Todo el día' }}</span>
+        <span class="cal-evento__nombre">{{ plan.nombre }}</span>
+        {% if plan.resumen_lugares %}<span class="cal-evento__detalle meta">{{ plan.resumen_lugares }}</span>{% endif %}
+      </a>
+      {% else %}
+      <p class="cal-dia__vacio">Sin planes</p>
+      {% endfor %}
+
+    </section>
+    {% endfor %}
+  </div>
+
+  {% else %}
+
+  {# ============================== MES ============================== #}
   <div class="card cal__grid">
 
     {% for dia in dias_semana %}
@@ -53,12 +113,14 @@
 
     {% for semana in semanas %}
       {% for dia in semana %}
-      <div class="cal__day{% if dia.numero == 0 %} is-empty{% endif %}{% if dia.es_hoy %} is-today{% endif %}">
+      <div class="cal__day{% if dia.numero == 0 %} is-empty{% endif %}{% if dia.es_hoy %} is-today{% endif %}{% if dia.planes %} tiene-planes{% endif %}">
         {% if dia.numero != 0 %}
-        <span class="cal__num"{% if dia.es_hoy %} aria-label="{{ dia.numero }}, hoy"{% endif %}>{{ dia.numero }}</span>
+        {# El número abre esa semana: así se llega al detalle de un día sin tocar una pastilla diminuta. #}
+        <a class="cal__num" href="{{ url_for('calendario.ver_calendario', vista='semana', fecha=dia.iso) }}"
+           aria-label="Ver la semana del {{ dia.numero }}{% if dia.es_hoy %} (hoy){% endif %}{% if dia.planes %}, {{ dia.planes | length }} plan{{ 'es' if dia.planes | length != 1 }}{% endif %}">{{ dia.numero }}</a>
 
         {% for plan in dia.planes %}
-        <a class="cal__plan" href="/planes/{{ plan.id }}" title="{{ plan.nombre }} — {{ plan.hora.strftime('%H:%M') }}">
+        <a class="cal__plan" href="/planes/{{ plan.id }}" title="{{ plan.nombre }} — {{ plan.hora.strftime('%H:%M') if plan.hora }}">
           <span class="cal__dot" aria-hidden="true"></span>{{ plan.nombre }}
         </a>
         {% endfor %}
@@ -68,6 +130,8 @@
     {% endfor %}
 
   </div>
+
+  {% endif %}
 
 </section>
 

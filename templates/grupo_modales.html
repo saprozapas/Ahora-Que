@@ -350,9 +350,21 @@
         </div>
       </div>
 
-      {# Los marcos de insignia quedan afuera del rediseño por ahora. Se conserva el
-         valor guardado para que guardar el grupo no lo borre. #}
-      <input type="hidden" name="marco_semanas" value="{{ racha.marco_semanas or '' }}" data-cosmetic-value="marco">
+      <div class="modal-field">
+        <span class="modal-field-label" id="editar-marco-label">Marco del grupo</span>
+        <input type="hidden" name="marco_semanas" value="{{ racha.marco_semanas or '' }}" data-cosmetic-value="marco">
+        {% if racha.marcos_desbloqueados %}
+        <div class="cosmetic-carousel" role="group" aria-labelledby="editar-marco-label">
+          {% for hito in racha.hitos if hito.marco %}
+          <button class="chip cosmetic-choice cosmetic-choice--marco" type="button" data-cosmetic-choice="marco" data-value="{{ hito.semanas }}" aria-pressed="{{ 'true' if hito.semanas == racha.marco_semanas else 'false' }}" {% if not hito.logrado %}disabled{% endif %}>
+            <span class="marco-muestra marco--{{ hito.marco }}" aria-hidden="true"></span>{{ hito.marco | capitalize }}{% if not hito.logrado %} <span class="meta">· {{ hito.semanas }} sem.</span>{% endif %}
+          </button>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="meta">El primer marco (hierro) se desbloquea a las 3 semanas de racha.</p>
+        {% endif %}
+      </div>
 
 
       {% if es_admin %}
