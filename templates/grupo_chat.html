@@ -6,7 +6,7 @@
 
 {% if logueado %}
 
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -15,9 +15,11 @@
 {% endif %}
 
 
-<section class="container page group-page">
+<section class="container page group-page group-page--fija group-page--chat">
 
   {% include 'grupo_cabecera.html' %}
+
+  <div class="group-scroll" data-group-scroll>
 
   <!-- CONTENEDOR COMÚN: mensajes e input comparten el mismo ancho -->
   <div class="chat">
@@ -79,6 +81,8 @@
   </div><!-- /chat-compose -->
 
   </div><!-- /group-chat-box -->
+
+</div>
 
 </section>
 
@@ -168,6 +172,15 @@ function formatearHora(fecha) {
 }
 
 
+// Falso hasta que se pintó la primera tanda de mensajes.
+let chatYaCargado = false;
+
+// Baja la zona con scroll hasta el último mensaje (la caja de mensajes no scrollea sola).
+function bajarAlFinal() {
+    const zona = document.querySelector("[data-group-scroll]");
+    if (zona) zona.scrollTop = zona.scrollHeight;
+}
+
 async function cargarMensajes() {
 
     try {
@@ -192,6 +205,13 @@ async function cargarMensajes() {
 
         });
 
+        // Scrollea el contenedor del contenido (la caja de mensajes no tiene scroll propio). Se baja al último
+        // mensaje al abrir, o si quien lee ya estaba abajo: si subió a leer algo,
+        // no se lo arrastra de vuelta con cada actualización.
+        const zona = document.querySelector("[data-group-scroll]");
+        const estabaAbajo = !chatYaCargado
+            || (zona.scrollTop + zona.clientHeight >= zona.scrollHeight - 160);
+
         const respuestasBot = Array.from(chatMessages.querySelectorAll("[data-bot-efimero]"));
         chatMessages.replaceChildren(fragmento);
         respuestasBot.forEach(function (respuestaBot) {
@@ -201,7 +221,11 @@ async function cargarMensajes() {
             else chatMessages.appendChild(respuestaBot);
         });
 
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        if (estabaAbajo) {
+            zona.scrollTop = zona.scrollHeight;
+        }
+
+        chatYaCargado = true;
         return datos.mensajes;
 
     } catch (error) {
@@ -386,7 +410,7 @@ function crearIndicadorPensando(anclaMensajeId) {
     burbujaEspera.appendChild(textoEspera);
     esperando.appendChild(burbujaEspera);
     chatMessages.appendChild(esperando);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    bajarAlFinal();
     return esperando;
 }
 
@@ -462,7 +486,7 @@ async function pedirPlanAlAsistente(pedido, anclaMensajeId, esperando) {
             salida.appendChild(tarjeta);
         }
         chatMessages.appendChild(salida);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        bajarAlFinal();
     } catch (error) {
         esperando.remove();
         window.preguntar(error.message, false);

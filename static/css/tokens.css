@@ -85,6 +85,16 @@
 
   /* ---------- 8. ESTADOS (decisión: --ok y --danger apagados, siempre con texto o ícono) ---------- */
   --ok:           #2E6B4A;   /* confirmado, guardado, aceptar */
+  --llama:           #C9742B;   /* la llama de una racha activa que todavía no tiene rango */
+  /* Rangos y marcos de grupo (rachas): los planetas, un color sobrio por cada uno. */
+  --marco-mercurio:  #7A7F86;   /* gris piedra */
+  --marco-venus:     #D6A357;   /* ámbar pálido */
+  --marco-tierra:    #3F78B6;   /* azul océano */
+  --marco-marte:     #B4533C;   /* terracota */
+  --marco-jupiter:   #BC7F4B;   /* ocre cobrizo */
+  --marco-saturno:   #C7B681;   /* dorado pálido */
+  --info:         #2B5C8E;   /* en curso / respondiendo (AA sobre claro) */
+  --info-soft:    color-mix(in srgb, var(--info) 11%, var(--surface));
   --ok-soft:      color-mix(in srgb, var(--ok) 11%, var(--surface));
   --on-danger:    #FFFFFF;
   --danger:       #B03128;   /* abandonar, eliminar, errores de formulario */
@@ -125,6 +135,14 @@
      llega a AA (5,3:1). */
   --alert: #E8695F;
   --ok: #7CC79A;
+  --info: #8DB6E2;
+  --llama:           #EE9A5D;
+  --marco-mercurio:  #A3A8AF;
+  --marco-venus:     #E3B672;
+  --marco-tierra:    #6FA3DB;
+  --marco-marte:     #DB7C65;
+  --marco-jupiter:   #D49B69;
+  --marco-saturno:   #E0D1A1;
   --danger: #EE8C83;
   --on-danger: #151515;
 
@@ -161,3 +179,9 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
 }
+
+
+/* Sin barras de scroll visibles en ningún lugar de la app (la rueda, el dedo y el
+   teclado siguen scrolleando igual). */
+* { scrollbar-width: none !important; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none !important; width: 0; height: 0; }

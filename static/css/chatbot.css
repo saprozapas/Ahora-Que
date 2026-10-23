@@ -18,8 +18,7 @@
 /* ---------- Mensajes ---------- */
 .chatbot-mensajes {
   display: flex; flex-direction: column; gap: var(--s-3);
-  min-height: 160px; max-height: min(460px, 60vh); padding: var(--s-3);
-  overflow-y: auto; overscroll-behavior: contain;
+  min-height: 160px; padding: var(--s-3);
   background: var(--paper-deep); border-radius: var(--r-lg);
 }
 

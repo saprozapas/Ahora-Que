@@ -21,12 +21,52 @@
 .board-plan__ok { display: flex; align-items: center; gap: var(--s-2); margin: 0; color: var(--ok); font-weight: 550; }
 .board-plan__votes .seg { max-width: 100%; }
 .encuesta-form { display: grid; gap: var(--s-5); }
-.encuesta-franja { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
+.encuesta-form--compacta { gap: var(--s-4); }
+.encuesta-franjas { display: grid; gap: var(--s-3); }
+.encuesta-franja { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr)); gap: var(--s-2) var(--s-3); align-items: end; padding: var(--s-3); border-radius: var(--r-md); background: var(--paper-deep); }
+.encuesta-franja[hidden] { display: none; }
+.encuesta-franja .field { gap: 4px; }
+.encuesta-franja .field > label { font-size: var(--t-meta); color: var(--ink-3); }
+/* Mañana / Tarde / Noche: una toque completa Desde y Hasta. */
+.encuesta-atajos { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.encuesta-atajos .chip { height: 36px; padding: 0 var(--s-3); background: var(--surface); box-shadow: var(--sh-hair); }
+.encuesta-atajos .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.encuesta-agregar { justify-self: start; }
+
+/* Preferencias: plegadas; lo opcional no se interpone con lo que importa. */
+.encuesta-prefs { border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line); }
+.encuesta-prefs > summary { display: flex; align-items: center; gap: var(--s-2); min-height: 48px; padding: 0 var(--s-4); cursor: pointer; list-style: none; font-weight: 550; }
+.encuesta-prefs > summary::-webkit-details-marker { display: none; }
+.encuesta-prefs > summary::after { content: ""; width: 8px; height: 8px; margin-left: auto; border: solid var(--ink-3); border-width: 0 1.8px 1.8px 0; transform: rotate(45deg); transition: transform var(--d-fast) var(--ease-out); }
+.encuesta-prefs[open] > summary::after { transform: rotate(-135deg); }
+.encuesta-prefs__cuerpo { display: grid; gap: var(--s-4); padding: 0 var(--s-4) var(--s-4); }
+
+/* Tipos de lugar: un menú con casillas, no 28 botones a la vista. */
+.tipos-menu { position: relative; }
+.tipos-menu > summary { list-style: none; }
+.tipos-menu > summary::-webkit-details-marker { display: none; }
+.tipos-menu__boton {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
+  min-height: var(--control-h); padding: 0 var(--s-3) 0 14px; cursor: pointer;
+  border-radius: var(--r-md); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-control);
+  font-size: var(--t-ui); overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.tipos-menu__boton::after { content: ""; flex: none; width: 7px; height: 7px; border: solid var(--ink-3); border-width: 0 1.8px 1.8px 0; transform: rotate(45deg); }
+.tipos-menu[open] .tipos-menu__boton::after { transform: rotate(-135deg); }
+.tipos-menu__boton:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.tipos-menu__panel {
+  position: absolute; z-index: 20; top: calc(100% + var(--s-2)); left: 0; right: 0;
+  display: flex; flex-wrap: wrap; gap: var(--s-2); max-height: 260px; overflow-y: auto; padding: var(--s-3);
+  background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-float);
+}
+.tipos-menu__panel .chip { background: var(--paper-deep); }
+.tipos-menu__panel .chip-check:has(input:checked) { background: var(--ink); color: var(--on-ink); }
 .encuesta-acciones { margin-top: var(--s-1); }
 .postular__ideas { display: grid; gap: var(--s-3); }
 
 @media (max-width: 520px) {
-  .encuesta-franja { grid-template-columns: minmax(0, 1fr); }
+  .encuesta-franja { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .encuesta-franja > .field:first-child { grid-column: 1 / -1; }
   /* Sí/No y Puedo/No puedo ocupan la fila entera: más fáciles de tocar. */
   .board-plan__votes { display: grid; gap: var(--s-4); width: 100%; }
   .board-plan__votes .seg, .board-slots__vote.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
@@ -38,7 +78,7 @@
 .invitar-estado.is-ok { color: var(--ok); }
 .invitar-estado.is-error { color: var(--danger); }
 .invitar-titulo { margin: var(--s-2) 0 var(--s-1); color: var(--ink-2); font-size: var(--t-ui); font-weight: 600; }
-.invitar-lista { display: grid; gap: 2px; max-height: 280px; overflow-y: auto; }
+.invitar-lista { display: grid; gap: 2px; }
 
 /* ---------- Apariencia (editar grupo): título de la racha por nombre ---------- */
 .cosmetic-carousel { display: flex; flex-wrap: wrap; gap: var(--s-2); }
@@ -51,7 +91,7 @@
 
 .chat__messages {
   display: flex; flex-direction: column; gap: var(--s-3);
-  height: clamp(320px, 56vh, 560px); padding: var(--s-4); overflow-y: auto;
+  min-height: 240px; padding: var(--s-4);
   background: var(--paper-deep); border-radius: var(--r-lg);
 }
 
@@ -76,6 +116,8 @@
 .chat-message-time { flex: none; color: var(--ink-3); font-size: var(--t-meta); font-variant-numeric: tabular-nums; }
 
 .chat-bar { max-width: none; margin-top: 0; }
+/* La barra para escribir queda pegada abajo mientras se recorre la conversación. */
+.chat > .chat-bar { position: sticky; bottom: 0; z-index: 5; padding-block: var(--s-3); background: var(--paper); }
 
 
 /* ---------- Racha ---------- */
@@ -128,9 +170,12 @@
 .racha-hito:hover { box-shadow: var(--sh-float); }
 .racha-hito strong { font-size: 1.75rem; font-weight: 650; letter-spacing: var(--track-h3); line-height: 1.1; font-variant-numeric: tabular-nums; }
 .racha-hito > span { color: var(--ink-3); font-size: var(--t-meta); }
-.racha-hito.is-logrado { background: var(--ink); color: var(--on-ink); box-shadow: var(--sh-btn); }
-.racha-hito.is-logrado > span { color: color-mix(in srgb, var(--on-ink) 75%, transparent); }
-.racha-hito.is-proximo { box-shadow: 0 0 0 1.5px var(--ink), var(--sh-card); }
+.racha-hito.is-logrado {
+  background: color-mix(in srgb, var(--rango, var(--ink-3)) 16%, var(--surface)); color: var(--ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rango, var(--ink-3)) 50%, transparent);
+}
+.racha-hito.is-logrado > span { color: var(--ink-2); }
+.racha-hito.is-proximo { box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--ink) 45%, transparent), var(--sh-card); }
 .racha-hito.is-bloqueado { background: var(--paper-deep); box-shadow: none; }
 
 .racha-hito-modal-body { display: grid; gap: var(--s-4); }
@@ -151,6 +196,221 @@
 
 /* La llama de la racha en la tarjeta del grupo mide lo que su contenido, no el ancho de la tarjeta. */
 .group-tile .racha-chip { align-self: flex-start; }
+
+
+/* ---------- Encuesta: tarjeta compacta, estado en color y título que se lee primero ---------- */
+.board--encuestas .board-plan { gap: var(--s-3); padding: var(--s-4) var(--s-5); }
+.encuesta-cabecera { gap: var(--s-1); }
+.encuesta-cabecera__fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-3); }
+.encuesta-titulo {
+  margin: 0; font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem); font-weight: 700; line-height: 1.1;
+  letter-spacing: var(--track-h2, -0.025em); color: var(--ink);
+}
+.encuesta-form--compacta { gap: var(--s-3); }
+.encuesta-columnas { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: var(--s-4) var(--s-5); align-items: start; }
+.encuesta-zona { align-content: start; }
+.encuesta-zona .field { gap: 4px; }
+.encuesta-zona .field > label { font-size: var(--t-meta); color: var(--ink-3); }
+.encuesta-zona__estado { margin: 0; }
+.encuesta-zona__estado:empty { display: none; }
+.encuesta-ubicacion { justify-self: start; }
+.encuesta-franja { padding: var(--s-2) var(--s-3); }
+.encuesta-franjas { gap: var(--s-2); }
+
+@media (max-width: 760px) {
+  .encuesta-columnas { grid-template-columns: minmax(0, 1fr); }
+}
+
+
+/* ---------- Pantallas de grupo (tablero y chat): el encabezado y las pestañas quedan fijos ---------- */
+
+.group-page--fija { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; }
+.group-page--fija > .back-link, .group-page--fija > .page-head, .group-page--fija > .tabs { flex: none; }
+.group-page--fija > .tabs { margin-bottom: var(--s-4); }
+.group-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: var(--s-10); }
+
+/* Encabezado compacto: nombre, descripción e integrantes a la izquierda; los botones a la derecha. */
+@media (min-width: 901px) {
+  .group-page--fija .group-head {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+    column-gap: var(--s-6); row-gap: var(--s-1); margin: 0 0 var(--s-4);
+  }
+  .group-page--fija .group-head > .group-head__title,
+  .group-page--fija .group-head > .lead,
+  .group-page--fija .group-head > .group-members { grid-column: 1; }
+  .group-page--fija .group-head > .group-actions { grid-column: 2; grid-row: 1 / span 3; align-self: center; margin: 0; }
+}
+.group-page--fija .group-head .h2 { font-size: clamp(1.75rem, 1.3rem + 1.2vw, 2.5rem); }
+.group-page--fija .group-head .lead { margin: 0; font-size: 1.0625rem; }
+.group-page--fija .group-head .group-members { margin: 0; }
+
+/* La pantalla fija solo en escritorio; en celular el encabezado ya ocupa demasiado y la página fluye. */
+@media (min-width: 901px) {
+  .dashboard-layout--fija-grupo { height: calc(100svh - var(--header-h)); min-height: 0; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+  .dashboard-layout--fija-grupo .dashboard-main { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+}
+
+
+/* ---------- Marcos de grupo (rachas) ----------
+   El marco rodea TODA la tarjeta del grupo: un filete del color del rango (un planeta) y un velo muy suave del mismo
+   color arriba. Cuanto más alto el rango, un poco más de brillo; sin degradados fuertes ni animaciones,
+   para seguir siendo Sereno. Los colores salen de --marco-*, así que cambiar los nombres no toca el CSS. */
+.marco--mercurio { --marco: var(--marco-mercurio); --brillo: 20%; }
+.marco--venus    { --marco: var(--marco-venus);    --brillo: 30%; }
+.marco--tierra   { --marco: var(--marco-tierra);   --brillo: 40%; }
+.marco--marte    { --marco: var(--marco-marte);    --brillo: 45%; }
+.marco--jupiter  { --marco: var(--marco-jupiter);  --brillo: 55%; }
+.marco--saturno  { --marco: var(--marco-saturno);  --brillo: 65%; }
+
+/* Color del rango para lo que lo hereda: el chip (llama y nombre), el hero de la racha y los hitos. */
+.rango--mercurio { --rango: var(--marco-mercurio); }
+.rango--venus    { --rango: var(--marco-venus); }
+.rango--tierra   { --rango: var(--marco-tierra); }
+.rango--marte    { --rango: var(--marco-marte); }
+.rango--jupiter  { --rango: var(--marco-jupiter); }
+.rango--saturno  { --rango: var(--marco-saturno); }
+
+/* Saturno tiene anillos: su marco lleva un segundo filete, separado del primero por un respiro. */
+.marco-tarjeta.marco--saturno,
+.marco-panel.marco--saturno {
+  box-shadow: 0 0 0 2px var(--marco), 0 0 0 4.5px var(--surface), 0 0 0 6px var(--marco),
+              0 8px 22px -12px color-mix(in srgb, var(--marco) var(--brillo), transparent), var(--sh-card);
+}
+
+.marco-tarjeta,
+.marco-panel {
+  box-shadow: 0 0 0 2px var(--marco), 0 10px 26px -12px color-mix(in srgb, var(--marco) var(--brillo, 0%), transparent), var(--sh-card);
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--marco) 18%, var(--surface)) 0%, color-mix(in srgb, var(--marco) 5%, var(--surface)) 55%, var(--surface) 100%);
+}
+.marco-panel { margin-bottom: var(--s-4); padding: var(--s-4) var(--s-5); border-radius: var(--r-xl); background-color: var(--surface); }
+.group-page--fija .group-head.marco-panel { margin-bottom: var(--s-4); }
+a.marco-tarjeta:hover { box-shadow: 0 0 0 2.5px var(--marco), 0 10px 26px -12px color-mix(in srgb, var(--marco) calc(var(--brillo, 0%) + 15%), transparent), var(--sh-float); }
+
+.emblema { font-size: 1.25rem; }
+.group-head__title .emblema { margin-right: var(--s-1); }
+.racha-marco { display: flex; align-items: center; gap: var(--s-4); margin: var(--s-2) 0 0; }
+.racha-marco .meta { margin: 0; }
+.racha-hito-preview.marco-tarjeta { background-color: var(--surface); }
+
+/* Muestra de color en el selector de "Editar grupo". */
+.cosmetic-choice--marco { gap: var(--s-2); }
+.marco-muestra { flex: none; width: 14px; height: 14px; border-radius: 50%; background: var(--marco, var(--marco-mercurio)); box-shadow: 0 0 0 2px var(--surface); }
+.cosmetic-choice--marco[aria-pressed="true"] .marco-muestra { box-shadow: 0 0 0 2px var(--ink); }
+
+
+/* ---------- La racha del grupo: tablero compacto, sin scroll en escritorio ---------- */
+.racha-page { max-width: 1080px; gap: var(--s-4); }
+.racha-page .page-head { margin: 0; gap: var(--s-1); }
+.racha-page .page-head .h2 { font-size: clamp(1.75rem, 1.3rem + 1.1vw, 2.25rem); }
+.racha-page .page-head .lead { margin: 0; max-width: none; font-size: 1.0625rem; }
+
+.racha-tablero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: var(--s-4); align-items: stretch; }
+.racha-lado { display: grid; grid-template-rows: auto 1fr; gap: var(--s-4); min-width: 0; }
+
+.racha-hero { padding: var(--s-5) var(--s-6); gap: var(--s-5); }
+.racha-numero strong { font-size: 2.5rem; }
+.racha-hero__copy { gap: var(--s-2); }
+.racha-marco { margin: 0; }
+
+.racha-semana-card { gap: var(--s-2); padding: var(--s-4) var(--s-5); }
+.racha-semana-card > .h3 { font-size: 1rem; }
+.racha-dia { padding: var(--s-2) 0; }
+
+.racha-stats { gap: var(--s-3); }
+.racha-stat { padding: var(--s-3) var(--s-4); }
+.racha-stat strong { font-size: 1.375rem; }
+
+.racha-hitos { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s-2); }
+.racha-hito { padding: var(--s-3) var(--s-4); }
+.racha-hito strong { font-size: 1.375rem; }
+.racha-bloque > .h3 { font-size: 1.0625rem; }
+.racha-nota { margin: 0; font-size: var(--t-meta); }
+
+/* La llama y el rango toman el color del planeta; sin rango todavía, la llama es cálida. */
+.racha-chip svg, .racha-numero__llama svg { color: var(--rango, var(--llama)); }
+.racha-chip.is-inactiva svg, .racha-numero.is-inactiva .racha-numero__llama svg { color: var(--ink-4); }
+.racha-chip[class*="rango--"]:not(.is-inactiva) {
+  background: color-mix(in srgb, var(--rango) 16%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rango) 55%, transparent);
+}
+.racha-chip[class*="rango--"] .racha-chip__titulo {
+  border-left-color: color-mix(in srgb, var(--rango) 55%, transparent);
+  color: color-mix(in srgb, var(--rango) 55%, var(--ink)); font-weight: 650;
+}
+.racha-hito[class*="rango--"].is-logrado { box-shadow: inset 0 0 0 1.5px var(--rango), 0 6px 16px -10px color-mix(in srgb, var(--rango) 60%, transparent); }
+.racha-hito[class*="rango--"].is-proximo { box-shadow: 0 0 0 1.5px var(--rango), var(--sh-card); }
+
+@media (max-width: 900px) {
+  .racha-tablero { grid-template-columns: minmax(0, 1fr); }
+  .racha-hitos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* En escritorio la pantalla entra entera: el contenido ocupa lo que queda bajo el encabezado. */
+@media (min-width: 901px) {
+  .racha-page > .back-link { margin-bottom: calc(var(--s-2) * -1); }
+}
+
+/* La llama activa lleva un relleno suave del color del rango (o cálido si todavía no tiene). */
+.racha-chip:not(.is-inactiva) svg path,
+.racha-numero:not(.is-inactiva) .racha-numero__llama svg path { fill: color-mix(in srgb, var(--rango, var(--llama)) 38%, transparent); }
+.racha-page { padding-bottom: var(--s-6); }
+
+
+/* Hitos en una sola fila (el estado se ve por el estilo y se lee con el texto oculto), y la pantalla de
+   racha no scrollea como página: si la ventana es muy baja, solo se desplaza su contenido. */
+@media (min-width: 901px) {
+  .racha-page { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; align-content: start; }
+  .racha-page > .racha-nota { margin-top: calc(var(--s-2) * -1); }
+}
+@media (min-width: 981px) {
+  .racha-hitos { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+  .racha-hito { gap: 0; padding: var(--s-3) var(--s-2); text-align: center; justify-items: center; }
+  .racha-hito strong { font-size: 1.25rem; }
+  .racha-hito > span { font-size: var(--t-meta); }
+}
+
+
+/* ---------- Paradas de un plan: número, nombre, dirección y "Cómo llegar" ---------- */
+.paradas { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+.parada { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3); border-radius: var(--r-md); background: var(--paper-deep); }
+.parada__num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--surface); color: var(--ink-2); font-size: var(--t-meta); font-weight: 650; font-variant-numeric: tabular-nums; box-shadow: var(--sh-hair); }
+.parada__cuerpo { display: grid; gap: 1px; min-width: 0; }
+.parada__nombre { font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.parada__donde { color: var(--ink-3); font-size: var(--t-meta); overflow-wrap: anywhere; }
+.parada__mapa {
+  display: inline-flex; align-items: center; gap: var(--s-1); min-height: var(--hit); padding: 0 var(--s-3);
+  border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-hair);
+  color: var(--ink); font-size: var(--t-meta); font-weight: 550; text-decoration: none; white-space: nowrap;
+}
+.parada__mapa svg { width: 18px; height: 18px; flex: none; color: var(--accent); }
+.parada__mapa:hover { box-shadow: var(--sh-float); }
+.stops__mapa { justify-self: start; display: inline-flex; align-items: center; min-height: var(--hit); color: var(--ink); font-size: var(--t-meta); font-weight: 550; text-underline-offset: 0.18em; }
+@media (max-width: 520px) {
+  .parada { grid-template-columns: auto minmax(0, 1fr); }
+  .parada__mapa { grid-column: 2; justify-self: start; }
+}
+
+/* ---------- Encuesta de una sola instancia: opciones para elegir ---------- */
+.encuesta-opciones { display: grid; gap: var(--s-3); }
+.encuesta-opcion { position: relative; display: block; cursor: pointer; }
+.encuesta-opcion > input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.encuesta-opcion__caja {
+  display: grid; gap: var(--s-3); padding: var(--s-4); border-radius: var(--r-lg); background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-control); transition: box-shadow var(--d-fast) var(--ease-out), background-color var(--d-fast) var(--ease-out);
+}
+.encuesta-opcion:hover .encuesta-opcion__caja { box-shadow: inset 0 0 0 1px var(--ink-3); }
+.encuesta-opcion > input:checked + .encuesta-opcion__caja { box-shadow: inset 0 0 0 2px var(--ink); background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
+.encuesta-opcion > input:focus-visible + .encuesta-opcion__caja { outline: 2px solid var(--focus); outline-offset: 2px; }
+.encuesta-opcion__cab { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--s-1) var(--s-3); }
+.encuesta-opcion__nombre { display: inline-flex; align-items: center; gap: var(--s-2); font-size: 1.0625rem; }
+.encuesta-opcion__nombre::before { content: ""; flex: none; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-3); }
+.encuesta-opcion > input:checked + .encuesta-opcion__caja .encuesta-opcion__nombre::before { background: radial-gradient(circle, var(--ink) 0 45%, transparent 50%); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.encuesta-opcion--ninguna .encuesta-opcion__caja { background: var(--paper-deep); }
+.encuesta-aviso { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--paper-deep); color: var(--ink-2); }
+
+/* Formulario de creación de la encuesta. */
+.nueva-encuesta__cuando, .nueva-encuesta__donde { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+@media (max-width: 420px) { .nueva-encuesta__donde { grid-template-columns: minmax(0, 1fr); } }
 
 
 /* ---------- Comando rápido del chatbot en el chat grupal ---------- */
@@ -191,3 +451,8 @@
 .chat-limpiar-opcion:hover, .chat-limpiar-opcion:focus-visible { box-shadow: 0 0 0 1.5px var(--ink); }
 .chat-limpiar-opcion small { color: var(--ink-3); font-size: var(--t-meta); }
 .chat-limpiar-opcion--peligro strong { color: var(--danger); }
+
+
+/* En la pantalla fija del chat, la barra de escribir (con el menú "/") queda pegada abajo. */
+.chat > .chat-compose { position: sticky; bottom: 0; z-index: 5; padding-block: var(--s-3); background: var(--paper); }
+.chat-compose .chat-bar { position: static; padding-block: 0; background: none; }

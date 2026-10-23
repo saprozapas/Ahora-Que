@@ -22,7 +22,7 @@
 
         <header class="page-head">
 
-          <h1 class="h2">{{ plan.nombre }}</h1>
+          <h1 class="h2 plan-titulo">{{ plan.nombre }}</h1>
 
           <p class="plan-detail__meta">
             {% if plan.estado == 'idea' %}
@@ -31,7 +31,7 @@
             {% else %}
               <span class="tag{% if plan.estado == 'confirmado' %} tag--ink{% endif %}">{{ plan.estado_texto }}</span>
               {% if plan.fecha %}
-              <span class="meta">{{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
+              <span class="meta">{{ plan.fecha | dia_rel | capitalize }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
               {% endif %}
             {% endif %}
 
@@ -79,7 +79,10 @@
               <span class="stops__num">{{ loop.index }}</span>
               <span class="stops__body">
                 <span class="stops__name">{{ lugar.nombre }}</span>
+                {% set donde = [lugar.direccion, lugar.barrio] | select | join(' · ') %}
+                {% if donde %}<span class="meta">{{ donde }}</span>{% endif %}
                 {% if lugar.hora %}<span class="meta">{{ lugar.hora.strftime('%H:%M') }}</span>{% endif %}
+                {% if lugar.mapa_url %}<a class="stops__mapa" href="{{ lugar.mapa_url }}" target="_blank" rel="noopener" aria-label="Cómo llegar a {{ lugar.nombre }} (abre el mapa)">Cómo llegar</a>{% endif %}
               </span>
               {% if lugar.precio_min is not none and lugar.precio_max is not none %}
               <span class="meta stops__side">{{ precio(lugar.precio_min, lugar.precio_max) }}</span>

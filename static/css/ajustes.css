@@ -1,0 +1,146 @@
+/* ==========================================================================
+   AHORA QUÉ — ajustes finales (se carga al último, después de todas las pantallas)
+   Lo que tiene que ganarle a los estilos propios de cada pantalla.
+   ========================================================================== */
+
+/* ---------- Nombres de plan: serif y con más jerarquía ----------
+   El nombre del plan es lo primero que se lee en cada tarjeta, lista, calendario y publicación. */
+.plan-tile__title, .cal-evento__nombre, .soc-plan-nombre, .encuesta-titulo, .plan-titulo {
+  font-family: var(--font-serif); font-weight: 600; letter-spacing: -0.015em; font-optical-sizing: auto; text-wrap: balance;
+}
+.plan-tile__title { font-size: 1.4375rem; line-height: 1.15; }
+.board-plan__head .plan-tile__title { font-size: 1.75rem; line-height: 1.1; }
+.cal-evento__nombre { font-size: 1.0625rem; line-height: 1.2; }
+.soc-plan-nombre, .soc-plan-nombre a { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600; line-height: 1.15; }
+.encuesta-titulo { font-size: clamp(1.75rem, 1.3rem + 1.4vw, 2.25rem); font-weight: 650; }
+.plan-titulo { font-size: clamp(2rem, 1.4rem + 2vw, 2.75rem); line-height: 1.05; }
+
+
+/* ==========================================================================
+   Pantallas estáticas (escritorio): la página no se mueve. Si algo no entra, solo se desplaza
+   su contenido, nunca el marco (encabezado, barra lateral y título quedan fijos).
+   ========================================================================== */
+@media (min-width: 901px) {
+  .dashboard-layout--fija-grupo .dashboard-main > section.page { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: var(--s-4); }
+  .dashboard-layout--fija-grupo .dashboard-main > section.page > .back-link { flex: none; }
+}
+
+/* Perfil: datos a la izquierda, publicaciones a la derecha. */
+@media (min-width: 1000px) {
+  .dashboard-layout--fija-grupo .perfil-pantalla {
+    display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr);
+    column-gap: var(--s-10); align-content: start; overflow: hidden;
+  }
+  .perfil-pantalla > .back-link { grid-column: 1 / -1; }
+  .perfil-izq { grid-column: 1; min-height: 0; overflow-y: auto; }
+  .perfil-der { grid-column: 2; min-height: 0; overflow-y: auto; }
+  .perfil-pantalla .profile__head { margin: 0 0 var(--s-4); }
+  .perfil-pantalla .profile__facts { margin-top: var(--s-4); padding-block: var(--s-4); }
+  .perfil-der .soc-perfil { max-width: none; padding-inline: 0; margin: 0; }
+  .perfil-der .soc-perfil-titulo { margin-top: 0; }
+}
+
+
+/* --- Encabezados compactos en las pantallas estáticas --- */
+@media (min-width: 901px) {
+  .dashboard-layout--fija-grupo .page-head { margin: var(--s-2) 0 var(--s-4); gap: var(--s-2); }
+  .dashboard-layout--fija-grupo .page-head .h2 { font-size: clamp(1.75rem, 1.3rem + 1.1vw, 2.25rem); }
+  .dashboard-layout--fija-grupo .page-head .lead { margin: 0; font-size: 1.0625rem; max-width: 72ch; }
+  .dashboard-layout--fija-grupo .auth--inline { padding-block: var(--s-2); }
+  .dashboard-layout--fija-grupo .auth__head { margin-bottom: var(--s-4); }
+  .dashboard-layout--fija-grupo .auth__head .h2 { font-size: clamp(1.75rem, 1.3rem + 1.1vw, 2.25rem); }
+  .dashboard-layout--fija-grupo .auth__head .lead { margin: var(--s-1) 0 0; font-size: 1.0625rem; }
+}
+
+/* --- Nueva idea: la lista de resultados y los lugares elegidos se desplazan adentro, la pantalla no --- */
+@media (min-width: 1000px) {
+  .planner-pantalla { display: flex; flex-direction: column; overflow: hidden !important; }
+  .planner-pantalla .page-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: var(--s-6); flex: none; }
+  .planner-pantalla .page-head > .h2 { grid-column: 1; }
+  .planner-pantalla .page-head > .lead { grid-column: 1; }
+  .planner-pantalla .page-head > p:last-child { grid-column: 2; grid-row: 1 / span 2; margin: 0; }
+  .planner-pantalla .planner { flex: 1; min-height: 0; align-items: stretch; }
+  .planner-pantalla .planner__idea { min-height: 0; overflow-y: auto; position: static; }
+  .planner-pantalla .planner__idea textarea { min-height: 76px; }
+  .planner-pantalla .planner__search { display: flex; flex-direction: column; min-height: 0; gap: var(--s-3); }
+  .planner-pantalla .planner__search .planner__help { display: none; }
+  .planner-pantalla .planner__filters { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); padding-bottom: 0; }
+  .planner-pantalla .planner__filters .chips, .planner-pantalla .planner__filters .field-group { grid-column: 1 / -1; }
+  .planner-pantalla .planner__results { flex: 1 1 auto; min-height: 120px; overflow-y: auto; overscroll-behavior: contain; }
+  .planner-pantalla .planner__empty { margin: 0; }
+}
+
+/* --- Encuesta nueva: dos columnas (cuándo | dónde) --- */
+@media (min-width: 1000px) {
+  .dashboard-layout--fija-grupo .auth--inline .auth__inner--wide { max-width: 940px; width: 100%; }
+  .dashboard-layout--fija-grupo .auth--inline .auth__head { text-align: left; }
+  .nueva-encuesta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4) var(--s-8); align-items: start; }
+  .nueva-encuesta > .notice, .nueva-encuesta > .field, .nueva-encuesta > details, .nueva-encuesta > button { grid-column: 1 / -1; }
+}
+/* Publicación abierta (una sola): la misma tarjeta horizontal que el feed, entera en la pantalla. */
+/* ---------- Social (escritorio ≥ 1000 px): la publicación es una tarjeta horizontal que entra entera ----------
+   A la izquierda la foto, cuadrada y con el alto que queda en pantalla; a la derecha, autor, nombre del plan,
+   datos, texto, comentarios y acciones. Así una publicación se ve completa sin importar cuántos comentarios
+   o líneas tenga (lo que sobre se desplaza dentro de la columna derecha). */
+@media (min-width: 1000px) {
+  .soc-unica {
+    --alto-tarjeta: max(340px, calc(100svh - 190px));
+  }
+  .soc-unica .soc-barra,
+  .soc-unica .soc-lista,
+  .soc-unica .soc-vacio,
+  .soc-unica .soc-cargando,
+  .soc-unica > .soc-aviso,
+  .soc-unica .social-ver-mas { max-width: calc(var(--alto-tarjeta) + 420px); }
+
+  .soc-unica .soc-scroll { scroll-snap-type: y proximity; }
+
+  .soc-unica .soc-tarjeta {
+    display: grid; grid-template-columns: var(--alto-tarjeta) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    height: var(--alto-tarjeta); overflow: hidden; scroll-snap-align: start;
+  }
+  .soc-unica .soc-media { grid-column: 1; grid-row: 1 / -1; min-height: 0; }
+  .soc-unica .soc-fotos,
+  .soc-unica .soc-fotos[data-aspecto="vertical"],
+  .soc-unica .soc-portada { height: 100%; aspect-ratio: auto; }
+  .soc-unica .soc-autor   { grid-column: 2; grid-row: 1; }
+  .soc-unica .soc-cuerpo  { display: block; grid-column: 2; grid-row: 2; min-height: 0; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid var(--line); }
+  .soc-unica .soc-acciones { grid-column: 2; grid-row: 3; border-top: 1px solid var(--line); }
+  .soc-unica .soc-likes   { grid-column: 2; grid-row: 4; }
+
+  /* Datos del plan en una sola línea que se parte; texto y descripción acotados. */
+  .soc-unica .soc-datos { display: flex; flex-wrap: wrap; gap: 2px var(--s-3); }
+  .soc-unica .soc-datos li:empty { display: none; }
+  .soc-unica .soc-plan-descripcion,
+  .soc-unica .soc-texto { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+}
+.soc-cuerpo { display: contents; }
+
+@media (min-width: 1000px) {
+  .soc-unica .soc-lista { margin-inline: auto; }
+  .soc-unica { overflow: hidden !important; }
+  .soc-unica .soc-likes { padding-bottom: var(--s-3); }
+}
+
+/* --- Grupo: tablero más compacto para que entre sin desplazarse --- */
+@media (min-width: 901px) {
+  .group-page--fija .group-head__title .emblema { --size: 44px; }
+  .group-page--fija .group-head .h2 { font-size: clamp(1.625rem, 1.2rem + 1vw, 2.125rem); }
+  .group-page--fija > .tabs { margin-bottom: var(--s-3); }
+  .group-page--fija .group-brief { margin-bottom: var(--s-4); }
+  .group-page--fija .group-brief .brief__label { display: none; }
+  .group-page--fija .group-brief .voice { font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem); }
+  .group-page--fija .board__head { padding-bottom: var(--s-2); }
+  .group-page--fija .board-plan { padding: var(--s-4); gap: var(--s-3); }
+  .group-page--fija .board--encuestas { margin-bottom: var(--s-6); }
+  .group-scroll { padding-bottom: var(--s-6); }
+}
+
+/* Grupo (escritorio): el conteo de integrantes ya está en la pestaña, así que la cabecera pierde una fila. */
+@media (min-width: 901px) {
+  .group-page--fija .group-head > .group-members { display: none; }
+  .group-page--fija .group-head > .group-actions { grid-row: 1 / span 2; }
+  .group-page--fija .group-head { margin-bottom: var(--s-3); }
+  .group-page--fija .group-brief { margin-bottom: var(--s-3); }
+}

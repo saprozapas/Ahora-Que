@@ -12,18 +12,51 @@
 {%- endmacro %}
 
 
-{# Nombre del título de la racha (antes era un color). Sin color: ícono + etiqueta. #}
-{% macro nombre_titulo(clave) -%}
-{{ {'amatista': 'Amatista', 'plata': 'Plata', 'oro': 'Oro', 'magenta': 'Magenta', 'hielo': 'Hielo'}.get(clave, '') }}
+{# Las paradas de un plan: número, nombre, dirección y barrio, y un botón "Cómo llegar" que abre el mapa.
+   `lugares` son dicts con nombre y, si los hay, direccion, barrio, hora y mapa_url. #}
+{% macro paradas(lugares, mapa=true) %}
+<ol class="paradas">
+  {% for l in lugares %}
+  <li class="parada">
+    <span class="parada__num" aria-hidden="true">{{ loop.index }}</span>
+    <span class="parada__cuerpo">
+      <span class="parada__nombre">{{ l.nombre }}</span>
+      {% set donde = [l.direccion, l.barrio] | select | join(' · ') %}
+      {% if donde %}<span class="parada__donde">{{ donde }}</span>{% endif %}
+      {% if l.hora %}<span class="parada__donde">A las {{ l.hora.strftime('%H:%M') }}</span>{% endif %}
+    </span>
+    {% if mapa and l.mapa_url %}
+    <a class="parada__mapa" href="{{ l.mapa_url }}" target="_blank" rel="noopener" aria-label="Cómo llegar a {{ l.nombre }} (abre el mapa)">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 1 1 13 0C18.5 15.4 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="10.5" r="2.3" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+      <span>Cómo llegar</span>
+    </a>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ol>
+{% endmacro %}
+
+
+{# Rango de la racha: un planeta (Mercurio, Venus, Tierra, Marte, Júpiter o Saturno). Es a la vez el
+   título que muestra el chip y el marco de la tarjeta del grupo. #}
+{% macro nombre_rango(clave) -%}
+{{ {'mercurio': 'Mercurio', 'venus': 'Venus', 'tierra': 'Tierra', 'marte': 'Marte', 'jupiter': 'Júpiter', 'saturno': 'Saturno'}.get(clave, '') }}
 {%- endmacro %}
+{% macro nombre_titulo(clave) -%}{{ nombre_rango(clave) }}{%- endmacro %}
 
 
 {# Chip de racha: llama + semanas y, si el grupo ganó un título, su nombre.
    `enlace` (opcional) lo vuelve un link a la pantalla de la racha. #}
+{# Emblema del grupo: su inicial en un avatar. Con `marco` (el rango: mercurio, venus, tierra, marte,
+   jupiter o saturno) lleva un anillo del color de ese rango. #}
+{% macro emblema(nombre, marco=none, tam=56) -%}
+<span class="avatar emblema{% if marco %} marco marco--{{ marco }}{% endif %}" style="--h: {{ (nombre | length * 47) % 360 }}; --size: {{ tam }}px"{% if marco %} title="Rango {{ nombre_rango(marco) | trim }}"{% endif %} aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
+{%- endmacro %}
+
 {% macro racha_chip(racha, enlace=none) %}
 {% set titulo = nombre_titulo(racha.titulo_color) | trim if racha.titulo_color else '' %}
-{% if enlace %}<a class="racha-chip{% if not racha.activa %} is-inactiva{% endif %}" href="{{ enlace }}" aria-label="Racha del grupo: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
-{% else %}<span class="racha-chip{% if not racha.activa %} is-inactiva{% endif %}" aria-label="Racha: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
+{% if enlace %}<a class="racha-chip{% if racha.marco %} rango--{{ racha.marco }}{% endif %}{% if not racha.activa %} is-inactiva{% endif %}" href="{{ enlace }}" aria-label="Racha del grupo: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
+{% else %}<span class="racha-chip{% if racha.marco %} rango--{{ racha.marco }}{% endif %}{% if not racha.activa %} is-inactiva{% endif %}" aria-label="Racha: {{ racha.semanas }} semanas{% if titulo %}, título {{ titulo }}{% endif %}">
 {% endif %}
   {{ llama() }}<span class="racha-chip__n">{{ racha.semanas }}</span>{% if titulo %}<span class="racha-chip__titulo">{{ titulo }}</span>{% endif %}
 {% if enlace %}</a>{% else %}</span>{% endif %}

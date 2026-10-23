@@ -50,6 +50,10 @@
 
     <p class="soc-likes" data-soc-likes-texto hidden></p>
 
+    {# Cuerpo de la publicación: nombre, datos, texto y comentarios. En la tarjeta vertical no cambia nada
+       (display: contents); en escritorio es la columna de la derecha, al lado de la foto. #}
+    <div class="soc-cuerpo">
+
     <div class="soc-pie">
 
       <h2 class="soc-plan-nombre"><a data-soc-plan-nombre></a></h2>
@@ -81,6 +85,8 @@
         <button class="soc-icono" type="submit" aria-label="Enviar comentario" title="Enviar comentario">{{ ico('enviar') }}</button>
       </form>
       <p class="soc-aviso" data-soc-comentario-error role="alert" hidden></p>
+    </div>
+
     </div>
 
   </article>

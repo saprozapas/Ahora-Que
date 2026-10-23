@@ -7,10 +7,13 @@ from database import get_db_connection, release_db_connection
 _MONTEVIDEO = ZoneInfo("America/Montevideo")
 _DIAS_SEMANA = ("L", "M", "M", "J", "V", "S", "D")
 _HITOS = (3, 5, 10, 20, 30, 40, 50, 70, 90, 100)
-_MARCOS = {3: "hierro", 10: "bronce", 30: "plata", 70: "oro", 100: "esmeralda"}
-_COLORES_TITULO = {
-    5: "amatista", 20: "plata", 40: "oro", 50: "magenta", 90: "hielo",
-}
+# Los rangos son los planetas, del Sol hacia afuera. El mismo rango es el título que muestra el chip
+# y el marco de la tarjeta. Los hitos que no están acá (5, 30, 50 y 90) son marcas del viaje sin rango.
+# En la base se guardan las semanas, no el nombre: renombrar un rango es cambiar solo este diccionario
+# y los textos de templates/_macros.html.
+_RANGOS = {3: "mercurio", 10: "venus", 20: "tierra", 40: "marte", 70: "jupiter", 100: "saturno"}
+_MARCOS = _RANGOS
+_COLORES_TITULO = _RANGOS
 
 
 def _color_fuego(semanas):
@@ -65,7 +68,9 @@ class RachaService:
                 marcos = sorted(hitos.intersection(_MARCOS))
                 titulos = sorted(hitos.intersection(_COLORES_TITULO))
                 marco = marco_guardado if marco_guardado in marcos else (max(marcos) if marcos else None)
-                titulo = titulo_guardado if titulo_guardado in titulos else (max(titulos) if titulos else None)
+                # El rango es uno solo: el título del chip siempre es el mismo planeta que el marco.
+                # (El "Titulo_Semanas" viejo de la base puede quedar en otro rango y se ignora.)
+                titulo = marco
                 resumenes[group_id] = {
                     "activa": activa,
                     "semanas": semanas,
@@ -236,8 +241,8 @@ class RachaService:
             titulos_desbloqueados = sorted(h for h in hitos_desbloqueados if h in _COLORES_TITULO)
             if marco_seleccionado not in marcos_desbloqueados:
                 marco_seleccionado = max(marcos_desbloqueados) if marcos_desbloqueados else None
-            if titulo_seleccionado not in titulos_desbloqueados:
-                titulo_seleccionado = max(titulos_desbloqueados) if titulos_desbloqueados else None
+            # Un solo rango: el título es siempre el mismo planeta que el marco.
+            titulo_seleccionado = marco_seleccionado
             calendario = [
                 {
                     "dia": _DIAS_SEMANA[indice],

@@ -11,7 +11,9 @@ from services.grupo_plan_service import GrupoPlanService
 from services.plan_service import PlanService
 from services.chat_service import ChatService
 from services.racha_service import RachaService
-from services.grupo_encuesta_service import GrupoEncuestaService, MAX_FRANJAS, opciones_de_precio
+from services.grupo_encuesta_service import (
+    GrupoEncuestaService, MAX_FRANJAS, opciones_de_distancia, opciones_de_precio,
+)
 from services.lugar_service import LugarService
 from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, getUsersInGroupWithIds, isUserInGroup, getGroupById, buscarUsuariosInvitables
 
@@ -110,9 +112,7 @@ def detalle_grupo(group_id):
     return render_template("grupo.html", group=group, groups_page=True, users=users, racha=racha,
                            es_admin=es_admin, todos_admin=todos_admin,
                            seccion="planes", tablero=tablero, hoy=date.today().isoformat(),
-                           encuestas=encuestas,
-                           tipos=lugar_service.listar_tipos() if encuestas else [],
-                           opciones_precio=opciones_de_precio(), max_franjas=MAX_FRANJAS)
+                           encuestas=encuestas)
 
 
 @group_auth.route("/grupos/<group_id>/chat")

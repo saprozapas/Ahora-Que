@@ -45,7 +45,7 @@
               <span class="tag">{{ plan.estado_texto }}</span>
               {% endif %}
               {% if mostrar_fecha and plan.fecha %}
-              <span class="meta">{{ plan.fecha.strftime('%d/%m/%Y') }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
+              <span class="meta plan-tile__cuando">{{ plan.fecha | dia_rel | capitalize }}{% if plan.hora %} · {{ plan.hora.strftime('%H:%M') }}{% endif %}</span>
               {% endif %}
             </div>
             {% endif %}

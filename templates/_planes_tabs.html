@@ -1,4 +1,4 @@
-{# Pestañas de "Mis planes": las cuatro listas y el calendario.
+{# Pestañas de "Mis planes": las cuatro listas (el calendario tiene su propio lugar en la barra).
    Solo la lista actual muestra cuántos planes tiene (la ruta le pasa `planes`
    al template; el calendario no tiene ese número). #}
 {% set pestanas = [
@@ -6,7 +6,6 @@
   ('/planes/grupo', 'De grupo'),
   ('/planes/guardados', 'Ideas guardadas'),
   ('/planes/archivados', 'Archivados'),
-  ('/calendario', 'Calendario'),
 ] %}
 
 <nav class="chips planes-tabs" aria-label="Mis planes">

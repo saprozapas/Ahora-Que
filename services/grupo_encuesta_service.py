@@ -3,8 +3,8 @@
 Flujo (columna "Grupo_Encuesta"."Estado"):
 
     abierta
-        Cada integrante responde SUS filtros (precio máximo, restricciones,
-        tipos de lugar) y cuándo puede (hasta 3 franjas con día y horas).
+        Cada integrante responde SUS filtros (precio máximo, tipos de lugar y
+        zona: barrio y distancia) y cuándo puede (hasta 3 franjas con día y horas).
         Se pasa a "eligiendo" cuando respondieron todos, o antes si quien
         creó la encuesta la cierra. En ese momento:
           - se calcula el horario donde puede más gente (elegir_horario);
@@ -50,8 +50,8 @@ MAX_INTENTOS = 10
 # Franjas de disponibilidad que puede cargar cada integrante.
 MAX_FRANJAS = 3
 
-# Campos de la respuesta que son restricciones (se suman: si uno la pide, vale).
-RESTRICCIONES = ("apto_menores", "opcion_celiacos", "opcion_vegana")
+# Distancias entre las que se puede elegir "hasta qué distancia" de su barrio (km).
+DISTANCIAS_KM = (1, 2, 5, 10)
 
 
 def opciones_de_precio():
@@ -65,11 +65,39 @@ def opciones_de_precio():
     ]
 
 
+def opciones_de_distancia():
+    """[(1, "1 km"), (2, "2 km"), ...] para el menú "Hasta qué distancia"."""
+    return [(km, f"{km} km") for km in DISTANCIAS_KM]
+
+
+def combinar_zona(respuestas, centros):
+    """Junta el barrio y la distancia de todos en condiciones para el buscador.
+
+    respuestas: dicts con barrio (str o None) y distancia_km (int o None).
+    centros: {barrio: (lat, lon)} (LugarService.centros_de_barrios).
+
+    Devuelve {"barrios": [...], "cerca_de": [(lat, lon, km), ...]}:
+      - Con barrio Y distancia, el lugar tiene que quedar a esa distancia del barrio
+        de esa persona, y vale para todas las que lo pidieron (gana el más restrictivo).
+      - Un barrio sin distancia es "me queda bien esa zona": si nadie pidió distancia,
+        los lugares son de alguno de los barrios elegidos. Si alguien sí la pidió, mandan
+        las distancias.
+    """
+    cerca_de = []
+    for r in respuestas:
+        barrio, km = r.get("barrio"), r.get("distancia_km")
+        if barrio and km and barrio in centros:
+            lat, lon = centros[barrio]
+            cerca_de.append((lat, lon, float(km)))
+    if cerca_de:
+        return {"barrios": [], "cerca_de": cerca_de}
+    return {"barrios": sorted({r["barrio"] for r in respuestas if r.get("barrio")}), "cerca_de": []}
+
+
 def combinar_respuestas(respuestas):
     """Junta las respuestas de todos en filtros para el buscador de lugares.
 
-    respuestas: lista de dicts con nivel_precio (int o None), apto_menores,
-    opcion_celiacos, opcion_vegana (bool) y tipos (lista de ids).
+    respuestas: lista de dicts con nivel_precio (int o None) y tipos (lista de ids).
 
     Devuelve (filtros, tipos): `filtros` con las mismas claves que
     FILTROS_LUGAR (services/lugar_filtros.py) y `tipos` ordenados de más a
@@ -79,10 +107,6 @@ def combinar_respuestas(respuestas):
     niveles = [r["nivel_precio"] for r in respuestas if r.get("nivel_precio")]
     if niveles:
         filtros["nivel_precio"] = str(min(niveles))
-
-    for campo in RESTRICCIONES:
-        if any(r.get(campo) for r in respuestas):
-            filtros[campo] = "1"
 
     votos_por_tipo = Counter(t for r in respuestas for t in r.get("tipos", []))
     tipos = [tipo for tipo, _ in votos_por_tipo.most_common()]
@@ -216,14 +240,14 @@ class GrupoEncuestaService:
     def _respuestas(self, cursor, encuesta_id):
         cursor.execute(
             """
-            SELECT "Nivel_Precio_Max", "Apto_Menores", "Opcion_Celiacos", "Opcion_Vegana", "Tipos"
+            SELECT "Nivel_Precio_Max", "Tipos", "Barrio", "Distancia_Max_Km"
             FROM public."Grupo_Encuesta_Respuesta" WHERE "Id_Encuesta" = %s
             """,
             (encuesta_id,),
         )
         return [
-            {"nivel_precio": f[0], "apto_menores": f[1], "opcion_celiacos": f[2],
-             "opcion_vegana": f[3], "tipos": list(f[4] or [])}
+            {"nivel_precio": f[0], "tipos": list(f[1] or []),
+             "barrio": f[2], "distancia_km": f[3]}
             for f in cursor.fetchall()
         ]
 
@@ -238,25 +262,64 @@ class GrupoEncuestaService:
         tipos = tipos_por_lugar([c["id"] for c in candidatos])
         return {c["id"]: roles_de(c["nombre"], tipos.get(c["id"], [])) for c in candidatos}
 
-    # --- Crear ----------------------------------------------------------------
+    # --- Crear (y armar las opciones en el momento) ----------------------------
 
-    def crear(self, group_id, user_id, titulo):
+    def crear(self, group_id, user_id, titulo, fecha, hora, nivel_precio=None, tipos=(),
+              barrio=None, distancia_km=None):
+        """Una sola instancia: la encuesta nace YA con sus opciones y el grupo solo vota.
+
+        `fecha` y `hora` (date y time) son el día del plan; precio máximo, tipos de lugar, barrio y
+        distancia son opcionales y se usan para armar las opciones. Si no se encuentran lugares,
+        levanta GrupoPlanError y no se crea nada. Devuelve el id de la encuesta."""
         titulo = (titulo or "").strip()
         if not titulo:
-            raise GrupoPlanError("El plan necesita un nombre.")
+            raise GrupoPlanError("La encuesta necesita un nombre.")
+        if fecha is None or hora is None:
+            raise GrupoPlanError("Elegí el día y la hora del plan.")
+        if datetime.combine(fecha, hora) <= datetime.now():
+            raise GrupoPlanError("Elegí un día y una hora que todavía no pasaron.")
+
+        tipos_validos = {str(t["id"]) for t in self._lugares.listar_tipos()}
+        tipos = [str(t) for t in (tipos or []) if str(t) in tipos_validos]
+
+        # El barrio tiene que existir (se guarda con el nombre exacto de la base) y la distancia solo
+        # vale con un barrio de referencia.
+        barrio = self._lugares.barrio_canonico(barrio) if (barrio or "").strip() else None
+        try:
+            distancia_km = int(distancia_km) if distancia_km not in (None, "") else None
+        except (TypeError, ValueError):
+            distancia_km = None
+        if distancia_km not in DISTANCIAS_KM or not barrio:
+            distancia_km = None
+
+        respuesta = {"nivel_precio": nivel_precio, "tipos": tipos, "barrio": barrio, "distancia_km": distancia_km}
+        opciones = self._generar([respuesta], set())
+
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 self._es_miembro(cursor, group_id, user_id)
                 cursor.execute(
                     """
-                    INSERT INTO public."Grupo_Encuesta" ("Id_Grupo", "Creado_Por", "Titulo")
-                    VALUES (%s, %s, %s)
+                    INSERT INTO public."Grupo_Encuesta"
+                        ("Id_Grupo", "Creado_Por", "Titulo", "Estado", "Ronda", "Es_Desempate", "Fecha_Plan", "Hora_Plan")
+                    VALUES (%s, %s, %s, 'eligiendo', 1, false, %s, %s)
                     RETURNING "Id_Encuesta"
                     """,
-                    (group_id, user_id, titulo),
+                    (group_id, user_id, titulo, fecha, hora),
                 )
                 encuesta_id = cursor.fetchone()[0]
+                # Las preferencias quedan guardadas: si gana "ninguna me convence", la nueva tanda
+                # de opciones se arma con las mismas.
+                cursor.execute(
+                    """
+                    INSERT INTO public."Grupo_Encuesta_Respuesta"
+                        ("Id_Encuesta", "Id_Usuario", "Nivel_Precio_Max", "Tipos", "Barrio", "Distancia_Max_Km")
+                    VALUES (%s, %s, %s, %s::text[], %s, %s)
+                    """,
+                    (encuesta_id, user_id, nivel_precio, tipos, barrio, distancia_km),
+                )
+                self._guardar_opciones(cursor, encuesta_id, 1, opciones)
             connection.commit()
             return encuesta_id
         except Exception:
@@ -265,89 +328,12 @@ class GrupoEncuestaService:
         finally:
             release_db_connection(connection)
 
-    # --- Responder (filtros + disponibilidad) -----------------------------------
-
-    def responder(self, group_id, encuesta_id, user_id, nivel_precio, apto_menores,
-                  celiacos, vegana, tipos, franjas):
-        """Guarda (o cambia) la respuesta. `franjas`: [(fecha, desde, hasta)]
-        con date/time. Si con ésta ya respondieron todos, se arman las
-        opciones. Devuelve 'opciones', 'sin_lugares' (respondieron todos pero
-        no hay lugares que cumplan: la encuesta sigue abierta) o None."""
-        if not franjas:
-            raise GrupoPlanError("Cargá al menos un día y horario en el que puedas.")
-        if len(franjas) > MAX_FRANJAS:
-            raise GrupoPlanError(f"Podés cargar hasta {MAX_FRANJAS} horarios.")
-        ahora = datetime.now()
-        for fecha, desde, hasta in franjas:
-            if hasta <= desde:
-                raise GrupoPlanError("En cada horario, el «hasta» tiene que ser después del «desde».")
-            if datetime.combine(fecha, hasta) <= ahora:
-                raise GrupoPlanError("Elegí horarios que todavía no pasaron.")
-
-        tipos_validos = {str(t["id"]) for t in self._lugares.listar_tipos()}
-        tipos = [str(t) for t in tipos if str(t) in tipos_validos]
-
-        connection = get_db_connection()
-        try:
-            with connection.cursor() as cursor:
-                self._datos(cursor, encuesta_id, group_id, user_id, ("abierta",))
-                cursor.execute(
-                    """
-                    INSERT INTO public."Grupo_Encuesta_Respuesta"
-                        ("Id_Encuesta", "Id_Usuario", "Nivel_Precio_Max", "Apto_Menores",
-                         "Opcion_Celiacos", "Opcion_Vegana", "Tipos")
-                    VALUES (%s, %s, %s, %s, %s, %s, %s::text[])
-                    ON CONFLICT ("Id_Encuesta", "Id_Usuario") DO UPDATE SET
-                        "Nivel_Precio_Max" = EXCLUDED."Nivel_Precio_Max",
-                        "Apto_Menores" = EXCLUDED."Apto_Menores",
-                        "Opcion_Celiacos" = EXCLUDED."Opcion_Celiacos",
-                        "Opcion_Vegana" = EXCLUDED."Opcion_Vegana",
-                        "Tipos" = EXCLUDED."Tipos",
-                        "Respondida_En" = now()
-                    """,
-                    (encuesta_id, user_id, nivel_precio, apto_menores, celiacos, vegana, tipos),
-                )
-                cursor.execute(
-                    'DELETE FROM public."Grupo_Encuesta_Disponibilidad" WHERE "Id_Encuesta" = %s AND "Id_Usuario" = %s',
-                    (encuesta_id, user_id),
-                )
-                for fecha, desde, hasta in franjas:
-                    cursor.execute(
-                        """
-                        INSERT INTO public."Grupo_Encuesta_Disponibilidad"
-                            ("Id_Encuesta", "Id_Usuario", "Fecha", "Desde", "Hasta")
-                        VALUES (%s, %s, %s, %s, %s)
-                        """,
-                        (encuesta_id, user_id, fecha, desde, hasta),
-                    )
-                cursor.execute(
-                    'SELECT COUNT(*) FROM public."Grupo_Encuesta_Respuesta" WHERE "Id_Encuesta" = %s',
-                    (encuesta_id,),
-                )
-                respondieron = cursor.fetchone()[0]
-                miembros = self._miembros(cursor, group_id)
-            connection.commit()
-        except Exception:
-            connection.rollback()
-            raise
-        finally:
-            release_db_connection(connection)
-
-        if respondieron < miembros:
-            return None
-        try:
-            return self._cerrar_respuestas(group_id, encuesta_id, user_id)
-        except GrupoPlanError:
-            return "sin_lugares"
-
     # --- Cerrar / cancelar ---------------------------------------------------
 
     def cerrar(self, group_id, encuesta_id, user_id):
-        """El creador cierra la etapa en la que esté la encuesta sin esperar a
-        todos: arma las opciones (si estaba abierta) o resuelve la elección
-        con los votos que haya (si estaba eligiendo)."""
+        """El creador cierra la elección sin esperar a todos: se resuelve con los votos que haya."""
         if self._estado(encuesta_id, group_id) == "abierta":
-            return self._cerrar_respuestas(group_id, encuesta_id, user_id, solo_creador=True)
+            raise GrupoPlanError("Esta encuesta usa el formato anterior: cancelala y creá una nueva.")
         return self._votar_o_cerrar(group_id, encuesta_id, user_id, cerrar=True)
 
     def cancelar(self, group_id, encuesta_id, user_id):
@@ -369,58 +355,25 @@ class GrupoEncuestaService:
         finally:
             release_db_connection(connection)
 
-    def _cerrar_respuestas(self, group_id, encuesta_id, user_id, solo_creador=False):
-        """abierta -> eligiendo: calcula el horario y arma la primera ronda.
-        Si no hay respuestas o lugares levanta GrupoPlanError y no cambia nada."""
-        connection = get_db_connection()
-        try:
-            with connection.cursor() as cursor:
-                datos = self._datos(cursor, encuesta_id, group_id, user_id, ("abierta",))
-                if solo_creador and str(datos["creado_por"]) != str(user_id):
-                    raise GrupoPlanError("Solo quien creó la encuesta puede cerrarla.")
-
-                respuestas = self._respuestas(cursor, encuesta_id)
-                if not respuestas:
-                    raise GrupoPlanError("Todavía nadie respondió la encuesta.")
-                horario = elegir_horario(self._disponibilidades(cursor, encuesta_id))
-                if horario is None:
-                    raise GrupoPlanError("Nadie cargó un horario en el que pueda.")
-                fecha, hora, _ = horario
-
-                opciones = self._generar(respuestas, set())
-                self._guardar_opciones(cursor, encuesta_id, 1, opciones)
-                cursor.execute(
-                    """
-                    UPDATE public."Grupo_Encuesta"
-                    SET "Estado" = 'eligiendo', "Ronda" = 1, "Es_Desempate" = false,
-                        "Fecha_Plan" = %s, "Hora_Plan" = %s
-                    WHERE "Id_Encuesta" = %s
-                    """,
-                    (fecha, hora, encuesta_id),
-                )
-            connection.commit()
-            return "opciones"
-        except Exception:
-            connection.rollback()
-            raise
-        finally:
-            release_db_connection(connection)
-
     # --- Generar opciones --------------------------------------------------------
 
     def _generar(self, respuestas, ya_usados):
         """Arma las opciones de una ronda: lista de listas de lugares."""
         filtros, tipos = combinar_respuestas(respuestas)
+        centros = self._lugares.centros_de_barrios([r.get("barrio") for r in respuestas])
+        zona = combinar_zona(respuestas, centros)
         opciones = armar_opciones(
             lambda excluir: elegir_lugares(
-                lambda tipo, f: self._lugares.buscar(tipo_id=tipo, filtros=f, limite=15, aleatorio=True),
+                lambda tipo, f: self._lugares.buscar(
+                    tipo_id=tipo, filtros=f, limite=15, aleatorio=True,
+                    barrios=zona["barrios"], cerca_de=zona["cerca_de"]),
                 self._roles, filtros, tipos, excluir),
             ya_usados,
         )
         if not opciones:
             raise GrupoPlanError(
                 "No encontré lugares que cumplan los filtros de todos. "
-                "Pueden cambiar sus respuestas (por ejemplo subir el tope de precio) y probar de nuevo."
+                "Pueden cambiar sus respuestas (por ejemplo subir el tope de precio o la distancia) y probar de nuevo."
             )
         return opciones
 
@@ -574,8 +527,8 @@ class GrupoEncuestaService:
 
     def _crear_plan_ganador(self, cursor, encuesta_id, group_id, datos, opcion_id):
         """Crea el plan en votación con la opción ganadora. Los que la votaron
-        quedan con "me gusta" y con "puedo" según su disponibilidad, así el
-        plan ya tiene votos y se puede cerrar."""
+        quedan con "me gusta" y con "puedo" (votaron esa opción para el día y la hora
+        de la encuesta), así el plan ya tiene votos y se puede cerrar."""
         cursor.execute(
             'SELECT "Nombre", "Lugares" FROM public."Grupo_Encuesta_Opcion" WHERE "Id_Opcion" = %s',
             (opcion_id,),
@@ -595,15 +548,10 @@ class GrupoEncuestaService:
             (encuesta_id, datos["ronda"], opcion_id),
         )
         votantes = [str(f[0]) for f in cursor.fetchall()]
-        disponibilidades = self._disponibilidades(cursor, encuesta_id)
         for uid in votantes:
-            puede = any(
-                d["user"] == uid and d["fecha"] == fecha and d["desde"] <= hora < d["hasta"]
-                for d in disponibilidades
-            )
             cursor.execute(
-                'INSERT INTO public."Plan_Voto" ("Id_Plan", "Id_Usuario", "Me_Gusta", "Puedo") VALUES (%s, %s, true, %s)',
-                (plan_id, uid, puede),
+                'INSERT INTO public."Plan_Voto" ("Id_Plan", "Id_Usuario", "Me_Gusta", "Puedo") VALUES (%s, %s, true, true)',
+                (plan_id, uid),
             )
         self._plan_grupo._resolver_votacion(cursor, plan_id)
 
@@ -646,8 +594,9 @@ class GrupoEncuestaService:
     # --- Lectura para la página del grupo -----------------------------------
 
     def get_abiertas(self, group_id, user_id):
-        """Encuestas en curso del grupo (respondiendo o eligiendo), con lo
-        que la página necesita para dibujar cada etapa."""
+        """Encuestas en curso del grupo con lo que la página necesita para votar: las opciones de la
+        ronda actual, sus lugares (con dirección, barrio y mapa) y los votos. Las encuestas del formato
+        anterior (estado "abierta") se devuelven marcadas para que su creador las cancele."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -655,51 +604,29 @@ class GrupoEncuestaService:
                     """
                     SELECT e."Id_Encuesta", e."Titulo", e."Fecha_Plan", e."Hora_Plan", e."Estado",
                            e."Ronda", e."Es_Desempate", e."Creado_Por", u."Nombre",
-                           (SELECT COUNT(*) FROM public."Grupo_Encuesta_Respuesta" r
-                             WHERE r."Id_Encuesta" = e."Id_Encuesta"),
                            (SELECT COUNT(*) FROM public."Usuario-Grupo" x WHERE x."Id_Grupo" = e."Id_Grupo"),
-                           m."Nivel_Precio_Max", m."Apto_Menores", m."Opcion_Celiacos",
-                           m."Opcion_Vegana", m."Tipos", (m."Id_Usuario" IS NOT NULL),
                            (SELECT COUNT(*) FROM public."Grupo_Encuesta_Voto" v
                              WHERE v."Id_Encuesta" = e."Id_Encuesta" AND v."Ronda" = e."Ronda")
                     FROM public."Grupo_Encuesta" e
                     LEFT JOIN public."Usuarios" u ON u."Id_Usuario" = e."Creado_Por"
-                    LEFT JOIN public."Grupo_Encuesta_Respuesta" m
-                           ON m."Id_Encuesta" = e."Id_Encuesta" AND m."Id_Usuario" = %s
                     WHERE e."Id_Grupo" = %s AND e."Estado" IN ('abierta', 'eligiendo')
                     ORDER BY e."Creada_En"
                     """,
-                    (user_id, group_id),
+                    (group_id,),
                 )
                 encuestas = [
                     {
                         "id": str(f[0]), "titulo": f[1], "fecha": f[2], "hora": f[3], "estado": f[4],
                         "ronda": f[5], "desempate": f[6],
                         "es_creador": str(f[7]) == str(user_id), "creador": f[8],
-                        "respondieron": f[9], "miembros": f[10],
-                        "mi_nivel": f[11], "mi_menores": bool(f[12]), "mi_celiaco": bool(f[13]),
-                        "mi_vegano": bool(f[14]), "mis_tipos": list(f[15] or []),
-                        "yo_respondi": bool(f[16]), "votaron": f[17],
-                        "franjas": [], "opciones": [], "mi_voto": None, "votos_ninguna": 0,
+                        "miembros": f[9], "votaron": f[10],
+                        "opciones": [], "mi_voto": None, "votos_ninguna": 0,
                     }
                     for f in cursor.fetchall()
                 ]
                 por_id = {e["id"]: e for e in encuestas}
                 if not por_id:
                     return []
-
-                # Mis franjas, para precargar el formulario.
-                cursor.execute(
-                    """
-                    SELECT "Id_Encuesta", "Fecha", "Desde", "Hasta"
-                    FROM public."Grupo_Encuesta_Disponibilidad"
-                    WHERE "Id_Usuario" = %s AND "Id_Encuesta"::text = ANY(%s)
-                    ORDER BY "Fecha", "Desde"
-                    """,
-                    (user_id, list(por_id)),
-                )
-                for f in cursor.fetchall():
-                    por_id[str(f[0])]["franjas"].append({"fecha": f[1], "desde": f[2], "hasta": f[3]})
 
                 # Opciones de la ronda actual con sus votos.
                 cursor.execute(
@@ -721,7 +648,7 @@ class GrupoEncuestaService:
                     encuesta = por_id[str(f[0])]
                     encuesta["opciones"].append({
                         "id": str(f[1]), "nombre": f[2], "precio_min": f[3], "precio_max": f[4],
-                        "lugares": [l["nombre"] for l in f[5]], "votos": f[6], "mio": bool(f[7]),
+                        "lugares": f[5], "votos": f[6], "mio": bool(f[7]),
                     })
                     if f[7]:
                         encuesta["mi_voto"] = str(f[1])
@@ -742,8 +669,17 @@ class GrupoEncuestaService:
                     encuesta["votos_ninguna"] = f[1]
                     if f[2]:
                         encuesta["mi_voto"] = "ninguna"
-            return encuestas
         except psycopg2.Error:
             raise
         finally:
             release_db_connection(connection)
+
+        # Dónde queda cada lugar de cada opción (dirección, barrio y mapa), en una sola consulta.
+        detalles = self._lugares.detalles([l["id"] for e in encuestas for o in e["opciones"] for l in o["lugares"]])
+        for e in encuestas:
+            for o in e["opciones"]:
+                o["lugares"] = [
+                    {"nombre": l["nombre"], "nivel_precio": l.get("nivel_precio"), **detalles.get(str(l["id"]), {})}
+                    for l in o["lugares"]
+                ]
+        return encuestas

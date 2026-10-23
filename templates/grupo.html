@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import chispa %}
+{% from '_macros.html' import chispa, paradas %}
 
 {% block title %}Planes — {{ group.get_name() }} — Ahora Qué{% endblock %}
 
@@ -21,7 +21,7 @@
 {% endmacro %}
 
 {% if logueado %}
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -29,9 +29,12 @@
 {% endif %}
 
 
-<section class="container page group-page">
+<section class="container page group-page group-page--fija">
 
   {% include 'grupo_cabecera.html' %}
+
+  {# La pantalla no scrollea: el encabezado y las pestañas quedan fijos y solo el contenido se desplaza. #}
+  <div class="group-scroll" data-group-scroll data-autorecarga="15000">
 
   {% include 'grupo_encuestas.html' %}
 
@@ -137,6 +140,9 @@
           {% if plan.descripcion %}<p class="quote">“{{ plan.descripcion }}”</p>{% endif %}
         </header>
 
+        {# Dónde es: cada parada con su dirección y barrio, y cómo llegar. #}
+        {% if plan.lugares %}{{ paradas(plan.lugares) }}{% endif %}
+
         <p class="meta board-plan__count">
           {{ plan.votos }} de {{ plan.miembros }} votaron · {{ plan.gustan }} les gusta{% if plan.fecha %} · {{ plan.pueden }} pueden{% endif %}
         </p>
@@ -194,12 +200,14 @@
           <p class="meta">Al grupo le gustó, pero no podían el {{ cuando(plan) }}. Propongan otro horario.</p>
         </header>
 
+        {% if plan.lugares %}{{ paradas(plan.lugares) }}{% endif %}
+
         {% if plan.horarios %}
         <ul class="board-slots">
           {% for h in plan.horarios %}
           <li>
             <div class="board-slots__info">
-              <strong>{{ h.fecha.strftime('%d/%m') }} a las {{ h.hora.strftime('%H:%M') }}</strong>
+              <strong>{{ h.fecha | cuando(h.hora) }}</strong>
               <span class="meta">Propuesto por {{ h.propuesto_por }} · {{ h.pueden }} de {{ plan.miembros }} pueden ({{ h.votos }} votaron)</span>
             </div>
 
@@ -263,6 +271,8 @@
           <p class="meta">Van: {{ plan.van | join(', ') if plan.van else 'nadie todavía' }}</p>
         </header>
 
+        {% if plan.lugares %}{{ paradas(plan.lugares) }}{% endif %}
+
         {% if plan.confirmado %}
         <p class="board-plan__ok">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="m5 12.5 4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
@@ -282,6 +292,8 @@
     {% endif %}
 
   </div>
+
+</div>
 
 </section>
 

@@ -100,7 +100,7 @@
   font: 600 12px/1 var(--font-sans); font-variant-numeric: tabular-nums;
 }
 
-.chips { display: flex; gap: 2px; padding: 3px; background: var(--paper-deep); border-radius: calc(var(--r-sm) + 3px); width: max-content; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 2px; padding: 3px; background: var(--paper-deep); border-radius: calc(var(--r-sm) + 3px); width: max-content; max-width: 100%; }
 .chip {
   display: inline-flex; align-items: center; gap: 7px; height: var(--control-h); padding: 0 14px;
   border: 0; border-radius: var(--r-sm); background: transparent; cursor: pointer;
@@ -204,8 +204,8 @@
 
 /* ---------- Pestañas (un solo componente para grupo, inbox y social) ----------
    Enlaces o botones; la pestaña actual lleva aria-current="page". Si no
-   entran en el ancho se desplazan en vez de partirse en dos filas. */
-.tabs { display: flex; gap: 2px; padding: 3px; background: var(--paper-deep); border-radius: calc(var(--r-sm) + 3px); width: max-content; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+   entran en el ancho se parten en otra fila (nada se desliza). */
+.tabs { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 2px; padding: 3px; background: var(--paper-deep); border-radius: calc(var(--r-sm) + 3px); width: max-content; max-width: 100%; }
 .tab {
   display: inline-flex; align-items: center; gap: 7px; flex: none; height: var(--control-h); padding: 0 14px;
   border: 0; border-radius: var(--r-sm); background: transparent; cursor: pointer; text-decoration: none; white-space: nowrap;
@@ -223,6 +223,7 @@
 
 /* ---------- Etiqueta de estado ---------- */
 .tag--ok { background: var(--ok-soft); color: var(--ok); }
+.tag--info { background: var(--info-soft); color: var(--info); }
 .tag--danger { background: var(--danger-soft); color: var(--danger); }
 
 /* ---------- Chips sueltos (casillas con cara de chip fuera de una barra) ---------- */

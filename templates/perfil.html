@@ -13,7 +13,7 @@
 {% set nombre = user.name | default('', true) %}
 
 {% if logueado %}
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -21,9 +21,11 @@
 {% endif %}
 
 
-<section class="container page profile">
+<section class="container page profile perfil-pantalla">
 
   <a class="back-link" href="/dashboard">← Inicio</a>
+
+  <div class="perfil-izq">
 
   <header class="profile__head">
     <span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 64px" aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
@@ -116,21 +118,25 @@
   <dl class="facts profile__facts">
     <div>
       <dt>Grupos</dt>
-      <dd>{{ groups | length }}</dd>
+      <dd>{{ resumen.grupos }}</dd>
     </div>
     <div>
       <dt>Planes publicados</dt>
-      <dd>{{ published_plans | length }}</dd>
+      <dd>{{ resumen.publicados }}</dd>
     </div>
     <div>
       <dt>Planes guardados</dt>
-      <dd>{{ saved_plans | length }}</dd>
+      <dd>{{ resumen.guardados }}</dd>
     </div>
   </dl>
 
-</section>
+  </div>
 
-{% with autor_id=autor_id %}{% include '_social_perfil.html' %}{% endwith %}
+  <div class="perfil-der">
+    {% with autor_id=autor_id %}{% include '_social_perfil.html' %}{% endwith %}
+  </div>
+
+</section>
 
 
 {% if logueado %}

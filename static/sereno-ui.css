@@ -290,3 +290,224 @@
     transition: none;
   }
 }
+
+
+/* --- Selector de fecha y de hora ------------------------------------------------------ */
+
+.ss-icono {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+
+  fill: none;
+  stroke: var(--ss-tinta-suave);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ss-boton.es-invalido {
+  border-color: var(--danger, #b03128);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger, #b03128) 18%, transparent);
+}
+
+.ss-panel {
+  width: 304px;
+  max-width: calc(100vw - 16px);
+  padding: 10px;
+  overflow: visible;
+}
+
+.ss-panel button {
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--ss-tinta);
+  cursor: pointer;
+}
+
+.ss-panel button:focus-visible {
+  outline: 2px solid var(--ss-foco);
+  outline-offset: 1px;
+}
+
+.ss-panel button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Atajos de fecha */
+.sd-rapidos {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.sd-rapido {
+  min-height: 40px;
+  border: 0;
+  border-radius: var(--ss-r-opcion);
+  background: var(--ss-hover);
+  font-size: var(--text-sm, 0.9375rem);
+  font-weight: 550;
+}
+
+.sd-rapido:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 11%, transparent);
+}
+
+/* Mes */
+.sd-cabecera,
+.sh-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.sd-titulo {
+  flex: 1;
+  text-align: center;
+  font-size: var(--text-ui, 1rem);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.sd-flecha {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ss-r-opcion);
+  background: transparent;
+}
+
+.sd-flecha:hover:not(:disabled) {
+  background: var(--ss-hover);
+}
+
+.sd-flecha svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sd-grilla {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.sd-semana {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  color: var(--ss-tinta-suave);
+  font-size: var(--text-xs, 0.8125rem);
+  font-weight: 600;
+}
+
+.sd-dia {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font-size: var(--text-sm, 0.9375rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.sd-dia:hover:not(:disabled) {
+  background: var(--ss-hover);
+}
+
+.sd-dia.es-hoy {
+  box-shadow: inset 0 0 0 1.5px var(--ss-linea-fuerte);
+  font-weight: 650;
+}
+
+.sd-dia[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--surface, #fff);
+  font-weight: 650;
+}
+
+.ss-panel .sd-dia[aria-pressed="true"] {
+  color: var(--surface, #fff);
+}
+
+.sd-pie {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.sd-borrar {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ss-r-opcion);
+  background: transparent;
+  color: var(--ss-tinta-suave) !important;
+  font-size: var(--text-sm, 0.9375rem);
+}
+
+.sd-borrar:hover {
+  background: var(--ss-hover);
+}
+
+/* Hora */
+.sh-titulo {
+  margin: 2px 4px 8px;
+  color: var(--ss-tinta-suave);
+  font-size: var(--text-xs, 0.8125rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sh-grilla {
+  display: grid;
+  grid-template-columns: repeat(var(--columnas, 6), minmax(0, 1fr));
+  gap: 4px;
+}
+
+.sh-opcion {
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--ss-r-opcion);
+  background: var(--ss-hover);
+  font-size: var(--text-ui, 1rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-opcion:hover {
+  background: color-mix(in srgb, var(--ink) 11%, transparent);
+}
+
+.sh-opcion[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--surface, #fff);
+  font-weight: 650;
+}
+
+.ss-panel .sh-opcion[aria-pressed="true"] {
+  color: var(--surface, #fff);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ss-lista { animation: none; }
+}
+
+.sh-cabecera .sd-titulo { text-transform: none; font-size: var(--text-sm, 0.9375rem); }

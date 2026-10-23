@@ -19,6 +19,15 @@ _HAVERSINE_KM = (
 )
 
 
+def url_mapa(lat, lon):
+    """Enlace a un mapa (Google Maps abre la app o el navegador en cualquier teléfono) con el punto exacto
+    del lugar. None si el lugar no tiene coordenadas."""
+    try:
+        return f"https://www.google.com/maps/search/?api=1&query={float(lat):.6f},{float(lon):.6f}"
+    except (TypeError, ValueError):
+        return None
+
+
 def _coordenadas_validas(lat, lon):
     """(lat, lon) como floats si son una ubicación posible; si no, None."""
     try:
@@ -84,9 +93,105 @@ class LugarService:
         finally:
             release_db_connection(connection)
 
+    def detalles(self, ids):
+        """{id: {"direccion", "barrio", "mapa_url"}} de los lugares con esos ids (una sola consulta)."""
+        ids = [str(i) for i in ids if i]
+        if not ids:
+            return {}
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT l."Id_Lugar"::text, l."Direccion", l."Barrio", l."Lat"::float8, l."Long"::float8
+                    FROM public."Lugar" l WHERE l."Id_Lugar"::text = ANY(%s)
+                    """,
+                    (ids,),
+                )
+                return {
+                    f[0]: {"direccion": f[1], "barrio": f[2], "mapa_url": url_mapa(f[3], f[4])}
+                    for f in cursor.fetchall()
+                }
+        except psycopg2.Error:
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def barrio_canonico(self, texto):
+        """El barrio de la base que coincide con lo escrito (sin tildes ni mayúsculas), o None."""
+        texto = quitar_tildes((texto or "").strip())
+        if not texto:
+            return None
+        col = _SIN_TILDES.format(col='l."Barrio"')
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    f'SELECT l."Barrio" FROM public."Lugar" l WHERE {col} = %s LIMIT 1',
+                    (texto,),
+                )
+                fila = cursor.fetchone()
+                return fila[0] if fila else None
+        except psycopg2.Error:
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def centros_de_barrios(self, barrios):
+        """{barrio: (lat, lon)}: el centro de cada barrio es el promedio de sus lugares."""
+        barrios = [b for b in set(barrios or []) if b]
+        if not barrios:
+            return {}
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT l."Barrio", AVG(l."Lat"::float8), AVG(l."Long"::float8)
+                    FROM public."Lugar" l
+                    WHERE l."Barrio" = ANY(%s) AND l."Lat" IS NOT NULL AND l."Long" IS NOT NULL
+                    GROUP BY l."Barrio"
+                    """,
+                    (barrios,),
+                )
+                return {f[0]: (f[1], f[2]) for f in cursor.fetchall()}
+        except psycopg2.Error:
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def barrio_cercano(self, lat, lon):
+        """El barrio del lugar más cercano a (lat, lon), o None si no hay datos."""
+        coordenadas = _coordenadas_validas(lat, lon)
+        if not coordenadas:
+            return None
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    f"""
+                    SELECT l."Barrio"
+                    FROM public."Lugar" l
+                    WHERE l."Barrio" IS NOT NULL AND l."Barrio" <> ''
+                      AND l."Lat" IS NOT NULL AND l."Long" IS NOT NULL
+                    ORDER BY {_HAVERSINE_KM}
+                    LIMIT 1
+                    """,
+                    (coordenadas[0], coordenadas[0], coordenadas[1]),
+                )
+                fila = cursor.fetchone()
+                return fila[0] if fila else None
+        except psycopg2.Error:
+            raise
+        finally:
+            release_db_connection(connection)
+
     def buscar(self, texto="", tipo_id="", filtros=None, limite=30, aleatorio=False,
-               lat=None, lon=None, max_km=None):
+               lat=None, lon=None, max_km=None, barrios=None, cerca_de=None):
         """Busca lugares por nombre o por tipo, aplicando los filtros.
+
+        barrios: lista de nombres; solo lugares de alguno de ellos.
+        cerca_de: lista de (lat, lon, km); el lugar tiene que quedar a menos de km de CADA punto.
 
         Si llegan lat y lon (la ubicación de quien busca), cada lugar trae su
         distancia en km (fórmula de haversine, sin PostGIS) y los resultados van
@@ -123,6 +228,14 @@ class LugarService:
         condiciones_filtros, parametros_filtros = construir_condiciones(filtros or {})
         condiciones.extend(condiciones_filtros)
         parametros.extend(parametros_filtros)
+
+        if barrios:
+            condiciones.append(f'{_SIN_TILDES.format(col="l.\"Barrio\"")} = ANY(%s)')
+            parametros.append([quitar_tildes(b) for b in barrios])
+
+        for lat_c, lon_c, km in cerca_de or []:
+            condiciones.append(f"{_HAVERSINE_KM} <= %s")
+            parametros.extend([lat_c, lat_c, lon_c, km])
 
         where = ("WHERE " + " AND ".join(condiciones)) if condiciones else ""
 

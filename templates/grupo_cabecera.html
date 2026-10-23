@@ -1,4 +1,4 @@
-{% from '_macros.html' import racha_chip %}
+{% from '_macros.html' import racha_chip, emblema %}
 
 {# =========================================================================
    CABECERA DEL GRUPO (la comparten el tablero y el chat)
@@ -10,9 +10,10 @@
 
 <a class="back-link" href="/grupos">← Grupos</a>
 
-<header class="page-head group-head">
+<header class="page-head group-head{% if racha.marco %} rango--{{ racha.marco }}{% endif %}">
 
   <div class="group-head__title">
+    {{ emblema(group.get_name(), none, 52) }}
     <h1 class="h2">{{ group.get_name() }}</h1>
     {{ racha_chip(racha, url_for('group_auth.racha_grupo', group_id=group.get_id())) }}
   </div>
@@ -71,7 +72,7 @@
           </span>
           <span>
             <strong>Armar plan entre todos</strong>
-            <small>Cada uno elige sus filtros y se arma el plan</small>
+            <small>Se arman opciones y el grupo vota una</small>
           </span>
         </a>
 

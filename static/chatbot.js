@@ -19,14 +19,16 @@
   // guardar ofrece postular la idea en ese grupo.
   var grupoId   = panel.getAttribute("data-grupo-id") || "";
 
+  // La caja no tiene scroll propio: se lleva a la vista el último mensaje scrolleando la pantalla.
   function bajarAlFinal() {
-    caja.scrollTop = caja.scrollHeight;
+    var ultimo = caja.lastElementChild;
+    if (ultimo && ultimo.scrollIntoView) { ultimo.scrollIntoView({ block: "nearest" }); }
   }
 
   // Durante el streaming solo se baja solo si la persona ya estaba abajo: si
   // subió a leer algo, no se la arrastra de vuelta con cada fragmento.
   function bajarSiEstaAbajo() {
-    if (caja.scrollHeight - caja.scrollTop - caja.clientHeight < 80) { bajarAlFinal(); }
+    if (caja.getBoundingClientRect().bottom - window.innerHeight < 80) { bajarAlFinal(); }
   }
 
   function mostrarVacio() {

@@ -490,3 +490,172 @@
 .planner__near-km { min-width: 180px; flex: 0 1 220px; }
 .planner__near-estado { flex: 1 1 100%; margin: 0; }
 .planner__near-estado:empty { display: none; }
+
+
+/* ---------- Calendario: vistas Semana y Mes ---------- */
+
+.cal__controles { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-5); }
+.cal__nav .btn { margin-left: var(--s-2); }
+
+/* Mes: tocar el número (o cualquier parte libre de la celda) abre esa semana. */
+.cal__day { position: relative; }
+.cal__num { text-decoration: none; }
+.cal__num::after { content: ""; position: absolute; inset: 0; }
+.cal__plan { position: relative; z-index: 1; }
+.cal__day.tiene-planes:not(.is-today) .cal__num { color: var(--ink); }
+
+/* Semana: siete columnas en escritorio, una lista de días en celular. */
+.cal-semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s-2); }
+
+.cal-dia {
+  display: flex; flex-direction: column; gap: var(--s-2); min-width: 0; padding: var(--s-3);
+  border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-hair);
+}
+.cal-dia.is-today { box-shadow: 0 0 0 1.5px var(--ink), var(--sh-card); }
+
+.cal-dia__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--s-2); }
+.cal-dia__nombre { color: var(--ink-3); font-size: var(--t-meta); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.cal-dia__num { font-size: 1.5rem; font-weight: 650; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.cal-dia__rel { margin-left: auto; }
+.cal-dia__vacio { margin: 0; color: var(--ink-3); font-size: var(--t-meta); }
+
+.cal-evento {
+  display: grid; gap: 2px; min-height: 44px; padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md); background: var(--paper-deep); color: var(--ink); text-decoration: none;
+  transition: background-color var(--d-fast) var(--ease-out);
+}
+.cal-evento:hover { background: color-mix(in srgb, var(--ink) 9%, var(--paper-deep)); }
+.cal-evento__hora { color: var(--ink-3); font-size: var(--t-meta); font-weight: 600; font-variant-numeric: tabular-nums; }
+.cal-evento__nombre { font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.cal-evento__detalle { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+@media (min-width: 901px) {
+  .cal--semana .cal-semana { flex: 1 1 auto; min-height: 0; }
+  .cal--semana .cal-dia { overflow-y: auto; overscroll-behavior: contain; }
+}
+
+@media (max-width: 900px) {
+  .cal-semana { grid-template-columns: minmax(0, 1fr); }
+  .cal-dia { gap: var(--s-2); }
+  /* Un día sin planes ocupa una sola línea. */
+  .cal-dia.is-vacio { flex-direction: row; align-items: center; justify-content: space-between; padding-block: var(--s-3); }
+  .cal-dia__head { flex-wrap: nowrap; align-items: center; }
+  .cal-dia__num { font-size: 1.25rem; }
+}
+
+
+/* ---------- Hero: las tarjetas del montón reaccionan al pasar el mouse ----------
+   La tarjeta se endereza, sube un poco y se acerca; las demás no se mueven. Solo con mouse. */
+.landing-pile > .item { transition: transform var(--d-base) var(--ease-out), box-shadow var(--d-base) var(--ease-out); will-change: transform; }
+.landing-pile .avatar { transition: transform var(--d-base) var(--ease-out); }
+.landing-demo__seg span { transition: background-color var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out); }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .landing-pile > .item:hover {
+    position: relative; z-index: 1;
+    transform: translateX(calc(var(--x, 0px) - 8px)) translateY(-4px) rotate(0deg) scale(1.02);
+    box-shadow: var(--sh-float);
+  }
+  .landing-pile > .item:hover .avatar { transform: scale(1.1); }
+  .landing-pile > .item:hover .item__name { text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 0.2em; }
+  .landing-demo__seg span:not(.is-on):hover { background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--ink); }
+}
+
+/* El selector de público se queda de su propio alto y centrado con los chips de al lado
+   (el contenedor flex lo estiraba y la pastilla quedaba arriba, con aire de más abajo). */
+.landing-demo__filters { align-items: center; }
+.landing-demo__seg { align-self: center; align-content: center; }
+
+
+
+/* ==========================================================================
+   Celular: simetría y alineación
+   Las filas de pestañas y chips se reparten en columnas iguales (nada queda "colgado" a la izquierda),
+   las acciones se acomodan en grillas parejas y los botones principales ocupan todo el ancho.
+   ========================================================================== */
+
+.tag { width: fit-content; justify-self: start; align-self: flex-start; }
+
+@media (max-width: 600px) {
+
+  /* Pestañas, chips y selectores: columnas iguales (3 si son 3, 5 o más; 2 en el resto). */
+  .chips, .tabs, .seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; max-width: 100%; }
+  .chips:has(> :nth-child(3):last-child), .tabs:has(> :nth-child(3):last-child), .seg:has(> :nth-child(3):last-child),
+  .chips:has(> :nth-child(5)), .tabs:has(> :nth-child(5)), .seg:has(> :nth-child(5)) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .chip, .tab, .seg > button { justify-content: center; text-align: center; min-width: 0; padding-inline: var(--s-2); }
+  .seg label { width: 100%; min-width: 0; }
+  .seg label span { width: 100%; justify-content: center; }
+
+  /* Portada: selector de público a lo ancho, en 4 columnas, y los chips en 2 por fila. */
+  .landing-demo__seg { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .landing-demo__seg span { justify-content: center; padding-inline: var(--s-1); }
+  .landing-demo__group { display: grid; gap: 2px; }
+
+  /* Plan público: datos en tres columnas iguales y botones a lo ancho. */
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
+  .plan-publico__acciones { display: grid; gap: var(--s-2); }
+  .plan-publico__acciones .btn { width: 100%; justify-content: center; }
+
+  /* Amigos: la fila de acciones ocupa todo el ancho, con el botón principal estirado. */
+  .friend-row__actions { flex: 1 1 100%; width: 100%; }
+  .friend-row__actions .btn { flex: 1; }
+  .friend-row__actions .btn:only-child { flex: none; }
+
+  /* Social: la barra "Lo que comparten…" + bandera arriba y el botón a lo ancho. */
+  .soc-barra { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); }
+  .soc-barra > .btn { grid-column: 1 / -1; width: 100%; justify-content: center; }
+  .soc-barra__titulo { min-width: 0; }
+
+  /* Grupo: acciones en una grilla de dos columnas (Idea | Invitar, Editar | Abandonar). */
+  .group-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); width: 100%; }
+  .group-actions .idea-menu { flex: none; }
+  .group-actions .idea-menu > summary, .group-actions > .btn { width: 100%; justify-content: center; }
+  .group-actions > .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2); width: 100%; height: var(--control-h);
+    border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-hair); color: var(--ink);
+  }
+  .group-actions > .icon-btn::after { content: "Editar"; font-size: var(--t-ui); font-weight: 550; letter-spacing: var(--track-ui); }
+
+  /* La racha y el perfil: bloques centrados y columnas parejas. */
+  .racha-marco { flex-direction: column; text-align: center; gap: var(--s-2); }
+  .racha-hero__copy .progreso { width: 100%; }
+  .profile__facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: center; }
+}
+
+/* Chat del grupo en celular: el encabezado se reduce al nombre para que la conversación empiece arriba. */
+@media (max-width: 900px) {
+  .group-page--chat .group-head > .lead,
+  .group-page--chat .group-head > .group-members,
+  .group-page--chat .group-head > .group-actions { display: none; }
+}
+
+/* Pantallas de error (404 y 500). */
+.error-pagina { display: grid; justify-items: center; gap: var(--s-3); padding-block: var(--s-16); text-align: center; }
+.error-pagina__codigo { margin: 0; color: var(--ink-3); font-size: var(--t-meta); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+.error-pagina .lead { max-width: 42ch; margin: 0; }
+.error-pagina .actions { justify-content: center; margin-top: var(--s-3); }
+
+/* Celulares muy angostos (≤ 380 px): en la tira de navegación el ícono va arriba y la etiqueta abajo,
+   en una sola línea, para que "Calendario" y "Mis planes" no se partan. */
+@media (max-width: 380px) {
+  .dashboard-sidebar-link, .dashboard-layout.is-collapsed .dashboard-sidebar-link { flex-direction: column; gap: 2px; min-height: 54px; padding: 6px 2px; }
+  .dashboard-sidebar-label, .dashboard-layout.is-collapsed .dashboard-sidebar-label { white-space: nowrap; overflow-wrap: normal; line-height: 1.15; }
+  .soc-perfil-titulo { padding-left: 3px; }
+}
+
+@media (max-width: 600px) {
+  /* Acciones de quien creó la encuesta: dos botones parejos, a lo ancho. */
+  .encuesta-acciones { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
+  .encuesta-acciones form, .encuesta-acciones .btn { width: 100%; }
+  .encuesta-acciones .btn { justify-content: center; }
+}
+
+
+
+/* ---------- Enlace "← Volver": solo mide lo que su texto y deja aire debajo ---------- */
+.back-link { align-self: flex-start; width: fit-content; margin-bottom: var(--s-2); }
+
+/* ---------- Grupo abierto: sin marco; el nombre del grupo lleva el color de su rango ---------- */
+.group-head[class*="rango--"] .h2 { color: color-mix(in srgb, var(--rango) 62%, var(--ink)); }
+.group-head[class*="rango--"] .emblema { background: color-mix(in srgb, var(--rango) 22%, var(--surface)); color: color-mix(in srgb, var(--rango) 62%, var(--ink)); }
+.racha-hito-preview[class*="rango--"] { box-shadow: inset 0 0 0 1.5px var(--rango); }
