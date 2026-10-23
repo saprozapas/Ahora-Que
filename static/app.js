@@ -461,8 +461,8 @@
      10b. PISTAS DE PLANES DEL GRUPO
 
      Cada sección del tablero (en votación, confirmados…) es una fila que
-     se recorre hacia los costados: de a dos planes en escritorio y tablet, uno en
-     tablet y uno en celular. Las flechas mueven una página; también se
+     se recorre hacia los costados: de a dos planes en escritorio y tablet y
+     de a uno en celular. Las flechas mueven una página; también se
      puede arrastrar o deslizar. Sin desborde, la navegación se oculta.
      ======================================================================== */
 
