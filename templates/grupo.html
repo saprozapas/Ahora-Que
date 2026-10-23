@@ -9,6 +9,18 @@
   {% if plan.fecha %}{{ plan.fecha.strftime('%d/%m') }}{% if plan.hora %} a las {{ plan.hora.strftime('%H:%M') }}{% endif %}{% else %}una fecha a definir{% endif %}
 {%- endmacro %}
 
+{% macro flechas() %}
+  <span class="board__nav" data-pista-nav hidden>
+    <span class="meta" data-pista-pagina>1 de 1</span>
+    <button class="icon-btn" type="button" data-pista-prev aria-label="Planes anteriores">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </button>
+    <button class="icon-btn" type="button" data-pista-next aria-label="Planes siguientes">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </button>
+  </span>
+{% endmacro %}
+
 {% macro si_no(nombre, valor) %}
   <label>
     <input type="radio" name="{{ nombre }}" value="si" required {% if valor == true %}checked{% endif %} />
@@ -82,13 +94,15 @@
 
     {# ------------------------------- PUNTUAR ------------------------------- #}
     {% if tablero.para_puntuar %}
-    <section class="board__section" aria-labelledby="tablero-puntuar">
+    <section class="board__section" data-carrusel aria-labelledby="tablero-puntuar">
 
       <div class="board__head">
         <h2 class="h3" id="tablero-puntuar">¿Qué tal estuvo?</h2>
         <span class="meta">{{ n_puntuar }} para puntuar</span>
+        {{ flechas() }}
       </div>
 
+      <div class="board-pista" data-pista>
       {% for plan in tablero.para_puntuar %}
       <article class="card board-plan" id="plan-{{ plan.id }}">
 
@@ -116,20 +130,22 @@
 
       </article>
       {% endfor %}
-
+      </div>
     </section>
     {% endif %}
 
 
     {# ------------------------------- VOTACIÓN ------------------------------ #}
     {% if tablero.votacion %}
-    <section class="board__section" aria-labelledby="tablero-votacion">
+    <section class="board__section" data-carrusel aria-labelledby="tablero-votacion">
 
       <div class="board__head">
         <h2 class="h3" id="tablero-votacion">En votación</h2>
         <span class="meta">{{ n_votacion }} idea{{ 's' if n_votacion != 1 }}</span>
+        {{ flechas() }}
       </div>
 
+      <div class="board-pista" data-pista>
       {% for plan in tablero.votacion %}
       <article class="card board-plan" id="plan-{{ plan.id }}">
 
@@ -177,20 +193,22 @@
 
       </article>
       {% endfor %}
-
+      </div>
     </section>
     {% endif %}
 
 
     {# --------------------------- ESPERANDO HORARIO -------------------------- #}
     {% if tablero.esperando_horario %}
-    <section class="board__section" aria-labelledby="tablero-horario">
+    <section class="board__section" data-carrusel aria-labelledby="tablero-horario">
 
       <div class="board__head">
         <h2 class="h3" id="tablero-horario">Buscando horario</h2>
         <span class="meta">{{ n_horario }} idea{{ 's' if n_horario != 1 }}</span>
+        {{ flechas() }}
       </div>
 
+      <div class="board-pista" data-pista>
       {% for plan in tablero.esperando_horario %}
       <article class="card board-plan" id="plan-{{ plan.id }}">
 
@@ -247,20 +265,22 @@
 
       </article>
       {% endfor %}
-
+      </div>
     </section>
     {% endif %}
 
 
     {# ------------------------------ CONFIRMADOS ------------------------------ #}
     {% if tablero.confirmados %}
-    <section class="board__section" aria-labelledby="tablero-confirmados">
+    <section class="board__section" data-carrusel aria-labelledby="tablero-confirmados">
 
       <div class="board__head">
         <h2 class="h3" id="tablero-confirmados">Confirmados</h2>
         <span class="meta">{{ n_confirmados }} plan{{ 'es' if n_confirmados != 1 }}</span>
+        {{ flechas() }}
       </div>
 
+      <div class="board-pista" data-pista>
       {% for plan in tablero.confirmados %}
       <article class="card board-plan" id="plan-{{ plan.id }}">
 
@@ -287,7 +307,7 @@
 
       </article>
       {% endfor %}
-
+      </div>
     </section>
     {% endif %}
 

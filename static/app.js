@@ -458,6 +458,58 @@
 
 
   /* ========================================================================
+     10b. PISTAS DE PLANES DEL GRUPO
+
+     Cada sección del tablero (en votación, confirmados…) es una fila que
+     se recorre hacia los costados: de a tres planes en escritorio, dos en
+     tablet y uno en celular. Las flechas mueven una página; también se
+     puede arrastrar o deslizar. Sin desborde, la navegación se oculta.
+     ======================================================================== */
+
+  const iniciarPistasDePlanes = () => {
+
+    $$("[data-carrusel]").forEach((seccion) => {
+
+      const pista = $("[data-pista]", seccion);
+      const nav = $("[data-pista-nav]", seccion);
+      const anterior = $("[data-pista-prev]", seccion);
+      const siguiente = $("[data-pista-next]", seccion);
+      const etiqueta = $("[data-pista-pagina]", seccion);
+
+      if (!pista || !nav || !anterior || !siguiente) {
+        return;
+      }
+
+      const paso = () => pista.clientWidth + parseFloat(getComputedStyle(pista).columnGap || 0);
+
+      const actualizar = () => {
+
+        const desborda = pista.scrollWidth > pista.clientWidth + 2;
+        nav.hidden = !desborda;
+
+        const paginas = Math.max(1, Math.round(pista.scrollWidth / paso()));
+        const actual = Math.min(paginas, Math.round(pista.scrollLeft / paso()) + 1);
+
+        if (etiqueta) {
+          etiqueta.textContent = actual + " de " + paginas;
+        }
+
+        anterior.disabled = pista.scrollLeft <= 2;
+        siguiente.disabled = pista.scrollLeft + pista.clientWidth >= pista.scrollWidth - 2;
+      };
+
+      anterior.addEventListener("click", () => pista.scrollBy({ left: -paso(), behavior: "smooth" }));
+      siguiente.addEventListener("click", () => pista.scrollBy({ left: paso(), behavior: "smooth" }));
+
+      pista.addEventListener("scroll", actualizar, { passive: true });
+      window.addEventListener("resize", actualizar);
+
+      actualizar();
+    });
+  };
+
+
+  /* ========================================================================
      10. CARRUSEL DE GRUPOS
 
      Muestra los grupos de a página: tres en escritorio, dos en tablet,
@@ -1237,6 +1289,7 @@
   iniciarEstadoDeEnvio();
   iniciarFiltrosDePlanes();
   iniciarCarruselDeGrupos();
+  iniciarPistasDePlanes();
   iniciarCopiarEnlace();
   iniciarCamposEditables();
   iniciarModales();
