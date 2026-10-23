@@ -21,7 +21,7 @@
 {% endmacro %}
 
 {% if logueado %}
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -29,9 +29,12 @@
 {% endif %}
 
 
-<section class="container page group-page">
+<section class="container page group-page group-page--fija">
 
   {% include 'grupo_cabecera.html' %}
+
+  {# La pantalla no scrollea: el encabezado y las pestañas quedan fijos y solo el contenido se desplaza. #}
+  <div class="group-scroll" data-group-scroll>
 
   {% include 'grupo_encuestas.html' %}
 
@@ -279,6 +282,8 @@
     {% endif %}
 
   </div>
+
+</div>
 
 </section>
 

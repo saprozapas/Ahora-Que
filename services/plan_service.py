@@ -311,6 +311,29 @@ class PlanService:
         finally:
             release_db_connection(connection)
 
+    def contar_resumen_perfil(self, user_id):
+        """Los tres números del perfil: grupos, planes publicados en Social e ideas guardadas."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT
+                        (SELECT COUNT(*) FROM public."Usuario-Grupo" WHERE "Id_Usuario" = %s),
+                        (SELECT COUNT(*) FROM public."Publicacion"
+                          WHERE "Id_Autor" = %s AND "Eliminada" IS NOT TRUE),
+                        (SELECT COUNT(*) FROM public."Usuario-Plan"
+                          WHERE "Usuario_id" = %s AND "Guardado" = true)
+                    """,
+                    (user_id, user_id, user_id),
+                )
+                grupos, publicados, guardados = cursor.fetchone()
+                return {"grupos": grupos, "publicados": publicados, "guardados": guardados}
+        except psycopg2.Error:
+            raise
+        finally:
+            release_db_connection(connection)
+
     def get_planes_guardados(self, user_id):
         connection = get_db_connection()
         try:

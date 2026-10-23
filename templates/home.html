@@ -108,32 +108,6 @@
         </ul>
       </div>
 
-
-      <div class="dash-section">
-        <div class="board__head">
-          <h2 class="h3">Ideas para hoy</h2>
-          <a class="meta dash-more" href="/explorar">Ver todas</a>
-        </div>
-
-        <ul class="plan-list">
-          {% for plan in plans %}
-          <li>
-            <a class="card plan-tile" href="/plan/{{ plan.slug }}">
-              <div class="plan-tile__top">
-                <span class="tag">
-                  <span class="tag__dot" style="--h: {{ tonos.get(plan.tone, 30) }}" aria-hidden="true"></span>
-                  {{ plan.type | capitalize }}
-                </span>
-              </div>
-              <h3 class="plan-tile__title">{{ plan.title }}</h3>
-              <p class="plan-tile__text">{{ plan.description }}</p>
-              <p class="meta plan-tile__meta">{{ plan.time }} · {{ plan.cost }} · {{ plan.distance }}</p>
-            </a>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-
     </section>
 
   </div>

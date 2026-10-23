@@ -17,7 +17,7 @@
 
 
 {% if logueado %}
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page{% if pestana != 'actividad' %} dashboard-layout--fija{% endif %}">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -25,7 +25,7 @@
 {% endif %}
 
 
-<section class="container page social-page">
+<section class="container page social-page{% if pestana != 'actividad' %} social-page--fija{% endif %}">
 
   <a class="back-link" href="/dashboard">← Inicio</a>
 
@@ -158,6 +158,9 @@
 
   <p class="soc-aviso" data-soc-error role="alert" hidden></p>
 
+  {# Lo único que scrollea: las publicaciones. El título, la barra y las pestañas quedan a la vista. #}
+  <div class="soc-scroll" data-soc-scroll>
+
   <div class="soc-lista" data-soc-lista aria-live="polite"></div>
 
   <div class="soc-vacio empty-state" data-soc-vacio hidden>
@@ -175,6 +178,8 @@
 
   <div class="social-ver-mas">
     <button class="btn btn--secondary" type="button" data-soc-mas hidden>Ver más</button>
+  </div>
+
   </div>
 
 </section>

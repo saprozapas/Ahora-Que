@@ -9,6 +9,9 @@
      2) SerenoUI.autocompletar(campo, opciones): lista de sugerencias debajo de
         un campo de texto mientras se escribe.
 
+     3) Selector de fecha y de hora propios: reemplazan solos a cada
+        <input type="date"> y <input type="time"> (menos los que tengan data-nativo).
+
    Todo el texto de las personas entra con textContent, nunca como HTML.
    ========================================================================== */
 
@@ -476,13 +479,411 @@
     return { cerrar, buscar: consultar };
   };
 
+  /* ======================================================================
+     3) Selector de fecha y de hora
+        Reemplazan a <input type="date"> y <input type="time"> (los de cada
+        navegador son difíciles de usar). El <input> real sigue en el
+        formulario, oculto: mantiene el name, el valor en formato ISO ("2026-10-25",
+        "20:30"), min, max y required, y se le dispara "change" al elegir.
+     ====================================================================== */
+
+  const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
+  const DIAS_CORTOS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+  const ICONO_CALENDARIO =
+    '<svg class="ss-icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>';
+  const ICONO_RELOJ =
+    '<svg class="ss-icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
+
+  const dos = (n) => String(n).padStart(2, "0");
+  const aIso = (d) => `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())}`;
+  const deIso = (texto) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(texto || "");
+    return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
+  };
+  const sumarDias = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+
+  /* El botón visible, el panel flotante y todo lo común a la fecha y la hora. */
+  const armarSelector = (input, { icono, vacio, texto, construir, alAbrir }) => {
+    if (input.dataset.ssListo || input.dataset.nativo !== undefined) return;
+    input.dataset.ssListo = "1";
+
+    const n = ++contador;
+    const envoltura = crear("div", "ss ss-selector");
+    input.parentNode.insertBefore(envoltura, input);
+    envoltura.appendChild(input);
+
+    input.classList.add("ss-nativo");
+    input.tabIndex = -1;
+    input.setAttribute("aria-hidden", "true");
+
+    const boton = crear("button", "ss-boton", {
+      type: "button",
+      id: `ss-boton-${n}`,
+      "aria-haspopup": "dialog",
+      "aria-expanded": "false",
+    });
+    const valor = crear("span", "ss-valor");
+    boton.appendChild(valor);
+    boton.insertAdjacentHTML("beforeend", icono);
+
+    const panel = crear("div", "ss-lista ss-panel", { id: `ss-panel-${n}`, role: "dialog" });
+    panel.hidden = true;
+    envoltura.append(boton, panel);
+
+    const etiqueta = input.id ? document.querySelector(`label[for="${CSS.escape(input.id)}"]`) : null;
+    if (etiqueta) {
+      if (!etiqueta.id) etiqueta.id = `ss-etiqueta-${n}`;
+      boton.setAttribute("aria-labelledby", `${etiqueta.id} ${boton.id}`);
+      panel.setAttribute("aria-labelledby", etiqueta.id);
+      etiqueta.addEventListener("click", (evento) => {
+        evento.preventDefault();
+        boton.focus();
+      });
+    } else if (input.getAttribute("aria-label")) {
+      boton.setAttribute("aria-label", input.getAttribute("aria-label"));
+      panel.setAttribute("aria-label", input.getAttribute("aria-label"));
+    }
+
+    const refrescar = () => {
+      const mostrado = texto(input.value);
+      valor.textContent = mostrado || vacio;
+      valor.classList.toggle("es-vacio", !mostrado);
+      boton.disabled = input.disabled;
+      if (mostrado) boton.classList.remove("es-invalido");
+    };
+
+    const abierto = () => !panel.hidden;
+
+    // El panel es más alto que una lista de opciones: se acomoda abajo del botón o arriba, donde entre.
+    const colocar = () => {
+      const r = boton.getBoundingClientRect();
+      const margen = 6;
+      const ancho = Math.min(panel.offsetWidth || 300, window.innerWidth - 16);
+      const alto = panel.offsetHeight;
+      const abajo = window.innerHeight - r.bottom - margen - 8;
+      const arriba = r.top - margen - 8;
+      const haciaArriba = alto > abajo && arriba > abajo;
+      panel.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - ancho - 8))}px`;
+      panel.style.top = haciaArriba
+        ? `${Math.max(8, r.top - margen - alto)}px`
+        : `${Math.max(8, Math.min(r.bottom + margen, window.innerHeight - alto - 8))}px`;
+    };
+
+    const alMover = (evento) => {
+      if (evento && evento.type === "scroll" && panel.contains(evento.target)) return;
+      cerrar();
+    };
+    const fuera = (evento) => {
+      if (!envoltura.contains(evento.target)) cerrar();
+    };
+
+    const cerrar = (devolverFoco = false) => {
+      if (!abierto()) return;
+      panel.hidden = true;
+      envoltura.removeAttribute("data-abierto");
+      boton.setAttribute("aria-expanded", "false");
+      document.removeEventListener("pointerdown", fuera, true);
+      window.removeEventListener("resize", alMover);
+      window.removeEventListener("scroll", alMover, true);
+      if (devolverFoco) boton.focus();
+    };
+
+    const elegir = (nuevo) => {
+      const cambio = input.value !== nuevo;
+      input.value = nuevo;
+      refrescar();
+      cerrar(true);
+      if (cambio) {
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    };
+
+    const api = { input, panel, elegir, cerrar, colocar, refrescar };
+
+    const abrir = () => {
+      if (abierto() || boton.disabled) return;
+      construir(api);
+      panel.hidden = false;
+      envoltura.setAttribute("data-abierto", "");
+      boton.setAttribute("aria-expanded", "true");
+      colocar();
+      alAbrir(api);
+      document.addEventListener("pointerdown", fuera, true);
+      window.addEventListener("resize", alMover);
+      window.addEventListener("scroll", alMover, true);
+    };
+    api.abrir = abrir;
+    api.alturaCambio = colocar;
+
+    boton.addEventListener("click", () => (abierto() ? cerrar() : abrir()));
+    boton.addEventListener("keydown", (evento) => {
+      if (evento.key === "ArrowDown" && !abierto()) {
+        evento.preventDefault();
+        abrir();
+      }
+    });
+    envoltura.addEventListener("keydown", (evento) => {
+      if (evento.key === "Escape" && abierto()) {
+        evento.preventDefault();
+        evento.stopPropagation();   // que no cierre también un diálogo que lo contenga
+        cerrar(true);
+      } else if (evento.key === "Tab" && abierto()) {
+        // Tab saca el foco del panel: se cierra (el foco sigue su camino natural).
+        setTimeout(() => {
+          if (!envoltura.contains(document.activeElement)) cerrar();
+        }, 0);
+      }
+    });
+    panel.addEventListener("pointerdown", (evento) => {
+      if (!evento.target.closest("button")) evento.preventDefault();
+    });
+
+    // Un campo obligatorio vacío: en vez del aviso nativo, el botón se marca y recibe el foco.
+    input.addEventListener("invalid", (evento) => {
+      evento.preventDefault();
+      boton.classList.add("es-invalido");
+      // Con varios campos vacíos el navegador avisa uno por uno: el foco va al primero.
+      const formulario = input.form || document;
+      if (Date.now() - (formulario.__ssInvalido || 0) > 100) boton.focus();
+      formulario.__ssInvalido = Date.now();
+    });
+    input.addEventListener("change", refrescar);
+    if (input.form) input.form.addEventListener("reset", () => setTimeout(refrescar, 0));
+    new MutationObserver(refrescar).observe(input, { attributes: true, attributeFilter: ["disabled"] });
+
+    refrescar();
+  };
+
+  /* --- Fecha: calendario del mes con atajos (Hoy, Mañana, el próximo sábado y domingo) --- */
+
+  const mejorarFecha = (input) => {
+    let vista = null;   // primer día del mes que se está mirando
+
+    const limites = () => ({ min: deIso(input.min), max: deIso(input.max) });
+    const permitido = (d) => {
+      const { min, max } = limites();
+      return !(min && d < min) && !(max && d > max);
+    };
+
+    const texto = (valor) => {
+      const d = deIso(valor);
+      if (!d) return "";
+      const anio = d.getFullYear() !== new Date().getFullYear() ? ` ${d.getFullYear()}` : "";
+      return `${DIAS_CORTOS[d.getDay()]} ${d.getDate()} ${MESES_CORTOS[d.getMonth()]}${anio}`;
+    };
+
+    const construir = (api) => {
+      const { panel } = api;
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const elegida = deIso(input.value);
+      if (!vista) {
+        const base = elegida || (permitido(hoy) ? hoy : limites().min || hoy);
+        vista = new Date(base.getFullYear(), base.getMonth(), 1);
+      }
+
+      panel.classList.add("sd-panel");
+      panel.replaceChildren();
+
+      // Atajos: el sábado y el domingo que vienen son los días más pedidos.
+      const rapidos = crear("div", "sd-rapidos");
+      const proximo = (diaSemana) => sumarDias(hoy, (diaSemana - hoy.getDay() + 7) % 7 || 7);
+      [["Hoy", hoy], ["Mañana", sumarDias(hoy, 1)], ["Sáb", proximo(6)], ["Dom", proximo(0)]].forEach(([nombre, fecha]) => {
+        const b = crear("button", "sd-rapido", { type: "button" });
+        b.textContent = nombre;
+        b.disabled = !permitido(fecha);
+        b.addEventListener("click", () => api.elegir(aIso(fecha)));
+        rapidos.appendChild(b);
+      });
+
+      const cabecera = crear("div", "sd-cabecera");
+      const anterior = crear("button", "sd-flecha", { type: "button", "aria-label": "Mes anterior" });
+      anterior.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>';
+      const siguiente = crear("button", "sd-flecha", { type: "button", "aria-label": "Mes siguiente" });
+      siguiente.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>';
+      const titulo = crear("strong", "sd-titulo", { "aria-live": "polite" });
+      titulo.textContent = `${MESES[vista.getMonth()]} ${vista.getFullYear()}`;
+      cabecera.append(anterior, titulo, siguiente);
+
+      const { min, max } = limites();
+      anterior.disabled = !!min && new Date(vista.getFullYear(), vista.getMonth(), 0) < min;
+      siguiente.disabled = !!max && new Date(vista.getFullYear(), vista.getMonth() + 1, 1) > max;
+      anterior.addEventListener("click", () => {
+        vista = new Date(vista.getFullYear(), vista.getMonth() - 1, 1);
+        construir(api);
+        api.panel.querySelector(".sd-dia:not(:disabled)")?.focus();
+      });
+      siguiente.addEventListener("click", () => {
+        vista = new Date(vista.getFullYear(), vista.getMonth() + 1, 1);
+        construir(api);
+        api.panel.querySelector(".sd-dia:not(:disabled)")?.focus();
+      });
+
+      const grilla = crear("div", "sd-grilla", { role: "group", "aria-label": titulo.textContent });
+      DIAS_SEMANA.forEach((letra) => {
+        const c = crear("span", "sd-semana", { "aria-hidden": "true" });
+        c.textContent = letra;
+        grilla.appendChild(c);
+      });
+      const primero = (vista.getDay() + 6) % 7;   // la semana arranca el lunes
+      for (let i = 0; i < primero; i++) grilla.appendChild(crear("span", "sd-hueco", { "aria-hidden": "true" }));
+      const total = new Date(vista.getFullYear(), vista.getMonth() + 1, 0).getDate();
+      for (let dia = 1; dia <= total; dia++) {
+        const fecha = new Date(vista.getFullYear(), vista.getMonth(), dia);
+        const b = crear("button", "sd-dia", { type: "button", "data-fecha": aIso(fecha) });
+        b.textContent = String(dia);
+        b.setAttribute("aria-label", `${DIAS_CORTOS[fecha.getDay()]} ${dia} de ${MESES[fecha.getMonth()]}`);
+        if (aIso(fecha) === aIso(hoy)) b.classList.add("es-hoy");
+        if (elegida && aIso(fecha) === aIso(elegida)) b.setAttribute("aria-pressed", "true");
+        b.disabled = !permitido(fecha);
+        b.addEventListener("click", () => api.elegir(aIso(fecha)));
+        grilla.appendChild(b);
+      }
+
+      // Flechas: ±1 día y ±1 semana; AvPág y RePág cambian de mes.
+      grilla.addEventListener("keydown", (evento) => {
+        const actual = evento.target.closest(".sd-dia");
+        if (!actual) return;
+        const pasos = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+        let destino = null;
+        if (evento.key in pasos) destino = sumarDias(deIso(actual.dataset.fecha), pasos[evento.key]);
+        else if (evento.key === "PageDown" || evento.key === "PageUp") {
+          const d = deIso(actual.dataset.fecha);
+          destino = new Date(d.getFullYear(), d.getMonth() + (evento.key === "PageDown" ? 1 : -1), d.getDate());
+        }
+        if (!destino || !permitido(destino)) return;
+        evento.preventDefault();
+        if (destino.getMonth() !== vista.getMonth() || destino.getFullYear() !== vista.getFullYear()) {
+          vista = new Date(destino.getFullYear(), destino.getMonth(), 1);
+          construir(api);
+        }
+        api.panel.querySelector(`[data-fecha="${aIso(destino)}"]`)?.focus();
+      });
+
+      panel.append(rapidos, cabecera, grilla);
+
+      if (!input.required) {
+        const pie = crear("div", "sd-pie");
+        const borrar = crear("button", "sd-borrar", { type: "button" });
+        borrar.textContent = "Borrar";
+        borrar.addEventListener("click", () => api.elegir(""));
+        pie.appendChild(borrar);
+        panel.appendChild(pie);
+      }
+    };
+
+    armarSelector(input, {
+      icono: ICONO_CALENDARIO,
+      vacio: "Elegí un día",
+      texto,
+      construir: (api) => {
+        vista = null;
+        construir(api);
+      },
+      alAbrir: (api) => {
+        (api.panel.querySelector('.sd-dia[aria-pressed="true"]:not(:disabled)')
+          || api.panel.querySelector(".sd-dia.es-hoy:not(:disabled)")
+          || api.panel.querySelector(".sd-dia:not(:disabled)"))?.focus();
+      },
+    });
+  };
+
+  /* --- Hora: primero la hora (24 botones), después los minutos (de 5 en 5) --- */
+
+  const mejorarHora = (input) => {
+    const texto = (valor) => (/^\d{1,2}:\d{2}/.test(valor || "") ? valor.slice(0, 5).replace(/^(\d):/, "0$1:") : "");
+
+    const rejilla = (panel, items, columnas, clase, alElegir, elegido) => {
+      const grilla = crear("div", `sh-grilla ${clase}`, { role: "group" });
+      grilla.style.setProperty("--columnas", String(columnas));
+      items.forEach((item) => {
+        const b = crear("button", "sh-opcion", { type: "button" });
+        b.textContent = item;
+        if (item === elegido) b.setAttribute("aria-pressed", "true");
+        b.addEventListener("click", () => alElegir(item));
+        grilla.appendChild(b);
+      });
+      grilla.addEventListener("keydown", (evento) => {
+        const botones = [...grilla.children];
+        const i = botones.indexOf(document.activeElement);
+        if (i < 0) return;
+        const pasos = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -columnas, ArrowDown: columnas };
+        if (!(evento.key in pasos)) return;
+        const destino = botones[i + pasos[evento.key]];
+        if (destino) {
+          evento.preventDefault();
+          destino.focus();
+        }
+      });
+      panel.appendChild(grilla);
+      return grilla;
+    };
+
+    const mostrarHoras = (api) => {
+      const { panel } = api;
+      panel.classList.add("sh-panel");
+      panel.replaceChildren();
+      const actual = texto(input.value);
+      const titulo = crear("p", "sh-titulo");
+      titulo.textContent = "Hora";
+      panel.appendChild(titulo);
+      const horas = Array.from({ length: 24 }, (_, h) => dos(h));
+      const grilla = rejilla(panel, horas, 6, "sh-horas", (hora) => mostrarMinutos(api, hora), actual.slice(0, 2));
+      if (!input.required) agregarBorrar(api);
+      api.alturaCambio();
+      return grilla;
+    };
+
+    const mostrarMinutos = (api, hora) => {
+      const { panel } = api;
+      panel.replaceChildren();
+      const cabecera = crear("div", "sh-cabecera");
+      const volver = crear("button", "sd-flecha", { type: "button", "aria-label": "Cambiar la hora" });
+      volver.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>';
+      volver.addEventListener("click", () => mostrarHoras(api).querySelector(".sh-opcion")?.focus());
+      const titulo = crear("strong", "sd-titulo");
+      titulo.textContent = `${hora}:__ — elegí los minutos`;
+      cabecera.append(volver, titulo);
+      panel.appendChild(cabecera);
+      const minutos = Array.from({ length: 12 }, (_, i) => dos(i * 5));
+      const actual = texto(input.value);
+      const grilla = rejilla(panel, minutos, 4, "sh-minutos", (m) => api.elegir(`${hora}:${m}`), actual.startsWith(hora) ? actual.slice(3) : "");
+      api.alturaCambio();
+      (grilla.querySelector('[aria-pressed="true"]') || grilla.firstElementChild)?.focus();
+    };
+
+    const agregarBorrar = (api) => {
+      const pie = crear("div", "sd-pie");
+      const borrar = crear("button", "sd-borrar", { type: "button" });
+      borrar.textContent = "Borrar";
+      borrar.addEventListener("click", () => api.elegir(""));
+      pie.appendChild(borrar);
+      api.panel.appendChild(pie);
+    };
+
+    armarSelector(input, {
+      icono: ICONO_RELOJ,
+      vacio: "Hora",
+      texto,
+      construir: (api) => mostrarHoras(api),
+      alAbrir: (api) => {
+        (api.panel.querySelector('.sh-opcion[aria-pressed="true"]') || api.panel.querySelector(".sh-opcion"))?.focus();
+      },
+    });
+  };
+
   /* ====================================================================== */
 
   const mejorarTodo = (raiz = document) => {
     raiz.querySelectorAll("select").forEach(mejorarSelect);
+    raiz.querySelectorAll('input[type="date"]').forEach(mejorarFecha);
+    raiz.querySelectorAll('input[type="time"]').forEach(mejorarHora);
   };
 
-  window.SerenoUI = { mejorarSelect, mejorarTodo, autocompletar };
+  window.SerenoUI = { mejorarSelect, mejorarFecha, mejorarHora, mejorarTodo, autocompletar };
 
   const iniciar = () => {
     mejorarTodo();
@@ -492,6 +893,8 @@
         c.addedNodes.forEach((nodo) => {
           if (nodo.nodeType !== 1) return;
           if (nodo.matches("select")) mejorarSelect(nodo);
+          else if (nodo.matches('input[type="date"]')) mejorarFecha(nodo);
+          else if (nodo.matches('input[type="time"]')) mejorarHora(nodo);
           else mejorarTodo(nodo);
         });
       }

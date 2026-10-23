@@ -436,7 +436,7 @@
 
 dialog.modal {
   width: min(480px, calc(100% - 32px));
-  max-height: min(680px, calc(100% - 48px));
+  max-height: min(780px, calc(100% - 48px));
   margin: auto; padding: 0; border: 0;
   border-radius: var(--r-xl);
   background: var(--surface); color: var(--ink);
@@ -524,6 +524,30 @@ dialog.modal::backdrop { background: var(--scrim); }
   .modal-actions { padding: var(--s-3) var(--s-5) var(--s-5); }
   .modal-actions .btn { width: 100%; }
 }
+
+
+/* Estructura de los modales (la base que antes venía de style.css): encabezado en fila, cuerpo en
+   columna que scrollea solo si no entra, acciones abajo. Sirve igual para el <form> que envuelve las
+   tres partes (editar grupo) que para los modales que las tienen sueltas. */
+dialog.modal[open] { display: flex; flex-direction: column; overflow: hidden; }
+dialog.modal > form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; margin: 0; }
+
+.modal-head { display: flex; align-items: center; justify-content: space-between; flex: none; }
+.modal-close { display: inline-grid; place-items: center; flex: none; padding: 0; border: 0; cursor: pointer; }
+.modal-close svg { width: 20px; height: 20px; }
+
+.modal-body { display: grid; align-content: start; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.modal-field { display: grid; align-content: start; }
+.modal-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; flex: none; }
+
+.modal-members { display: grid; gap: 2px; }
+.modal-member { display: flex; align-items: center; gap: var(--s-3); }
+.modal-member-link { color: var(--ink); text-decoration: none; padding-inline: var(--s-2); }
+.modal-member-avatar { display: grid; place-items: center; flex: none; border-radius: 50%; }
+
+/* "Que todos sean admins" y otras casillas sueltas dentro de un modal. */
+.modal-body > label:has(> input[type="checkbox"]) { display: flex; align-items: center; gap: var(--s-3); min-height: var(--hit); color: var(--ink-2); font-size: var(--t-ui); cursor: pointer; }
+.modal-body > label > input[type="checkbox"] { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--ink); }
 
 
 /* ---------- 09. Avisos ----------
@@ -700,6 +724,10 @@ a.plan-tile:hover { box-shadow: var(--sh-float); }
 }
 
 .tag--ink { background: var(--ink); color: var(--on-ink); }
+/* Estados con color (van acá, después de .tag, para que no los pise la base). */
+.tag.tag--ok { background: var(--ok-soft); color: var(--ok); }
+.tag.tag--info { background: var(--info-soft); color: var(--info); font-weight: 600; }
+.tag.tag--danger { background: var(--danger-soft); color: var(--danger); }
 
 /* Categoría con un punto de color: los tonos de los planes viven acá. */
 .tag__dot { width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: hsl(var(--h, 30) 45% 62%); }
@@ -796,7 +824,7 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
 
 /* Segmented con radios reales (precio máximo, puntaje). Si no entra en
    el ancho, se desplaza como .chips en vez de ensanchar la página. */
-.seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.seg { max-width: 100%; flex-wrap: wrap; }
 .seg label { position: relative; display: inline-flex; }
 .seg label input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .seg label span {

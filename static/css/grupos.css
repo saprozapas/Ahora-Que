@@ -21,12 +21,52 @@
 .board-plan__ok { display: flex; align-items: center; gap: var(--s-2); margin: 0; color: var(--ok); font-weight: 550; }
 .board-plan__votes .seg { max-width: 100%; }
 .encuesta-form { display: grid; gap: var(--s-5); }
-.encuesta-franja { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
+.encuesta-form--compacta { gap: var(--s-4); }
+.encuesta-franjas { display: grid; gap: var(--s-3); }
+.encuesta-franja { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr)); gap: var(--s-2) var(--s-3); align-items: end; padding: var(--s-3); border-radius: var(--r-md); background: var(--paper-deep); }
+.encuesta-franja[hidden] { display: none; }
+.encuesta-franja .field { gap: 4px; }
+.encuesta-franja .field > label { font-size: var(--t-meta); color: var(--ink-3); }
+/* Mañana / Tarde / Noche: una toque completa Desde y Hasta. */
+.encuesta-atajos { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.encuesta-atajos .chip { height: 36px; padding: 0 var(--s-3); background: var(--surface); box-shadow: var(--sh-hair); }
+.encuesta-atajos .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.encuesta-agregar { justify-self: start; }
+
+/* Preferencias: plegadas; lo opcional no se interpone con lo que importa. */
+.encuesta-prefs { border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line); }
+.encuesta-prefs > summary { display: flex; align-items: center; gap: var(--s-2); min-height: 48px; padding: 0 var(--s-4); cursor: pointer; list-style: none; font-weight: 550; }
+.encuesta-prefs > summary::-webkit-details-marker { display: none; }
+.encuesta-prefs > summary::after { content: ""; width: 8px; height: 8px; margin-left: auto; border: solid var(--ink-3); border-width: 0 1.8px 1.8px 0; transform: rotate(45deg); transition: transform var(--d-fast) var(--ease-out); }
+.encuesta-prefs[open] > summary::after { transform: rotate(-135deg); }
+.encuesta-prefs__cuerpo { display: grid; gap: var(--s-4); padding: 0 var(--s-4) var(--s-4); }
+
+/* Tipos de lugar: un menú con casillas, no 28 botones a la vista. */
+.tipos-menu { position: relative; }
+.tipos-menu > summary { list-style: none; }
+.tipos-menu > summary::-webkit-details-marker { display: none; }
+.tipos-menu__boton {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-2);
+  min-height: var(--control-h); padding: 0 var(--s-3) 0 14px; cursor: pointer;
+  border-radius: var(--r-md); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-control);
+  font-size: var(--t-ui); overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.tipos-menu__boton::after { content: ""; flex: none; width: 7px; height: 7px; border: solid var(--ink-3); border-width: 0 1.8px 1.8px 0; transform: rotate(45deg); }
+.tipos-menu[open] .tipos-menu__boton::after { transform: rotate(-135deg); }
+.tipos-menu__boton:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.tipos-menu__panel {
+  position: absolute; z-index: 20; top: calc(100% + var(--s-2)); left: 0; right: 0;
+  display: flex; flex-wrap: wrap; gap: var(--s-2); max-height: 260px; overflow-y: auto; padding: var(--s-3);
+  background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-float);
+}
+.tipos-menu__panel .chip { background: var(--paper-deep); }
+.tipos-menu__panel .chip-check:has(input:checked) { background: var(--ink); color: var(--on-ink); }
 .encuesta-acciones { margin-top: var(--s-1); }
 .postular__ideas { display: grid; gap: var(--s-3); }
 
 @media (max-width: 520px) {
-  .encuesta-franja { grid-template-columns: minmax(0, 1fr); }
+  .encuesta-franja { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .encuesta-franja > .field:first-child { grid-column: 1 / -1; }
   /* Sí/No y Puedo/No puedo ocupan la fila entera: más fáciles de tocar. */
   .board-plan__votes { display: grid; gap: var(--s-4); width: 100%; }
   .board-plan__votes .seg, .board-slots__vote.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
@@ -38,7 +78,7 @@
 .invitar-estado.is-ok { color: var(--ok); }
 .invitar-estado.is-error { color: var(--danger); }
 .invitar-titulo { margin: var(--s-2) 0 var(--s-1); color: var(--ink-2); font-size: var(--t-ui); font-weight: 600; }
-.invitar-lista { display: grid; gap: 2px; max-height: 280px; overflow-y: auto; }
+.invitar-lista { display: grid; gap: 2px; }
 
 /* ---------- Apariencia (editar grupo): título de la racha por nombre ---------- */
 .cosmetic-carousel { display: flex; flex-wrap: wrap; gap: var(--s-2); }
@@ -51,7 +91,7 @@
 
 .chat__messages {
   display: flex; flex-direction: column; gap: var(--s-3);
-  height: clamp(320px, 56vh, 560px); padding: var(--s-4); overflow-y: auto;
+  min-height: 240px; padding: var(--s-4);
   background: var(--paper-deep); border-radius: var(--r-lg);
 }
 
@@ -76,6 +116,8 @@
 .chat-message-time { flex: none; color: var(--ink-3); font-size: var(--t-meta); font-variant-numeric: tabular-nums; }
 
 .chat-bar { max-width: none; margin-top: 0; }
+/* La barra para escribir queda pegada abajo mientras se recorre la conversación. */
+.chat > .chat-bar { position: sticky; bottom: 0; z-index: 5; padding-block: var(--s-3); background: var(--paper); }
 
 
 /* ---------- Racha ---------- */
@@ -151,3 +193,56 @@
 
 /* La llama de la racha en la tarjeta del grupo mide lo que su contenido, no el ancho de la tarjeta. */
 .group-tile .racha-chip { align-self: flex-start; }
+
+
+/* ---------- Encuesta: tarjeta compacta, estado en color y título que se lee primero ---------- */
+.board--encuestas .board-plan { gap: var(--s-3); padding: var(--s-4) var(--s-5); }
+.encuesta-cabecera { gap: var(--s-1); }
+.encuesta-cabecera__fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-3); }
+.encuesta-titulo {
+  margin: 0; font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2rem); font-weight: 700; line-height: 1.1;
+  letter-spacing: var(--track-h2, -0.025em); color: var(--ink);
+}
+.encuesta-form--compacta { gap: var(--s-3); }
+.encuesta-columnas { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: var(--s-4) var(--s-5); align-items: start; }
+.encuesta-zona { align-content: start; }
+.encuesta-zona .field { gap: 4px; }
+.encuesta-zona .field > label { font-size: var(--t-meta); color: var(--ink-3); }
+.encuesta-zona__estado { margin: 0; }
+.encuesta-zona__estado:empty { display: none; }
+.encuesta-ubicacion { justify-self: start; }
+.encuesta-franja { padding: var(--s-2) var(--s-3); }
+.encuesta-franjas { gap: var(--s-2); }
+
+@media (max-width: 760px) {
+  .encuesta-columnas { grid-template-columns: minmax(0, 1fr); }
+}
+
+
+/* ---------- Pantallas de grupo (tablero y chat): el encabezado y las pestañas quedan fijos ---------- */
+
+.group-page--fija { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; }
+.group-page--fija > .back-link, .group-page--fija > .page-head, .group-page--fija > .tabs { flex: none; }
+.group-page--fija > .tabs { margin-bottom: var(--s-4); }
+.group-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: var(--s-10); }
+
+/* Encabezado compacto: nombre, descripción e integrantes a la izquierda; los botones a la derecha. */
+@media (min-width: 901px) {
+  .group-page--fija .group-head {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center;
+    column-gap: var(--s-6); row-gap: var(--s-1); margin: 0 0 var(--s-4);
+  }
+  .group-page--fija .group-head > .group-head__title,
+  .group-page--fija .group-head > .lead,
+  .group-page--fija .group-head > .group-members { grid-column: 1; }
+  .group-page--fija .group-head > .group-actions { grid-column: 2; grid-row: 1 / span 3; align-self: center; margin: 0; }
+}
+.group-page--fija .group-head .h2 { font-size: clamp(1.75rem, 1.3rem + 1.2vw, 2.5rem); }
+.group-page--fija .group-head .lead { margin: 0; font-size: 1.0625rem; }
+.group-page--fija .group-head .group-members { margin: 0; }
+
+/* La pantalla fija solo en escritorio; en celular el encabezado ya ocupa demasiado y la página fluye. */
+@media (min-width: 901px) {
+  .dashboard-layout--fija-grupo { height: calc(100svh - var(--header-h)); min-height: 0; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+  .dashboard-layout--fija-grupo .dashboard-main { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+}

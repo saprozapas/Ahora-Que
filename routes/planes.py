@@ -232,6 +232,16 @@ def buscar_barrios():
     return jsonify(resultados=resultados)
 
 
+@planes_bp.route("/barrio-cercano")
+def barrio_cercano():
+    """El barrio más cercano a la ubicación que manda el navegador (para sugerir el de la encuesta).
+    Las coordenadas se usan solo para esta consulta; no se guardan."""
+    if _sin_sesion():
+        return jsonify(barrio=None), 401
+    barrio = lugar_service.barrio_cercano(request.args.get("lat"), request.args.get("lon"))
+    return jsonify(barrio=barrio)
+
+
 @planes_bp.route("/<plan_id>/guardar", methods=["POST"])
 def guardar(plan_id):
     if _sin_sesion():

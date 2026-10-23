@@ -252,11 +252,10 @@ def responder_encuesta(group_id, encuesta_id):
         return grupo_encuesta_service.responder(
             group_id, encuesta_id, session["user_id"],
             int(nivel) if nivel else None,
-            request.form.get("apto_menores") == "1",
-            request.form.get("opcion_celiacos") == "1",
-            request.form.get("opcion_vegana") == "1",
             request.form.getlist("tipos"),
             _leer_franjas(),
+            barrio=request.form.get("barrio", "").strip(),
+            distancia_km=request.form.get("distancia_km", "").strip(),
         )
     return _ejecutar(group_id, accion, "Respuesta guardada. Cuando respondan todos se arman las opciones.",
                      "encuestas-grupo", mensajes=MENSAJES_ENCUESTA)
