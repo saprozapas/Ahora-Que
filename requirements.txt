@@ -12,3 +12,4 @@ python-dotenv>=1.0    # lee el archivo .env
 groq>=0.9             # cliente de la API de Groq (chatbot)
 cryptography>=42      # AES-GCM para cifrar los mensajes del chat
 tzdata>=2024.1        # zonas horarias (America/Montevideo) en Windows, que no las trae el sistema
+gunicorn>=21.0        # servidor web para producción (no usar el de Flask)
