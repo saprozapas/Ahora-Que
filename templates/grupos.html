@@ -144,8 +144,12 @@
       con su usuario y acepta la invitación desde su inbox.
     </p>
     <div class="actions">
+      {% if logueado %}
+      <a class="btn btn--primary btn--lg" href="/dashboard">Ir al dashboard</a>
+      {% else %}
       <a class="btn btn--primary btn--lg" href="/register">Crear cuenta</a>
       <a class="btn btn--ghost btn--lg" href="/login">Iniciar sesión</a>
+      {% endif %}
     </div>
   </header>
 

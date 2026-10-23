@@ -1,0 +1,319 @@
+{% extends 'base.html' %}
+{% from '_dashboard_sidebar.html' import icono with context %}
+{% from '_macros.html' import planeta, nombre_rango %}
+
+{% block title %}Tutorial — Ahora Qué{% endblock %}
+
+{% block content %}
+
+{# =========================================================================
+   TUTORIAL
+
+   Una guía por pasos, de a una pantalla: qué es la app, cómo armar una idea, juntar al grupo, votar,
+   hablar en el chat y confirmar el plan. Cada paso tiene un dibujo (maqueta, no se toca) y un
+   botón para probarlo de verdad. Sin JavaScript se leen todos los pasos, uno debajo del otro.
+   ========================================================================= #}
+
+{% set pasos = [
+  {'clave': 'como-funciona', 'titulo': 'Cómo funciona'},
+  {'clave': 'idea', 'titulo': 'Armá una idea'},
+  {'clave': 'grupo', 'titulo': 'Juntá a tu grupo'},
+  {'clave': 'votacion', 'titulo': 'Voten'},
+  {'clave': 'chat', 'titulo': 'Hablen en el chat'},
+  {'clave': 'confirmar', 'titulo': 'Confirmen y salgan'},
+  {'clave': 'mapa', 'titulo': 'Dónde está cada cosa'}
+] %}
+
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+<section class="container page tuto" data-tuto>
+
+  <a class="back-link" href="/dashboard">← Inicio</a>
+
+  <header class="page-head tuto__cabecera">
+    <h1 class="h2">Cómo usar Ahora Qué.</h1>
+    <p class="lead">Siete pasos cortos: de una idea suelta a un plan que todo el grupo votó.</p>
+  </header>
+
+
+  <div class="tuto__cuerpo">
+
+    <ol class="tuto__indice" aria-label="Pasos del tutorial">
+      {% for paso in pasos %}
+      <li>
+        <a class="tuto__paso-link" href="#paso-{{ loop.index }}" data-tuto-ir="{{ loop.index0 }}">
+          <span class="tuto__numero">{{ loop.index }}</span>
+          <span>{{ paso.titulo }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ol>
+
+
+    <div class="tuto__escena">
+
+      <p class="tuto__progreso meta" data-tuto-progreso aria-live="polite">Paso 1 de {{ pasos | length }}</p>
+      <div class="tuto__barra" aria-hidden="true"><span data-tuto-barra></span></div>
+
+
+      {# ---------------------------- 1. CÓMO FUNCIONA ---------------------------- #}
+      <article class="card tuto__panel" id="paso-1" data-tuto-panel aria-labelledby="titulo-paso-1">
+        <div class="tuto__texto">
+          <p class="tuto__kicker">Paso 1</p>
+          <h2 class="tuto__titulo" id="titulo-paso-1">Del “no sé qué hacer” al plan.</h2>
+          <p class="body">Ustedes dicen cuántos son, cuánto quieren gastar y cuándo pueden. Ahora Qué les propone un plan concreto y el grupo lo vota. Así de simple: cuatro pasos y listo.</p>
+          <ul class="tuto__lista">
+            <li><strong>Una idea</strong> es un plan con lugares. La armás vos o con el asistente.</li>
+            <li><strong>Un grupo</strong> es con quién salís: amigos, familia, pareja.</li>
+            <li><strong>La votación</strong> decide si va y cuándo.</li>
+          </ul>
+        </div>
+        <div class="tuto__dibujo" aria-hidden="true" inert>
+          <ol class="tuto-flujo">
+            <li><span class="tuto-flujo__icono">{{ icono('planes') }}</span><strong>Idea</strong><small>Armás un plan</small></li>
+            <li><span class="tuto-flujo__icono">{{ icono('grupos') }}</span><strong>Grupo</strong><small>Invitás gente</small></li>
+            <li><span class="tuto-flujo__icono"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg></span><strong>Voto</strong><small>Todos opinan</small></li>
+            <li><span class="tuto-flujo__icono">{{ icono('calendario') }}</span><strong>Plan</strong><small>Queda confirmado</small></li>
+          </ol>
+        </div>
+      </article>
+
+
+      {# ------------------------------ 2. IDEA ------------------------------ #}
+      <article class="card tuto__panel" id="paso-2" data-tuto-panel aria-labelledby="titulo-paso-2">
+        <div class="tuto__texto">
+          <p class="tuto__kicker">Paso 2</p>
+          <h2 class="tuto__titulo" id="titulo-paso-2">Armá una idea.</h2>
+          <p class="body">Tocá <strong>+ Crear</strong> arriba a la izquierda. Elegí cómo: lugar por lugar, o dejá que el asistente te proponga algo según cuántos son, el presupuesto y la zona.</p>
+          <ul class="tuto__lista">
+            <li>Tus ideas quedan guardadas en <strong>Mis planes</strong>.</li>
+            <li>Podés <strong>explorar</strong> planes de otros y guardarlos.</li>
+          </ul>
+          <a class="btn btn--primary" href="/planes/nueva-idea">Crear una idea</a>
+        </div>
+        <div class="tuto__dibujo" aria-hidden="true" inert>
+          <div class="tuto-maqueta">
+            <span class="btn btn--primary tuto-maqueta__boton"><b>+</b> Crear</span>
+            <div class="tuto-menu">
+              <div class="tuto-menu__item is-activo"><span>{{ icono('planes') }}</span><div><strong>Nueva idea</strong><small>Armala vos, con lugares</small></div></div>
+              <div class="tuto-menu__item"><span><svg viewBox="0 0 24 24"><path d="m12 3 1.7 4.6L18.3 9l-4.6 1.4L12 15l-1.7-4.6L5.7 9l4.6-1.4Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg></span><div><strong>Con el asistente</strong><small>Te propone opciones</small></div></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+
+      {# ------------------------------ 3. GRUPO ------------------------------ #}
+      <article class="card tuto__panel" id="paso-3" data-tuto-panel aria-labelledby="titulo-paso-3">
+        <div class="tuto__texto">
+          <p class="tuto__kicker">Paso 3</p>
+          <h2 class="tuto__titulo" id="titulo-paso-3">Juntá a tu grupo.</h2>
+          <p class="body">En <strong>Grupos</strong> armá uno con un nombre, y después tocá <strong>Invitar</strong>: podés mandar un enlace o elegir entre tus amigos. Quien recibe la invitación la acepta desde su <strong>Inbox</strong>.</p>
+          <ul class="tuto__lista">
+            <li>Primero agregá a tus amigos en <strong>Amigos</strong>.</li>
+            <li>Podés tener todos los grupos que quieras.</li>
+          </ul>
+          <a class="btn btn--primary" href="/grupos/nuevo">Armar un grupo</a>
+        </div>
+        <div class="tuto__dibujo" aria-hidden="true" inert>
+          <div class="tuto-maqueta">
+            <div class="tuto-grupo">
+              <span class="avatar" style="--h: 220; --size: 44px">F</span>
+              <div><strong>Los de siempre</strong><small>3 integrantes</small></div>
+              <span class="btn btn--secondary btn--sm">Invitar</span>
+            </div>
+            <div class="tuto-caras">
+              <span class="avatar" style="--h: 10; --size: 34px">M</span>
+              <span class="avatar" style="--h: 140; --size: 34px">S</span>
+              <span class="avatar" style="--h: 290; --size: 34px">A</span>
+              <span class="tag tag--ok">Aceptó</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+
+      {# ------------------------------ 4. VOTACIÓN ------------------------------ #}
+      <article class="card tuto__panel" id="paso-4" data-tuto-panel aria-labelledby="titulo-paso-4">
+        <div class="tuto__texto">
+          <p class="tuto__kicker">Paso 4</p>
+          <h2 class="tuto__titulo" id="titulo-paso-4">Voten.</h2>
+          <p class="body">Dentro del grupo tocá <strong>+ Idea</strong>. Podés <strong>postular</strong> una idea tuya o <strong>armar opciones</strong> con una encuesta: elegís fecha, zona y gustos, y el grupo vota una.</p>
+          <ul class="tuto__lista">
+            <li>Cada uno responde: <strong>¿te gusta?</strong> y <strong>¿podés?</strong></li>
+            <li>Si a todos les gusta pero no pueden, se propone otro horario.</li>
+          </ul>
+          <a class="btn btn--primary" href="/grupos">Ir a mis grupos</a>
+        </div>
+        <div class="tuto__dibujo" aria-hidden="true" inert>
+          <div class="tuto-maqueta">
+            <div class="tuto-voto">
+              <span class="tag">En votación</span>
+              <strong class="tuto-voto__nombre">Noche de pizza</strong>
+              <small>mañana a las 21:00 · 2 de 3 votaron</small>
+              <div class="tuto-voto__fila"><span>¿Te gusta?</span><span class="seg"><label><span class="is-on">Sí</span></label><label><span>No</span></label></span></div>
+              <div class="tuto-voto__fila"><span>¿Podés?</span><span class="seg"><label><span class="is-on">Sí</span></label><label><span>No</span></label></span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+
+      {# ------------------------------ 5. CHAT ------------------------------ #}
+      <article class="card tuto__panel" id="paso-5" data-tuto-panel aria-labelledby="titulo-paso-5">
+        <div class="tuto__texto">
+          <p class="tuto__kicker">Paso 5</p>
+          <h2 class="tuto__titulo" id="titulo-paso-5">Hablen en el chat.</h2>
+          <p class="body">Cada grupo tiene su chat. Escribí <strong>@</strong> para nombrar a alguien, o <strong>@all</strong> para avisarle a todos. Con <strong>@AhoraQue</strong> le pedís un plan al asistente.</p>
+          <ul class="tuto__lista">
+            <li>Las menciones quedan resaltadas.</li>
+            <li>El asistente arma una propuesta y la postulás con un toque.</li>
+          </ul>
+        </div>
+        <div class="tuto__dibujo" aria-hidden="true" inert>
+          <div class="tuto-maqueta tuto-chat">
+            <div class="chat-message"><span class="chat-message-author">maxi</span><div class="chat-bubble"><p><span class="chat-mencion chat-mencion--all">@all</span> ¿salimos el sábado?</p></div></div>
+            <div class="chat-message is-own"><div class="chat-bubble"><p><span class="chat-mencion chat-mencion--bot">@AhoraQue</span> algo tranqui para 4</p></div></div>
+            <div class="chat-message"><span class="chat-message-author">Ahora Qué</span><div class="chat-bubble"><p>Armé esta propuesta para el grupo.</p></div></div>
+          </div>
+        </div>
+      </article>
+
+
+      {# ------------------------------ 6. CONFIRMAR ------------------------------ #}
+      <article class="card tuto__panel" id="paso-6" data-tuto-panel aria-labelledby="titulo-paso-6">
+        <div class="tuto__texto">
+          <p class="tuto__kicker">Paso 6</p>
+          <h2 class="tuto__titulo" id="titulo-paso-6">Confirmen y salgan.</h2>
+          <p class="body">Cuando el plan queda confirmado aparece en <strong>Mis planes</strong> y en el <strong>Calendario</strong>, con la dirección y el botón <strong>Cómo llegar</strong>. Después de salir, puntúenlo.</p>
+          <p class="body">Cada semana seguida en que el grupo hace algo suma a su <strong>racha</strong>, y la racha sube de planeta.</p>
+          <a class="btn btn--primary" href="/calendario">Ver el calendario</a>
+        </div>
+        <div class="tuto__dibujo" aria-hidden="true" inert>
+          <div class="tuto-maqueta">
+            <div class="tuto-voto">
+              <span class="tag tag--ok">Confirmado</span>
+              <strong class="tuto-voto__nombre">Noche de pizza</strong>
+              <small>mañana a las 21:00 · Pizzería Don Luis</small>
+              <span class="btn btn--secondary btn--sm tuto-voto__como">Cómo llegar</span>
+            </div>
+            <ol class="tuto-planetas">
+              {% for clave, semanas in [('mercurio', 3), ('venus', 10), ('tierra', 20), ('marte', 40), ('jupiter', 70), ('saturno', 100)] %}
+              <li>{{ planeta(clave, 54) }}<small>{{ semanas }}</small></li>
+              {% endfor %}
+            </ol>
+            <p class="meta tuto-planetas__nota">Semanas seguidas para alcanzar cada planeta</p>
+          </div>
+        </div>
+      </article>
+
+
+      {# ------------------------------ 7. MAPA ------------------------------ #}
+      <article class="card tuto__panel tuto__panel--mapa" id="paso-7" data-tuto-panel aria-labelledby="titulo-paso-7">
+        <div class="tuto__texto">
+          <p class="tuto__kicker">Paso 7</p>
+          <h2 class="tuto__titulo" id="titulo-paso-7">Dónde está cada cosa.</h2>
+          <p class="body">Todo vive en la barra lateral (en el celular, en la barra de arriba). Tocá cualquiera para abrirla.</p>
+        </div>
+        <ul class="tuto-mapa">
+          <li><a href="/dashboard"><span>{{ icono('inicio') }}</span><div><strong>Inicio</strong><small>Tu resumen del día</small></div></a></li>
+          <li><a href="/inbox"><span>{{ icono('inbox') }}</span><div><strong>Inbox</strong><small>Invitaciones y novedades</small></div></a></li>
+          <li><a href="/planes"><span>{{ icono('planes') }}</span><div><strong>Mis planes</strong><small>Confirmados, guardados y votaciones</small></div></a></li>
+          <li><a href="/calendario"><span>{{ icono('calendario') }}</span><div><strong>Calendario</strong><small>Por semana o por mes</small></div></a></li>
+          <li><a href="/grupos"><span>{{ icono('grupos') }}</span><div><strong>Grupos</strong><small>Planes, chat y racha</small></div></a></li>
+          <li><a href="/amigos"><span>{{ icono('amigos') }}</span><div><strong>Amigos</strong><small>Buscalos e invitalos</small></div></a></li>
+          <li><a href="/social"><span>{{ icono('social') }}</span><div><strong>Social</strong><small>Lo que comparten los demás</small></div></a></li>
+          <li><a href="/perfil"><span><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M5 20c.7-3.7 3.2-5.5 7-5.5s6.3 1.8 7 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg></span><div><strong>Perfil</strong><small>Tus datos y tus publicaciones</small></div></a></li>
+        </ul>
+      </article>
+
+
+      <div class="tuto__nav">
+        <button class="btn btn--ghost" type="button" data-tuto-prev>← Anterior</button>
+        <button class="btn btn--primary" type="button" data-tuto-next>Siguiente →</button>
+        <a class="btn btn--primary" href="/dashboard" data-tuto-fin hidden>Listo, a usar la app</a>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+  </div>
+
+</div>
+
+
+<script>
+(function () {
+
+    const raiz = document.querySelector("[data-tuto]");
+    if (!raiz) return;
+
+    const paneles = Array.from(raiz.querySelectorAll("[data-tuto-panel]"));
+    const enlaces = Array.from(raiz.querySelectorAll("[data-tuto-ir]"));
+    const anterior = raiz.querySelector("[data-tuto-prev]");
+    const siguiente = raiz.querySelector("[data-tuto-next]");
+    const fin = raiz.querySelector("[data-tuto-fin]");
+    const progreso = raiz.querySelector("[data-tuto-progreso]");
+    const barra = raiz.querySelector("[data-tuto-barra]");
+
+    let actual = 0;
+
+    function mostrar(indice, moverFoco) {
+
+        actual = Math.max(0, Math.min(paneles.length - 1, indice));
+
+        paneles.forEach(function (panel, i) { panel.hidden = i !== actual; });
+        enlaces.forEach(function (enlace, i) {
+            enlace.classList.toggle("is-activo", i === actual);
+            if (i === actual) enlace.setAttribute("aria-current", "step"); else enlace.removeAttribute("aria-current");
+            enlace.parentElement.classList.toggle("is-hecho", i < actual);
+        });
+
+        progreso.textContent = "Paso " + (actual + 1) + " de " + paneles.length;
+        barra.style.width = ((actual + 1) / paneles.length * 100) + "%";
+
+        anterior.disabled = actual === 0;
+        siguiente.hidden = actual === paneles.length - 1;
+        fin.hidden = actual !== paneles.length - 1;
+
+        try { history.replaceState(null, "", "#paso-" + (actual + 1)); } catch (e) { /* sin historial: no pasa nada */ }
+
+        if (moverFoco) {
+            if (window.innerWidth <= 900) window.scrollTo({ top: 0, behavior: "smooth" });
+            const titulo = paneles[actual].querySelector(".tuto__titulo");
+            if (titulo) { titulo.setAttribute("tabindex", "-1"); titulo.focus({ preventScroll: true }); }
+        }
+    }
+
+    raiz.classList.add("is-js");
+
+    enlaces.forEach(function (enlace) {
+        enlace.addEventListener("click", function (evento) {
+            evento.preventDefault();
+            mostrar(Number(enlace.dataset.tutoIr), true);
+        });
+    });
+
+    anterior.addEventListener("click", function () { mostrar(actual - 1, true); });
+    siguiente.addEventListener("click", function () { mostrar(actual + 1, true); });
+
+    document.addEventListener("keydown", function (evento) {
+        if (evento.target.closest("input, textarea, select, [contenteditable]") || evento.altKey || evento.ctrlKey || evento.metaKey) return;
+        if (evento.key === "ArrowRight") mostrar(actual + 1, false);
+        if (evento.key === "ArrowLeft") mostrar(actual - 1, false);
+    });
+
+    const inicial = /^#paso-(\d+)$/.exec(location.hash);
+    mostrar(inicial ? Number(inicial[1]) - 1 : 0, false);
+
+}());
+</script>
+
+{% endblock %}

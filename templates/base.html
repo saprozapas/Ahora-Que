@@ -38,14 +38,14 @@
     />
 
     <!-- Sereno: tokens → componentes → marca → pantallas → grupos, social y asistente. -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261024-planeta3') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261024-planeta3') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261024-planeta3') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261024-planeta3') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261024-planeta3') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261024-planeta3') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261024-planeta3') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261024-planeta3') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261024-tutorial3') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261024-tutorial3') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261024-tutorial3') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261024-tutorial3') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261024-tutorial3') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261024-tutorial3') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261024-tutorial3') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261024-tutorial3') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261023-sereno-ui-v3') }}" />
 
     <link
@@ -65,7 +65,7 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20261024-planeta3') }}"
+      src="{{ url_for('static', filename='app.js', v='20261024-tutorial3') }}"
     ></script>
 
     <script
@@ -114,6 +114,7 @@
 
               <a href="/">Inicio</a>
               <a href="/dashboard">Dashboard</a>
+              <a href="/tutorial">Tutorial</a>
 
             {% else %}
 
@@ -268,6 +269,7 @@
           <h2 class="app-footer__title" id="pie-cuenta">Tu cuenta</h2>
           {% if logueado %}
           <a href="/dashboard">Dashboard</a>
+          <a href="/tutorial">Tutorial</a>
           <a href="/perfil">Perfil</a>
           <a href="/logout">Cerrar sesión</a>
           {% else %}

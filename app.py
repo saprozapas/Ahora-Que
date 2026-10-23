@@ -151,6 +151,12 @@ def dashboard():
     return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True,
                            invitaciones=invitaciones)
 
+@app.route('/tutorial')
+def tutorial():
+    if not session.get('user_id'):
+        return redirect('/login')
+    return render_template('tutorial.html')
+
 @app.route('/social')
 def social():
     if not session.get('user_id'):

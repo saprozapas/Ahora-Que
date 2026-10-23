@@ -54,6 +54,7 @@
 
           <div class="actions">
             <a class="btn btn--primary btn--lg" href="/planes/nueva-idea">Crear idea</a>
+            <a class="btn btn--ghost btn--lg" href="/tutorial">Cómo usar la app</a>
             {% if pendientes %}
             <a class="btn btn--secondary btn--lg" href="/inbox">Ver inbox <span class="badge">{{ pendientes }}</span></a>
             {% endif %}
@@ -147,8 +148,13 @@
       </p>
 
       <div class="landing-hero__actions">
+        {% if logueado %}
+        <a class="btn btn--primary btn--lg" href="/dashboard">Ir al dashboard</a>
+        <a class="btn btn--secondary btn--lg" href="/tutorial">Ver el tutorial</a>
+        {% else %}
         <a class="btn btn--primary btn--lg" href="/register">Crear cuenta</a>
         <a class="btn btn--secondary btn--lg" href="/login">Iniciar sesión</a>
+        {% endif %}
       </div>
 
       <p class="meta">Para salir con amigos, en familia, en pareja o solo.</p>
@@ -265,7 +271,7 @@
           Les recomiendo caminar la Rambla hasta el Parque Rodó y terminar
           con algo en la feria.
         </p>
-        <a class="btn btn--primary" href="/register">Proponerlo al grupo</a>
+        <a class="btn btn--primary" href="{{ '/grupos' if logueado else '/register' }}">Proponerlo al grupo</a>
       </div>
 
       <div class="landing-demo__group">

@@ -182,18 +182,138 @@
 
 /* Planeta del rango en la tarjeta de cada grupo. */
 .planeta {
-  --planeta: var(--marco-mercurio); --planeta-anillo: color-mix(in srgb, var(--marco-saturno) 80%, #fff);
+  /* Colores propios de cada planeta, saturados a propósito: sobre el fondo oscuro los tonos pálidos del marco se lavan. */
+  --planeta: #8E9299; --planeta-anillo: #BFA25C; --planeta-borde: transparent;
   --planeta-tierra: #4C8A5C; --planeta-mancha: #8E4A2E;
-  display: block; flex: none; filter: drop-shadow(0 6px 8px color-mix(in srgb, var(--planeta) 35%, transparent));
+  display: block; flex: none;
 }
-.planeta--mercurio { --planeta: var(--marco-mercurio); }
-.planeta--venus    { --planeta: var(--marco-venus); }
-.planeta--tierra   { --planeta: var(--marco-tierra); }
-.planeta--marte    { --planeta: var(--marco-marte); }
-.planeta--jupiter  { --planeta: var(--marco-jupiter); }
-.planeta--saturno  { --planeta: var(--marco-saturno); --planeta-anillo: color-mix(in srgb, var(--marco-saturno) 70%, var(--ink)); }
+.planeta--mercurio { --planeta: #8E9299; }
+.planeta--venus    { --planeta: #E0A24A; }
+.planeta--tierra   { --planeta: #3F7FC4; }
+.planeta--marte    { --planeta: #C4553C; }
+.planeta--jupiter  { --planeta: #C98A55; }
+.planeta--saturno  { --planeta: #D3B96E; --planeta-anillo: #B5934B; }
+/* Modo noche: un filete claro recorta el planeta del fondo y el resto sigue con volumen (la sombra del borde). */
+:root[data-theme="night"] .planeta { --planeta-borde: rgb(255 255 255 / 0.30); filter: drop-shadow(0 0 10px rgb(255 255 255 / 0.10)); }
+:root[data-theme="night"] .planeta--saturno { --planeta-anillo: #E2C479; }
+:root[data-theme="night"] .planeta--mercurio { --planeta: #A5AAB2; }
 .group-tile { position: relative; overflow: hidden; }
 /* El planeta asoma desde la esquina superior derecha, cortado por el borde de la tarjeta. */
 .group-tile__planeta { position: absolute; top: -66px; right: -66px; line-height: 0; pointer-events: none; }
-.group-tile__planeta .planeta { filter: none; }
+.group-tile__planeta .planeta, .tuto-planetas .planeta { filter: none !important; }
 .group-tile__planeta ~ .plan-tile__title { padding-right: 96px; }
+
+
+/* ==========================================================================
+   Tutorial: una guía por pasos, de a una pantalla
+   ========================================================================== */
+.tuto { max-width: 1080px; }
+.tuto__cabecera { margin-bottom: var(--s-4); }
+.tuto__cabecera .lead { margin: 0; }
+.tuto__cuerpo { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: var(--s-6); align-items: start; }
+
+/* Índice de pasos (escritorio). */
+.tuto__indice { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.tuto__paso-link { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3); border-radius: var(--r-md); color: var(--ink-2); font-size: var(--t-ui); font-weight: 500; text-decoration: none; }
+.tuto__paso-link:hover { background: var(--paper-deep); color: var(--ink); }
+.tuto__paso-link.is-activo { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: var(--sh-hair); }
+.tuto__numero { flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--paper-deep); color: var(--ink-2); font-size: var(--t-meta); font-weight: 650; font-variant-numeric: tabular-nums; }
+.tuto__paso-link.is-activo .tuto__numero { background: var(--ink); color: var(--on-ink); }
+.tuto__indice li.is-hecho .tuto__numero { background: color-mix(in srgb, var(--ok) 16%, var(--surface)); color: var(--ok); }
+
+.tuto__escena { display: grid; gap: var(--s-3); min-width: 0; }
+.tuto__progreso { margin: 0; }
+.tuto__barra { height: 4px; border-radius: 999px; background: var(--paper-deep); overflow: hidden; }
+.tuto__barra > span { display: block; height: 100%; width: 14%; border-radius: inherit; background: var(--ink); transition: width 240ms ease; }
+.tuto:not(.is-js) .tuto__progreso, .tuto:not(.is-js) .tuto__barra, .tuto:not(.is-js) .tuto__nav { display: none; }
+.tuto:not(.is-js) .tuto__escena { gap: var(--s-5); }
+
+/* El panel de cada paso: texto a la izquierda, maqueta a la derecha. */
+.tuto__panel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-6); align-items: center; padding: var(--s-6); }
+.tuto__panel[hidden] { display: none; }
+.tuto__texto { display: grid; gap: var(--s-3); justify-items: start; }
+.tuto__kicker { margin: 0; color: var(--ink-3); font-size: var(--t-meta); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.tuto__titulo { margin: 0; font-family: var(--font-serif); font-size: clamp(1.75rem, 1.3rem + 1.2vw, 2.25rem); font-weight: 600; line-height: 1.1; letter-spacing: -0.015em; text-wrap: balance; }
+.tuto__titulo:focus { outline: none; }
+.tuto__texto .body { margin: 0; }
+.tuto__lista { display: grid; gap: var(--s-2); margin: 0; padding: 0 0 0 var(--s-4); color: var(--ink-2); font-size: var(--t-ui); }
+.tuto__lista strong { color: var(--ink); font-weight: 600; }
+
+.tuto__dibujo { display: grid; place-items: center; align-self: stretch; padding: var(--s-5); border-radius: var(--r-lg); background: var(--paper-deep); min-height: 240px; pointer-events: none; user-select: none; }
+.tuto-maqueta { display: grid; gap: var(--s-3); width: 100%; max-width: 340px; }
+
+/* 1. El recorrido en cuatro pasos. */
+.tuto-flujo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); margin: 0; padding: 0; list-style: none; width: 100%; max-width: 360px; counter-reset: flujo; }
+.tuto-flujo li { position: relative; display: grid; gap: 2px; justify-items: start; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-hair); }
+.tuto-flujo li::after { counter-increment: flujo; content: counter(flujo); position: absolute; top: var(--s-3); right: var(--s-3); color: var(--ink-3); font-size: var(--t-meta); font-weight: 650; }
+.tuto-flujo__icono { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: var(--s-1); border-radius: var(--r-sm); background: var(--paper-deep); color: var(--ink); }
+.tuto-flujo__icono svg { width: 20px; height: 20px; }
+.tuto-flujo small, .tuto-menu small, .tuto-grupo small, .tuto-voto small, .tuto-mapa small { color: var(--ink-3); font-size: var(--t-meta); }
+
+/* 2. El botón + Crear con su menú. */
+.tuto-maqueta__boton { justify-self: start; }
+.tuto-menu { display: grid; gap: 2px; padding: var(--s-1); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-card); }
+.tuto-menu__item { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3); border-radius: var(--r-sm); }
+.tuto-menu__item > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--r-sm); background: var(--paper-deep); }
+.tuto-menu__item svg { width: 19px; height: 19px; }
+.tuto-menu__item strong, .tuto-menu__item small { display: block; }
+.tuto-menu__item.is-activo { background: var(--ink); color: var(--on-ink); }
+.tuto-menu__item.is-activo > span { background: color-mix(in srgb, var(--on-ink) 16%, transparent); }
+.tuto-menu__item.is-activo small { color: color-mix(in srgb, var(--on-ink) 72%, transparent); }
+
+/* 3. Una tarjeta de grupo con Invitar. */
+.tuto-grupo { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); padding: var(--s-4); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-card); }
+.tuto-grupo strong, .tuto-grupo small { display: block; }
+.tuto-caras { display: flex; align-items: center; gap: var(--s-2); padding-left: var(--s-2); }
+.tuto-caras .avatar + .avatar { margin-left: -10px; box-shadow: 0 0 0 2px var(--paper-deep); }
+.tuto-caras .tag { margin-left: var(--s-2); }
+
+/* 4 y 6. La tarjeta de votación y la de plan confirmado. */
+.tuto-voto { display: grid; gap: var(--s-2); justify-items: start; padding: var(--s-4); border-radius: var(--r-md); background: var(--surface); box-shadow: var(--sh-card); }
+.tuto-voto__nombre { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600; line-height: 1.1; }
+.tuto-voto__fila { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); width: 100%; font-size: var(--t-ui); }
+.tuto-voto .seg span.is-on { background: var(--ink); color: var(--on-ink); }
+.tuto-voto__como { margin-top: var(--s-1); }
+.tuto-planetas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--s-1); margin: var(--s-2) 0 0; padding: 0; list-style: none; text-align: center; }
+.tuto-planetas li { display: grid; justify-items: center; gap: 2px; }
+.tuto-planetas .planeta { width: 100%; height: auto; max-width: 54px; filter: none; }
+.tuto-planetas small { color: var(--ink-2); font-size: var(--t-meta); font-weight: 600; font-variant-numeric: tabular-nums; }
+.tuto-planetas__nota { margin: 0; text-align: center; }
+
+/* 5. El chat. */
+.tuto-chat { gap: var(--s-2); }
+.tuto-chat .chat-message { max-width: 92%; }
+
+/* 7. El mapa de la app. */
+.tuto__panel--mapa { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); align-items: start; }
+.tuto-mapa { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+.tuto-mapa a { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: var(--s-3); padding: var(--s-2) var(--s-3); border-radius: var(--r-md); background: var(--paper-deep); color: var(--ink); text-decoration: none; transition: background 160ms ease, box-shadow 160ms ease; }
+.tuto-mapa a:hover { background: var(--surface); box-shadow: var(--sh-hair); }
+.tuto-mapa a > span { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--r-sm); background: var(--surface); }
+.tuto-mapa svg { width: 20px; height: 20px; }
+.tuto-mapa strong, .tuto-mapa small { display: block; }
+
+.tuto__nav { display: flex; justify-content: space-between; gap: var(--s-3); }
+.tuto__nav [hidden] { display: none; }
+.tuto__nav [data-tuto-next], .tuto__nav [data-tuto-fin] { margin-left: auto; }
+
+@media (min-width: 901px) {
+  .tuto__panel { min-height: 330px; }
+}
+
+/* Tablet y celular: el índice sale y queda la barra de progreso; la maqueta va debajo del texto. */
+@media (max-width: 900px) {
+  .tuto__cuerpo { grid-template-columns: minmax(0, 1fr); }
+  .tuto__indice { display: none; }
+  .tuto__panel, .tuto__panel--mapa { grid-template-columns: minmax(0, 1fr); gap: var(--s-4); padding: var(--s-5); }
+  .tuto__dibujo { min-height: 0; padding: var(--s-4); }
+  .tuto__nav { position: sticky; bottom: 0; padding-block: var(--s-3); background: var(--paper); }
+  .tuto__nav .btn { flex: 1; justify-content: center; }
+}
+@media (max-width: 480px) {
+  .tuto-mapa { grid-template-columns: minmax(0, 1fr); }
+  .tuto-planetas { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: var(--s-2); }
+}
+@media (prefers-reduced-motion: reduce) { .tuto__barra > span { transition: none; } }
+.tuto-voto__fila > span:first-child { white-space: nowrap; }
+.tuto-voto__fila .seg { width: auto; min-width: 120px; }
