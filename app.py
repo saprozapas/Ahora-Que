@@ -48,6 +48,12 @@ PLANS = [
     {"id": 3, "slug": "noche-de-preguntas", "title": "Noche de preguntas sin pantallas", "type": "en casa", "description": "Armen equipos, preparen algo para tomar y dejen que las preguntas hagan el resto.", "time": "1 h 30 min", "cost": "$", "distance": "0 km", "mood": "Bajar un cambio", "tone": "lilac"},
 ]
 
+# Fechas en lenguaje de todos los días ("hoy", "mañana", "el sábado"): ver services/fechas.py.
+from services.fechas import cuando as _cuando, dia_relativo as _dia_relativo
+app.jinja_env.filters["dia_rel"] = _dia_relativo
+app.jinja_env.filters["cuando"] = lambda fecha, hora=None: _cuando(fecha, hora)
+
+
 @app.context_processor
 def inject_user():
     datos = {
