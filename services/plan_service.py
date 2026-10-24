@@ -28,6 +28,12 @@ _ultimo_mantenimiento = 0.0
 _lock_mantenimiento = threading.Lock()
 
 
+def capitalizar(texto):
+    """El nombre de un plan siempre arranca con mayúscula, aunque se haya escrito en minúscula."""
+    texto = (texto or "").strip()
+    return texto[:1].upper() + texto[1:]
+
+
 class PlanService:
 
     # --- Helpers internos ---------------------------------------------------
@@ -463,6 +469,7 @@ class PlanService:
 
         Devuelve el id de la idea creada.
         """
+        nombre = capitalizar(nombre)
         rangos_por_lugar = [
             rango_de_nivel(lugar.get("nivel_precio")) for lugar in lugares
         ]

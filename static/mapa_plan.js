@@ -63,6 +63,57 @@
     });
   });
 
+  // Líneas punteadas de cada persona al primer lugar del plan, con la distancia encima.
+  var lineas = { type: "FeatureCollection", features: [] };
+  var etiquetasKm = [];
+
+  mapa.on("load", function () {
+    mapa.addSource("lineas", { type: "geojson", data: lineas });
+    mapa.addLayer({
+      id: "lineas",
+      type: "line",
+      source: "lineas",
+      layout: { "line-cap": "round" },
+      // Gris oscuro: en modo noche el CSS invierte el mapa y la línea queda clara.
+      paint: { "line-color": "#4a4f57", "line-width": 1.6, "line-dasharray": [1.5, 2.5], "line-opacity": 0.85 }
+    });
+  });
+
+  function textoKm(km) {
+    if (km < 1) { return (Math.max(1, Math.round(km * 100)) * 10) + " m"; }
+    if (km < 10) { return km.toFixed(1).replace(".", ",") + " km"; }
+    return Math.round(km) + " km";
+  }
+
+  function pintarLineas(datos) {
+
+    etiquetasKm.forEach(function (m) { m.remove(); });
+    etiquetasKm = [];
+
+    var destino = datos.lugares[0];
+    var rasgos = [];
+
+    if (destino) {
+      datos.personas.forEach(function (persona) {
+        if (!persona.comparte) { return; }
+        rasgos.push({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [[persona.lon, persona.lat], [destino.lon, destino.lat]] } });
+        if (persona.km != null) {
+          var etiqueta = document.createElement("div");
+          etiqueta.className = "mapa-km";
+          etiqueta.textContent = textoKm(persona.km);
+          etiquetasKm.push(new maplibregl.Marker({ element: etiqueta, anchor: "bottom", offset: [0, -3] })
+            .setLngLat([(persona.lon + destino.lon) / 2, (persona.lat + destino.lat) / 2])
+            .addTo(mapa));
+        }
+      });
+    }
+
+    lineas = { type: "FeatureCollection", features: rasgos };
+    var fuente = mapa.getSource("lineas");
+    if (fuente) { fuente.setData(lineas); }
+  }
+
+  var ultimosPuntos = [];
   var marcadoresLugares = [];
   var marcadoresPersonas = {};
   var ultimoConteo = -1;
@@ -182,15 +233,21 @@
     // Se encuadra todo cuando aparece o desaparece alguien (no en cada actualización, para no mover el mapa mientras lo mirás).
     var puntos = marcadoresLugares.concat(Object.keys(marcadoresPersonas).map(function (id) { return marcadoresPersonas[id]; }));
 
+    ultimosPuntos = puntos;
+
     if (puntos.length !== ultimoConteo) {
       ultimoConteo = puntos.length;
-      if (puntos.length === 1) {
-        mapa.jumpTo({ center: puntos[0].getLngLat(), zoom: 15 });
-      } else if (puntos.length > 1) {
-        var limites = new maplibregl.LngLatBounds();
-        puntos.forEach(function (m) { limites.extend(m.getLngLat()); });
-        mapa.fitBounds(limites, { padding: 56, maxZoom: 16, duration: 0 });
-      }
+      encuadrar();
+    }
+  }
+
+  function encuadrar() {
+    if (ultimosPuntos.length === 1) {
+      mapa.jumpTo({ center: ultimosPuntos[0].getLngLat(), zoom: 15 });
+    } else if (ultimosPuntos.length > 1) {
+      var limites = new maplibregl.LngLatBounds();
+      ultimosPuntos.forEach(function (m) { limites.extend(m.getLngLat()); });
+      mapa.fitBounds(limites, { padding: 64, maxZoom: 16, duration: 0 });
     }
   }
 
@@ -221,6 +278,7 @@
         if (!datos || !datos.ok) { return; }
 
         pintarMapa(datos);
+        pintarLineas(datos);
         pintarLista(datos.personas);
 
         if (vigilando === null && datos.yo_comparto !== comparte) {
@@ -317,7 +375,12 @@
 
   // Si cambia el tamaño del contenedor (pantalla estática, girar el celular), el mapa se reacomoda.
   if (window.ResizeObserver) {
-    new ResizeObserver(function () { mapa.resize(); }).observe(lienzo);
+    var primera = true;
+    new ResizeObserver(function () {
+      mapa.resize();
+      // Con el tamaño ya definitivo se vuelve a encuadrar una vez, para que el zoom no quede de más.
+      if (primera) { primera = false; encuadrar(); }
+    }).observe(lienzo);
   }
 
 }());

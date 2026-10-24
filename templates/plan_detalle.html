@@ -43,8 +43,20 @@
         </header>
 
 
-        {% if plan.descripcion %}
+        {# Si el plan tiene una descripción escrita por alguien, se muestra; si no (o si es el texto automático de una
+           encuesta), un resumen brevísimo de lo que es: dónde y cuántas paradas. #}
+        {% set descripcion_propia = plan.descripcion and not plan.descripcion.startswith('Elegido por el grupo') %}
+        {% if descripcion_propia %}
         <p class="quote quote--lg">“{{ plan.descripcion }}”</p>
+        {% else %}
+        {% set paradas_n = plan.lugares | length %}
+        {% set barrios = plan.lugares | map(attribute='barrio') | select | unique | list %}
+        <p class="plan-resumen">
+          {%- if paradas_n == 0 -%}Un plan sin lugar específico.
+          {%- elif paradas_n == 1 -%}{{ plan.lugares[0].nombre }}{% if barrios %}, en {{ barrios[0] }}{% endif %}.
+          {%- else -%}Recorrido de {{ paradas_n }} paradas{% if barrios %} por {{ barrios[:2] | join(' y ') }}{% endif %}.
+          {%- endif -%}
+        </p>
         {% endif %}
 
         {% if plan.precio_min is not none and plan.precio_max is not none %}
@@ -103,7 +115,7 @@
         <section class="plan-detail__block mapa-plan" id="mapa" aria-labelledby="mapa-titulo" data-mapa-plan data-plan-id="{{ plan.id }}">
 
           <h2 class="h3" id="mapa-titulo">Mapa del plan</h2>
-          <p class="meta mapa-plan__nota">Lo ven solo quienes van a este plan, hasta que termina. Compartir tu ubicación es opcional y podés dejar de hacerlo cuando quieras.</p>
+          <p class="meta mapa-plan__nota">Lo ven solo quienes van, hasta que termina. Compartir tu ubicación es opcional.</p>
 
           <div class="card mapa-plan__lienzo" data-mapa-lienzo role="application" aria-label="Mapa con el lugar del plan y las personas que comparten su ubicación"></div>
 
@@ -119,7 +131,7 @@
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
-        <script defer src="{{ url_for('static', filename='mapa_plan.js', v='20261024-mapa4') }}"></script>
+        <script defer src="{{ url_for('static', filename='mapa_plan.js', v='20261024-mapa6') }}"></script>
         {% endif %}
 
 

@@ -9,7 +9,7 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 from services.grupo_encuesta_service import GrupoEncuestaService, opciones_de_distancia, opciones_de_precio
 from services.grupo_plan_service import GrupoPlanError, GrupoPlanService
 from services.lugar_service import LugarService
-from services.plan_service import PlanService
+from services.plan_service import PlanService, capitalizar
 from database_bridge.database_bridge import getGroupById, isUserInGroup
 
 grupo_planes_bp = Blueprint("grupo_planes", __name__, url_prefix="/grupos/<group_id>")
@@ -208,7 +208,7 @@ def nueva_encuesta(group_id):
             if nivel not in ("", "1", "2", "3", "4", "5"):
                 raise GrupoPlanError("El precio máximo no es válido.")
             grupo_encuesta_service.crear(
-                group_id, user_id, request.form.get("titulo", ""), fecha, hora,
+                group_id, user_id, capitalizar(request.form.get("titulo", "")), fecha, hora,
                 nivel_precio=int(nivel) if nivel else None,
                 tipos=request.form.getlist("tipos"),
                 barrio=request.form.get("barrio", "").strip(),
