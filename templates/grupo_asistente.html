@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Crear idea con el asistente — {{ group.get_name() }} — Ahora Qué{% endblock %}
+{% block title %}Armar un plan con el asistente — {{ group.get_name() }} — Ahora Qué{% endblock %}
 
 {% block content %}
 
@@ -14,15 +14,15 @@
       <a class="back-link" href="{{ url_for('group_auth.detalle_grupo', group_id=group.get_id()) }}">← Volver a {{ group.get_name() }}</a>
 
       <header class="page-head">
-        <h1 class="h2">Creá una idea con el asistente.</h1>
-        <p class="lead">Contale qué quieren hacer y te propone un plan con lugares reales. Al guardarlo, lo postulás al grupo.</p>
+        <h1 class="h2">Armá un plan con el asistente.</h1>
+        <p class="lead">Contale qué quieren hacer y te propone un plan con lugares reales. Al guardarlo, lo proponés al grupo.</p>
       </header>
 
       {% with chatbot_grupo_id=group.get_id(), chatbot_grupo_nombre=group.get_name() %}
         {% include '_chatbot_panel.html' %}
       {% endwith %}
 
-      <p><a class="btn btn--ghost" href="{{ url_for('grupo_planes.postular', group_id=group.get_id()) }}">¿Ya tenés una idea guardada? Postularla</a></p>
+      <p><a class="btn btn--ghost" href="{{ url_for('grupo_planes.postular', group_id=group.get_id()) }}">¿Ya tenés un plan guardado? Proponerlo</a></p>
 
     </section>
 

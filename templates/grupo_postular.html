@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Postular idea — {{ group.get_name() }} — Ahora Qué{% endblock %}
+{% block title %}Proponer un plan — {{ group.get_name() }} — Ahora Qué{% endblock %}
 
 {% block content %}
 
@@ -15,8 +15,8 @@
       <a class="back-link" href="{{ url_for('group_auth.detalle_grupo', group_id=group.get_id()) }}">← {{ group.get_name() }}</a>
 
       <header class="page-head">
-        <h1 class="h2">Postulá una idea.</h1>
-        <p class="lead">Elegí una de tus ideas guardadas y cuándo harían el plan. El grupo vota si le gusta y si puede en ese horario.</p>
+        <h1 class="h2">Proponé un plan.</h1>
+        <p class="lead">Elegí uno de tus planes guardados y cuándo lo harían. El grupo vota si le gusta y si puede en ese horario.</p>
       </header>
 
       {% if error %}
@@ -28,7 +28,7 @@
       <form class="postular" method="post">
 
         <fieldset class="field-group">
-          <legend>Tus ideas</legend>
+          <legend>Tus planes guardados</legend>
 
           <div class="postular__ideas">
             {% for idea in ideas %}
@@ -62,15 +62,15 @@
           </div>
         </fieldset>
 
-        <button class="btn btn--primary btn--lg" type="submit">Postular al grupo</button>
+        <button class="btn btn--primary btn--lg" type="submit">Proponer al grupo</button>
 
       </form>
 
       {% else %}
 
       <div class="empty-state">
-        <h2 class="h3">No tenés ideas guardadas.</h2>
-        <p>Creá una idea o guardá alguna que veas en Social, y después volvé a postularla acá.</p>
+        <h2 class="h3">No tenés planes guardados.</h2>
+        <p>Creá un plan o guardá alguno que veas en Social, y después volvé a proponerlo acá.</p>
         <a class="btn btn--primary" href="{{ url_for('grupo_planes.asistente', group_id=group.get_id()) }}">Crear con el asistente</a>
         <a class="btn btn--secondary" href="{{ url_for('planes.nueva_idea') }}">Crear a mano</a>
       </div>

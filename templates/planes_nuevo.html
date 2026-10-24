@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Crear idea — Ahora Qué{% endblock %}
+{% block title %}Crear un plan — Ahora Qué{% endblock %}
 
 {% block content %}
 
@@ -15,9 +15,9 @@
       <a class="back-link" href="/planes">← Mis planes</a>
 
       <header class="page-head">
-        <h1 class="h2">Nueva idea.</h1>
+        <h1 class="h2">Nuevo plan.</h1>
         <p class="lead">
-          Armá una idea de plan sin fecha: qué hacer y por qué lugares pasar. Queda en tus guardados y después la postulás en un grupo, donde se elige la fecha y se vota.
+          Armá un plan sin fecha: qué hacer y por qué lugares pasar. Queda guardado y después lo proponés en un grupo, donde se elige la fecha y se vota.
         </p>
         <p><a class="btn btn--secondary" href="{{ url_for('planes.nueva_idea_asistente') }}">Armarla con el asistente</a></p>
       </header>
@@ -34,22 +34,25 @@
           {% endif %}
 
           <div class="field">
-            <label for="nombre">Nombre de la idea</label>
+            <label for="nombre">Nombre del plan</label>
             <input class="input" id="nombre" name="nombre" type="text"
                    value="{{ valores.get('nombre', '') }}"
                    placeholder="Cena y pool" required />
           </div>
 
-          <div class="field">
-            <label for="descripcion">Descripción</label>
-            <textarea class="input" id="descripcion" name="descripcion" rows="3"
-                      placeholder="De qué se trata la idea...">{{ valores.get('descripcion', '') }}</textarea>
-          </div>
+          <details class="mas-opciones"{% if valores.get('descripcion') %} open{% endif %}>
+            <summary>Agregar una descripción <span class="meta">opcional</span></summary>
+            <div class="field">
+              <label class="visually-hidden" for="descripcion">Descripción</label>
+              <textarea class="input" id="descripcion" name="descripcion" rows="3"
+                        placeholder="De qué se trata...">{{ valores.get('descripcion', '') }}</textarea>
+            </div>
+          </details>
 
           <!-- Los lugares elegidos van acá. El precio se estima solo, a
                partir del nivel de precio de cada lugar. -->
           <div class="planner__stops-head">
-            <h2 class="planner__title">Lugares de la idea</h2>
+            <h2 class="planner__title">Lugares del plan</h2>
             <span class="meta" id="contador-lugares">0 elegidos</span>
           </div>
 
@@ -58,10 +61,10 @@
           <ul class="stops planner__chosen" id="lista-elegidos"></ul>
 
           <p class="planner__empty" id="mensaje-sin-lugares">
-            Todavía no agregaste lugares. Buscalos acá al lado, o guardá la idea sin lugar específico.
+            Todavía no agregaste lugares. Buscalos acá al lado, o guardalo sin lugar específico.
           </p>
 
-          <button class="btn btn--primary btn--lg btn--block" type="submit">Guardar idea</button>
+          <button class="btn btn--primary btn--lg btn--block" type="submit">Guardar plan</button>
 
         </form>
 
@@ -77,7 +80,7 @@
 
           <p class="meta planner__help">
             Escribí en cualquiera de los campos y te mostramos los lugares que coinciden.
-            Tocá uno para agregarlo a la idea.
+            Tocá uno para agregarlo al plan.
           </p>
 
           <div class="planner__query">
@@ -100,6 +103,10 @@
 
           </div>
 
+
+          {# Lo básico es el nombre y el tipo de lugar; el resto de los filtros queda a un toque. #}
+          <details class="mas-opciones mas-opciones--filtros">
+            <summary>Más filtros <span class="meta">cerca de mí, precio, barrio y más</span></summary>
 
           <!-- Cerca de mí: con la ubicación del navegador, cada lugar muestra a cuánto
                queda y la lista va del más cercano al más lejano. La ubicación solo viaja
@@ -193,6 +200,8 @@
             {% endfor %}
 
           </div>
+
+          </details>
 
           <div class="planner__actions">
             <button class="btn btn--secondary" type="button" id="boton-buscar">Ver todos los resultados</button>

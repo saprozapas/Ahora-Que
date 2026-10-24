@@ -37,7 +37,7 @@
     <span class="pend-vacio__marca" aria-hidden="true">
       <svg viewBox="0 0 24 24" focusable="false"><path d="m5 12.5 4.2 4.2L19 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
     </span>
-    <p class="voice"><strong>Todo al día.</strong> No hay votaciones esperándote. Cuando alguien de tus grupos proponga algo, aparece acá en el momento.</p>
+    <p class="voice"><strong>Todo al día.</strong> No hay nada esperándote. Cuando alguien de tus grupos proponga algo, aparece acá en el momento.</p>
   </div>
 
 {% else %}
@@ -51,7 +51,7 @@
 
     {% for plan in p.votar %}
     {{ fila('plan-' ~ plan.id, 'votar', '/grupos/' ~ plan.grupo_id ~ '#plan-' ~ plan.id,
-            plan.nombre, 'En votación · ' ~ cuando(plan) | trim, plan.grupo, 'Votar') }}
+            plan.nombre, 'Para votar · ' ~ cuando(plan) | trim, plan.grupo, 'Votar') }}
     {% endfor %}
 
     {% for plan in p.horarios %}

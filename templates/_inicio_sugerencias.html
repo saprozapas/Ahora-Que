@@ -15,7 +15,7 @@
     {% if s.descripcion %}<p class="sug-desc">{{ s.descripcion }}</p>{% endif %}
     <p class="meta sug-lugares">{{ s.resumen }}</p>
     <form method="post" action="/inicio/sugerencias/{{ s.id }}/guardar" class="sug-form">
-      <button class="btn btn--secondary btn--sm" type="submit">Guardar idea</button>
+      <button class="btn btn--secondary btn--sm" type="submit">Guardar para después</button>
     </form>
   </li>
   {% endfor %}

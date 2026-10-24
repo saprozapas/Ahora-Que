@@ -185,6 +185,11 @@ def dashboard():
     except Exception as e:
         print(f"No se pudo leer el proximo plan: {e}")
         proximo_plan = None
+    try:
+        primeros_pasos = InicioService().primeros_pasos(session["user_id"])
+    except Exception as e:
+        print(f"No se pudieron calcular los primeros pasos: {e}")
+        primeros_pasos = None
     # Las sugerencias de la semana solo se leen si ya están armadas; si no, la página las pide y se arman ahí.
     try:
         sugerencias_semana = SugerenciaService().existentes(session["user_id"])
@@ -193,7 +198,8 @@ def dashboard():
         sugerencias_semana = []
     return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True,
                            invitaciones=invitaciones, pendientes_datos=pendientes_datos,
-                           proximo_plan=proximo_plan, sugerencias_semana=sugerencias_semana)
+                           proximo_plan=proximo_plan, sugerencias_semana=sugerencias_semana,
+                           primeros_pasos=primeros_pasos)
 
 @app.route('/tutorial')
 def tutorial():

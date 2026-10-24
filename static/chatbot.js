@@ -78,7 +78,7 @@
 
     var etiqueta = document.createElement("p");
     etiqueta.className = "chatbot-borrador-etiqueta";
-    etiqueta.textContent = "Borrador de idea";
+    etiqueta.textContent = "Borrador de plan";
     tarjeta.appendChild(etiqueta);
 
     var nombre = document.createElement("p");
@@ -122,7 +122,7 @@
     var guardar = document.createElement("button");
     guardar.type = "button";
     guardar.className = "btn btn--primary btn--sm chatbot-accion";
-    guardar.textContent = "Guardar como idea";
+    guardar.textContent = "Guardar para después";
     acciones.appendChild(guardar);
 
     // Solo en la página de crear idea: carga el borrador en el formulario
@@ -152,16 +152,16 @@
           var link = document.createElement("a");
           if (datos.postular_url) {
             link.href = datos.postular_url;
-            link.textContent = "Elegir fecha y postular al grupo →";
+            link.textContent = "Elegir fecha y proponer al grupo →";
           } else {
             link.href = datos.url;
-            link.textContent = "Ver la idea →";
+            link.textContent = "Ver el plan →";
           }
           estado.appendChild(link);
         })
         .catch(function (error) {
           guardar.disabled = false;
-          guardar.textContent = "Guardar como idea";
+          guardar.textContent = "Guardar para después";
           estado.textContent = error.message;
         });
     });

@@ -84,11 +84,11 @@ def guardados():
     return render_template(
         "planes_lista.html",
         titulo="Ideas guardadas",
-        subtitulo="Tus ideas de plan, sin fecha: postulalas en un grupo para que la voten.",
+        subtitulo="Tus planes sin fecha: proponelos en un grupo para que los voten.",
         planes=planes,
         mostrar_fecha=False,
         mostrar_quitar_guardado=True,
-        vacio="No guardaste ninguna idea todavía. Creá una o guardá una desde Social.",
+        vacio="No guardaste ningún plan todavía. Creá uno o guardá uno desde Social.",
     )
 
 
@@ -100,7 +100,7 @@ def archivados():
     return render_template(
         "planes_lista.html",
         titulo="Planes archivados",
-        subtitulo="Planes que ya hiciste. También los podés volver a postular como idea en un grupo.",
+        subtitulo="Planes que ya hiciste. También los podés volver a proponer en un grupo.",
         planes=planes,
         mostrar_fecha=True,
         mostrar_quitar_guardado=False,
@@ -170,7 +170,7 @@ def nueva_idea():
                 "hora": hora_lugar or None,
             })
 
-        error = "" if nombre else "La idea necesita un nombre."
+        error = "" if nombre else "El plan necesita un nombre."
         if not error:
             try:
                 plan_id = plan_service.crear_idea(
@@ -179,11 +179,11 @@ def nueva_idea():
                     descripcion=descripcion or None,
                     lugares=lugares,
                 )
-                flash("Idea creada y guardada. Postulala en un grupo cuando quieras.", "success")
+                flash("Plan guardado. Proponelo en un grupo cuando quieras.", "success")
                 return redirect(url_for("planes.detalle", plan_id=plan_id))
             except Exception as e:
                 print(f"Error al crear idea: {e}")
-                error = "Hubo un error al crear la idea. Intentá de nuevo."
+                error = "Hubo un error al crear el plan. Intentá de nuevo."
 
         return render_template(
             "planes_nuevo.html",

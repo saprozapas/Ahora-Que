@@ -39,7 +39,7 @@
 
     <div class="cal__controles">
 
-      <nav class="tabs cal__vistas" aria-label="Vista del calendario">
+      <nav class="tabs cal__vistas" aria-label="Vista del calendario" data-guia-id="calendario-vistas" data-guia-orden="1" data-guia-titulo="Semana o mes" data-guia-texto="Cambiá entre la vista de la semana, con el detalle de cada día, y la del mes completo.">
         <a class="tab" href="{{ url_for('calendario.ver_calendario', vista='semana') }}"
            {% if vista == 'semana' %}aria-current="page"{% endif %}>Semana</a>
         <a class="tab" href="{{ url_for('calendario.ver_calendario') }}"

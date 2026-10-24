@@ -49,11 +49,11 @@
             {% else %}
               Tu inbox está al día.
             {% endif %}
-            Armá una idea y postulala en un grupo para que la voten.
+            Armá un plan y proponelo en un grupo para que lo voten.
           </p>
 
           <div class="actions">
-            <a class="btn btn--primary btn--lg" href="/planes/nueva-idea">Crear idea</a>
+            <a class="btn btn--primary btn--lg" href="/planes/nueva-idea">Crear un plan</a>
             <a class="btn btn--ghost btn--lg" href="/tutorial">Cómo usar la app</a>
             {% if pendientes %}
             <a class="btn btn--secondary btn--lg" href="/inbox">Ver inbox <span class="badge">{{ pendientes }}</span></a>
@@ -65,7 +65,8 @@
 
         {# Cuenta regresiva al próximo plan confirmado (se actualiza sola en el navegador). #}
         {% if proximo_plan %}
-        <aside class="card proximo" aria-label="Tu próximo plan" data-proximo>
+        <aside class="card proximo" aria-label="Tu próximo plan" data-proximo data-guia-id="inicio-proximo" data-guia-orden="4"
+               data-guia-titulo="Tu próximo plan" data-guia-texto="La cuenta regresiva y el mapa de la salida confirmada. Desde ahí podés ver quiénes van y a qué distancia están.">
           <p class="proximo__etiqueta">Tu próximo plan</p>
           <h2 class="proximo__nombre"><a href="/planes/{{ proximo_plan.id }}">{{ proximo_plan.nombre }}</a></h2>
           <p class="meta proximo__donde">
@@ -89,18 +90,40 @@
 
     <section class="container page dash-body">
 
+      {# Primeros pasos: se tildan solos y la tarjeta desaparece al completarse (o si la persona la oculta). #}
+      {% if primeros_pasos and not primeros_pasos.completo %}
+      <aside class="primeros" data-primeros aria-labelledby="primeros-titulo" hidden>
+        <header class="primeros__cab">
+          <h2 class="h3" id="primeros-titulo">Primeros pasos</h2>
+          <span class="meta">{{ primeros_pasos.hechos }} de {{ primeros_pasos.total }}</span>
+          <span class="primeros__barra" aria-hidden="true"><span style="width: {{ (primeros_pasos.hechos / primeros_pasos.total * 100) | round | int }}%"></span></span>
+          <button class="primeros__cerrar" type="button" data-primeros-cerrar aria-label="Ocultar los primeros pasos" title="Ocultar">×</button>
+        </header>
+        <ol class="primeros__lista">
+          {% for paso in primeros_pasos.pasos %}
+          <li class="primeros__paso{% if paso.hecho %} is-hecho{% elif loop.index0 == primeros_pasos.siguiente %} is-siguiente{% endif %}">
+            <a href="{{ paso.href }}">
+              <span class="primeros__marca" aria-hidden="true">{% if paso.hecho %}✓{% else %}{{ loop.index }}{% endif %}</span>
+              <span class="primeros__texto"><strong>{{ paso.titulo }}</strong><small>{{ paso.detalle }}</small></span>
+            </a>
+          </li>
+          {% endfor %}
+        </ol>
+      </aside>
+      {% endif %}
+
       <div class="dash-section dash-pend">
 
         <div class="dash-pend__cab">
-          <h2 class="h3">Te toca a vos</h2>
-          <span class="meta">Avisos de votación de tus grupos</span>
+          <h2 class="h3" data-guia-id="inicio-avisos" data-guia-orden="2"              data-guia-titulo="Te toca a vos" data-guia-texto="Acá aparece lo que espera tu respuesta: votaciones, horarios y menciones de tus grupos. Tocá un aviso para ir directo.">Te toca a vos</h2>
+          <span class="meta">Avisos de tus grupos</span>
           <span class="badge dash-pend__total" data-pend-contador{% if not pendientes_datos or not pendientes_datos.total %} hidden{% endif %}>{{ pendientes_datos.total if pendientes_datos else 0 }}</span>
           <span class="board__nav dash-pend__nav" data-pend-nav hidden>
             <span class="meta" data-pend-pagina>1 de 1</span>
-            <button class="icon-btn" type="button" data-pend-prev aria-label="Votaciones anteriores">
+            <button class="icon-btn" type="button" data-pend-prev aria-label="Avisos anteriores">
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
             </button>
-            <button class="icon-btn" type="button" data-pend-next aria-label="Votaciones siguientes">
+            <button class="icon-btn" type="button" data-pend-next aria-label="Avisos siguientes">
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
             </button>
           </span>
@@ -109,7 +132,7 @@
         {# Se actualiza solo: app.js vuelve a pedir el panel cada pocos segundos (y al volver a la pestaña). #}
         <div class="dash-pend__cuerpo" data-pend data-url="/inicio/pendientes" data-intervalo="8000" aria-live="polite">
           {% if pendientes_datos is none %}
-          <div class="pend-vacio"><p class="voice"><strong>No pudimos cargar tus votaciones.</strong> Reintentamos en unos segundos.</p></div>
+          <div class="pend-vacio"><p class="voice"><strong>No pudimos cargar tus avisos.</strong> Reintentamos en unos segundos.</p></div>
           {% else %}
           {% set p = pendientes_datos %}
           {% include '_inicio_pendientes.html' %}
@@ -123,7 +146,7 @@
       <div class="dash-section dash-sug">
 
         <div class="dash-pend__cab">
-          <h2 class="h3">Para vos esta semana</h2>
+          <h2 class="h3" data-guia-id="inicio-sugeridos" data-guia-orden="3"              data-guia-titulo="Planes para vos" data-guia-texto="Cada semana el asistente te sugiere tres planes según tus gustos. Guardalos para después y proponelos a un grupo.">Para vos esta semana</h2>
           <span class="meta">Sugeridos por el asistente · cambian cada lunes</span>
         </div>
 
@@ -304,7 +327,7 @@
       </div>
 
       <div class="landing-demo__group">
-        <h3>Tres ideas para ustedes</h3>
+        <h3>Tres planes para ustedes</h3>
         <span class="meta">Ordenadas por distancia</span>
       </div>
 
@@ -359,8 +382,8 @@
       <li>
         <span class="meta">2</span>
         <div>
-          <h3 class="h3">Propongan ideas.</h3>
-          <p class="body">Cada uno postula planes con lugar, costo y duración. El grupo los vota y elige cuándo.</p>
+          <h3 class="h3">Propongan planes.</h3>
+          <p class="body">Cada uno propone planes con lugar, costo y duración. El grupo los vota y elige cuándo.</p>
         </div>
       </li>
       <li>
@@ -395,8 +418,8 @@
         <p>En tu calendario, mes a mes, y en Planes, dentro de Confirmados.</p>
       </details>
       <details>
-        <summary>¿Puedo guardar una idea para más adelante?</summary>
-        <p>Sí. La guardás en tus ideas y la postulás en un grupo cuando quieras.</p>
+        <summary>¿Puedo guardar un plan para más adelante?</summary>
+        <p>Sí. Lo guardás en "Para después" y lo proponés en un grupo cuando quieras.</p>
       </details>
       <details>
         <summary>¿Se puede puntuar un plan?</summary>

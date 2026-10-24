@@ -492,7 +492,7 @@ async function pedirPlanAlAsistente(pedido, anclaMensajeId, esperando) {
         const textoRespuesta = String(datos.respuesta || "").trim();
         const pareceJson = /^(?:\{|\[)/.test(textoRespuesta);
         parrafo.textContent = datos.borrador
-            ? "Armé esta propuesta para el grupo. Si les cierra, postúlenla: el horario se define en la votación."
+            ? "Armé esta propuesta para el grupo. Si les cierra, propónganla: el horario se define al votar."
             : (pareceJson ? "No pude armar una propuesta legible. Probá describiendo de nuevo qué plan quieren." : textoRespuesta);
         burbuja.appendChild(parrafo);
         if (!datos.borrador) salida.appendChild(burbuja);
@@ -521,7 +521,7 @@ async function pedirPlanAlAsistente(pedido, anclaMensajeId, esperando) {
             const publicar = document.createElement("button");
             publicar.type = "button";
             publicar.className = "btn btn--primary";
-            publicar.textContent = "Postular al grupo para votar →";
+            publicar.textContent = "Proponer al grupo →";
             const estaTarjeta = {
                 mensajeId: datos.borrador.mensaje_id,
                 boton: publicar,
@@ -547,7 +547,7 @@ async function confirmarBorradorVotable(borrador) {
     borrador = borrador || borradorVotableActivo;
     if (!borrador) return;
     borrador.boton.disabled = true;
-    borrador.boton.textContent = "Postulando…";
+    borrador.boton.textContent = "Proponiendo…";
     try {
         const guardado = await fetch("/chatbot/confirmar_plan", {
             method: "POST",
@@ -559,11 +559,11 @@ async function confirmarBorradorVotable(borrador) {
             })
         });
         const resultado = await guardado.json();
-        if (!guardado.ok) throw new Error(resultado.error || "No se pudo abrir la votación.");
+        if (!guardado.ok) throw new Error(resultado.error || "No se pudo proponer el plan al grupo.");
         window.location.href = resultado.votacion_url;
     } catch (error) {
         borrador.boton.disabled = false;
-        borrador.boton.textContent = error.message || "Postular al grupo para votar →";
+        borrador.boton.textContent = error.message || "Proponer al grupo →";
     }
 }
 

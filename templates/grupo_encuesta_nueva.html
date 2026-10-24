@@ -49,6 +49,11 @@
               </div>
             </fieldset>
 
+
+            <details class="encuesta-prefs mas-opciones"{% if valores.get('nivel_precio') or valores.getlist('tipos') or valores.get('barrio') or valores.get('distancia_km') %} open{% endif %}>
+              <summary>Más opciones <span class="meta">zona, precio y tipo de lugar</span></summary>
+              <div class="encuesta-prefs__cuerpo">
+
             <fieldset class="field-group">
               <legend>¿Dónde? <span class="meta">(opcional)</span></legend>
               <div class="nueva-encuesta__donde">
@@ -71,9 +76,6 @@
               <p class="meta encuesta-zona__estado" data-ubicacion-estado role="status"></p>
             </fieldset>
 
-            <details class="encuesta-prefs"{% if valores.get('nivel_precio') or valores.getlist('tipos') %} open{% endif %}>
-              <summary>Preferencias <span class="meta">(opcional)</span></summary>
-              <div class="encuesta-prefs__cuerpo">
 
                 <div class="field">
                   <label for="nivel_precio">Precio máximo por lugar</label>

@@ -20,8 +20,8 @@ plan_service = PlanService()
 
 MENSAJES_RESULTADO = {
     "confirmado": "¡Votaron todos y el plan quedó confirmado! Ya está en el calendario de los que pueden.",
-    "rechazado": "Votaron todos: la idea no juntó suficientes \"me gusta\" y se descartó.",
-    "esperando_horario": "La idea gustó, pero no pueden en ese horario. Propongan otro.",
+    "rechazado": "Votaron todos: el plan no juntó suficientes \"me gusta\" y se descartó.",
+    "esperando_horario": "El plan gustó, pero no pueden en ese horario. Propongan otro.",
 }
 
 MENSAJES_HORARIO = {
@@ -33,7 +33,7 @@ MENSAJES_HORARIO = {
 MENSAJES_ENCUESTA = {
     "otros_planes": "Ganó «ninguna me convence»: se armaron otros planes para elegir.",
     "desempate": "Hubo empate: se vota de nuevo entre las opciones más votadas.",
-    "plan_creado": "¡Ya hay plan elegido! Ahora el grupo vota si le gusta la idea y si puede en ese horario.",
+    "plan_creado": "¡Ya hay plan elegido! Ahora el grupo vota si le gusta el plan y si puede en ese horario.",
     "cancelada": "Encuesta cancelada.",
 }
 
@@ -84,16 +84,16 @@ def postular(group_id):
         try:
             idea_id = request.form.get("idea_id", "").strip()
             if not idea_id:
-                raise GrupoPlanError("Elegí una idea para postular.")
+                raise GrupoPlanError("Elegí un plan para proponer.")
             fecha, hora = _leer_fecha_hora()
             grupo_plan_service.postular_idea(group_id, user_id, idea_id, fecha, hora)
         except GrupoPlanError as e:
             error = str(e)
         except Exception as e:
             print(f"Error al postular idea: {e}")
-            error = "No se pudo postular la idea. Intentá de nuevo."
+            error = "No se pudo proponer el plan. Intentá de nuevo."
         else:
-            flash("Idea postulada: ahora el grupo la vota.")
+            flash("Plan propuesto: ahora el grupo lo vota.")
             return _volver(group_id)
 
     return render_template(

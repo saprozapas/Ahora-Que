@@ -10,8 +10,8 @@ from services.precio_lugar import rango_de_nivel, sumar_rangos
 
 # Texto para mostrar cada estado en pantalla.
 ESTADOS_PLAN = {
-    "idea": "Idea",
-    "votacion": "En votación",
+    "idea": "Para después",
+    "votacion": "Para votar",
     "esperando_horario": "Esperando horario",
     "confirmado": "Confirmado",
     "rechazado": "Descartado",

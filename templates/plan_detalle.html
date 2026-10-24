@@ -26,8 +26,8 @@
 
           <p class="plan-detail__meta">
             {% if plan.estado == 'idea' %}
-              <span class="tag">Idea</span>
-              <span class="meta">Sin fecha: se elige al postularla en un grupo.</span>
+              <span class="tag">Para después</span>
+              <span class="meta">Sin fecha: se elige al proponerlo en un grupo.</span>
             {% else %}
               <span class="tag{% if plan.estado == 'confirmado' %} tag--ink{% endif %}">{{ plan.estado_texto }}</span>
               {% if plan.fecha %}
@@ -112,7 +112,7 @@
 
         {# Mapa: solo para quienes van a un plan confirmado, hasta que termina. La ubicación de cada uno es opcional. #}
         {% if plan.estado == 'confirmado' and plan.confirmado %}
-        <section class="plan-detail__block mapa-plan" id="mapa" aria-labelledby="mapa-titulo" data-mapa-plan data-plan-id="{{ plan.id }}">
+        <section class="plan-detail__block mapa-plan" id="mapa" aria-labelledby="mapa-titulo" data-guia-id="plan-mapa" data-guia-orden="1" data-guia-titulo="El mapa de la salida" data-guia-texto="Ves el lugar y, si cada uno quiere, dónde está cada persona. Compartir tu ubicación es opcional." data-mapa-plan data-plan-id="{{ plan.id }}">
 
           <h2 class="h3" id="mapa-titulo">Mapa del plan</h2>
           <p class="meta mapa-plan__nota">Lo ven solo quienes van, hasta que termina. Compartir tu ubicación es opcional.</p>
@@ -180,11 +180,11 @@
 
           {% if plan.guardado %}
           <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}">
-            <button class="btn btn--secondary btn--lg" type="submit">Quitar de ideas guardadas</button>
+            <button class="btn btn--secondary btn--lg" type="submit">Quitar de planes guardados</button>
           </form>
           {% else %}
           <form method="post" action="{{ url_for('planes.guardar', plan_id=plan.id) }}">
-            <button class="btn btn--secondary btn--lg" type="submit">Guardar como idea</button>
+            <button class="btn btn--secondary btn--lg" type="submit">Guardar para después</button>
           </form>
           {% endif %}
 

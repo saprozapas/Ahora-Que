@@ -35,6 +35,47 @@ class InicioService:
         datos["total"] += len(menciones)
         return datos
 
+    def primeros_pasos(self, user_id):
+        """Los cuatro primeros pasos para empezar, con cuáles ya se hicieron (se tildan solos con lo que hace la
+        persona, sin guardar nada). {"pasos": [...], "hechos": n, "total": 4, "completo": bool, "siguiente": índice}."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT
+                      EXISTS (SELECT 1 FROM public."Usuario-Grupo" WHERE "Id_Usuario" = %(uid)s),
+                      EXISTS (SELECT 1 FROM public."Amistades" WHERE %(uid)s IN ("Id_Usuario1", "Id_Usuario2"))
+                        OR EXISTS (SELECT 1 FROM public."Usuario-Grupo" a WHERE a."Id_Usuario" = %(uid)s
+                                    AND (SELECT COUNT(*) FROM public."Usuario-Grupo" b WHERE b."Id_Grupo" = a."Id_Grupo") > 1),
+                      EXISTS (SELECT 1 FROM public."Plan" WHERE "Creado_Por" = %(uid)s),
+                      EXISTS (SELECT 1 FROM public."Plan_Voto" WHERE "Id_Usuario" = %(uid)s)
+                        OR EXISTS (SELECT 1 FROM public."Usuario-Plan" WHERE "Usuario_id" = %(uid)s AND "Confirmado")
+                    """,
+                    {"uid": user_id},
+                )
+                hechos = [bool(x) for x in cursor.fetchone()]
+        except psycopg2.Error:
+            raise
+        finally:
+            release_db_connection(connection)
+
+        definicion = [
+            ("Armá un grupo", "Para planear con tus amigos", "/grupos/nuevo"),
+            ("Sumá a alguien", "Un amigo o alguien de tu grupo", "/amigos"),
+            ("Armá un plan", "Con lugares, solo o con el asistente", "/planes/nueva-idea"),
+            ("Votá o confirmá una salida", "Así se decide entre todos", "/grupos"),
+        ]
+        pasos = [{"titulo": t, "detalle": d, "href": h, "hecho": ok} for (t, d, h), ok in zip(definicion, hechos)]
+        pendientes = [i for i, p in enumerate(pasos) if not p["hecho"]]
+        return {
+            "pasos": pasos,
+            "hechos": len(pasos) - len(pendientes),
+            "total": len(pasos),
+            "completo": not pendientes,
+            "siguiente": pendientes[0] if pendientes else None,
+        }
+
     def proximo_plan(self, user_id):
         """El plan confirmado más cercano al que el usuario va, o None.
 

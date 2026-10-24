@@ -62,5 +62,5 @@ def guardar_sugerencia(sugerencia_id):
     if not idea_id:
         flash("No pudimos guardar esa sugerencia. Probá de nuevo.")
         return redirect("/dashboard")
-    flash("Idea guardada en tus planes. Ahora podés postularla en un grupo.")
+    flash("Guardado en tus planes. Ahora podés proponerlo en un grupo.")
     return redirect(url_for("planes.detalle", plan_id=idea_id))

@@ -61,17 +61,20 @@
           />
         </div>
 
-        <div class="field">
-          <label for="description">Descripción</label>
-          <input
-            class="input"
-            id="description"
-            name="description"
-            type="text"
-            placeholder="Ej. Amigos de la facultad"
-            value="{{ form_data.description | default('', true) }}"
-          />
-        </div>
+        <details class="mas-opciones"{% if form_data.description %} open{% endif %}>
+          <summary>Agregar una descripción <span class="meta">opcional</span></summary>
+          <div class="field">
+            <label class="visually-hidden" for="description">Descripción</label>
+            <input
+              class="input"
+              id="description"
+              name="description"
+              type="text"
+              placeholder="Ej. Amigos de la facultad"
+              value="{{ form_data.description | default('', true) }}"
+            />
+          </div>
+        </details>
 
         <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">
           Crear grupo <span class="btn__hint" aria-hidden="true">↵</span>

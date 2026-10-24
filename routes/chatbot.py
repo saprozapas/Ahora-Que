@@ -284,7 +284,7 @@ def confirmar_plan():
         )
     except Exception as e:
         print(f"Error al guardar la idea del chatbot: {e}")
-        return _error("No se pudo guardar la idea. Intentá de nuevo.", 500)
+        return _error("No se pudo guardar el plan. Intentá de nuevo.", 500)
 
     respuesta = {"status": "ok", "plan_id": str(plan_id), "url": url_for("planes.detalle", plan_id=plan_id)}
 
@@ -297,7 +297,7 @@ def confirmar_plan():
             return _error(str(e), 400)
         except Exception as e:
             print(f"Error al abrir la votación del chatbot: {e}")
-            return _error("La idea se guardó, pero no se pudo abrir la votación.", 500)
+            return _error("El plan se guardó, pero no se pudo proponer al grupo.", 500)
         respuesta["plan_grupo_id"] = str(plan_grupo_id)
         respuesta["votacion_url"] = (
             url_for("group_auth.detalle_grupo", group_id=grupo_id)
