@@ -465,3 +465,7 @@
   .dash-pend__cab > .meta { display: none; }
   .dash-pend__cab .h3 { white-space: nowrap; }
 }
+
+/* "Todo al día": más chico que el saludo de arriba, que es lo principal de la pantalla. */
+.pend-vacio { padding: var(--s-4) var(--s-5); }
+.pend-vacio .voice { font-size: 1.0625rem; line-height: 1.4; max-width: none; }
