@@ -2,68 +2,90 @@
 
 {% block title %}Agregar deuda — Ahora Qué{% endblock %}
 
+{% macro cara(nombre, tam=34) -%}
+<span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: {{ tam }}px" aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
+{%- endmacro %}
+
 {% block content %}
 
-<div class="dashboard-layout dashboard-layout-page">
+{# =========================================================================
+   AGREGAR DEUDA
+
+   A la izquierda, el nombre de la salida y el buscador; a la derecha, quiénes fueron y cuánto gastó y pagó cada uno.
+   Los nombres de los campos no cambian: los lee routes/deudas.py.
+   ========================================================================= #}
+
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
 
-<section class="container page">
+<section class="container page deuda-nueva">
 
   <a class="back-link" href="{{ url_for('deudas.deudas') }}">← Deudas</a>
 
   <header class="page-head">
     <h1 class="h2">Agregar deuda.</h1>
-    <p class="lead">Tildá con quién salieron y cargá cuánto gastó y cuánto pagó cada uno (incluido vos). Se calcula en el momento quién le paga a quién.</p>
+    <p class="lead">Tildá con quién salieron y cargá cuánto gastó y cuánto pagó cada uno, incluido vos. Se calcula en el momento quién le paga a quién.</p>
   </header>
 
   {% if candidatos %}
-  <form method="post" action="{{ url_for('deudas.nueva') }}" class="stack-y">
+  <form method="post" action="{{ url_for('deudas.nueva') }}" class="deuda-nueva__form">
     {% if id_grupo %}<input type="hidden" name="grupo" value="{{ id_grupo }}">{% endif %}
 
-    <div>
-      <label for="descripcion">Nombre de la salida (opcional)</label>
-      <input class="input" id="descripcion" name="descripcion" type="text" maxlength="100" value="{{ form.get('descripcion', '') }}">
+    <div class="card deuda-nueva__meta">
+
+      <div class="field">
+        <label for="descripcion">Nombre de la salida <span class="meta">(opcional)</span></label>
+        <input class="input" id="descripcion" name="descripcion" type="text" maxlength="100" placeholder="Ej.: Cena del viernes" value="{{ form.get('descripcion', '') }}">
+      </div>
+
+      <div class="field">
+        <label for="buscar">Buscar a quién agregar</label>
+        <input class="input" id="buscar" type="search" placeholder="Nombre" autocomplete="off" data-buscar>
+        <p class="meta" data-sin-resultados style="display:none">No hay nadie con ese nombre.</p>
+      </div>
+
+      <p class="deuda-nueva__ayuda">Gastó es lo que consumió cada uno; pagó, lo que puso de su bolsillo. La diferencia dice quién le debe a quién.</p>
+
+      <button class="btn btn--primary btn--lg" type="submit">Calcular y guardar</button>
+
     </div>
 
-    <div>
-      <label for="buscar">Buscar a quién agregar</label>
-      <input class="input" id="buscar" type="search" placeholder="Nombre" autocomplete="off" data-buscar>
-      <p class="meta" data-sin-resultados style="display:none">No hay nadie con ese nombre.</p>
-    </div>
+    <ul class="deuda-nueva__personas">
 
-    <ul class="menu-list">
-
-      <li class="card card--pad stack-y">
-        <strong>Vos</strong>
-        <div class="field-row">
-          <input class="input" name="gasto_yo" inputmode="decimal" placeholder="Cuánto gastó" aria-label="Cuánto gastaste vos" value="{{ form.get('gasto_yo', '') }}">
-          <input class="input" name="pago_yo" inputmode="decimal" placeholder="Cuánto pagó" aria-label="Cuánto pagaste vos" value="{{ form.get('pago_yo', '') }}">
+      <li class="persona persona--yo">
+        <div class="persona__cab">
+          {{ cara(current_user.name | default('Vos', true)) }}
+          <strong>Vos</strong>
+        </div>
+        <div class="persona__montos">
+          <label class="monto-campo"><span>Gastó</span><input class="input" name="gasto_yo" inputmode="decimal" placeholder="0" aria-label="Cuánto gastaste vos" value="{{ form.get('gasto_yo', '') }}"></label>
+          <label class="monto-campo"><span>Pagó</span><input class="input" name="pago_yo" inputmode="decimal" placeholder="0" aria-label="Cuánto pagaste vos" value="{{ form.get('pago_yo', '') }}"></label>
         </div>
       </li>
 
       {% for c in candidatos %}
       {% set tildado = (c.id in form.getlist('participantes')) if form else marcar_todos %}
-      <li class="card card--pad stack-y" data-persona data-nombre="{{ c.nombre | lower }}">
-        <label class="item">
-          <input type="checkbox" name="participantes" value="{{ c.id }}" data-tick {{ 'checked' if tildado }}>
+      <li class="persona{% if tildado %} is-activa{% endif %}" data-persona data-nombre="{{ c.nombre | lower }}">
+        <label class="persona__cab">
+          <input class="persona__tick" type="checkbox" name="participantes" value="{{ c.id }}" data-tick {{ 'checked' if tildado }}>
+          {{ cara(c.nombre) }}
           <strong>{{ c.nombre }}</strong>
         </label>
-        <div class="field-row" data-montos{% if not tildado %} style="display:none"{% endif %}>
-          <input class="input" name="gasto_{{ c.id }}" inputmode="decimal" placeholder="Cuánto gastó" aria-label="Cuánto gastó {{ c.nombre }}" value="{{ form.get('gasto_' ~ c.id, '') }}">
-          <input class="input" name="pago_{{ c.id }}" inputmode="decimal" placeholder="Cuánto pagó" aria-label="Cuánto pagó {{ c.nombre }}" value="{{ form.get('pago_' ~ c.id, '') }}">
+        <div class="persona__montos" data-montos{% if not tildado %} style="display:none"{% endif %}>
+          <label class="monto-campo"><span>Gastó</span><input class="input" name="gasto_{{ c.id }}" inputmode="decimal" placeholder="0" aria-label="Cuánto gastó {{ c.nombre }}" value="{{ form.get('gasto_' ~ c.id, '') }}"></label>
+          <label class="monto-campo"><span>Pagó</span><input class="input" name="pago_{{ c.id }}" inputmode="decimal" placeholder="0" aria-label="Cuánto pagó {{ c.nombre }}" value="{{ form.get('pago_' ~ c.id, '') }}"></label>
         </div>
       </li>
       {% endfor %}
 
     </ul>
 
-    <button class="btn btn--primary btn--lg" type="submit">Calcular y guardar</button>
   </form>
   {% else %}
-  <p class="meta">
+  <p class="deudas__vacio">
     {% if id_grupo %}Este grupo todavía no tiene más integrantes.{% else %}Todavía no tenés amigos agregados. Sumalos desde <a href="/amigos">Amigos</a>.{% endif %}
   </p>
   {% endif %}
@@ -80,13 +102,14 @@
   var personas = document.querySelectorAll('[data-persona]');
   var vacio = document.querySelector('[data-sin-resultados]');
   // Sin tildes ni mayúsculas: "jose" encuentra "José".
-  function limpio(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+  function limpio(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
 
   personas.forEach(function (li) {
     var tick = li.querySelector('[data-tick]');
     var montos = li.querySelector('[data-montos]');
     tick.addEventListener('change', function () {
       montos.style.display = tick.checked ? '' : 'none';
+      li.classList.toggle('is-activa', tick.checked);
       if (tick.checked) { montos.querySelector('input').focus(); }
       else { montos.querySelectorAll('input').forEach(function (i) { i.value = ''; }); }
     });

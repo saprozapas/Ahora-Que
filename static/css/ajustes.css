@@ -823,3 +823,157 @@
 .plan-detail .page-head .plan-titulo { text-shadow: none; }
 
 .mapa-pin em { max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+
+
+/* ==========================================================================
+   PROFUNDIDAD, 2.ª parte: formularios, pestañas, chat, Social, Grupos y Calendario
+   Los campos son "pozos" (hundidos); lo que se toca para elegir, un relieve; las tarjetas, planos que flotan.
+   ========================================================================== */
+
+/* --- Campos: hundidos, con un halo suave al enfocar --- */
+.input, textarea.input, select.input { box-shadow: inset 0 1px 2px rgb(16 24 40 / 0.07), 0 1px 0 rgb(255 255 255 / 0.8); }
+.input:hover:not(:focus):not(:disabled) { border-color: color-mix(in srgb, var(--ink) 72%, transparent); }
+.input:focus { border-color: var(--ink); box-shadow: inset 0 1px 2px rgb(16 24 40 / 0.04), 0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent); }
+:root[data-theme="night"] .input, :root[data-theme="night"] textarea.input { background: color-mix(in srgb, var(--paper) 62%, var(--surface)); box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.55), 0 1px 0 rgb(255 255 255 / 0.04); }
+:root[data-theme="night"] .input:focus { box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.45), 0 0 0 4px color-mix(in srgb, var(--accent) 28%, transparent); }
+
+/* --- Pestañas, chips y segmentados: la barra es un canal hundido y la opción activa, una pieza en relieve --- */
+.tabs, .seg, .chip-row--seg { box-shadow: inset 0 1px 2px rgb(16 24 40 / 0.08), inset 0 0 0 1px var(--line); }
+.tab[aria-current="page"], .tab[aria-selected="true"],
+.seg button[aria-pressed="true"], .chip[aria-pressed="true"] { box-shadow: var(--sh-card); }
+:root[data-theme="night"] .tabs, :root[data-theme="night"] .seg { box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.5), inset 0 0 0 1px var(--line); }
+
+/* --- Chat: la conversación es un pozo; las burbujas, piezas que sobresalen --- */
+.chat__messages { background: var(--paper-deep); box-shadow: inset 0 1px 3px rgb(16 24 40 / 0.08), inset 0 0 0 1px var(--line); }
+:root[data-theme="night"] .chat__messages { background: color-mix(in srgb, var(--paper) 75%, var(--paper-deep)); box-shadow: inset 0 1px 4px rgb(0 0 0 / 0.55), inset 0 0 0 1px var(--line); }
+.chat-bubble { box-shadow: var(--sh-card); }
+.chat-message.is-own .chat-bubble { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 2px rgb(16 24 40 / 0.25), 0 10px 16px -10px rgb(16 24 40 / 0.5); }
+.chat-bar__input.input, .chat-bar .input { height: 50px; }
+
+/* --- Social: las publicaciones son tarjetas que flotan, y suben al pasar el mouse --- */
+.soc-tarjeta { background: var(--surface); border: 0; box-shadow: var(--sh-card); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .soc-tarjeta { transition: box-shadow var(--d-base) var(--ease-out), transform var(--d-base) var(--ease-out); }
+  .soc-tarjeta:hover { box-shadow: var(--sh-lift); }
+}
+.soc-modal-post { background: var(--surface); border-radius: var(--r-xl); box-shadow: var(--sh-float); }
+.soc-tab, .soc-tabs .tab { transition: box-shadow var(--d-fast) var(--ease-out), background-color var(--d-fast) var(--ease-out); }
+.soc-comentario { background: transparent; }
+
+/* --- Grupos: planes del grupo, estados vacíos y menús --- */
+.board-plan { box-shadow: var(--sh-card); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .board-plan { transition: box-shadow var(--d-base) var(--ease-out), transform var(--d-base) var(--ease-out); }
+  .board-plan:hover { box-shadow: var(--sh-lift); }
+}
+.empty-state { background: color-mix(in srgb, var(--surface) 55%, transparent); border-radius: var(--r-lg); box-shadow: inset 0 0 0 1px var(--line); padding: var(--s-5); }
+.idea-menu__panel { box-shadow: var(--sh-float); border-radius: var(--r-lg); }
+.brief { position: relative; }
+
+/* --- Calendario: la grilla es una sola pieza que flota; el día de hoy y los planes se distinguen --- */
+.cal__grid.card { box-shadow: var(--sh-card); border-radius: var(--r-lg); }
+.cal__day { transition: background-color var(--d-fast) var(--ease-out); }
+.cal__day:not(.is-empty):hover { background: var(--surface-2); }
+.cal__day.is-today { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); box-shadow: inset 0 0 0 1.5px var(--ink); }
+.cal__plan { border-radius: var(--r-sm); transition: background-color var(--d-fast) var(--ease-out); }
+.cal__plan:hover { background: var(--paper-deep); }
+.cal-dia { box-shadow: var(--sh-card); }
+.cal-evento { background: var(--paper-deep); box-shadow: inset 0 0 0 1px var(--line); transition: background-color var(--d-fast) var(--ease-out), box-shadow var(--d-base) var(--ease-out), transform var(--d-fast) var(--ease-out); }
+@media (hover: hover) { .cal-evento:hover { background: var(--surface); box-shadow: var(--sh-card); transform: translateY(-1px); } }
+
+/* --- Ventanas y menús: lo más alto de todo, con el fondo desenfocado detrás --- */
+dialog.modal { box-shadow: var(--sh-float); border-radius: var(--r-xl); border: 0; }
+dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(6px) saturate(1.1); -webkit-backdrop-filter: blur(6px) saturate(1.1); }
+:root[data-theme="night"] dialog.modal::backdrop { background: rgb(0 0 0 / 0.62); }
+
+/* --- Listas: amigos e inbox son filas sobre superficies, con relieve suave al pasar el mouse --- */
+.friend-row.card, .inbox-item.card, .item.card { box-shadow: var(--sh-card); transition: box-shadow var(--d-base) var(--ease-out); }
+@media (hover: hover) { .friend-row.card:hover, .inbox-item.card:hover { box-shadow: var(--sh-lift); } }
+
+/* El panel de búsqueda del planificador: una bandeja suave junto a la tarjeta de la idea. */
+.planner__search { background: color-mix(in srgb, var(--surface) 50%, transparent); border-radius: var(--r-lg); box-shadow: inset 0 0 0 1px var(--line); padding: var(--s-4) var(--s-5); }
+
+
+/* El estado vacío del tablero del grupo: una bandeja con aire por los cuatro lados (antes quedaba pegado arriba). */
+.board > .empty-state, .empty-state { padding: var(--s-5) var(--s-6); gap: var(--s-2); max-width: 640px; }
+.board > .empty-state { padding-top: var(--s-5); margin-top: var(--s-2); }
+.empty-state .h3 { margin: 0; font-size: 1.125rem; }
+.empty-state p { margin: 0; }
+
+/* ==========================================================================
+   Deudas — resumen, listas de pagos y formulario para cargar una salida
+   ========================================================================== */
+.deudas { max-width: 1080px; }
+.deudas__cab { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--s-4); margin-bottom: var(--s-3); }
+.deudas__cab .lead { margin: var(--s-1) 0 0; }
+.deudas__resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 var(--s-6); padding: 0; overflow: hidden; }
+.deudas__resumen > div { display: grid; gap: 2px; padding: var(--s-4) var(--s-6); }
+.deudas__resumen > div + div { box-shadow: inset 1px 0 0 var(--line); }
+.deudas__resumen dt { color: var(--ink-3); font-size: var(--t-meta); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.deudas__resumen dd { margin: 0; font-family: var(--font-serif); font-size: clamp(1.625rem, 1.2rem + 1.2vw, 2.25rem); font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.deudas__resumen small { color: var(--ink-3); font-size: var(--t-meta); }
+.is-debo { color: var(--danger); }
+.is-cobro { color: var(--ok); }
+
+.deudas__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-6); align-items: start; }
+.deudas__col { display: grid; gap: var(--s-3); min-width: 0; }
+.deudas__col > .h3 { display: flex; align-items: baseline; gap: var(--s-2); margin: 0; font-size: 1.125rem; }
+.deudas__lista { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+.deuda { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-card); transition: box-shadow var(--d-base) var(--ease-out); }
+@media (hover: hover) { .deuda:hover { box-shadow: var(--sh-lift); } }
+.deuda__texto { display: grid; gap: 2px; min-width: 0; }
+.deuda__texto strong { font-size: var(--t-ui); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.deuda__texto small, .deuda__banco { color: var(--ink-3); font-size: 0.8125rem; }
+.deuda__banco { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.deuda__banco b { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+.deuda__copiar { padding: 1px 9px; border: 0; border-radius: var(--r-full); background: var(--paper-deep); color: var(--ink-2); font: 600 0.75rem/1.6 var(--font-sans); cursor: pointer; transition: background-color var(--d-fast) var(--ease-out); }
+.deuda__copiar:hover { background: color-mix(in srgb, var(--ink) 10%, var(--paper-deep)); }
+.deuda__copiar.is-listo { background: var(--ok-soft); color: var(--ok); }
+.deuda__monto { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.deuda__accion { grid-column: 2 / -1; margin: 0; }
+.deuda__accion .btn { width: auto; }
+.deudas__vacio { display: flex; align-items: center; gap: var(--s-3); margin: 0; padding: var(--s-4) var(--s-5); border-radius: var(--r-lg); background: color-mix(in srgb, var(--surface) 55%, transparent); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); font-size: var(--t-ui); }
+.deudas__vacio > span:first-child { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--ok-soft); color: var(--ok); font-size: 0.8125rem; font-weight: 700; flex: none; }
+
+/* --- Agregar deuda --- */
+.deuda-nueva { max-width: 1080px; }
+.deuda-nueva__form { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: var(--s-6); align-items: start; }
+.deuda-nueva__meta { display: grid; gap: var(--s-4); padding: var(--s-5); position: sticky; top: var(--s-2); }
+.deuda-nueva__meta .field { display: grid; gap: var(--s-2); }
+.deuda-nueva__meta label { font-size: var(--t-ui); font-weight: 550; }
+.deuda-nueva__ayuda { margin: 0; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--paper-deep); color: var(--ink-2); font-size: 0.8125rem; line-height: 1.45; }
+.deuda-nueva__personas { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
+.persona { display: grid; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-card); transition: box-shadow var(--d-base) var(--ease-out); }
+.persona.is-activa { box-shadow: var(--sh-lift), 0 0 0 1.5px color-mix(in srgb, var(--ink) 70%, transparent); }
+.persona__cab { display: flex; align-items: center; gap: var(--s-3); cursor: pointer; margin: 0; }
+.persona--yo .persona__cab { cursor: default; }
+.persona__cab strong { font-size: var(--t-ui); font-weight: 600; }
+.persona__tick { appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 0; border-radius: 6px; background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--line-control); cursor: pointer; display: grid; place-items: center; transition: background-color var(--d-fast) var(--ease-out), box-shadow var(--d-fast) var(--ease-out); }
+.persona__tick:checked { background: var(--ink); box-shadow: none; }
+.persona__tick:checked::after { content: ""; width: 10px; height: 5px; border-left: 2px solid var(--on-ink); border-bottom: 2px solid var(--on-ink); transform: translateY(-1px) rotate(-45deg); }
+.persona__tick:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.persona__montos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+.monto-campo { position: relative; display: block; margin: 0; }
+.monto-campo > span { position: absolute; left: var(--s-3); top: 6px; z-index: 1; color: var(--ink-3); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; pointer-events: none; }
+.monto-campo .input { height: 52px; padding: 18px var(--s-3) 0; font-size: 1rem; font-variant-numeric: tabular-nums; }
+
+@media (min-width: 901px) {
+  .deuda-nueva__personas { max-height: calc(100svh - 270px); overflow-y: auto; padding: 2px; margin: -2px; overscroll-behavior: contain; }
+  .deudas__col .deudas__lista { max-height: calc(100svh - 440px); overflow-y: auto; padding: 2px; margin: -2px; overscroll-behavior: contain; }
+}
+@media (max-width: 900px) {
+  .deudas__cols, .deuda-nueva__form { grid-template-columns: minmax(0, 1fr); }
+  .deuda-nueva__meta { position: static; }
+  .deudas__resumen > div { padding: var(--s-3) var(--s-4); }
+}
+@media (max-width: 520px) {
+  .deudas__resumen { grid-template-columns: minmax(0, 1fr); }
+  .deudas__resumen > div + div { box-shadow: inset 0 1px 0 var(--line); }
+  .deudas__resumen > div { grid-template-columns: 1fr auto; align-items: baseline; }
+  .deudas__resumen small { grid-column: 1; }
+  .deudas__resumen dd { grid-row: 1 / span 2; grid-column: 2; }
+}
+.deuda:has(.deuda__accion) { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+.deuda:has(.deuda__accion) .deuda__accion { grid-column: auto; }
+@media (max-width: 520px) { .deuda:has(.deuda__accion) { grid-template-columns: auto minmax(0, 1fr) auto; } .deuda:has(.deuda__accion) .deuda__accion { grid-column: 2 / -1; } }
+.cal__day.is-today { box-shadow: none; background: color-mix(in srgb, var(--ink) 5%, var(--surface)); }

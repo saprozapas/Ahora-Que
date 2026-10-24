@@ -4,71 +4,139 @@
 
 {% macro monto(n) -%}${{ '{:,.2f}'.format(n).replace(',', 'X').replace('.', ',').replace('X', '.') }}{%- endmacro %}
 
+{% macro cara(nombre) -%}
+<span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 38px" aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
+{%- endmacro %}
+
 {% block content %}
 
-<div class="dashboard-layout dashboard-layout-page">
+{# =========================================================================
+   DEUDAS
+
+   Arriba, un resumen con lo que debés, lo que te deben y el saldo. Debajo, dos listas: a quién le tenés que pagar
+   (con sus datos para transferir, que se copian con un toque) y quién te debe (con el botón para marcarlo pagado).
+   ========================================================================= #}
+
+{% set total_debo = debo | sum(attribute='monto') %}
+{% set total_me_deben = me_deben | sum(attribute='monto') %}
+{% set saldo = total_me_deben - total_debo %}
+
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
 
-<section class="container page">
+<section class="container page deudas">
 
   <a class="back-link" href="/dashboard">← Inicio</a>
 
-  <header class="page-head">
-    <h1 class="h2">Deudas.</h1>
-    <p class="lead">Lo que debés y lo que te deben.</p>
-    <div class="actions">
-      <a class="btn btn--primary btn--lg" href="{{ url_for('deudas.nueva') }}"><span aria-hidden="true">+</span> Agregar deuda</a>
+  <header class="page-head deudas__cab">
+    <div>
+      <h1 class="h2">Deudas.</h1>
+      <p class="lead">Lo que debés y lo que te deben, con la cuenta lista para transferir.</p>
     </div>
+    <a class="btn btn--primary btn--lg" href="{{ url_for('deudas.nueva') }}"><span aria-hidden="true">+</span> Agregar deuda</a>
   </header>
 
-  <div class="dash-section">
-    <h2 class="h3">Debés</h2>
-    {% if debo %}
-    <ul class="menu-list">
-      {% for d in debo %}
-      <li class="card item">
-        <span class="item__body">
-          <span class="item__name">{{ d.nombre }}</span>
-          <span class="item__text">Le tenés que pagar {{ monto(d.monto) }}.</span>
-          <span class="item__text">{% if d.banco %}Transferile a {{ d.banco }} · cuenta {{ d.cuenta }}{% else %}Todavía no cargó sus datos bancarios.{% endif %}</span>
-        </span>
-        <span class="badge badge--danger" aria-label="Pendiente">!</span>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="meta">No le debés nada a nadie.</p>
-    {% endif %}
-  </div>
+  <dl class="card deudas__resumen">
+    <div>
+      <dt>Debés</dt>
+      <dd class="is-debo">{{ monto(total_debo) }}</dd>
+      <small>{{ debo | length }} {{ 'pago pendiente' if debo | length == 1 else 'pagos pendientes' }}</small>
+    </div>
+    <div>
+      <dt>Te deben</dt>
+      <dd class="is-cobro">{{ monto(total_me_deben) }}</dd>
+      <small>{{ me_deben | length }} {{ 'persona' if me_deben | length == 1 else 'personas' }}</small>
+    </div>
+    <div>
+      <dt>Saldo</dt>
+      <dd>{% if saldo < 0 %}−{% endif %}{{ monto(saldo | abs) }}</dd>
+      <small>{% if saldo > 0 %}a tu favor{% elif saldo < 0 %}en contra{% else %}en cero{% endif %}</small>
+    </div>
+  </dl>
 
-  <div class="dash-section">
-    <h2 class="h3">Te deben</h2>
-    {% if me_deben %}
-    <ul class="menu-list">
-      {% for d in me_deben %}
-      <li class="card item">
-        <span class="item__body">
-          <span class="item__name">{{ d.nombre }}</span>
-          <span class="item__text">Te debe {{ monto(d.monto) }}.</span>
-        </span>
-        <form method="post" action="{{ url_for('deudas.pagada', id_deudor=d.id) }}">
-          <input type="hidden" name="monto" value="{{ d.monto }}">
-          <button class="btn btn--secondary" type="submit">Fue pagado</button>
-        </form>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="meta">Nadie te debe nada.</p>
-    {% endif %}
+  <div class="deudas__cols">
+
+    <section class="deudas__col" aria-labelledby="deudas-debo">
+      <h2 class="h3" id="deudas-debo">Debés <span class="meta">{{ debo | length }}</span></h2>
+
+      {% if debo %}
+      <ul class="deudas__lista">
+        {% for d in debo %}
+        <li class="deuda">
+          {{ cara(d.nombre) }}
+          <span class="deuda__texto">
+            <strong>{{ d.nombre }}</strong>
+            {% if d.banco %}
+            <span class="deuda__banco">
+              <span>{{ d.banco }} · cuenta <b data-cuenta>{{ d.cuenta }}</b></span>
+              <button class="deuda__copiar" type="button" data-copiar="{{ d.cuenta }}" aria-label="Copiar la cuenta de {{ d.nombre }}">Copiar</button>
+            </span>
+            {% else %}
+            <small>Todavía no cargó sus datos bancarios.</small>
+            {% endif %}
+          </span>
+          <span class="deuda__monto is-debo">{{ monto(d.monto) }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="deudas__vacio"><span aria-hidden="true">✓</span> No le debés nada a nadie.</p>
+      {% endif %}
+    </section>
+
+    <section class="deudas__col" aria-labelledby="deudas-cobro">
+      <h2 class="h3" id="deudas-cobro">Te deben <span class="meta">{{ me_deben | length }}</span></h2>
+
+      {% if me_deben %}
+      <ul class="deudas__lista">
+        {% for d in me_deben %}
+        <li class="deuda">
+          {{ cara(d.nombre) }}
+          <span class="deuda__texto">
+            <strong>{{ d.nombre }}</strong>
+            <small>Te debe</small>
+          </span>
+          <span class="deuda__monto is-cobro">{{ monto(d.monto) }}</span>
+          <form class="deuda__accion" method="post" action="{{ url_for('deudas.pagada', id_deudor=d.id) }}">
+            <input type="hidden" name="monto" value="{{ d.monto }}">
+            <button class="btn btn--secondary btn--sm" type="submit">Fue pagado</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="deudas__vacio"><span aria-hidden="true">✓</span> Nadie te debe nada.</p>
+      {% endif %}
+    </section>
+
   </div>
 
 </section>
 
   </div>
 </div>
+
+<script>
+(function () {
+  // "Copiar" deja la cuenta en el portapapeles y avisa un momento.
+  document.querySelectorAll('[data-copiar]').forEach(function (boton) {
+    boton.addEventListener('click', function () {
+      var texto = boton.dataset.copiar;
+      var listo = function () {
+        var antes = boton.textContent;
+        boton.textContent = 'Copiado';
+        boton.classList.add('is-listo');
+        setTimeout(function () { boton.textContent = antes; boton.classList.remove('is-listo'); }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(listo, function () {});
+      }
+    });
+  });
+})();
+</script>
 
 {% endblock %}
