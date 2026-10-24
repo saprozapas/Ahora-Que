@@ -981,47 +981,6 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 
 
 /* ==========================================================================
-   Navegación en tres destinos: Inicio, Planes y Gente
-   ========================================================================== */
-.nav3 { display: grid; gap: var(--s-1); align-content: start; }
-.nav3__grupo { display: grid; gap: 2px; align-content: start; }
-.nav3__grupo > .dashboard-sidebar-link::after { content: ""; margin-left: auto; width: 7px; height: 7px; border-right: 1.5px solid var(--ink-3); border-bottom: 1.5px solid var(--ink-3); transform: translateY(-2px) rotate(45deg); transition: transform var(--d-base) var(--ease-out); }
-.nav3__grupo.is-abierto > .dashboard-sidebar-link::after { transform: translateY(1px) rotate(-135deg); }
-.nav3__hijos { display: none; gap: 1px; margin: 0 0 var(--s-2) 19px; padding-left: var(--s-3); border-left: 1px solid var(--line-strong); }
-.nav3__grupo.is-abierto > .nav3__hijos { display: grid; }
-.nav3__hijo { display: flex; align-items: center; height: 34px; padding: 0 var(--s-3); border-radius: var(--r-sm); color: var(--ink-3); text-decoration: none; font-size: var(--t-ui); font-weight: 500; transition: background-color var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out); }
-.nav3__hijo:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); }
-.nav3__hijo.is-active { color: var(--ink); font-weight: 600; background: color-mix(in srgb, var(--ink) 6%, transparent); }
-
-/* Barra contraída: solo los tres íconos. */
-.dashboard-layout.is-collapsed .nav3__hijos, .dashboard-layout.is-collapsed .nav3__grupo > .dashboard-sidebar-link::after { display: none; }
-.dashboard-layout.is-collapsed .nav3 { gap: var(--s-2); }
-
-/* Campana del Inbox en el encabezado (escritorio). */
-.app-header__campana { position: relative; }
-.app-header__campana svg { width: 21px; height: 21px; }
-.app-header__actions { display: flex; align-items: center; gap: var(--s-1); }
-
-/* Celular: tres destinos arriba y, debajo, lo del destino abierto. */
-@media (max-width: 900px) {
-  .app-header__campana { display: none; }
-  .nav3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; }
-  .nav3__grupo { display: contents; }
-  .nav3 .dashboard-sidebar-link, .dashboard-layout.is-collapsed .nav3 .dashboard-sidebar-link { grid-row: 1; flex-direction: column; min-height: 52px; }
-  .nav3__grupo > .dashboard-sidebar-link::after { display: none; }
-  .nav3__hijos, .nav3__grupo.is-abierto > .nav3__hijos {
-    grid-row: 2; grid-column: 1 / -1; display: none; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px;
-    margin: 2px 0 0; padding: 3px; border: 0; border-radius: calc(var(--r-sm) + 2px); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line);
-  }
-  .nav3__grupo.is-abierto > .nav3__hijos { display: grid; }
-  .nav3__hijo { justify-content: center; height: 38px; font-size: var(--t-ui); text-align: center; padding: 0 var(--s-1); }
-}
-@media (max-width: 600px) {
-  .nav3 .dashboard-sidebar-link, .dashboard-layout.is-collapsed .nav3 .dashboard-sidebar-link { flex-direction: row; min-height: 44px; }
-}
-
-
-/* ==========================================================================
    Primeros pasos y globos de ayuda
    ========================================================================== */
 .primeros { margin-bottom: var(--s-4); padding: var(--s-3) var(--s-5) var(--s-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-card); }

@@ -91,35 +91,34 @@
   </div>
 
 
-  <nav class="dashboard-sidebar-nav nav3" aria-label="Secciones">
+  <nav class="dashboard-sidebar-nav" aria-label="Secciones">
 
-    {# Tres destinos: Inicio, Planes y Gente. Planes y Gente se abren (solo el de la pantalla actual) y muestran lo suyo. #}
-    {{ destino('/dashboard', 'inicio', 'Inicio', ruta == '/dashboard') }}
+    <div class="dashboard-sidebar-group">
+      {{ destino('/dashboard', 'inicio', 'Inicio', ruta == '/dashboard') }}
 
-    {% set act_mis_planes = en_planes %}
-    {% set act_calendario = ruta.startswith('/calendario') %}
-    {% set act_grupos = ruta.startswith('/grupos') or ruta.startswith('/racha') %}
-    {% set grupo_planes = act_mis_planes or act_calendario or act_grupos %}
-
-    <div class="nav3__grupo{% if grupo_planes %} is-abierto{% endif %}">
-      {{ destino('/planes', 'planes', 'Planes', grupo_planes) }}
-      <div class="nav3__hijos" role="group" aria-label="Planes">
-        <a class="nav3__hijo{% if act_mis_planes %} is-active{% endif %}" href="/planes"{% if act_mis_planes %} aria-current="page"{% endif %}>Mis planes</a>
-        <a class="nav3__hijo{% if act_calendario %} is-active{% endif %}" href="/calendario"{% if act_calendario %} aria-current="page"{% endif %}>Calendario</a>
-        <a class="nav3__hijo{% if act_grupos %} is-active{% endif %}" href="/grupos"{% if act_grupos %} aria-current="page"{% endif %}>Grupos</a>
-      </div>
+      {% call destino('/inbox', 'inbox', 'Inbox', ruta.startswith('/inbox'), 'solo-escritorio') %}
+        {% if notificaciones_pendientes and notificaciones_pendientes > 0 %}
+        <span class="badge dashboard-sidebar-badge" aria-label="{{ notificaciones_pendientes }} sin leer">{{ notificaciones_pendientes }}</span>
+        {% endif %}
+      {% endcall %}
     </div>
 
-    {% set act_amigos = ruta.startswith('/amigos') or ruta.startswith('/usuarios') %}
-    {% set act_social = ruta.startswith('/social') %}
-    {% set grupo_gente = act_amigos or act_social or ruta.startswith('/deudas') %}
+    <div class="dashboard-sidebar-group" role="group" aria-labelledby="sidebar-planear">
+      <p class="dashboard-sidebar-heading" id="sidebar-planear">Planear</p>
+      {{ destino('/planes', 'planes', 'Mis planes', en_planes) }}
+      {{ destino('/calendario', 'calendario', 'Calendario', ruta.startswith('/calendario')) }}
+      {{ destino('/grupos', 'grupos', 'Grupos', ruta.startswith('/grupos') or ruta.startswith('/racha')) }}
+    </div>
 
-    <div class="nav3__grupo{% if grupo_gente %} is-abierto{% endif %}">
-      {{ destino('/amigos', 'amigos', 'Gente', grupo_gente) }}
-      <div class="nav3__hijos" role="group" aria-label="Gente">
-        <a class="nav3__hijo{% if act_amigos %} is-active{% endif %}" href="/amigos"{% if act_amigos %} aria-current="page"{% endif %}>Amigos</a>
-        <a class="nav3__hijo{% if act_social %} is-active{% endif %}" href="/social"{% if act_social %} aria-current="page"{% endif %}>Social</a>
-      </div>
+    <div class="dashboard-sidebar-group" role="group" aria-labelledby="sidebar-gente">
+      <p class="dashboard-sidebar-heading" id="sidebar-gente">Gente</p>
+      {{ destino('/amigos', 'amigos', 'Amigos', ruta.startswith('/amigos') or ruta.startswith('/usuarios')) }}
+      {{ destino('/social', 'social', 'Social', ruta.startswith('/social')) }}
+      {% call destino('/deudas', 'deudas', 'Deudas', ruta.startswith('/deudas'), 'solo-escritorio') %}
+        {% if deudas_pendientes and deudas_pendientes > 0 %}
+        <span class="badge badge--danger dashboard-sidebar-badge" aria-label="Tenés deudas pendientes">{{ deudas_pendientes }}</span>
+        {% endif %}
+      {% endcall %}
     </div>
 
   </nav>
