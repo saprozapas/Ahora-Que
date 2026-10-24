@@ -235,6 +235,11 @@ class PlanService:
                     SET "Estado" = 'rechazado'
                     WHERE "Estado" = 'votacion'
                       AND "Fecha" + "Hora" < (now() AT TIME ZONE 'America/Montevideo');
+
+                    -- Las ubicaciones compartidas en el mapa del plan terminan con el plan.
+                    DELETE FROM public."Plan_Ubicacion" pu
+                    USING public."Plan" p
+                    WHERE p."id_Plan" = pu."Id_Plan" AND p."Estado" <> 'confirmado';
                     """
                 )
             connection.commit()
@@ -591,6 +596,11 @@ class PlanService:
                     DELETE FROM public."Usuario-Plan"
                     WHERE "Plan_id" = %s AND "Usuario_id" = %s
                     """,
+                    (plan_id, user_id),
+                )
+                # Si se baja del plan, deja de compartir su ubicación en el mapa.
+                cursor.execute(
+                    'DELETE FROM public."Plan_Ubicacion" WHERE "Id_Plan" = %s AND "Id_Usuario" = %s',
                     (plan_id, user_id),
                 )
             connection.commit()

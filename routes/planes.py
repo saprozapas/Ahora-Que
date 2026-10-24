@@ -1,5 +1,9 @@
+import math
+import uuid
+
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from services.plan_service import PlanService
+from services.plan_ubicacion_service import PlanUbicacionService, UbicacionNoPermitida
 from services.lugar_service import LugarService
 from services.lugar_filtros import FILTROS_LUGAR
 
@@ -8,6 +12,7 @@ FILTROS_FORMULARIO = [f for f in FILTROS_LUGAR if f.get("en_formulario", True)]
 
 planes_bp = Blueprint("planes", __name__, url_prefix="/planes")
 plan_service = PlanService()
+ubicacion_service = PlanUbicacionService()
 lugar_service = LugarService()
 
 
@@ -318,3 +323,68 @@ def detalle(plan_id):
     if plan is None:
         abort(404)
     return render_template("plan_detalle.html", plan=plan)
+
+
+# --- Mapa del plan confirmado: el lugar y, si cada uno quiere, dónde está cada asistente ------------------------
+
+def _id_valido(plan_id):
+    try:
+        return str(uuid.UUID(str(plan_id)))
+    except ValueError:
+        return None
+
+
+@planes_bp.route("/<plan_id>/mapa")
+def mapa_datos(plan_id):
+    if _sin_sesion():
+        return jsonify({"ok": False, "error": "Tu sesión venció."}), 401
+    plan_id = _id_valido(plan_id)
+    if plan_id is None:
+        return jsonify({"ok": False, "error": "Ese plan no existe."}), 404
+    try:
+        datos = ubicacion_service.datos(plan_id, session["user_id"])
+    except UbicacionNoPermitida:
+        return jsonify({"ok": False, "error": "El mapa es solo para quienes van a un plan confirmado."}), 403
+    except Exception as e:
+        print(f"No se pudo armar el mapa del plan: {e}")
+        return jsonify({"ok": False, "error": "No se pudo cargar el mapa."}), 500
+    respuesta = jsonify({"ok": True, **datos})
+    respuesta.headers["Cache-Control"] = "no-store"
+    return respuesta
+
+
+@planes_bp.route("/<plan_id>/ubicacion", methods=["POST"])
+def compartir_ubicacion(plan_id):
+    if _sin_sesion():
+        return jsonify({"ok": False, "error": "Tu sesión venció."}), 401
+    plan_id = _id_valido(plan_id)
+    datos = request.get_json(silent=True) or {}
+    try:
+        lat, lon = float(datos.get("lat")), float(datos.get("lon"))
+    except (TypeError, ValueError):
+        lat = lon = float("nan")
+    if plan_id is None or not (math.isfinite(lat) and math.isfinite(lon)) or abs(lat) > 90 or abs(lon) > 180:
+        return jsonify({"ok": False, "error": "Esa ubicación no es válida."}), 400
+    try:
+        ubicacion_service.compartir(plan_id, session["user_id"], lat, lon)
+    except UbicacionNoPermitida:
+        return jsonify({"ok": False, "error": "Solo podés compartir tu ubicación en un plan confirmado al que vas."}), 403
+    except Exception as e:
+        print(f"No se pudo guardar la ubicación: {e}")
+        return jsonify({"ok": False, "error": "No se pudo guardar tu ubicación."}), 500
+    return jsonify({"ok": True})
+
+
+@planes_bp.route("/<plan_id>/ubicacion/detener", methods=["POST"])
+def detener_ubicacion(plan_id):
+    if _sin_sesion():
+        return jsonify({"ok": False, "error": "Tu sesión venció."}), 401
+    plan_id = _id_valido(plan_id)
+    if plan_id is None:
+        return jsonify({"ok": False, "error": "Ese plan no existe."}), 404
+    try:
+        ubicacion_service.dejar_de_compartir(plan_id, session["user_id"])
+    except Exception as e:
+        print(f"No se pudo borrar la ubicación: {e}")
+        return jsonify({"ok": False, "error": "No se pudo dejar de compartir."}), 500
+    return jsonify({"ok": True})

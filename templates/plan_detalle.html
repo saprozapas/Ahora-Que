@@ -98,6 +98,31 @@
         </section>
 
 
+        {# Mapa: solo para quienes van a un plan confirmado, hasta que termina. La ubicación de cada uno es opcional. #}
+        {% if plan.estado == 'confirmado' and plan.confirmado %}
+        <section class="plan-detail__block mapa-plan" id="mapa" aria-labelledby="mapa-titulo" data-mapa-plan data-plan-id="{{ plan.id }}">
+
+          <h2 class="h3" id="mapa-titulo">Mapa del plan</h2>
+          <p class="meta mapa-plan__nota">Lo ven solo quienes van a este plan, hasta que termina. Compartir tu ubicación es opcional y podés dejar de hacerlo cuando quieras.</p>
+
+          <div class="card mapa-plan__lienzo" data-mapa-lienzo role="application" aria-label="Mapa con el lugar del plan y las personas que comparten su ubicación"></div>
+
+          <div class="mapa-plan__barra">
+            <button class="btn btn--secondary btn--sm" type="button" data-mapa-compartir>Compartir mi ubicación</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-mapa-detener hidden>Dejar de compartir</button>
+            <span class="meta" data-mapa-estado aria-live="polite"></span>
+          </div>
+
+          <ul class="mapa-plan__personas" data-mapa-personas></ul>
+
+        </section>
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+        <script defer src="{{ url_for('static', filename='mapa_plan.js', v='20261024-mapa3') }}"></script>
+        {% endif %}
+
+
         {% if plan.estado == 'archivado' %}
         <section class="plan-detail__block" aria-labelledby="puntaje">
 

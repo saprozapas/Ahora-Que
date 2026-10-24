@@ -28,6 +28,8 @@ def obtener_mensajes(group_id):
         return jsonify({"error": "No sos integrante de este grupo."}), 403
 
     mensajes = chat_service.obtener_mensajes(group_id)
+    # Mientras la conversación está abierta, lo que llega se da por leído (las menciones dejan de avisar en el Inicio).
+    chat_service.marcar_visto(user_id, group_id)
 
     return jsonify({
         "mensajes": mensajes

@@ -129,6 +129,7 @@ def chat_grupo(group_id):
     group.set_user(getUser(session.get("user_id")))
     racha = racha_service.actualizar_racha(group_id)
     es_admin, todos_admin = group_auth_service.get_rol(session.get("user_id"), group_id)
+    chat_service.marcar_visto(session.get("user_id"), group_id, siempre=True)
     integrantes = getUsersInGroupWithIds(group_id)
     # Quiénes se pueden mencionar con @ en el chat: se los nombra por su username (o su nombre sin espacios).
     integrantes_chat = [

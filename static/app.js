@@ -607,6 +607,81 @@
 
 
   /* ========================================================================
+     10c. CUENTA REGRESIVA AL PRÓXIMO PLAN Y SUGERENCIAS DE LA SEMANA (Inicio)
+     ======================================================================== */
+
+  const iniciarCuentaRegresiva = () => {
+
+    const cuenta = $("[data-cuenta]");
+
+    if (!cuenta) {
+      return;
+    }
+
+    const valor = $("[data-cuenta-valor]", cuenta);
+    const momento = new Date(cuenta.dataset.momento).getTime();
+
+    if (isNaN(momento)) {
+      return;
+    }
+
+    const texto = () => {
+
+      const falta = momento - Date.now();
+
+      if (falta <= 0) {
+        cuenta.classList.add("is-ahora");
+        return "Está pasando ahora";
+      }
+
+      const segundos = Math.floor(falta / 1000);
+      const dias = Math.floor(segundos / 86400);
+      const horas = Math.floor((segundos % 86400) / 3600);
+      const minutos = Math.floor((segundos % 3600) / 60);
+
+      if (dias >= 1) {
+        return dias + (dias === 1 ? " día " : " días ") + horas + " h " + minutos + " min";
+      }
+
+      if (horas >= 1) {
+        return horas + " h " + minutos + " min";
+      }
+
+      return minutos + " min " + String(segundos % 60).padStart(2, "0") + " s";
+    };
+
+    const pintar = () => { valor.textContent = texto(); };
+
+    pintar();
+    setInterval(pintar, 1000);
+  };
+
+
+  const iniciarSugerencias = () => {
+
+    const cuerpo = $("[data-sug]");
+
+    // Si ya vinieron armadas con la página, no hay nada que pedir.
+    if (!cuerpo || cuerpo.hasAttribute("data-listo")) {
+      return;
+    }
+
+    fetch(cuerpo.dataset.url, { credentials: "same-origin", cache: "no-store" })
+      .then((respuesta) => respuesta.ok ? respuesta.text() : Promise.reject(new Error("sin sugerencias")))
+      .then((html) => {
+        cuerpo.innerHTML = html;
+        cuerpo.setAttribute("data-listo", "");
+        if (window.AQDistancia) {
+          window.AQDistancia.actualizar();
+        }
+      })
+      .catch(() => {
+        cuerpo.innerHTML = '<div class="pend-vacio"><p class="voice"><strong>No pudimos armar tus sugerencias ahora.</strong> Probá de nuevo en un rato.</p></div>';
+      });
+  };
+
+
+  /* ========================================================================
      10b. PISTAS DE PLANES DEL GRUPO
 
      Cada sección del tablero (en votación, confirmados…) es una fila que
@@ -1440,6 +1515,8 @@
   iniciarCarruselDeGrupos();
   iniciarPistasDePlanes();
   iniciarPendientes();
+  iniciarCuentaRegresiva();
+  iniciarSugerencias();
   iniciarCopiarEnlace();
   iniciarCamposEditables();
   iniciarModales();

@@ -1,0 +1,25 @@
+{#
+  "Para vos esta semana": los 3 planes que el asistente le sugiere a cada usuario (services/sugerencia_service.py).
+  Se arman una vez por semana y cambian el lunes. Cada uno se puede guardar como idea; de ahí se postula en un grupo.
+#}
+
+{% if sugerencias %}
+<ul class="sug-lista">
+  {% for s in sugerencias %}
+  <li class="card sug-card" data-sug-clave="{{ s.id }}">
+    <header class="sug-cab">
+      <span class="tag">Sugerido</span>
+      {% if s.lat and s.lon %}<span class="meta dist" data-dist data-lat="{{ s.lat }}" data-lon="{{ s.lon }}"></span>{% endif %}
+    </header>
+    <h3 class="pend-titulo sug-titulo">{{ s.nombre }}</h3>
+    {% if s.descripcion %}<p class="sug-desc">{{ s.descripcion }}</p>{% endif %}
+    <p class="meta sug-lugares">{{ s.resumen }}</p>
+    <form method="post" action="/inicio/sugerencias/{{ s.id }}/guardar" class="sug-form">
+      <button class="btn btn--secondary btn--sm" type="submit">Guardar idea</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="pend-vacio"><p class="voice"><strong>Todavía no hay sugerencias.</strong> Cuando el asistente tenga lugares para proponerte, aparecen acá.</p></div>
+{% endif %}

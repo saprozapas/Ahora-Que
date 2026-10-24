@@ -16,7 +16,8 @@ from routes.chat import chat
 from routes.grupo_planes import grupo_planes_bp
 from routes.chatbot import chatbot_bp
 from routes.inicio import inicio_bp
-from services.grupo_plan_service import GrupoPlanService
+from services.inicio_service import InicioService
+from services.sugerencia_service import SugerenciaService
 from routes.social import es_moderador, social_api
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
@@ -153,12 +154,24 @@ def dashboard():
     invitaciones, _ = _inbox_guardado(session["user_id"])
     # Lo que espera tu voto en todos tus grupos (se refresca solo desde el navegador, ver routes/inicio.py).
     try:
-        pendientes_datos = GrupoPlanService().get_pendientes(session["user_id"])
+        pendientes_datos = InicioService().pendientes(session["user_id"])
     except Exception as e:
         print(f"No se pudieron leer las votaciones pendientes: {e}")
         pendientes_datos = None
+    try:
+        proximo_plan = InicioService().proximo_plan(session["user_id"])
+    except Exception as e:
+        print(f"No se pudo leer el proximo plan: {e}")
+        proximo_plan = None
+    # Las sugerencias de la semana solo se leen si ya están armadas; si no, la página las pide y se arman ahí.
+    try:
+        sugerencias_semana = SugerenciaService().existentes(session["user_id"])
+    except Exception as e:
+        print(f"No se pudieron leer las sugerencias: {e}")
+        sugerencias_semana = []
     return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True,
-                           invitaciones=invitaciones, pendientes_datos=pendientes_datos)
+                           invitaciones=invitaciones, pendientes_datos=pendientes_datos,
+                           proximo_plan=proximo_plan, sugerencias_semana=sugerencias_semana)
 
 @app.route('/tutorial')
 def tutorial():

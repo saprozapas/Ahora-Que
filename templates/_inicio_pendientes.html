@@ -39,6 +39,21 @@
 
   <ul class="pend-lista">
 
+    {# ------------------------------ Menciones en el chat ------------------------------ #}
+    {% for m in p.menciones %}
+    <li class="card pend-card" data-pend-clave="mencion-{{ m.grupo_id }}-{{ m.mensaje_id }}">
+      <header class="pend-card__cab">
+        <span class="tag tag--mencion">Mención</span>
+        {{ grupo_link(m.grupo_id, m.grupo) }}
+      </header>
+      <h3 class="pend-titulo">{{ m.autor }} te mencionó</h3>
+      <p class="meta pend-meta pend-cita">“{{ m.texto }}”{% if m.cantidad > 1 %} · {{ m.cantidad }} mensajes nuevos{% endif %}</p>
+
+      <a class="btn btn--primary btn--sm pend-ir" href="/grupos/{{ m.grupo_id }}/chat">Ir al chat</a>
+    </li>
+    {% endfor %}
+
+
     {# ----------------------------- Planes para votar ----------------------------- #}
     {% for plan in p.votar %}
     <li class="card pend-card" data-pend-clave="plan-{{ plan.id }}">
@@ -65,11 +80,8 @@
       <h3 class="pend-titulo"><a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a></h3>
       <p class="meta pend-meta">{{ plan.resumen_lugares }} {{ distancia(plan) }}</p>
 
-      <ul class="pend-horarios">
-        {% for h in plan.horarios %}
-        <li><strong>{{ h.fecha | cuando(h.hora) }}</strong><small>{{ h.propuesto_por }} lo propuso</small></li>
-        {% endfor %}
-      </ul>
+      {% set h = plan.horarios[0] %}
+      <p class="meta pend-meta pend-horario"><strong>{{ h.fecha | cuando(h.hora) }}</strong> · {{ h.propuesto_por }} lo propuso{% if plan.horarios | length > 1 %} · y {{ plan.horarios | length - 1 }} horario{{ 's' if plan.horarios | length > 2 }} más{% endif %}</p>
 
       <a class="btn btn--primary btn--sm pend-ir" href="/grupos/{{ plan.grupo_id }}#plan-{{ plan.id }}">Elegir horario</a>
     </li>

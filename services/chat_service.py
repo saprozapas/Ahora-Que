@@ -1,3 +1,4 @@
+import re
 import threading
 import time
 
@@ -9,7 +10,89 @@ _ultima_limpieza = 0.0
 _lock_limpieza = threading.Lock()
 
 
+# Cada cuánto como máximo se anota "leyó el chat" mientras la conversación está abierta (la página pide los
+# mensajes cada 3 segundos y no hace falta escribir en la base cada vez).
+_VISTO_CADA_SEGUNDOS = 15
+_ultimo_visto = {}
+
+
 class ChatService:
+
+    @staticmethod
+    def handle(username, nombre):
+        """Cómo se menciona a alguien con @: su username (o su nombre sin espacios si el username es un mail)."""
+        return "".join(ChatService._nombre_visible(username, nombre).split())
+
+    def marcar_visto(self, user_id, group_id, siempre=False):
+        """Anota que este usuario leyó el chat del grupo hasta ahora: lo que lo mencionaron antes ya no avisa."""
+        clave = (str(user_id), str(group_id))
+        if not siempre and time.monotonic() - _ultimo_visto.get(clave, 0) < _VISTO_CADA_SEGUNDOS:
+            return
+        _ultimo_visto[clave] = time.monotonic()
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE public."Usuario-Grupo"
+                    SET "Chat_Visto_En" = (now() AT TIME ZONE 'America/Montevideo')
+                    WHERE "Id_Usuario" = %s AND "Id_Grupo" = %s
+                    """,
+                    (user_id, group_id),
+                )
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            print(f"No se pudo anotar la lectura del chat: {e}")
+        finally:
+            release_db_connection(conn)
+
+    def get_menciones(self, user_id):
+        """Menciones (@usuario o @all) que todavía no leyó, agrupadas por grupo: una entrada por grupo con el último
+        mensaje. [{"grupo_id", "grupo", "cantidad", "mensaje_id", "autor", "texto", "es_todos"}], las más nuevas primero."""
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT "Username", "Nombre" FROM public."Usuarios" WHERE "Id_Usuario" = %s', (user_id,))
+                fila = cursor.fetchone()
+                if fila is None:
+                    return []
+                handle = self.handle(fila[0], fila[1])
+                nombres = f"all|todos|{re.escape(handle)}" if handle else "all|todos"
+                patron = rf"(^|[^[:alnum:]_@])@({nombres})($|[^[:alnum:]_])"
+                cursor.execute(
+                    """
+                    SELECT g."Id_Grupo", g."Nombre", m."Id_Mensaje", u."Username", u."Nombre", m."Contenido", m."Fecha_Envio"
+                    FROM public."Usuario-Grupo" ug
+                    JOIN public."Grupos" g ON g."Id_Grupo" = ug."Id_Grupo"
+                    JOIN public."Mensajes" m ON m."Id_Grupo" = ug."Id_Grupo"
+                    JOIN public."Usuarios" u ON u."Id_Usuario" = m."Id_Usuario"
+                    WHERE ug."Id_Usuario" = %s AND m."Id_Usuario" <> %s
+                      AND m."Fecha_Envio" > ug."Chat_Visto_En"
+                      AND m."Contenido" ~* %s
+                    ORDER BY m."Fecha_Envio" DESC
+                    """,
+                    (user_id, user_id, patron),
+                )
+                por_grupo = {}
+                for f in cursor.fetchall():
+                    entrada = por_grupo.get(str(f[0]))
+                    if entrada is None:  # la primera de cada grupo es la más nueva
+                        texto = " ".join(str(f[5]).split())
+                        por_grupo[str(f[0])] = {
+                            "grupo_id": str(f[0]), "grupo": f[1], "cantidad": 1, "mensaje_id": str(f[2]),
+                            "autor": self._nombre_visible(f[3], f[4]),
+                            "texto": texto if len(texto) <= 90 else texto[:87].rstrip() + "…",
+                            "momento": f[6],
+                        }
+                    else:
+                        entrada["cantidad"] += 1
+                return sorted(por_grupo.values(), key=lambda e: e["momento"], reverse=True)
+        except Exception as e:
+            print(f"No se pudieron leer las menciones: {e}")
+            return []
+        finally:
+            release_db_connection(conn)
 
     def eliminar_mensajes_viejos(self):
         """Programa la limpieza diaria fuera del tiempo de respuesta web."""
