@@ -723,3 +723,33 @@
 .plan-detail .stops__body .meta:not(.dist) { grid-column: 1; }
 .plan-detail .stops__body .dist { grid-column: 2; grid-row: 1; justify-self: end; font-weight: 600; }
 .plan-detail .stops__mapa { grid-column: 2; grid-row: 2; justify-self: end; margin-left: 0; }
+
+
+/* ==========================================================================
+   "Te toca a vos": avisos como filas finas (no tarjetas), para distinguirlos de los planes sugeridos
+   ========================================================================== */
+.notifs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s-8, 40px); margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.notif { min-width: 0; border-bottom: 1px solid var(--line); transition: opacity 240ms ease; }
+.notif__link { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: var(--s-3); padding: 9px var(--s-2); margin-inline: calc(var(--s-2) * -1); color: inherit; text-decoration: none; border-radius: var(--r-sm); transition: background 160ms ease; }
+.notif__link:hover, .notif__link:focus-visible { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.notif__punto { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); }
+.notif__punto--mencion { background: var(--info); }
+.notif__punto--votar, .notif__punto--horario, .notif__punto--encuesta { background: var(--ink); }
+.notif__punto--puntuar { background: var(--ok); }
+.notif__texto { display: flex; align-items: baseline; gap: var(--s-2); min-width: 0; }
+.notif__titulo { flex: 0 1 auto; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--t-ui); font-weight: 600; color: var(--ink); }
+.notif__titulo::first-letter { text-transform: uppercase; }
+.notif__meta { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-3); font-size: 0.8125rem; }
+.notif__accion { color: var(--ink-2); font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
+.notif__accion::after { content: " →"; display: inline-block; transition: transform 160ms ease; }
+.notif__link:hover .notif__accion { color: var(--ink); }
+.notif__link:hover .notif__accion::after { transform: translateX(3px); }
+.notif.is-nueva { animation: notif-llegada 1.6s ease-out 1; }
+@keyframes notif-llegada { 0% { background: color-mix(in srgb, var(--info) 14%, transparent); transform: translateY(4px); opacity: 0; } 20% { transform: none; opacity: 1; } 100% { background: transparent; } }
+@media (max-width: 1100px) { .notifs { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 650px) {
+  .notif__texto { flex-direction: column; align-items: flex-start; gap: 1px; }
+  .notif__titulo { max-width: 100%; }
+  .notif__meta { width: 100%; flex: none; }
+}
+@media (prefers-reduced-motion: reduce) { .notif.is-nueva { animation: none; } }
