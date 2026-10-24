@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar deuda — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+<section class="container page">
+
+  <a class="back-link" href="{{ url_for('deudas.deudas') }}">← Deudas</a>
+
+  <header class="page-head">
+    <h1 class="h2">Agregar deuda.</h1>
+    <p class="lead">Tildá con quién salieron y cargá cuánto gastó y cuánto pagó cada uno (incluido vos). Se calcula en el momento quién le paga a quién.</p>
+  </header>
+
+  {% if candidatos %}
+  <form method="post" action="{{ url_for('deudas.nueva') }}" class="stack-y">
+    {% if id_grupo %}<input type="hidden" name="grupo" value="{{ id_grupo }}">{% endif %}
+
+    <div>
+      <label for="descripcion">Nombre de la salida (opcional)</label>
+      <input class="input" id="descripcion" name="descripcion" type="text" maxlength="100" value="{{ form.get('descripcion', '') }}">
+    </div>
+
+    <div>
+      <label for="buscar">Buscar a quién agregar</label>
+      <input class="input" id="buscar" type="search" placeholder="Nombre" autocomplete="off" data-buscar>
+      <p class="meta" data-sin-resultados style="display:none">No hay nadie con ese nombre.</p>
+    </div>
+
+    <ul class="menu-list">
+
+      <li class="card card--pad stack-y">
+        <strong>Vos</strong>
+        <div class="field-row">
+          <input class="input" name="gasto_yo" inputmode="decimal" placeholder="Cuánto gastó" aria-label="Cuánto gastaste vos" value="{{ form.get('gasto_yo', '') }}">
+          <input class="input" name="pago_yo" inputmode="decimal" placeholder="Cuánto pagó" aria-label="Cuánto pagaste vos" value="{{ form.get('pago_yo', '') }}">
+        </div>
+      </li>
+
+      {% for c in candidatos %}
+      {% set tildado = (c.id in form.getlist('participantes')) if form else marcar_todos %}
+      <li class="card card--pad stack-y" data-persona data-nombre="{{ c.nombre | lower }}">
+        <label class="item">
+          <input type="checkbox" name="participantes" value="{{ c.id }}" data-tick {{ 'checked' if tildado }}>
+          <strong>{{ c.nombre }}</strong>
+        </label>
+        <div class="field-row" data-montos{% if not tildado %} style="display:none"{% endif %}>
+          <input class="input" name="gasto_{{ c.id }}" inputmode="decimal" placeholder="Cuánto gastó" aria-label="Cuánto gastó {{ c.nombre }}" value="{{ form.get('gasto_' ~ c.id, '') }}">
+          <input class="input" name="pago_{{ c.id }}" inputmode="decimal" placeholder="Cuánto pagó" aria-label="Cuánto pagó {{ c.nombre }}" value="{{ form.get('pago_' ~ c.id, '') }}">
+        </div>
+      </li>
+      {% endfor %}
+
+    </ul>
+
+    <button class="btn btn--primary btn--lg" type="submit">Calcular y guardar</button>
+  </form>
+  {% else %}
+  <p class="meta">
+    {% if id_grupo %}Este grupo todavía no tiene más integrantes.{% else %}Todavía no tenés amigos agregados. Sumalos desde <a href="/amigos">Amigos</a>.{% endif %}
+  </p>
+  {% endif %}
+
+</section>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var buscador = document.querySelector('[data-buscar]');
+  if (!buscador) return;
+  var personas = document.querySelectorAll('[data-persona]');
+  var vacio = document.querySelector('[data-sin-resultados]');
+  // Sin tildes ni mayúsculas: "jose" encuentra "José".
+  function limpio(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+
+  personas.forEach(function (li) {
+    var tick = li.querySelector('[data-tick]');
+    var montos = li.querySelector('[data-montos]');
+    tick.addEventListener('change', function () {
+      montos.style.display = tick.checked ? '' : 'none';
+      if (tick.checked) { montos.querySelector('input').focus(); }
+      else { montos.querySelectorAll('input').forEach(function (i) { i.value = ''; }); }
+    });
+  });
+
+  buscador.addEventListener('input', function () {
+    var q = limpio(buscador.value.trim());
+    var visibles = 0;
+    personas.forEach(function (li) {
+      // Los que ya tienen tick quedan siempre a la vista, para no perder lo cargado.
+      var ver = li.querySelector('[data-tick]').checked || limpio(li.dataset.nombre).indexOf(q) !== -1;
+      li.style.display = ver ? '' : 'none';
+      if (ver) visibles++;
+    });
+    vacio.style.display = visibles ? 'none' : '';
+  });
+})();
+</script>
+
+{% endblock %}

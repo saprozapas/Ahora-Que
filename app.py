@@ -16,11 +16,13 @@ from routes.chat import chat
 from routes.grupo_planes import grupo_planes_bp
 from routes.chatbot import chatbot_bp
 from routes.inicio import inicio_bp
+from routes.deudas import deudas_bp
 from services.inicio_service import InicioService
 from services.sugerencia_service import SugerenciaService
 from routes.social import es_moderador, social_api
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
+from services.deuda_service import DeudaService
 from services.plan_service import PlanService
 from services.social_service import SocialService
 
@@ -39,9 +41,11 @@ app.register_blueprint(grupo_planes_bp)
 app.register_blueprint(chat)
 app.register_blueprint(chatbot_bp)
 app.register_blueprint(inicio_bp)
+app.register_blueprint(deudas_bp)
 app.register_blueprint(social_api)
 invitation_service = InvitationService()
 friend_service = FriendService()
+deuda_service = DeudaService()
 plan_service = PlanService()
 social_service = SocialService()
 
@@ -94,6 +98,7 @@ def inject_user():
         except Exception as e:
             print(f"No se pudo contar las notificaciones: {e}")
             datos["notificaciones_pendientes"] = 0
+        datos["deudas_pendientes"] = _deudas_guardado(session["user_id"])
     return datos
 
 
@@ -134,6 +139,22 @@ def _inbox_guardado(user_id):
     return invitaciones, cantidad
 
 
+_deudas_cache = {}  # user_id -> (a cuántas personas les debe, momento)
+
+
+def _deudas_guardado(user_id):
+    guardado = _deudas_cache.get(user_id)
+    if guardado and time.monotonic() - guardado[1] < _SEGUNDOS_INBOX:
+        return guardado[0]
+    try:
+        cantidad = deuda_service.contar_que_debo(user_id)
+    except Exception as e:  # por ejemplo, si todavía no se corrió migraciones/deudas.sql
+        print(f"No se pudieron contar las deudas: {e}")
+        cantidad = 0
+    _deudas_cache[user_id] = (cantidad, time.monotonic())
+    return cantidad
+
+
 @app.before_request
 def _borrar_inbox_guardado():
     # Si el usuario acepta/rechaza algo (cualquier POST), o abre el Inbox
@@ -141,6 +162,7 @@ def _borrar_inbox_guardado():
     # el contador se actualice al momento.
     if session.get("user_id") and (request.method == "POST" or request.path == "/inbox"):
         _inbox_cache.pop(session["user_id"], None)
+        _deudas_cache.pop(session["user_id"], None)
 
 
 @app.route('/')

@@ -99,6 +99,7 @@
   border-radius: var(--r-full); background: var(--ink); color: var(--on-ink);
   font: 600 12px/1 var(--font-sans); font-variant-numeric: tabular-nums;
 }
+.badge--danger { background: var(--danger); color: var(--on-danger); }
 
 .chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 2px; padding: 3px; background: var(--paper-deep); border-radius: calc(var(--r-sm) + 3px); width: max-content; max-width: 100%; }
 .chip {

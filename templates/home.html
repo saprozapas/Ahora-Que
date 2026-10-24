@@ -58,6 +58,7 @@
             {% if pendientes %}
             <a class="btn btn--secondary btn--lg" href="/inbox">Ver inbox <span class="badge">{{ pendientes }}</span></a>
             {% endif %}
+            <a class="btn btn--secondary btn--lg" href="/deudas">Deudas{% if deudas_pendientes and deudas_pendientes > 0 %} <span class="badge badge--danger" aria-label="Tenés deudas pendientes">{{ deudas_pendientes }}</span>{% endif %}</a>
           </div>
 
         </div>

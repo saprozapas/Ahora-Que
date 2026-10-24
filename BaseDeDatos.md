@@ -526,6 +526,58 @@ Creada con `migraciones/social_inbox.sql`.
 `Publicacion_Notificacion_like_uq` (UNIQUE `Id_Usuario` + `Id_Publicacion` + `Id_Actor`, solo
 `Tipo = 'like'`: un aviso de me gusta por persona y publicación).
 
+## Table `Deuda_Reparto`
+
+Una salida a dividir. Migración: `migraciones/deudas.sql`.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Reparto` | `uuid` | Primary |
+| `Id_Creador` | `uuid` | FK `Usuarios` |
+| `Id_Grupo` | `uuid` | Nullable. FK `Grupos` (ON DELETE SET NULL) |
+| `Descripcion` | `text` | Nullable (el nombre es opcional). 1 a 100 caracteres si se completa |
+| `Calculado` | `boolean` | Default `false`. Pasa a `true` cuando cargaron todos y se calcularon las deudas |
+| `Creado_En` | `timestamptz` | Default `now()` |
+
+## Table `Deuda_Reparto_Participante`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Reparto` | `uuid` | Primary. FK `Deuda_Reparto` |
+| `Id_Usuario` | `uuid` | Primary. FK `Usuarios` |
+| `Gasto` | `numeric(12,2)` | Nullable. NULL = todavía no cargó |
+| `Pago` | `numeric(12,2)` | Nullable. NULL = todavía no cargó |
+
+## Table `Deuda`
+
+Una fila por par de personas (se netea sola). `Id_Usuario1 < Id_Usuario2`.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Usuario1` | `uuid` | Primary |
+| `Id_Usuario2` | `uuid` | Primary |
+| `Saldo` | `numeric(12,2)` | `<> 0`. `> 0`: Usuario1 le debe a Usuario2; `< 0`: Usuario2 le debe a Usuario1. Se borra al marcar "fue pagado" |
+
+## Table `Cuenta_Bancaria`
+
+Datos para que te transfieran. Migración: `migraciones/deudas_v2.sql`. Los ve solo quien te debe plata.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Usuario` | `uuid` | Primary. FK `Usuarios` (ON DELETE CASCADE) |
+| `Banco` | `text` | 1 a 60 caracteres |
+| `Nro_Cuenta` | `text` | 1 a 40 caracteres |
+
+Las tablas de deudas tienen RLS activado y sin políticas (como Social).
+
 ## RLS Policies
 
 ### `Usuario-Grupo`

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Deudas — Ahora Qué{% endblock %}
+
+{% macro monto(n) -%}${{ '{:,.2f}'.format(n).replace(',', 'X').replace('.', ',').replace('X', '.') }}{%- endmacro %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+<section class="container page">
+
+  <a class="back-link" href="/dashboard">← Inicio</a>
+
+  <header class="page-head">
+    <h1 class="h2">Deudas.</h1>
+    <p class="lead">Lo que debés y lo que te deben.</p>
+    <div class="actions">
+      <a class="btn btn--primary btn--lg" href="{{ url_for('deudas.nueva') }}"><span aria-hidden="true">+</span> Agregar deuda</a>
+    </div>
+  </header>
+
+  <div class="dash-section">
+    <h2 class="h3">Debés</h2>
+    {% if debo %}
+    <ul class="menu-list">
+      {% for d in debo %}
+      <li class="card item">
+        <span class="item__body">
+          <span class="item__name">{{ d.nombre }}</span>
+          <span class="item__text">Le tenés que pagar {{ monto(d.monto) }}.</span>
+          <span class="item__text">{% if d.banco %}Transferile a {{ d.banco }} · cuenta {{ d.cuenta }}{% else %}Todavía no cargó sus datos bancarios.{% endif %}</span>
+        </span>
+        <span class="badge badge--danger" aria-label="Pendiente">!</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="meta">No le debés nada a nadie.</p>
+    {% endif %}
+  </div>
+
+  <div class="dash-section">
+    <h2 class="h3">Te deben</h2>
+    {% if me_deben %}
+    <ul class="menu-list">
+      {% for d in me_deben %}
+      <li class="card item">
+        <span class="item__body">
+          <span class="item__name">{{ d.nombre }}</span>
+          <span class="item__text">Te debe {{ monto(d.monto) }}.</span>
+        </span>
+        <form method="post" action="{{ url_for('deudas.pagada', id_deudor=d.id) }}">
+          <input type="hidden" name="monto" value="{{ d.monto }}">
+          <button class="btn btn--secondary" type="submit">Fue pagado</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="meta">Nadie te debe nada.</p>
+    {% endif %}
+  </div>
+
+</section>
+
+  </div>
+</div>
+
+{% endblock %}

@@ -85,6 +85,8 @@
       Invitar
     </button>
 
+    <a class="btn btn--secondary btn--lg" href="{{ url_for('deudas.nueva', grupo=group.get_id()) }}">Deudas</a>
+
     <button class="icon-btn" type="button" data-modal-open="modal-editar-grupo" aria-label="Editar grupo" title="Editar grupo">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16.5 4.5a2.12 2.12 0 0 1 3 3L8 19l-4 1 1-4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" /></svg>
     </button>

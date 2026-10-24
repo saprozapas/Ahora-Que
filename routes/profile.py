@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from services.auth_service import AuthService
+from services.deuda_service import DeudaService
 from services.plan_service import PlanService
 from database_bridge.database_bridge import getUser
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -7,6 +8,7 @@ from services.password_policy import validar_contrasena
 
 profile = Blueprint("profile", __name__)
 auth_service = AuthService()
+deuda_service = DeudaService()
 plan_service = PlanService()
 
 @profile.route("/perfil", methods=["GET", "POST"])
@@ -21,6 +23,16 @@ def perfil():
 
     if request.method == "POST":
         target = request.form.get("target", "")
+        if target == "banco":
+            try:
+                deuda_service.guardar_cuenta(session["user_id"], request.form.get("banco"), request.form.get("cuenta"))
+                flash("Datos bancarios guardados.")
+            except ValueError as e:
+                flash(str(e))
+            except Exception as e:
+                print(f"No se pudo guardar la cuenta bancaria: {e}")
+                flash("No se pudieron guardar los datos bancarios.")
+            return redirect(url_for("profile.perfil"))
         es_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
         if target == "name":
@@ -63,9 +75,16 @@ def perfil():
         print(f"No se pudo armar el resumen del perfil: {error}")
         resumen = {"grupos": 0, "publicados": 0, "guardados": 0}
 
+    try:
+        cuenta = deuda_service.get_cuenta(session["user_id"])
+    except Exception as error:  # por ejemplo, si todavía no se corrió migraciones/deudas_v2.sql
+        print(f"No se pudo leer la cuenta bancaria: {error}")
+        cuenta = {"banco": "", "cuenta": ""}
+
     return render_template(
         "perfil.html",
         user=user,
+        cuenta=cuenta,
         resumen=resumen,
         autor_id=session["user_id"],
         error_name=error_name,
