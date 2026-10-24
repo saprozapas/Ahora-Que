@@ -8,7 +8,7 @@
   {%- if desde == hasta -%}${{ desde | int }}{%- else -%}${{ desde | int }} - ${{ hasta | int }}{%- endif -%}
 {%- endmacro %}
 
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -18,7 +18,7 @@
 
       <a class="back-link" href="/planes">← Mis planes</a>
 
-      <div class="plan-detail">
+      <div class="plan-detail{% if plan.estado == 'confirmado' and plan.confirmado %} plan-detail--mapa{% endif %}">
 
         <header class="page-head">
 
@@ -117,9 +117,9 @@
 
         </section>
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-        <script defer src="{{ url_for('static', filename='mapa_plan.js', v='20261024-mapa3') }}"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
+        <script defer src="{{ url_for('static', filename='mapa_plan.js', v='20261024-mapa4') }}"></script>
         {% endif %}
 
 

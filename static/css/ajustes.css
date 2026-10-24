@@ -537,27 +537,30 @@
 .mapa-plan__persona-texto { display: grid; min-width: 0; }
 .mapa-plan__persona-texto small { color: var(--ink-3); font-size: var(--t-meta); }
 
-/* Mapa minimalista: base gris, marcadores simples, controles planos y el crédito en letra mínima. */
+/* Mapa minimalista y plano: solo agua, calles y nombres. Controles planos, crédito en letra mínima. */
 .mapa-plan__lienzo.card { box-shadow: none; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--paper-deep); }
-.mapa-plan .leaflet-container { font: inherit; background: var(--paper-deep); outline: 0; }
-.mapa-plan .leaflet-control-container .leaflet-top.leaflet-right { margin: var(--s-2); }
-.mapa-plan .leaflet-bar { border: 0; border-radius: var(--r-md); box-shadow: var(--sh-hair); overflow: hidden; background: var(--surface); }
-.mapa-plan .leaflet-bar a, .mapa-plan .leaflet-bar a:hover { width: 30px; height: 30px; line-height: 30px; border: 0; background: var(--surface); color: var(--ink); font: 400 1.125rem/30px var(--font-sans, inherit); text-indent: 0; }
-.mapa-plan .leaflet-bar a:hover { background: var(--paper-deep); }
-.mapa-plan .leaflet-bar a + a { border-top: 1px solid var(--line); }
-.mapa-plan .leaflet-tile-pane { filter: grayscale(1) contrast(0.88) brightness(1.06); }
-:root[data-theme="night"] .mapa-plan .leaflet-tile-pane { filter: grayscale(1) invert(1) contrast(0.8) brightness(0.82); }
-.mapa-plan .leaflet-control-attribution { background: transparent; color: var(--ink-4); font-size: 9px; letter-spacing: 0.02em; padding: 0 var(--s-2); opacity: 0.7; }
-.mapa-plan .leaflet-control-attribution a { color: inherit; text-decoration: none; }
-.mapa-plan .leaflet-control-attribution a:hover { text-decoration: underline; }
+.mapa-plan .maplibregl-map { font: inherit; }
+.mapa-plan .maplibregl-canvas { outline: 0; }
+:root[data-theme="night"] .mapa-plan .maplibregl-canvas { filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88); }
+.mapa-plan .maplibregl-ctrl-top-right { margin: var(--s-2); }
+.mapa-plan .maplibregl-ctrl-group { border-radius: var(--r-md); box-shadow: var(--sh-hair); background: var(--surface); overflow: hidden; }
+.mapa-plan .maplibregl-ctrl-group button { width: 30px; height: 30px; background-color: var(--surface); }
+.mapa-plan .maplibregl-ctrl-group button + button { border-top: 1px solid var(--line); }
+.mapa-plan .maplibregl-ctrl-group button:hover { background-color: var(--paper-deep); }
+:root[data-theme="night"] .mapa-plan .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(1); }
+.mapa-plan .maplibregl-ctrl-attrib { background: transparent; color: var(--ink-4); font-size: 9px; padding: 0 var(--s-2); opacity: 0.65; }
+.mapa-plan .maplibregl-ctrl-attrib a { color: inherit; text-decoration: none; }
+.mapa-plan .maplibregl-ctrl-attrib a:hover { text-decoration: underline; }
 
-.mapa-pin, .mapa-persona { background: none; border: 0; }
-.mapa-pin span { display: block; width: 18px; height: 18px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink) 18%, transparent); }
+.mapa-pin { position: relative; width: 16px; height: 16px; }
+.mapa-pin span { display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ink) 16%, transparent); }
+.mapa-pin em { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); padding: 2px 8px; border-radius: var(--r-sm); background: var(--surface); color: var(--ink); font: 550 0.75rem/1.3 var(--font-sans, inherit); font-style: normal; white-space: nowrap; box-shadow: var(--sh-hair); pointer-events: none; }
+.mapa-persona { width: 26px; height: 26px; }
 .mapa-persona span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--surface); color: var(--ink); font: 650 0.75rem/1 var(--font-sans, inherit); box-shadow: 0 0 0 1.5px var(--ink-3), 0 1px 4px rgb(0 0 0 / 0.18); }
 .mapa-persona.is-yo span { background: var(--ink); color: var(--on-ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 22%, transparent); }
 .mapa-persona.is-vieja span { opacity: 0.5; }
-.mapa-etiqueta.leaflet-tooltip { padding: 2px 8px; border: 0; border-radius: var(--r-sm); background: var(--surface); color: var(--ink); font: 550 0.75rem/1.3 var(--font-sans, inherit); box-shadow: var(--sh-hair); }
-.mapa-etiqueta.leaflet-tooltip::before { display: none; }
+
+
 
 /* Inicio: ajuste fino de alturas para que el saludo, los avisos y las sugerencias entren juntos. */
 @media (min-width: 901px) {
@@ -614,3 +617,30 @@
 .dash-body { align-content: start; }
 .dash-pend__cab { align-items: center; }
 @media (min-width: 901px) { .dash-sug { margin-top: var(--s-5); } }
+
+
+/* ==========================================================================
+   Plan confirmado: pantalla estática en dos columnas (datos a la izquierda, mapa a la derecha)
+   ========================================================================== */
+@media (min-width: 1000px) {
+  .plan-detail--mapa { max-width: none; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); column-gap: var(--s-8, 40px); row-gap: var(--s-4); align-content: start; align-items: start; }
+  .plan-detail--mapa > * { grid-column: 1; }
+  .plan-detail--mapa > .mapa-plan { grid-column: 2; grid-row: 1 / span 8; }
+  .plan-detail--mapa > .page-head { margin-top: var(--s-2); }
+  .plan-detail--mapa .mapa-plan__lienzo { height: clamp(260px, 50vh, 460px); }
+}
+@media (min-width: 901px) {
+  .dashboard-layout--fija-grupo .plan-detail { gap: var(--s-5); }
+}
+
+/* Encabezado de cada sección del Inicio: título y subtítulo bien centrados entre sí. */
+.dash-pend__cab { align-items: center; }
+.dash-pend__cab .h3, .dash-pend__cab > .meta { margin: 0; line-height: 1.15; }
+.dash-pend__cab > .meta { position: relative; top: -1px; }
+
+/* Barra lateral: "+ Crear" y la flecha de contraer en la misma fila. */
+.dashboard-sidebar-top { align-items: flex-start; gap: var(--s-2); margin-bottom: var(--s-5); }
+.dashboard-sidebar-top .dashboard-sidebar-crear { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
+.dashboard-sidebar-top .dashboard-sidebar-toggle { flex: none; }
+.dashboard-layout.is-collapsed .dashboard-sidebar-top { flex-direction: column; align-items: center; }
+.dashboard-layout.is-collapsed .dashboard-sidebar-top .dashboard-sidebar-crear { flex: none; width: 100%; }

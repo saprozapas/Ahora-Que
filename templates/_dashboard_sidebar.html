@@ -66,7 +66,12 @@
 
 <aside class="dashboard-sidebar" aria-label="Navegación">
 
+  {# "+ Crear" y la flecha para contraer comparten fila: no queda un hueco arriba. #}
   <div class="dashboard-sidebar-top">
+
+    <div class="dashboard-sidebar-crear solo-escritorio">
+      {% with variante = 'lateral' %}{% include '_crear_menu.html' %}{% endwith %}
+    </div>
 
     <button
       class="dashboard-sidebar-toggle"
@@ -79,11 +84,6 @@
       </svg>
     </button>
 
-  </div>
-
-
-  <div class="dashboard-sidebar-crear solo-escritorio">
-    {% with variante = 'lateral' %}{% include '_crear_menu.html' %}{% endwith %}
   </div>
 
 

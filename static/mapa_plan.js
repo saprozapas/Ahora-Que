@@ -5,6 +5,10 @@
    recta al lugar. Compartir es opcional y se puede cortar en cualquier momento; mientras está activo, la
    ubicación se manda cada ~20 segundos con la página abierta. El servidor solo le entrega el mapa a quienes
    van al plan, hasta que el plan termina (routes/planes.py, services/plan_ubicacion_service.py).
+
+   El mapa es plano y sobrio: base vectorial de OpenFreeMap (gratuita, sin clave) a la que se le sacan
+   edificios, parques, usos del suelo y puntos de interés; quedan el agua, las calles y sus nombres.
+   En modo noche el CSS lo invierte.
    ========================================================================== */
 
 (function () {
@@ -13,7 +17,7 @@
 
   var raiz = document.querySelector("[data-mapa-plan]");
 
-  if (!raiz || !window.L) {
+  if (!raiz || !window.maplibregl) {
     return;
   }
 
@@ -26,19 +30,38 @@
 
   var CADA_MS = 20000;
   var RECARGA_MS = 15000;
+  // De la base solo se dejan estas capas de datos: agua, calles y los nombres de calles, barrios y agua.
+  var CAPAS_QUE_QUEDAN = ["water", "waterway", "transportation", "transportation_name", "place", "water_name"];
+  // Y de esas, sin vías de tren, escudos de ruta ni fronteras.
+  var CAPAS_QUE_SE_VAN = /^(railway|highway-shield|road_shield|airport|boundary|label_country|label_state)/;
 
-  // Sin el logo ni el prefijo de Leaflet; queda solo el crédito de los datos, que los proveedores piden y va en letra mínima.
-  var mapa = L.map(lienzo, { scrollWheelZoom: false, attributionControl: false, zoomControl: false });
-  L.control.attribution({ prefix: false, position: "bottomright" }).addTo(mapa);
-  L.control.zoom({ position: "topright", zoomInText: "+", zoomOutText: "−" }).addTo(mapa);
+  var mapa = new maplibregl.Map({
+    container: lienzo,
+    style: "https://tiles.openfreemap.org/styles/positron",
+    center: [-56.1645, -34.9011],
+    zoom: 12,
+    attributionControl: false,
+    dragRotate: false,
+    pitchWithRotate: false,
+    touchPitch: false,
+    scrollZoom: false,
+    maxPitch: 0
+  });
 
-  // Base de OpenStreetMap (gratuita, sin clave). El estilo sobrio (gris, y oscuro en modo noche) lo da el CSS.
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
-  }).addTo(mapa);
+  mapa.touchZoomRotate.disableRotation();
+  mapa.addControl(new maplibregl.NavigationControl({ showCompass: false, visualizePitch: false }), "top-right");
+  mapa.addControl(new maplibregl.AttributionControl({ compact: false }), "bottom-right");
 
-  mapa.setView([-34.9011, -56.1645], 12);
+  // Al cargar el estilo se sacan las capas que cargan el mapa (edificios, parques, comercios).
+  mapa.on("style.load", function () {
+    mapa.getStyle().layers.slice().forEach(function (capa) {
+      if (capa.type === "background") { return; }
+      var fuente = capa["source-layer"];
+      if (!fuente || CAPAS_QUE_QUEDAN.indexOf(fuente) === -1 || CAPAS_QUE_SE_VAN.test(capa.id)) {
+        mapa.removeLayer(capa.id);
+      }
+    });
+  });
 
   var marcadoresLugares = [];
   var marcadoresPersonas = {};
@@ -61,18 +84,25 @@
     return "hace " + Math.round(minutos / 60) + " h";
   }
 
-  function iconoLugar() {
-    return L.divIcon({ className: "mapa-pin", html: "<span></span>", iconSize: [18, 18], iconAnchor: [9, 9] });
+  function elementoLugar(lugar) {
+    var el = document.createElement("div");
+    el.className = "mapa-pin";
+    el.title = lugar.nombre;
+    el.appendChild(document.createElement("span"));
+    var etiqueta = document.createElement("em");
+    etiqueta.textContent = lugar.nombre;
+    el.appendChild(etiqueta);
+    return el;
   }
 
-  function iconoPersona(persona) {
-    var clase = "mapa-persona" + (persona.yo ? " is-yo" : "") + (persona.vieja ? " is-vieja" : "");
-    return L.divIcon({
-      className: clase,
-      html: "<span>" + (persona.nombre || "?").charAt(0).toUpperCase() + "</span>",
-      iconSize: [26, 26],
-      iconAnchor: [13, 13]
-    });
+  function elementoPersona(persona) {
+    var el = document.createElement("div");
+    el.className = "mapa-persona" + (persona.yo ? " is-yo" : "") + (persona.vieja ? " is-vieja" : "");
+    el.title = persona.yo ? "Vos" : persona.nombre;
+    var inicial = document.createElement("span");
+    inicial.textContent = (persona.nombre || "?").charAt(0).toUpperCase();
+    el.appendChild(inicial);
+    return el;
   }
 
   function limpiarHijos(nodo) {
@@ -103,8 +133,7 @@
       var detalle = document.createElement("small");
 
       if (persona.comparte) {
-        var partes = [kilometros(persona.km), hace(persona.hace_segundos)].filter(Boolean);
-        detalle.textContent = partes.join(" · ");
+        detalle.textContent = [kilometros(persona.km), hace(persona.hace_segundos)].filter(Boolean).join(" · ");
       } else {
         detalle.textContent = "No comparte su ubicación";
       }
@@ -119,10 +148,10 @@
 
   function pintarMapa(datos) {
 
-    marcadoresLugares.forEach(function (m) { mapa.removeLayer(m); });
+    marcadoresLugares.forEach(function (m) { m.remove(); });
     marcadoresLugares = datos.lugares.map(function (lugar) {
-      return L.marker([lugar.lat, lugar.lon], { icon: iconoLugar(), title: lugar.nombre, keyboard: false })
-        .bindTooltip(lugar.nombre, { direction: "top", offset: [0, -8], className: "mapa-etiqueta" })
+      return new maplibregl.Marker({ element: elementoLugar(lugar), anchor: "center" })
+        .setLngLat([lugar.lon, lugar.lat])
         .addTo(mapa);
     });
 
@@ -133,35 +162,34 @@
       if (!persona.comparte) { return; }
 
       vigentes[persona.id] = true;
-      var posicion = [persona.lat, persona.lon];
-      var existente = marcadoresPersonas[persona.id];
 
-      if (existente) {
-        existente.setLatLng(posicion).setIcon(iconoPersona(persona));
-      } else {
-        marcadoresPersonas[persona.id] = L.marker(posicion, { icon: iconoPersona(persona), keyboard: false }).addTo(mapa);
+      if (marcadoresPersonas[persona.id]) {
+        marcadoresPersonas[persona.id].remove();
       }
 
-      marcadoresPersonas[persona.id].bindTooltip(persona.yo ? "Vos" : persona.nombre, { direction: "top", offset: [0, -10], className: "mapa-etiqueta" });
+      marcadoresPersonas[persona.id] = new maplibregl.Marker({ element: elementoPersona(persona), anchor: "center" })
+        .setLngLat([persona.lon, persona.lat])
+        .addTo(mapa);
     });
 
     Object.keys(marcadoresPersonas).forEach(function (id) {
       if (!vigentes[id]) {
-        mapa.removeLayer(marcadoresPersonas[id]);
+        marcadoresPersonas[id].remove();
         delete marcadoresPersonas[id];
       }
     });
 
     // Se encuadra todo cuando aparece o desaparece alguien (no en cada actualización, para no mover el mapa mientras lo mirás).
-    var conteo = marcadoresLugares.length + Object.keys(marcadoresPersonas).length;
+    var puntos = marcadoresLugares.concat(Object.keys(marcadoresPersonas).map(function (id) { return marcadoresPersonas[id]; }));
 
-    if (conteo !== ultimoConteo) {
-      ultimoConteo = conteo;
-      var todos = marcadoresLugares.concat(Object.keys(marcadoresPersonas).map(function (id) { return marcadoresPersonas[id]; }));
-      if (todos.length === 1) {
-        mapa.setView(todos[0].getLatLng(), 15);
-      } else if (todos.length > 1) {
-        mapa.fitBounds(L.featureGroup(todos).getBounds().pad(0.25), { maxZoom: 16 });
+    if (puntos.length !== ultimoConteo) {
+      ultimoConteo = puntos.length;
+      if (puntos.length === 1) {
+        mapa.jumpTo({ center: puntos[0].getLngLat(), zoom: 15 });
+      } else if (puntos.length > 1) {
+        var limites = new maplibregl.LngLatBounds();
+        puntos.forEach(function (m) { limites.extend(m.getLngLat()); });
+        mapa.fitBounds(limites, { padding: 56, maxZoom: 16, duration: 0 });
       }
     }
   }
@@ -287,7 +315,9 @@
   cargar();
   setInterval(function () { if (!document.hidden) { cargar(); } }, RECARGA_MS);
 
-  // El mapa se arma con el contenedor visible; si llegaron por el enlace "Ver mapa" hay que recalcular el tamaño.
-  setTimeout(function () { mapa.invalidateSize(); }, 300);
+  // Si cambia el tamaño del contenedor (pantalla estática, girar el celular), el mapa se reacomoda.
+  if (window.ResizeObserver) {
+    new ResizeObserver(function () { mapa.resize(); }).observe(lienzo);
+  }
 
 }());
