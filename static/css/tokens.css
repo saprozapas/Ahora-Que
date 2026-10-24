@@ -11,16 +11,18 @@
 
 :root {
   /* ---------- 1. VARIABLES DE MARCA ---------- */
-  --brand-accent: #5B6A74;        /* gris-azul niebla con contraste AA: texto e íconos */
+  --brand-accent: #55646E;        /* gris-azul niebla con contraste AA: texto e íconos */
   --brand-accent-soft: #9AA6AE;   /* el gris-azul original: solo líneas decorativas */
-  --brand-paper-hue: 210;         /* papel neutro frío, en armonía con el gris-azul */
+  --brand-paper-hue: 214;         /* papel neutro frío, en armonía con el gris-azul */
   --brand-headline: var(--font-sans);
 
   /* ---------- 2. COLOR ---------- */
-  --paper:        hsl(var(--brand-paper-hue) 9% 95.5%);  /* fondo de página */
-  --paper-deep:   hsl(var(--brand-paper-hue) 7% 92.5%);  /* bandas, chips inactivos */
-  --surface:      #FFFFFF;                               /* cards, ventanas, inputs */
-  --surface-2:    hsl(var(--brand-paper-hue) 10% 98%);   /* hover de fila, fondo de input */
+  /* Tres planos: el fondo (--paper) es un gris frío un poco más profundo, las bandas (--paper-deep) se hunden
+     un escalón y las superficies (--surface) son blancas y "flotan" sobre ellos con las sombras de abajo. */
+  --paper:        hsl(var(--brand-paper-hue) 16% 93.6%);  /* fondo de página */
+  --paper-deep:   hsl(var(--brand-paper-hue) 14% 89.8%);  /* bandas, chips inactivos */
+  --surface:      #FFFFFF;                                /* cards, ventanas, inputs */
+  --surface-2:    hsl(var(--brand-paper-hue) 26% 97.6%);  /* hover de fila, fondo de input */
 
   --ink:          #151515;  /* titulares, texto principal, botón primario */
   --ink-2:        #454542;  /* texto de cuerpo fuerte */
@@ -28,8 +30,8 @@
   --ink-4:        #A3A29D;  /* SOLO elementos no textuales: íconos decorativos, separadores. Nunca texto (2,3:1). */
   --on-ink:       #FFFFFF;  /* texto sobre botón negro */
 
-  --line:         rgb(21 21 21 / 0.08);  /* bordes de cards (casi invisibles) */
-  --line-strong:  rgb(21 21 21 / 0.14);  /* divisores que importan */
+  --line:         rgb(16 24 40 / 0.075);  /* bordes de cards (casi invisibles) */
+  --line-strong:  rgb(16 24 40 / 0.14);  /* divisores que importan */
   --line-control: rgb(21 21 21 / 0.55);  /* borde de inputs y controles: 3:1 contra papel y superficie (WCAG 1.4.11) */
   --dot:          rgb(21 21 21 / 0.13);
 
@@ -70,11 +72,15 @@
   --r-xl: 20px;   /* ventanas, paneles grandes */
   --r-full: 999px;
 
-  /* ---------- 6. SOMBRAS (siempre en capas) ---------- */
+  /* ---------- 6. SOMBRAS (siempre en capas) ----------
+     Cuatro alturas: hair (solo un filete), card (reposo), lift (al pasar el mouse) y float (lo que más sobresale:
+     la tarjeta principal, los menús y las ventanas). Cada una suma un filete, un brillo fino arriba que marca el
+     borde, una sombra de contacto y una difusa y larga, de tono azulado en vez de negro. */
   --sh-hair:  0 0 0 1px var(--line);
-  --sh-card:  0 0 0 1px var(--line), 0 1px 2px rgb(21 21 21 / 0.04), 0 6px 16px -6px rgb(21 21 21 / 0.08);
-  --sh-float: 0 0 0 1px var(--line), 0 2px 4px rgb(21 21 21 / 0.04), 0 16px 32px -12px rgb(21 21 21 / 0.16), 0 32px 64px -32px rgb(21 21 21 / 0.14);
-  --sh-btn:   inset 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 2px rgb(21 21 21 / 0.2);
+  --sh-card:  0 0 0 1px rgb(16 24 40 / 0.05), inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 1px rgb(16 24 40 / 0.04), 0 3px 6px -2px rgb(16 24 40 / 0.05), 0 14px 24px -14px rgb(16 24 40 / 0.14);
+  --sh-lift:  0 0 0 1px rgb(16 24 40 / 0.06), inset 0 1px 0 rgb(255 255 255 / 0.9), 0 2px 4px rgb(16 24 40 / 0.05), 0 8px 14px -4px rgb(16 24 40 / 0.08), 0 24px 36px -16px rgb(16 24 40 / 0.22);
+  --sh-float: 0 0 0 1px rgb(16 24 40 / 0.06), inset 0 1px 0 rgb(255 255 255 / 0.95), 0 2px 4px rgb(16 24 40 / 0.05), 0 12px 24px -8px rgb(16 24 40 / 0.12), 0 32px 56px -24px rgb(16 24 40 / 0.28);
+  --sh-btn:   inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(16 24 40 / 0.24);
 
   /* ---------- 7. MOVIMIENTO ---------- */
   --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -118,14 +124,17 @@
 
 /* ---------- MODO NOCHE ---------- */
 :root[data-theme="night"] {
-  --paper: hsl(var(--brand-paper-hue) 4% 7.5%);
-  --paper-deep: hsl(var(--brand-paper-hue) 4% 10%);
-  --surface: hsl(var(--brand-paper-hue) 3% 11.5%);
-  --surface-2: hsl(var(--brand-paper-hue) 3% 14%);
-  --ink: #F1F0EC; --ink-2: #C9C8C3; --ink-3: #A9A8A3; --ink-4: #6E6D69; --on-ink: #151515;
-  --line: rgb(255 255 255 / 0.08); --line-strong: rgb(255 255 255 / 0.14); --line-control: rgb(255 255 255 / 0.5); --dot: rgb(255 255 255 / 0.09);
-  --sh-card: 0 0 0 1px var(--line), 0 6px 16px -6px rgb(0 0 0 / 0.5);
-  --sh-float: 0 0 0 1px var(--line), 0 16px 32px -12px rgb(0 0 0 / 0.6), 0 32px 64px -32px rgb(0 0 0 / 0.5);
+  /* De noche las capas se separan por luz, no por sombra: cada escalón es un poco más claro que el anterior,
+     y el filete de arriba lo recorta como si lo tocara una luz cenital. */
+  --paper: hsl(var(--brand-paper-hue) 14% 5.6%);
+  --paper-deep: hsl(var(--brand-paper-hue) 13% 8%);
+  --surface: hsl(var(--brand-paper-hue) 11% 10.6%);
+  --surface-2: hsl(var(--brand-paper-hue) 10% 13.6%);
+  --ink: #F2F1EE; --ink-2: #CFCEC9; --ink-3: #A9A8A3; --ink-4: #6E6D69; --on-ink: #121314;
+  --line: rgb(255 255 255 / 0.075); --line-strong: rgb(255 255 255 / 0.15); --line-control: rgb(255 255 255 / 0.5); --dot: rgb(255 255 255 / 0.09);
+  --sh-card: 0 0 0 1px rgb(255 255 255 / 0.06), inset 0 1px 0 rgb(255 255 255 / 0.05), 0 2px 4px rgb(0 0 0 / 0.35), 0 14px 26px -14px rgb(0 0 0 / 0.75);
+  --sh-lift: 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.07), 0 4px 8px rgb(0 0 0 / 0.4), 0 22px 36px -16px rgb(0 0 0 / 0.85);
+  --sh-float: 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.08), 0 6px 14px rgb(0 0 0 / 0.4), 0 28px 56px -22px rgb(0 0 0 / 0.9);
   --sh-btn: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 1px 2px rgb(0 0 0 / 0.4);
   /* Sereno usa un naranja en oscuro; acá sigue siendo el gris-azul, más
      claro para que tenga contraste AA sobre el papel oscuro (7,4:1). */
