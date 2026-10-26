@@ -96,8 +96,8 @@ def limpiar_chat(group_id):
     if modo not in ("todo", "bot"):
         return jsonify({"error": "Opción no válida."}), 400
 
-    es_admin, todos_admin = group_auth_service.get_rol(user_id, group_id)
-    puede_todo = bool(es_admin or todos_admin)
+    es_admin, _ = group_auth_service.get_rol(user_id, group_id)
+    puede_todo = bool(es_admin)
     if modo == "todo" and not puede_todo:
         return jsonify({"error": "Solo los admins del grupo pueden vaciar todo el chat."}), 403
 

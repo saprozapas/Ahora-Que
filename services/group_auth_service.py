@@ -5,17 +5,17 @@ class GroupAuthService:
     """Altas, consultas y cambios de grupos. Cada método libera la conexión
     en un finally: si algo falla, la conexión vuelve igual al pool."""
 
-    def register(self, group, user_id, todos_admin=False):
+    def register(self, group, user_id):
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO public."Grupos" ("Creado_Por", "Nombre", "Descripcion", "Todos_Admin")
-                    VALUES (%s, %s, %s, %s)
+                    INSERT INTO public."Grupos" ("Creado_Por", "Nombre", "Descripcion")
+                    VALUES (%s, %s, %s)
                     RETURNING "Id_Grupo"
                     """,
-                    (user_id, group.get_name(), group.get_description(), todos_admin)
+                    (user_id, group.get_name(), group.get_description())
                 )
                 group_id = cursor.fetchone()[0]
             # EL USUARIO SE AGREGA COMO INTEGRANTE DEL GRUPO AUTOMATICAMENTE POR UNA AUTOMATIZACION EN SUPABASE
@@ -67,59 +67,90 @@ class GroupAuthService:
             release_db_connection(conn)
 
     def get_rol(self, user_id, group_id):
-        """(es_admin, todos_admin) del usuario en el grupo; (False, False) si no es integrante."""
+        """(es_admin, es_owner) del usuario en el grupo; (False, False) si no es integrante.
+
+        El owner es quien creó el grupo (Grupos.Creado_Por) y siempre cuenta como admin."""
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT ug."Es_Admin", g."Todos_Admin"
+                    SELECT ug."Es_Admin", g."Creado_Por"::text = %s
                     FROM public."Usuario-Grupo" ug
                     JOIN public."Grupos" g ON g."Id_Grupo" = ug."Id_Grupo"
                     WHERE ug."Id_Usuario" = %s AND ug."Id_Grupo" = %s
                     """,
-                    (user_id, group_id)
+                    (str(user_id), user_id, group_id)
                 )
-                return cursor.fetchone() or (False, False)
+                fila = cursor.fetchone()
+                if not fila:
+                    return (False, False)
+                return (bool(fila[0] or fila[1]), bool(fila[1]))
         finally:
             release_db_connection(conn)
 
     def is_admin(self, user_id, group_id):
-        return bool(self.get_rol(user_id, group_id)[0])
+        return self.get_rol(user_id, group_id)[0]
 
-    def make_admin(self, group_id, user_id):
+    def get_owner_id(self, group_id):
+        """Id (texto) del owner del grupo, o None si ya no es integrante."""
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
-                    UPDATE public."Usuario-Grupo" SET "Es_Admin" = true
-                    WHERE "Id_Usuario" = %s AND "Id_Grupo" = %s
+                    SELECT g."Creado_Por"::text
+                    FROM public."Grupos" g
+                    JOIN public."Usuario-Grupo" ug
+                      ON ug."Id_Grupo" = g."Id_Grupo" AND ug."Id_Usuario" = g."Creado_Por"
+                    WHERE g."Id_Grupo" = %s
                     """,
-                    (user_id, group_id)
+                    (group_id,)
                 )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
+                fila = cursor.fetchone()
+                return fila[0] if fila else None
         finally:
             release_db_connection(conn)
 
-    def set_todos_admin(self, group_id, valor):
-        """Activarlo también vuelve admins a los integrantes actuales;
-        desactivarlo no le quita el rol a nadie."""
+    def puede_cambiar_admin(self, actor_id, group_id, target_id):
+        """Un admin le da o le quita el rol a otro integrante; al owner nunca se lo toca."""
+        if str(actor_id) == str(target_id):
+            return False
+        es_admin, _ = self.get_rol(actor_id, group_id)
+        if not es_admin or str(target_id) == self.get_owner_id(group_id):
+            return False
+        return self.is_user_in_group(target_id, group_id)
+
+    def puede_sacar(self, actor_id, group_id, target_id):
+        """El owner saca a cualquiera; un admin solo a quienes no son admin."""
+        if str(actor_id) == str(target_id):
+            return False
+        es_admin, es_owner = self.get_rol(actor_id, group_id)
+        if es_owner:
+            return self.is_user_in_group(target_id, group_id)
+        if not es_admin:
+            return False
+        objetivo_admin, objetivo_owner = self.get_rol(target_id, group_id)
+        pertenece = self.is_user_in_group(target_id, group_id)
+        return pertenece and not objetivo_admin and not objetivo_owner
+
+    def make_admin(self, group_id, user_id):
+        self._set_admin(group_id, user_id, True)
+
+    def quitar_admin(self, group_id, user_id):
+        self._set_admin(group_id, user_id, False)
+
+    def _set_admin(self, group_id, user_id, valor):
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    'UPDATE public."Grupos" SET "Todos_Admin" = %s WHERE "Id_Grupo" = %s',
-                    (valor, group_id)
+                    """
+                    UPDATE public."Usuario-Grupo" SET "Es_Admin" = %s
+                    WHERE "Id_Usuario" = %s AND "Id_Grupo" = %s
+                    """,
+                    (valor, user_id, group_id)
                 )
-                if valor:
-                    cursor.execute(
-                        'UPDATE public."Usuario-Grupo" SET "Es_Admin" = true WHERE "Id_Grupo" = %s',
-                        (group_id,)
-                    )
             conn.commit()
         except Exception:
             conn.rollback()

@@ -1158,3 +1158,10 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 .modal--foto.is-ocupado { opacity: 0.85; pointer-events: none; }
 @media (max-width: 520px) { .perfil-banco { grid-template-columns: minmax(0, 1fr); } }
 .perfil-pantalla .profile__head .perfil-foto .avatar { --size: 72px !important; font-size: 1.75rem; }
+
+/* Integrantes del grupo: la foto en el círculo, la descripción fija y el admin marcado. */
+.modal-member-avatar.avatar--foto { padding: 0; overflow: hidden; }
+.modal-member-avatar.avatar--foto > img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+.modal-field textarea { resize: none; }
+.modal-member small { margin-left: var(--s-1); }
+.icon-btn--activo { color: var(--ink); }

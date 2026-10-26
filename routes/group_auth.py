@@ -68,7 +68,6 @@ def nuevo_grupo():
         user_id = session.get("user_id")
         name = form_data["name"]
         description = form_data["description"]
-        todos_admin = "todos_admin" in request.form  # el checkbox solo viaja si está tildado
         try:
             user = getUser(user_id)
         except Exception as e:
@@ -77,7 +76,7 @@ def nuevo_grupo():
         try:
             if name.strip() == "":
                 raise psycopg2.errors.NotNullViolation("El nombre del grupo no puede estar vacío.")
-            group_id = group_auth_service.register(Group(user, name, description), user_id, todos_admin)
+            group_id = group_auth_service.register(Group(user, name, description), user_id)
         except psycopg2.errors.NotNullViolation as e:
             return render_template("crear_grupos.html", error="Debes ingresar el nombre del grupo.", form_data=form_data)
         except Exception as e:
@@ -108,9 +107,9 @@ def detalle_grupo(group_id):
     racha = racha_service.actualizar_racha(group_id)
     tablero = grupo_plan_service.get_tablero(group_id, session.get("user_id"))
     encuestas = grupo_encuesta_service.get_abiertas(group_id, session.get("user_id"))
-    es_admin, todos_admin = group_auth_service.get_rol(session.get("user_id"), group_id)
+    es_admin, es_owner = group_auth_service.get_rol(session.get("user_id"), group_id)
     return render_template("grupo.html", group=group, groups_page=True, users=users, racha=racha,
-                           es_admin=es_admin, todos_admin=todos_admin,
+                           es_admin=es_admin, es_owner=es_owner, owner_id=group_auth_service.get_owner_id(group_id),
                            seccion="planes", tablero=tablero, hoy=date.today().isoformat(),
                            encuestas=encuestas)
 
@@ -128,7 +127,7 @@ def chat_grupo(group_id):
     group = getGroupById(group_id)
     group.set_user(getUser(session.get("user_id")))
     racha = racha_service.actualizar_racha(group_id)
-    es_admin, todos_admin = group_auth_service.get_rol(session.get("user_id"), group_id)
+    es_admin, es_owner = group_auth_service.get_rol(session.get("user_id"), group_id)
     chat_service.marcar_visto(session.get("user_id"), group_id, siempre=True)
     integrantes = getUsersInGroupWithIds(group_id)
     # Quiénes se pueden mencionar con @ en el chat: se los nombra por su username (o su nombre sin espacios).
@@ -142,7 +141,7 @@ def chat_grupo(group_id):
     ]
     return render_template("grupo_chat.html", group=group, groups_page=True,
                            users=integrantes, seccion="chat", racha=racha,
-                           es_admin=es_admin, todos_admin=todos_admin, integrantes_chat=integrantes_chat)
+                           es_admin=es_admin, es_owner=es_owner, owner_id=group_auth_service.get_owner_id(group_id), integrantes_chat=integrantes_chat)
 
 
 @group_auth.route("/grupos/<group_id>/invitables")
@@ -231,9 +230,6 @@ def editar_grupo(group_id):
             request.form.get("titulo_semanas"),
         )
         group_auth_service.update_group(group_id, nombre, descripcion)
-        # Solo un admin cambia "todos admin": sin esto un integrante común lo apagaría al guardar.
-        if group_auth_service.is_admin(session.get("user_id"), group_id):
-            group_auth_service.set_todos_admin(group_id, "todos_admin" in request.form)
         flash("Grupo actualizado exitosamente.")
     except Exception as e:
         print(f"Error al actualizar el grupo: {e}")
@@ -247,6 +243,11 @@ def hacer_admin(group_id, user_id):
     if redirect_response:
         return redirect_response
 
+    # Cualquier admin puede nombrar a otro, menos tocar al owner.
+    if not group_auth_service.puede_cambiar_admin(session.get("user_id"), group_id, user_id):
+        flash("No podés cambiar el rol de esa persona.")
+        return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
     try:
         group_auth_service.make_admin(group_id, user_id)
         flash("Ahora es admin del grupo.")
@@ -257,11 +258,36 @@ def hacer_admin(group_id, user_id):
     return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 
 
+@group_auth.route("/grupos/<group_id>/integrantes/<user_id>/quitar-admin", methods=["POST"])
+def quitar_admin(group_id, user_id):
+    redirect_response = _require_login() or _solo_admin(group_id)
+    if redirect_response:
+        return redirect_response
+
+    if not group_auth_service.puede_cambiar_admin(session.get("user_id"), group_id, user_id):
+        flash("No podés cambiar el rol de esa persona.")
+        return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
+    try:
+        group_auth_service.quitar_admin(group_id, user_id)
+        flash("Ya no es admin del grupo.")
+    except Exception as e:
+        print(f"Error al quitar admin: {e}")
+        flash("Error al quitar el admin.")
+
+    return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
+
 @group_auth.route("/grupos/<group_id>/integrantes/<user_id>/sacar", methods=["POST"])
 def sacar_integrante(group_id, user_id):
     redirect_response = _require_login() or _solo_admin(group_id)
     if redirect_response:
         return redirect_response
+
+    # El owner saca a cualquiera; un admin, solo a quienes no son admin.
+    if not group_auth_service.puede_sacar(session.get("user_id"), group_id, user_id):
+        flash("No podés sacar a esa persona del grupo.")
+        return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 
     try:
         group_auth_service.delete_user_from_group(group_id, user_id)

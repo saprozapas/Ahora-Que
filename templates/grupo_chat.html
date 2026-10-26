@@ -96,9 +96,9 @@
   <div class="modal-body chat-limpiar-opciones">
     <button class="chat-limpiar-opcion" type="button" data-limpiar="bot">
       <strong>Limpiar el bot</strong>
-      <small>Borra tu conversación con el asistente y los mensajes que mencionan a @AhoraQue{% if not (es_admin or todos_admin) %} (los tuyos){% endif %}.</small>
+      <small>Borra tu conversación con el asistente y los mensajes que mencionan a @AhoraQue{% if not es_admin %} (los tuyos){% endif %}.</small>
     </button>
-    {% if es_admin or todos_admin %}
+    {% if es_admin %}
     <button class="chat-limpiar-opcion chat-limpiar-opcion--peligro" type="button" data-limpiar="todo">
       <strong>Vaciar todo</strong>
       <small>Borra todos los mensajes del grupo, de todos los integrantes. No se puede deshacer.</small>
