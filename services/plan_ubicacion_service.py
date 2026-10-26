@@ -66,9 +66,11 @@ class PlanUbicacionService:
                 ]
                 cursor.execute(
                     """
-                    SELECT u."Id_Usuario"::text, u."Nombre", u."Username", pu."Lat", pu."Lon", pu."Actualizada_En"
+                    SELECT u."Id_Usuario"::text, u."Nombre", u."Username", pu."Lat", pu."Lon", pu."Actualizada_En",
+                           EXTRACT(EPOCH FROM av."Actualizada_En")::bigint
                     FROM public."Usuario-Plan" up
                     JOIN public."Usuarios" u ON u."Id_Usuario" = up."Usuario_id"
+                    LEFT JOIN public."Usuario_Avatar" av ON av."Id_Usuario" = u."Id_Usuario"
                     LEFT JOIN public."Plan_Ubicacion" pu ON pu."Id_Plan" = up."Plan_id" AND pu."Id_Usuario" = up."Usuario_id"
                     WHERE up."Plan_id"::text = %s AND up."Confirmado"
                     ORDER BY (u."Id_Usuario"::text = %s) DESC, u."Nombre"
@@ -91,6 +93,7 @@ class PlanUbicacionService:
                 "nombre": f[1],
                 "handle": ChatService.handle(f[2], f[1]),
                 "yo": f[0] == str(user_id),
+                "avatar": int(f[6]) if f[6] else None,
                 "comparte": comparte,
                 "lat": f[3] if comparte else None,
                 "lon": f[4] if comparte else None,

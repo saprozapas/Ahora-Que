@@ -1085,3 +1085,76 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
   .plan-detail .facts { padding-block: var(--s-2); }
 }
 @media (min-width: 901px) { .plan-detail .stops__mapa { min-height: 0; display: inline; padding: 0; } }
+
+
+/* ==========================================================================
+   Fotos de perfil, caras del mapa, número de las paradas y perfil en estilo Sereno
+   ========================================================================== */
+
+/* Una foto dentro de un .avatar: llena el círculo. */
+.avatar--foto { padding: 0; overflow: hidden; background: var(--paper-deep); }
+.avatar--foto > img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+
+/* Paradas del plan: el número va al medio de la tarjeta, a la altura del centro del bloque de texto. */
+.plan-detail .stops > li { align-items: center; }
+.plan-detail .stops__num { align-self: center; margin-top: 0; }
+
+/* Mapa: abajo, a la izquierda los botones y a la derecha las caras de quienes van (el nombre aparece al pasar el mouse). */
+.mapa-plan__barra { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap; min-height: 40px; }
+.mapa-plan__acciones { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+.mapa-plan__acciones [hidden] { display: none; }
+.mapa-plan__aviso { margin: 0; color: var(--ink-3); font-size: 0.8125rem; }
+.mapa-plan__aviso[hidden] { display: none; }
+.mapa-plan__caras { display: flex; align-items: center; gap: var(--s-2); margin: 0 0 0 auto; padding: 0; list-style: none; flex-wrap: wrap; justify-content: flex-end; }
+.mapa-cara { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; cursor: default; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--line-strong); opacity: 0.6; transition: opacity var(--d-fast) var(--ease-out), transform var(--d-fast) var(--ease-out); }
+.mapa-cara.is-comparte { opacity: 1; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--ink); }
+.mapa-cara.is-yo.is-comparte { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px var(--info); }
+.mapa-cara .avatar { --size: 36px !important; font-size: 0.875rem; }
+.mapa-cara:hover, .mapa-cara:focus-visible { opacity: 1; transform: translateY(-2px); outline: none; }
+.mapa-cara[data-tip]::after {
+  content: attr(data-tip); position: absolute; z-index: 20; right: 0; bottom: calc(100% + 10px); width: max-content; max-width: 240px; padding: 6px 10px;
+  border-radius: var(--r-sm); background: var(--ink); color: var(--on-ink); font: 550 0.75rem/1.35 var(--font-sans); text-align: left; white-space: normal;
+  box-shadow: var(--sh-float); opacity: 0; transform: translateY(4px); pointer-events: none; transition: opacity var(--d-fast) var(--ease-out), transform var(--d-fast) var(--ease-out);
+}
+.mapa-cara:hover::after, .mapa-cara:focus-visible::after { opacity: 1; transform: none; }
+.mapa-persona span > img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+
+/* --- Perfil: la foto, filas parejas y las acciones delicadas con calma --- */
+.perfil-foto { position: relative; flex: none; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+.perfil-foto .avatar { --size: 72px !important; font-size: 1.75rem; transition: box-shadow var(--d-base) var(--ease-out); box-shadow: var(--sh-card); }
+.perfil-foto:hover .avatar { box-shadow: var(--sh-lift); }
+.perfil-foto:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.perfil-foto__editar { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--surface); color: var(--ink-2); box-shadow: var(--sh-card); }
+.perfil-foto__editar svg { width: 14px; height: 14px; }
+.perfil-pantalla .profile__head { gap: var(--s-4); align-items: center; }
+
+/* Todas las filas con la misma altura mínima, la etiqueta alineada con el valor y los controles del mismo tamaño. */
+.perfil-pantalla .profile-row { align-items: center; min-height: 52px; }
+.perfil-pantalla .profile-row--texto { align-items: start; }
+.perfil-pantalla .profile-row__label { color: var(--ink-3); font-size: 0.8125rem; font-weight: 500; }
+.perfil-banco { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: var(--s-2); align-items: center; }
+.perfil-banco .input { height: 40px; padding-inline: var(--s-3); font-size: var(--t-ui); }
+.perfil-pantalla .profile-row--texto .profile-row__value .meta { margin: 0; font-size: 0.8125rem; }
+.perfil-eliminar { padding: 0; border: 0; background: none; color: var(--danger); font: 500 var(--t-ui) var(--font-sans); cursor: pointer; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--danger) 35%, transparent); text-underline-offset: 0.22em; justify-self: start; }
+.perfil-eliminar:hover { text-decoration-color: currentColor; }
+.perfil-pantalla .profile-row:last-child { background: color-mix(in srgb, var(--danger) 3%, transparent); }
+
+/* Diálogo de la foto. */
+.modal--foto { width: min(440px, calc(100% - 24px)); }
+.foto-editor { display: grid; gap: var(--s-5); }
+.foto-editor__vista { display: grid; place-items: center; }
+.foto-editor__vista .avatar { box-shadow: var(--sh-float); }
+.foto-editor__bloque { display: grid; gap: var(--s-2); }
+.foto-editor__titulo { margin: 0; color: var(--ink-3); font-size: var(--t-meta); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.foto-editor__avatares { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--s-2); }
+.foto-avatar { padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; aspect-ratio: 1; box-shadow: var(--sh-card); overflow: hidden; transition: transform var(--d-fast) var(--ease-out), box-shadow var(--d-base) var(--ease-out); }
+.foto-avatar img { width: 100%; height: 100%; display: block; }
+.foto-avatar:hover { transform: translateY(-2px); box-shadow: var(--sh-lift); }
+.foto-avatar:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.foto-editor__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.foto-editor__subir { cursor: pointer; }
+.foto-editor__estado { margin: 0; }
+.foto-editor__estado.is-error { color: var(--danger); }
+.modal--foto.is-ocupado { opacity: 0.85; pointer-events: none; }
+@media (max-width: 520px) { .perfil-banco { grid-template-columns: minmax(0, 1fr); } }
+.perfil-pantalla .profile__head .perfil-foto .avatar { --size: 72px !important; font-size: 1.75rem; }

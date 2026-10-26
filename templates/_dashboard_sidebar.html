@@ -131,7 +131,7 @@
     {% if ruta.startswith('/perfil') %}aria-current="page"{% endif %}
     title="Tu perfil"
   >
-    <span class="avatar" aria-hidden="true">{{ (nombre_usuario or '?')[:1] | upper }}</span>
+    <span class="avatar{% if mi_avatar_v %} avatar--foto{% endif %}" aria-hidden="true">{% if mi_avatar_v and current_user.id %}<img src="/avatar/{{ current_user.id }}?v={{ mi_avatar_v }}" alt="" data-avatar-yo />{% else %}{{ (nombre_usuario or '?')[:1] | upper }}{% endif %}</span>
     <span class="dashboard-sidebar-perfil__texto">
       <strong>{{ nombre_usuario or 'Tu perfil' }}</strong>
       <small>Ver perfil</small>

@@ -17,7 +17,7 @@
       <div class="perfil-izq">
 
       <header class="profile__head">
-        <span class="avatar" style="--h: {{ (usuario.get_name() | length * 47) % 360 }}; --size: 64px" aria-hidden="true">{{ usuario.get_name()[:1] | upper }}</span>
+        <span class="avatar avatar--perfil{% if avatar_v %} avatar--foto{% endif %}" style="--h: {{ (usuario.get_name() | length * 47) % 360 }}; --size: 72px" aria-hidden="true">{% if avatar_v %}<img src="/avatar/{{ autor_id }}?v={{ avatar_v }}" alt="" />{% else %}{{ usuario.get_name()[:1] | upper }}{% endif %}</span>
         <div>
           <h1 class="h2">{{ usuario.get_name() }}</h1>
           {% if usuario.get_username() %}<p class="meta">@{{ usuario.get_username() }}</p>{% endif %}

@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from services.auth_service import AuthService
+from services.avatar_service import AvatarService
 from services.deuda_service import DeudaService
 from services.plan_service import PlanService
 from database_bridge.database_bridge import getUser
@@ -165,4 +166,9 @@ def perfil_publico(user_id):
     if usuario is None:
         abort(404)
 
-    return render_template("perfil_publico.html", usuario=usuario, autor_id=user_id)
+    try:
+        avatar_v = AvatarService().version(user_id)
+    except Exception as e:
+        print(f"No se pudo leer la foto de perfil: {e}")
+        avatar_v = None
+    return render_template("perfil_publico.html", usuario=usuario, autor_id=user_id, avatar_v=avatar_v)
