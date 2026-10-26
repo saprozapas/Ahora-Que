@@ -17,6 +17,7 @@
         <p class="lead">Te mandamos un enlace para confirmar tu dirección. Abrilo desde tu correo para terminar de crear la cuenta.</p>
       </header>
       <p class="notice" role="status">Esta página se actualizará sola cuando confirmes el correo.</p>
+      <p class="meta">Si no ves el correo, revisá también la carpeta de spam o correo no deseado.</p>
       <p class="auth__alt"><a href="{{ url_for('auth.register') }}">Volver al registro</a></p>
     {% elif estado == 'confirmado' %}
       <header class="auth__head">

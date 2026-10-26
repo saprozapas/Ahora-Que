@@ -4,7 +4,6 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 from flask import Flask, g, render_template, request, redirect, send_from_directory, session
-from flask_mail import Mail
 from routes.auth import auth
 from routes.group_auth import group_auth
 from routes.profile import profile
@@ -31,15 +30,10 @@ from services.social_service import SocialService
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 app.config.update(
-    MAIL_SERVER=os.environ.get("MAIL_SERVER", "smtp.gmail.com"),
-    MAIL_PORT=int(os.environ.get("MAIL_PORT", "587")),
-    MAIL_USE_TLS=os.environ.get("MAIL_USE_TLS", "true").lower() in ("1", "true", "yes"),
-    MAIL_USE_SSL=os.environ.get("MAIL_USE_SSL", "false").lower() in ("1", "true", "yes"),
-    MAIL_USERNAME=os.environ.get("MAIL_USERNAME"),
-    MAIL_PASSWORD=os.environ.get("MAIL_PASSWORD"),
-    MAIL_DEFAULT_SENDER=os.environ.get("MAIL_USERNAME"),
+    BREVO_API_KEY=os.environ.get("BREVO_API_KEY"),
+    BREVO_SENDER_EMAIL=os.environ.get("BREVO_SENDER_EMAIL"),
+    BREVO_SENDER_NAME=os.environ.get("BREVO_SENDER_NAME", "Ahora Qué"),
 )
-mail = Mail(app)
 app.permanent_session_lifetime = timedelta(days=5)
 app.register_blueprint(auth)
 app.register_blueprint(group_auth)
