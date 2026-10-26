@@ -1173,3 +1173,37 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 .chat-slash-option__icon--foto > img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .soc-avatar--foto { padding: 0; overflow: hidden; }
 .soc-avatar--foto > img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+
+/* ==========================================================================
+   Hero: el texto y las tarjetas se abren y en el medio va un signo de pregunta hecho de puntos (pantalla LED).
+   ========================================================================== */
+@media (min-width: 901px) {
+  /* La grilla del hero es más ancha que el resto de la página: el texto queda más a la izquierda y las tarjetas más a la derecha. */
+  .landing-hero__grid { max-width: min(1480px, 100% - 2 * var(--gutter)); padding-inline: 0; grid-template-columns: minmax(0, 1.12fr) minmax(170px, 0.62fr) minmax(0, 0.86fr); gap: clamp(24px, 3.4vw, 64px); }
+}
+.landing-hero__marca { display: grid; place-items: center; }
+.led-signo { width: auto; height: clamp(190px, 33vh, 310px); max-width: 100%; overflow: visible; }
+.led-signo .led { fill: var(--ink); opacity: 0.07; }
+.led-signo .led--on { opacity: 0.8; animation: led-parpadeo var(--t, 4s) ease-in-out var(--d, 0s) infinite; }
+.led-signo .led--falla { animation-name: led-falla; animation-duration: calc(var(--t, 4s) * 0.7); }
+/* Casi siempre prendidos; cada punto tiene su propio ritmo y se apaga un instante, como en un letrero. */
+@keyframes led-parpadeo {
+  0%, 78%, 100% { opacity: 0.82; }
+  84% { opacity: 0.12; }
+  90% { opacity: 0.7; }
+  93% { opacity: 0.16; }
+  97% { opacity: 0.82; }
+}
+/* Unos pocos puntos "fallan" más seguido. */
+@keyframes led-falla {
+  0%, 40%, 100% { opacity: 0.82; }
+  47% { opacity: 0.1; }
+  54% { opacity: 0.8; }
+  61% { opacity: 0.12; }
+  68% { opacity: 0.7; }
+}
+@media (max-width: 900px) {
+  .landing-hero__marca { order: -1; }
+  .led-signo { height: 132px; }
+}
+@media (prefers-reduced-motion: reduce) { .led-signo .led--on { animation: none; opacity: 0.8; } }

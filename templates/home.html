@@ -213,6 +213,28 @@
     </div>
 
 
+    {# El signo de pregunta como panel de puntos (estilo pantalla LED): decorativo, cada punto se apaga y prende a su ritmo. #}
+    {% set filas = [
+      '.#####.',
+      '##...##',
+      '##...##',
+      '.....##',
+      '....##.',
+      '...##..',
+      '...##..',
+      '.......',
+      '...##..',
+      '...##..'
+    ] %}
+    <div class="landing-hero__marca" aria-hidden="true">
+      <svg class="led-signo" viewBox="0 0 70 100" focusable="false">
+        {% for fila in filas %}{% set y = loop.index0 %}{% for celda in fila %}{% set x = loop.index0 %}
+        <circle class="led{% if celda == '#' %} led--on{% if (x * 11 + y * 7) % 9 == 0 %} led--falla{% endif %}{% endif %}" cx="{{ x * 10 + 5 }}" cy="{{ y * 10 + 5 }}" r="3.8"{% if celda == '#' %} style="--d: -{{ ((x * 7 + y * 13 + x * y * 3) % 17) * 0.45 }}s; --t: {{ 3.4 + ((x * 5 + y * 3) % 5) * 0.8 }}s"{% endif %} />
+        {% endfor %}{% endfor %}
+      </svg>
+    </div>
+
+
     <!-- Cada tarjeta en una línea de título y una de datos, como las .item
          de showcase.html: así las cinco entran en la pantalla. -->
     <ul class="pile landing-pile" aria-label="Planes de ejemplo">
