@@ -4,9 +4,7 @@
 
 {% macro monto(n) -%}${{ '{:,.2f}'.format(n).replace(',', 'X').replace('.', ',').replace('X', '.') }}{%- endmacro %}
 
-{% macro cara(nombre) -%}
-<span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 38px" aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
-{%- endmacro %}
+{% from '_macros.html' import cara %}
 
 {% block content %}
 
@@ -66,7 +64,7 @@
       <ul class="deudas__lista">
         {% for d in debo %}
         <li class="deuda">
-          {{ cara(d.nombre) }}
+          {{ cara(d.id, d.nombre, 38) }}
           <span class="deuda__texto">
             <strong>{{ d.nombre }}</strong>
             {% if d.banco %}
@@ -94,7 +92,7 @@
       <ul class="deudas__lista">
         {% for d in me_deben %}
         <li class="deuda">
-          {{ cara(d.nombre) }}
+          {{ cara(d.id, d.nombre, 38) }}
           <span class="deuda__texto">
             <strong>{{ d.nombre }}</strong>
             <small>Te debe</small>

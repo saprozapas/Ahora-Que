@@ -89,6 +89,7 @@ def apple_touch_icon():
 # Fechas en lenguaje de todos los días ("hoy", "mañana", "el sábado"): ver services/fechas.py.
 from services.fechas import cuando as _cuando, dia_relativo as _dia_relativo
 app.jinja_env.filters["dia_rel"] = _dia_relativo
+app.jinja_env.globals["avatar_v"] = AvatarService.version_de
 app.jinja_env.filters["cuando"] = lambda fecha, hora=None: _cuando(fecha, hora)
 
 

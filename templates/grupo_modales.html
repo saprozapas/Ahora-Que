@@ -595,6 +595,26 @@
         {% set es_yo = integrante.id | string == session.get('user_id') | string %}
         {% set es_el_owner = integrante.id | string == owner_id | string %}
 
+        {# Solo el owner puede pasarle el grupo a otra persona (el owner no pierde el rol de admin). #}
+        {% if es_owner and not es_yo %}
+        <form
+          method="post"
+          action="{{ url_for('group_auth.pasar_owner', group_id=group.get_id(), user_id=integrante.id) }}"
+          data-confirmar="¿Pasarle el grupo a {{ integrante.user.get_name() }}? Pasa a ser el owner y vos seguís como admin."
+        >
+          <button
+            class="icon-btn"
+            type="submit"
+            title="Hacer owner"
+            aria-label="Hacer owner a {{ integrante.user.get_name() }}"
+          >
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="m4 8 4.5 4L12 5.5 15.5 12 20 8l-1.6 9.5H5.6L4 8Zm1.8 12h12.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" />
+            </svg>
+          </button>
+        </form>
+        {% endif %}
+
         {# El rol de admin lo da o quita cualquier admin, pero nadie le toca el suyo al owner. #}
         {% if es_admin and not es_yo and not es_el_owner %}
         <form method="post" action="{{ url_for('group_auth.quitar_admin' if integrante.es_admin else 'group_auth.hacer_admin', group_id=group.get_id(), user_id=integrante.id) }}">

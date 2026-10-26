@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% from '_macros.html' import cara %}
+
 {% block title %}Amigos — Ahora Qué{% endblock %}
 
 {% macro avatar(nombre, tam=40) -%}
@@ -65,7 +67,7 @@
     <li class="card item friend-row">
 
       <a class="friend-row__who" href="{{ url_for('profile.perfil_publico', user_id=amigo.id) }}">
-        {{ avatar(amigo.user.get_name()) }}
+        {{ cara(amigo.id, amigo.user.get_name()) }}
         <span class="item__body">
           <span class="item__name">{{ amigo.user.get_name() }}</span>
           {% if amigo.user.get_username() %}

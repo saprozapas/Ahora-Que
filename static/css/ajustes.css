@@ -1165,3 +1165,11 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 .modal-field textarea { resize: none; }
 .modal-member small { margin-left: var(--s-1); }
 .icon-btn--activo { color: var(--ink); }
+
+/* Fotos de perfil en listas, chat, menciones y publicaciones. */
+.chat-message-author { display: inline-flex; align-items: center; gap: 6px; }
+.chat-message-author__foto { width: 20px; height: 20px; border-radius: 50%; object-fit: cover; display: block; flex: none; }
+.chat-slash-option__icon--foto { padding: 0; overflow: hidden; border-radius: 50%; }
+.chat-slash-option__icon--foto > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.soc-avatar--foto { padding: 0; overflow: hidden; }
+.soc-avatar--foto > img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }

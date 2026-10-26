@@ -4,12 +4,22 @@ La imagen subida llega ya recortada en cuadrado y achicada por el navegador (JPE
 que sea un JPEG y que pese poco, y se guarda en la base igual que las fotos de las publicaciones.
 """
 
+import threading
+import time
+
 import psycopg2
 
 from database import get_db_connection, release_db_connection
 
 CANTIDAD_PRESETS = 5
 MAX_BYTES = 150 * 1024
+
+
+# Versiones de las fotos de todos (id -> número), para mostrar la foto de cualquiera en listas sin una consulta por persona.
+# Dura pocos segundos y se renueva sola; al cambiar una foto se invalida de inmediato.
+_VERSIONES = {"hasta": 0.0, "datos": {}}
+_CANDADO = threading.Lock()
+_VIGENCIA_S = 30
 
 
 class AvatarError(Exception):
@@ -23,6 +33,38 @@ class AvatarService:
     @staticmethod
     def _version(fila):
         return int(fila.timestamp()) if fila else None
+
+    @classmethod
+    def versiones(cls):
+        """{id (texto): versión} de todos los que eligieron foto. Si la base falla, devuelve lo último que se supo."""
+        with _CANDADO:
+            if time.monotonic() < _VERSIONES["hasta"]:
+                return _VERSIONES["datos"]
+        connection = None
+        try:
+            connection = get_db_connection()
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT "Id_Usuario"::text, EXTRACT(EPOCH FROM "Actualizada_En")::bigint FROM public."Usuario_Avatar"')
+                datos = {fila[0]: int(fila[1]) for fila in cursor.fetchall() if fila[1]}
+        except Exception as e:
+            print(f"No se pudieron leer las fotos de perfil: {e}")
+            return _VERSIONES["datos"]
+        finally:
+            if connection is not None:
+                release_db_connection(connection)
+        with _CANDADO:
+            _VERSIONES["datos"] = datos
+            _VERSIONES["hasta"] = time.monotonic() + _VIGENCIA_S
+        return datos
+
+    @classmethod
+    def version_de(cls, user_id):
+        return cls.versiones().get(str(user_id)) if user_id else None
+
+    @staticmethod
+    def invalidar():
+        with _CANDADO:
+            _VERSIONES["hasta"] = 0.0
 
     def obtener(self, user_id):
         """{"tipo", "preset", "datos", "version"} o None si el usuario no eligió foto."""
@@ -72,6 +114,7 @@ class AvatarService:
                 )
                 fila = cursor.fetchone()
             connection.commit()
+            self.invalidar()
             return self._version(fila[0])
         except Exception:
             connection.rollback()
@@ -101,6 +144,7 @@ class AvatarService:
             with connection.cursor() as cursor:
                 cursor.execute('DELETE FROM public."Usuario_Avatar" WHERE "Id_Usuario"::text = %s', (str(user_id),))
             connection.commit()
+            self.invalidar()
         except Exception:
             connection.rollback()
             raise

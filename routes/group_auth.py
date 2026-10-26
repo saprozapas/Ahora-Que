@@ -107,9 +107,10 @@ def detalle_grupo(group_id):
     racha = racha_service.actualizar_racha(group_id)
     tablero = grupo_plan_service.get_tablero(group_id, session.get("user_id"))
     encuestas = grupo_encuesta_service.get_abiertas(group_id, session.get("user_id"))
+    owner_id = group_auth_service.get_owner_id(group_id)  # antes que el rol: si el grupo no tenía owner, lo asigna
     es_admin, es_owner = group_auth_service.get_rol(session.get("user_id"), group_id)
     return render_template("grupo.html", group=group, groups_page=True, users=users, racha=racha,
-                           es_admin=es_admin, es_owner=es_owner, owner_id=group_auth_service.get_owner_id(group_id),
+                           es_admin=es_admin, es_owner=es_owner, owner_id=owner_id,
                            seccion="planes", tablero=tablero, hoy=date.today().isoformat(),
                            encuestas=encuestas)
 
@@ -127,6 +128,7 @@ def chat_grupo(group_id):
     group = getGroupById(group_id)
     group.set_user(getUser(session.get("user_id")))
     racha = racha_service.actualizar_racha(group_id)
+    owner_id = group_auth_service.get_owner_id(group_id)
     es_admin, es_owner = group_auth_service.get_rol(session.get("user_id"), group_id)
     chat_service.marcar_visto(session.get("user_id"), group_id, siempre=True)
     integrantes = getUsersInGroupWithIds(group_id)
@@ -136,12 +138,13 @@ def chat_grupo(group_id):
             "id": str(i["id"]),
             "handle": "".join(ChatService._nombre_visible(i["user"].get_username(), i["user"].get_name()).split()),
             "nombre": i["user"].get_name(),
+            "avatar": i.get("avatar"),
         }
         for i in integrantes
     ]
     return render_template("grupo_chat.html", group=group, groups_page=True,
                            users=integrantes, seccion="chat", racha=racha,
-                           es_admin=es_admin, es_owner=es_owner, owner_id=group_auth_service.get_owner_id(group_id), integrantes_chat=integrantes_chat)
+                           es_admin=es_admin, es_owner=es_owner, owner_id=owner_id, integrantes_chat=integrantes_chat)
 
 
 @group_auth.route("/grupos/<group_id>/invitables")
@@ -274,6 +277,26 @@ def quitar_admin(group_id, user_id):
     except Exception as e:
         print(f"Error al quitar admin: {e}")
         flash("Error al quitar el admin.")
+
+    return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
+
+@group_auth.route("/grupos/<group_id>/integrantes/<user_id>/owner", methods=["POST"])
+def pasar_owner(group_id, user_id):
+    redirect_response = _require_login()
+    if redirect_response:
+        return redirect_response
+
+    if not group_auth_service.puede_transferir_owner(session.get("user_id"), group_id, user_id):
+        flash("Solo el owner puede pasarle el grupo a otro integrante.")
+        return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
+
+    try:
+        group_auth_service.transferir_owner(group_id, user_id)
+        flash("Listo: ese integrante es ahora el owner del grupo. Vos seguís como admin.")
+    except Exception as e:
+        print(f"Error al pasar el owner: {e}")
+        flash("Error al pasar el owner.")
 
     return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 
