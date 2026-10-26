@@ -400,8 +400,13 @@
 
     pedido
       .then(function (datos) {
-        vista.terminar(datos.respuesta);  // el texto definitivo que guardó el servidor
-        if (datos.borrador) { agregarBorrador(datos.borrador); }
+        if (datos.borrador) {
+          // Con propuesta armada se ve solo la tarjeta: el texto que la describe queda de más.
+          vista.cancelar();
+          agregarBorrador(datos.borrador);
+        } else {
+          vista.terminar(datos.respuesta);  // el texto definitivo que guardó el servidor
+        }
       })
       .catch(function (error) {
         vista.cancelar();
@@ -436,9 +441,12 @@
   function cargarHistorial() {
     pedirJSON("/chatbot/historial")
       .then(function (datos) {
-        (datos.mensajes || []).forEach(function (mensaje) {
+        var mensajes = datos.mensajes || [];
+        mensajes.forEach(function (mensaje, i) {
           if (mensaje.tipo === "borrador") {
             agregarBorrador(mensaje.borrador);
+          } else if (mensaje.role === "assistant" && mensajes[i + 1] && mensajes[i + 1].tipo === "borrador") {
+            // El texto que viene justo antes de una propuesta no se muestra: queda la tarjeta.
           } else {
             agregarMensaje(mensaje.role, mensaje.content);
           }

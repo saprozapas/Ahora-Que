@@ -1,74 +1,48 @@
 /* ==========================================================================
-   Guía de primera vez
+   Guía de bienvenida (solo para cuentas nuevas)
 
-   1. Globos de ayuda: cada elemento con data-guia-id (y data-guia-titulo / data-guia-texto / data-guia-orden)
-      muestra, la primera vez que se ve, un globo corto que dice para qué sirve. Se avanza con "Siguiente";
-      "Omitir" cierra todos. Lo ya visto se recuerda en este navegador (localStorage).
-   2. "Primeros pasos" del Inicio: la tarjeta se puede ocultar y el navegador se acuerda.
-   3. Cualquier botón con data-guia-reiniciar vuelve a mostrar los globos.
+   El servidor solo carga este archivo en el navegador donde se creó la cuenta, mientras la guía no se haya
+   terminado (base.html, variable guia_nueva). Dura una sola vez:
+
+   1. En el Inicio, globos cortos que apuntan a lo principal (cada elemento con data-guia-id,
+      data-guia-titulo, data-guia-texto y data-guia-orden). "Siguiente" avanza; "Entendido" en el último
+      o "Omitir" en cualquiera la terminan.
+   2. La tarjeta "Primeros pasos" del Inicio forma parte de la guía: se oculta al terminarla.
+   Al terminar, el navegador le avisa al servidor (POST /guia/terminada) y no vuelve a aparecer.
    ========================================================================== */
 
 (function () {
 
   "use strict";
 
-  var CLAVE_VISTOS = "aq-guia-vistos";
-  var CLAVE_OFF = "aq-guia-omitida";
-  var CLAVE_PASOS = "aq-primeros-ocultos";
+  // La guía vive en el Inicio: en otras pantallas no hace nada.
+  if (window.location.pathname.replace(/\/$/, "") !== "/dashboard") { return; }
 
-  function leer(clave) {
-    try { return window.localStorage.getItem(clave); } catch (e) { return null; }
-  }
-
-  function guardar(clave, valor) {
-    try { window.localStorage.setItem(clave, valor); } catch (e) { /* sin almacenamiento: se muestra cada vez */ }
-  }
-
-  function borrar(clave) {
-    try { window.localStorage.removeItem(clave); } catch (e) { /* nada */ }
-  }
-
-  function vistos() {
-    try { return JSON.parse(leer(CLAVE_VISTOS)) || []; } catch (e) { return []; }
-  }
-
-  function marcarVisto(id) {
-    var lista = vistos();
-    if (lista.indexOf(id) === -1) { lista.push(id); }
-    guardar(CLAVE_VISTOS, JSON.stringify(lista));
-  }
-
-  // ---------------------------------------------------------------- Primeros pasos
   var pasos = document.querySelector("[data-primeros]");
-
-  if (pasos) {
-    if (leer(CLAVE_PASOS) !== "1") { pasos.hidden = false; }
-    var cerrar = pasos.querySelector("[data-primeros-cerrar]");
-    if (cerrar) {
-      cerrar.addEventListener("click", function () {
-        guardar(CLAVE_PASOS, "1");
-        pasos.hidden = true;
-      });
-    }
-  }
-
-  // ---------------------------------------------------------------- Reiniciar
-  document.addEventListener("click", function (evento) {
-    var boton = evento.target.closest("[data-guia-reiniciar]");
-    if (!boton) { return; }
-    borrar(CLAVE_VISTOS);
-    borrar(CLAVE_OFF);
-    borrar(CLAVE_PASOS);
-    window.location.href = "/dashboard";
-  });
-
-  // ---------------------------------------------------------------- Globos
-  if (leer(CLAVE_OFF) === "1") { return; }
-
   var globo = null;
   var cola = [];
   var indice = 0;
   var activo = null;
+  var terminada = false;
+
+  if (pasos) {
+    pasos.hidden = false;
+    var cerrar = pasos.querySelector("[data-primeros-cerrar]");
+    if (cerrar) { cerrar.addEventListener("click", terminar); }
+  }
+
+  function terminar() {
+
+    if (terminada) { return; }
+    terminada = true;
+
+    cerrarGlobo();
+    if (pasos) { pasos.hidden = true; }
+
+    try {
+      fetch("/guia/terminada", { method: "POST", credentials: "same-origin" });
+    } catch (e) { /* si no llega, se vuelve a ofrecer en la próxima visita */ }
+  }
 
   function visible(el) {
     var caja = el.getBoundingClientRect();
@@ -76,16 +50,14 @@
   }
 
   function armarCola() {
-    var ya = vistos();
     cola = Array.prototype.slice.call(document.querySelectorAll("[data-guia-id]"))
-      .filter(function (el) { return ya.indexOf(el.dataset.guiaId) === -1 && visible(el); })
+      .filter(visible)
       .sort(function (a, b) { return (Number(a.dataset.guiaOrden) || 99) - (Number(b.dataset.guiaOrden) || 99); });
   }
 
-  function cerrarTodo(omitir) {
+  function cerrarGlobo() {
     if (activo) { activo.classList.remove("guia-resaltado"); activo = null; }
     if (globo) { globo.remove(); globo = null; }
-    if (omitir) { guardar(CLAVE_OFF, "1"); }
   }
 
   function colocar() {
@@ -116,9 +88,9 @@
 
   function mostrar() {
 
-    cerrarTodo(false);
+    cerrarGlobo();
 
-    if (indice >= cola.length) { return; }
+    if (indice >= cola.length) { terminar(); return; }
 
     activo = cola[indice];
     activo.classList.add("guia-resaltado");
@@ -145,14 +117,13 @@
     omitir.type = "button";
     omitir.className = "guia-globo__omitir";
     omitir.textContent = "Omitir";
-    omitir.addEventListener("click", function () { cerrarTodo(true); });
+    omitir.addEventListener("click", terminar);
 
     var siguiente = document.createElement("button");
     siguiente.type = "button";
     siguiente.className = "guia-globo__ok";
     siguiente.textContent = indice === cola.length - 1 ? "Entendido" : "Siguiente";
     siguiente.addEventListener("click", function () {
-      marcarVisto(activo.dataset.guiaId);
       indice += 1;
       mostrar();
     });
@@ -173,7 +144,7 @@
   window.addEventListener("resize", colocar);
   window.addEventListener("scroll", colocar, true);
   document.addEventListener("keydown", function (evento) {
-    if (evento.key === "Escape" && globo) { cerrarTodo(true); }
+    if (evento.key === "Escape" && globo) { terminar(); }
   });
 
   // Un momento después de cargar, para que la página termine de acomodarse y de traer lo que pide por su cuenta.

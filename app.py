@@ -16,9 +16,10 @@ from routes.friends import friends_bp
 from routes.chat import chat
 from routes.grupo_planes import grupo_planes_bp
 from routes.chatbot import chatbot_bp
-from routes.inicio import inicio_bp
+from routes.inicio import guia_bp, inicio_bp
 from routes.deudas import deudas_bp
 from services.inicio_service import InicioService
+from services.guia_nueva import es_guia_pendiente
 from services.sugerencia_service import SugerenciaService
 from routes.social import es_moderador, social_api
 from services.invitation_service import InvitationService
@@ -52,6 +53,7 @@ app.register_blueprint(grupo_planes_bp)
 app.register_blueprint(chat)
 app.register_blueprint(chatbot_bp)
 app.register_blueprint(inicio_bp)
+app.register_blueprint(guia_bp)
 app.register_blueprint(deudas_bp)
 app.register_blueprint(social_api)
 invitation_service = InvitationService()
@@ -99,6 +101,8 @@ def inject_user():
         "logueado": bool(session.get("user_id")),
         "current_user": session.get("user", {}),
     }
+    # La guía de bienvenida solo aparece en el navegador donde se creó la cuenta, hasta que se termina.
+    datos["guia_nueva"] = bool(session.get("user_id")) and es_guia_pendiente(request.cookies, (session.get("user") or {}).get("email"))
     # El contador del Inbox tiene que verse en TODAS las páginas que usan la
     # barra lateral, no solo en /dashboard. Se inyecta acá para cualquier
     # template; como _inbox_guardado cachea 30 s, no suma viajes a la base

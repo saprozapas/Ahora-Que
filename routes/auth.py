@@ -3,6 +3,7 @@ import hashlib
 import secrets
 
 import psycopg2
+from services.guia_nueva import COOKIE as COOKIE_GUIA, VIGENCIA_SEGUNDOS as VIGENCIA_GUIA, token as token_guia
 from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
 from models import user
 from models.user import User
@@ -183,7 +184,10 @@ def register():
                     form_data=form_data,
                 ), 503
 
-            return redirect(url_for("auth.estado_confirmacion", user_id=pending_user_id))
+            respuesta = redirect(url_for("auth.estado_confirmacion", user_id=pending_user_id))
+            # Cuenta nueva: en este navegador se ofrece la guía de bienvenida (una sola vez, ver services/guia_nueva.py).
+            respuesta.set_cookie(COOKIE_GUIA, token_guia(email), max_age=VIGENCIA_GUIA, httponly=True, samesite="Lax")
+            return respuesta
         except ValueError:
             return render_template(
                 "register.html",
