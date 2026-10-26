@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {% if estado == 'pendiente' %}Confirmá tu correo — Ahora Qué{% else %}Confirmación de correo — Ahora Qué{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+  {% if estado == 'pendiente' %}<meta http-equiv="refresh" content="5" />{% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="auth container dot-grid">
+  <div class="auth__inner">
+    {% if estado == 'pendiente' %}
+      <header class="auth__head">
+        <h1 class="h2">Te falta confirmar el correo.</h1>
+        <p class="lead">Te mandamos un enlace para confirmar tu dirección. Abrilo desde tu correo para terminar de crear la cuenta.</p>
+      </header>
+      <p class="notice" role="status">Esta página se actualizará sola cuando confirmes el correo.</p>
+      <p class="auth__alt"><a href="{{ url_for('auth.register') }}">Volver al registro</a></p>
+    {% elif estado == 'confirmado' %}
+      <header class="auth__head">
+        <h1 class="h2">Ya podés iniciar sesión.</h1>
+        <p class="lead">Tu correo quedó confirmado y tu cuenta está lista.</p>
+      </header>
+      <a class="btn btn--primary btn--lg btn--block auth__submit" href="{{ url_for('auth.login') }}">Iniciar sesión</a>
+    {% elif estado == 'expirado' %}
+      <header class="auth__head">
+        <h1 class="h2">El enlace venció.</h1>
+        <p class="lead">La confirmación es válida durante 24 horas. Volvé a registrarte para recibir un enlace nuevo.</p>
+      </header>
+      <a class="btn btn--primary btn--lg btn--block auth__submit" href="{{ url_for('auth.register') }}">Crear cuenta</a>
+    {% elif estado == 'conflicto' %}
+      <header class="auth__head">
+        <h1 class="h2">No pudimos completar el registro.</h1>
+        <p class="lead">Ese correo o nombre de usuario ya está asociado a otra cuenta. Probá iniciar sesión o registrarte con otros datos.</p>
+      </header>
+      <a class="btn btn--primary btn--lg btn--block auth__submit" href="{{ url_for('auth.login') }}">Iniciar sesión</a>
+    {% else %}
+      <header class="auth__head">
+        <h1 class="h2">El enlace no es válido.</h1>
+        <p class="lead">Puede que ya se haya usado o que no corresponda a un registro pendiente.</p>
+      </header>
+      <a class="btn btn--primary btn--lg btn--block auth__submit" href="{{ url_for('auth.register') }}">Crear cuenta</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

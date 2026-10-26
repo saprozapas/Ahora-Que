@@ -14,6 +14,27 @@ Esta es la base de datos del proyecto
 | `Username` | `text` |  Nullable Unique |
 | `Descripcion` | `text` |  Nullable |
 
+## Table `Confirmaciones_Registro`
+
+Almacena temporalmente los datos de registro y el hash del código de confirmación. La fila se elimina cuando el correo se confirma o cuando el registro vence. El usuario se inserta en `Usuarios` únicamente después de confirmar el correo.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Usuario` | `uuid` | Primary. Se conserva como identificador al crear el usuario confirmado. |
+| `Codigo_Hash` | `text` | Not null, unique. Hash del código enviado por correo; el código original no se guarda. |
+| `Nombre` | `text` | Not null |
+| `Mail` | `text` | Not null, unique |
+| `Fecha_Nac` | `date` | Not null |
+| `Password_Hash` | `text` | Not null |
+| `Username` | `text` | Not null, unique |
+| `Descripcion` | `text` | Nullable |
+| `Creado_En` | `timestamptz` | Not null. Default `NOW()`. |
+| `Expira_En` | `timestamptz` | Not null. El código vence 24 horas después del registro. |
+
+La creación de esta tabla está en `migraciones/confirmacion_registro.sql`.
+
 ## Table `Lugar`
 
 ### Columns

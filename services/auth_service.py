@@ -1,4 +1,6 @@
 import hashlib
+from datetime import datetime, timezone
+from uuid import uuid4
 
 import psycopg2
 
@@ -55,17 +57,32 @@ class AuthService:
         finally:
             release_db_connection(connection)
 
-    def register(self, user):
+    def create_pending_registration(self, user, confirmation_code_hash):
+        """Guarda los datos de registro temporalmente, sin crear aún el usuario activo."""
+        user_id = uuid4()
         connection = get_db_connection()
-
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
+                    'DELETE FROM public."Confirmaciones_Registro" WHERE "Expira_En" <= NOW()'
+                )
+                cursor.execute(
+                    '''SELECT 1 FROM public."Usuarios"
+                       WHERE "Mail" = %s OR "Username" = %s LIMIT 1''',
+                    (user.get_email(), user.get_username()),
+                )
+                if cursor.fetchone():
+                    raise ValueError("El mail o el nombre de usuario ya está en uso.")
+                cursor.execute(
                     """
-                    INSERT INTO public."Usuarios" ("Nombre", "Mail", "Fecha_Nac", "Password_Hash", "Username", "Descripcion")
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    INSERT INTO public."Confirmaciones_Registro"
+                        ("Id_Usuario", "Codigo_Hash", "Nombre", "Mail", "Fecha_Nac",
+                         "Password_Hash", "Username", "Descripcion", "Expira_En")
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW() + INTERVAL '24 hours')
                     """,
                     (
+                        str(user_id),
+                        confirmation_code_hash,
                         user.get_name(),
                         user.get_email(),
                         user.get_birth_date(),
@@ -75,8 +92,113 @@ class AuthService:
                     ),
                 )
             connection.commit()
+            return user_id
+        except ValueError:
+            connection.rollback()
+            raise
         except psycopg2.Error:
             connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def discard_pending_registration(self, user_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'DELETE FROM public."Confirmaciones_Registro" WHERE "Id_Usuario" = %s',
+                    (str(user_id),),
+                )
+            connection.commit()
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def discard_pending_by_code_hash(self, confirmation_code_hash):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'DELETE FROM public."Confirmaciones_Registro" WHERE "Codigo_Hash" = %s',
+                    (confirmation_code_hash,),
+                )
+            connection.commit()
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def confirm_registration(self, confirmation_code_hash):
+        """Consume un código válido y crea el usuario en la tabla Usuarios."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("BEGIN")
+                cursor.execute(
+                    '''SELECT "Id_Usuario", "Nombre", "Mail", "Fecha_Nac", "Password_Hash",
+                              "Username", "Descripcion", "Expira_En"
+                       FROM public."Confirmaciones_Registro"
+                       WHERE "Codigo_Hash" = %s FOR UPDATE''',
+                    (confirmation_code_hash,),
+                )
+                pending = cursor.fetchone()
+                if not pending:
+                    connection.commit()
+                    return "invalido", None
+
+                user_id, name, email, birth_date, password_hash, username, description, expires_at = pending
+                if expires_at <= datetime.now(timezone.utc):
+                    cursor.execute(
+                        'DELETE FROM public."Confirmaciones_Registro" WHERE "Id_Usuario" = %s',
+                        (str(user_id),),
+                    )
+                    connection.commit()
+                    return "expirado", None
+
+                cursor.execute(
+                    '''INSERT INTO public."Usuarios"
+                       ("Id_Usuario", "Nombre", "Mail", "Fecha_Nac", "Password_Hash", "Username", "Descripcion")
+                       VALUES (%s, %s, %s, %s, %s, %s, %s)''',
+                    (str(user_id), name, email, birth_date, password_hash, username, description),
+                )
+                cursor.execute(
+                    'DELETE FROM public."Confirmaciones_Registro" WHERE "Id_Usuario" = %s',
+                    (str(user_id),),
+                )
+            connection.commit()
+            return "confirmado", user_id
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def get_registration_status(self, user_id):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT 1 FROM public."Usuarios" WHERE "Id_Usuario" = %s',
+                    (str(user_id),),
+                )
+                if cursor.fetchone():
+                    return "confirmado"
+                cursor.execute(
+                    '''SELECT "Expira_En" FROM public."Confirmaciones_Registro"
+                       WHERE "Id_Usuario" = %s''',
+                    (str(user_id),),
+                )
+                pending = cursor.fetchone()
+                if not pending:
+                    return "invalido"
+                if pending[0] <= datetime.now(timezone.utc):
+                    return "expirado"
+                return "pendiente"
+        except psycopg2.Error:
             raise
         finally:
             release_db_connection(connection)

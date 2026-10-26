@@ -14,16 +14,8 @@
 
     <form class="auth__form" action="/register" method="post">
 
-      {#
-        La ruta /register devuelve el mensaje de éxito por la misma variable
-        `error` que usa para los fallos, así que acá distinguimos los dos
-        casos por el texto para poder darles estilo y rol distintos.
-        Cuando el backend separe las variables (`error` y `exito`), esta
-        línea se reemplaza por un simple {% if exito %}.
-      #}
       {% if error %}
-        {% set es_exito = 'correctamente' in error %}
-        <p class="notice{{ '' if es_exito else ' notice--error' }}" role="{{ 'status' if es_exito else 'alert' }}">
+        <p class="notice notice--error" role="alert">
           {{ error }}
         </p>
       {% endif %}
