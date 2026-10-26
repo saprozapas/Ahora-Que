@@ -92,14 +92,14 @@
               <span class="stops__body">
                 <span class="stops__name">{{ lugar.nombre }}</span>
                 {% set donde = [lugar.direccion, lugar.barrio] | select | join(' · ') %}
-                {% if donde %}<span class="meta">{{ donde }}</span>{% endif %}
-                {% if lugar.hora %}<span class="meta">{{ lugar.hora.strftime('%H:%M') }}</span>{% endif %}
-                {% if lugar.lat and lugar.lon %}<span class="meta dist" data-dist data-lat="{{ lugar.lat }}" data-lon="{{ lugar.lon }}"></span>{% endif %}
+                <span class="meta stops__donde">{{ donde if donde else 'Sin dirección cargada' }}</span>
+                {% set extra = [] %}
+                {% if lugar.hora %}{% set _ = extra.append(lugar.hora.strftime('%H:%M')) %}{% endif %}
+                {% if lugar.precio_min is not none and lugar.precio_max is not none %}{% set _ = extra.append(precio(lugar.precio_min, lugar.precio_max)) %}{% endif %}
+                {% if extra %}<span class="meta stops__extra">{{ extra | join(' · ') }}</span>{% endif %}
+                {% if lugar.lat and lugar.lon %}<span class="meta dist stops__dist" data-dist data-lat="{{ lugar.lat }}" data-lon="{{ lugar.lon }}"></span>{% endif %}
                 {% if lugar.mapa_url %}<a class="stops__mapa" href="{{ lugar.mapa_url }}" target="_blank" rel="noopener" aria-label="Cómo llegar a {{ lugar.nombre }} (abre el mapa)">Cómo llegar</a>{% endif %}
               </span>
-              {% if lugar.precio_min is not none and lugar.precio_max is not none %}
-              <span class="meta stops__side">{{ precio(lugar.precio_min, lugar.precio_max) }}</span>
-              {% endif %}
             </li>
             {% endfor %}
           </ol>
@@ -120,18 +120,20 @@
           <div class="card mapa-plan__lienzo" data-mapa-lienzo role="application" aria-label="Mapa con el lugar del plan y las personas que comparten su ubicación"></div>
 
           <div class="mapa-plan__barra">
-            <button class="btn btn--secondary btn--sm" type="button" data-mapa-compartir>Compartir mi ubicación</button>
-            <button class="btn btn--ghost btn--sm" type="button" data-mapa-detener hidden>Dejar de compartir</button>
-            <span class="meta" data-mapa-estado aria-live="polite"></span>
+            <div class="mapa-plan__acciones">
+              <button class="btn btn--secondary btn--sm" type="button" data-mapa-compartir>Compartir mi ubicación</button>
+              <button class="btn btn--ghost btn--sm" type="button" data-mapa-detener hidden>Dejar de compartir</button>
+            </div>
+            {# Quiénes van: solo la foto o la inicial; el nombre y la distancia aparecen al pasar el mouse. #}
+            <ul class="mapa-plan__caras" data-mapa-personas aria-label="Quiénes van a este plan"></ul>
           </div>
-
-          <ul class="mapa-plan__personas" data-mapa-personas></ul>
+          <p class="meta mapa-plan__aviso" data-mapa-estado aria-live="polite" hidden></p>
 
         </section>
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
-        <script defer src="{{ url_for('static', filename='mapa_plan.js', v='20261024-mapa6') }}"></script>
+        <script defer src="{{ url_for('static', filename='mapa_plan.js', v='20261028-mapa8') }}"></script>
         {% endif %}
 
 

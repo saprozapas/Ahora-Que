@@ -1,5 +1,6 @@
 from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from services.auth_service import AuthService
+from services.avatar_service import AvatarService
 from services.deuda_service import DeudaService
 from services.plan_service import PlanService
 from database_bridge.database_bridge import getUser
@@ -129,6 +130,28 @@ def cambiar_contrasena():
     return render_template("cambiar_contrasena.html", error=error, exito=exito)
 
 
+@profile.route("/perfil/eliminar", methods=["POST"])
+def eliminar_cuenta():
+    if not session.get("user_id"):
+        return redirect(url_for("auth.login"))
+
+    hash_actual = auth_service.get_password_hash_by_id(session["user_id"])
+    if hash_actual is None or not check_password_hash(hash_actual, request.form.get("password", "")):
+        flash("La contraseña es incorrecta. No se eliminó la cuenta.")
+        return redirect(url_for("profile.perfil"))
+
+    try:
+        auth_service.delete_user(session["user_id"])
+    except Exception as e:
+        print(f"No se pudo eliminar la cuenta: {e}")
+        flash("No se pudo eliminar la cuenta. Probá de nuevo.")
+        return redirect(url_for("profile.perfil"))
+
+    session.clear()
+    flash("Tu cuenta se eliminó.", "success")
+    return redirect(url_for("auth.login"))
+
+
 @profile.route("/usuarios/<user_id>")
 def perfil_publico(user_id):
     """Perfil de otro usuario: solo lectura, sin ningún formulario."""
@@ -143,4 +166,9 @@ def perfil_publico(user_id):
     if usuario is None:
         abort(404)
 
-    return render_template("perfil_publico.html", usuario=usuario, autor_id=user_id)
+    try:
+        avatar_v = AvatarService().version(user_id)
+    except Exception as e:
+        print(f"No se pudo leer la foto de perfil: {e}")
+        avatar_v = None
+    return render_template("perfil_publico.html", usuario=usuario, autor_id=user_id, avatar_v=avatar_v)

@@ -28,7 +28,14 @@
   <div class="perfil-izq">
 
   <header class="profile__head">
-    <span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 64px" aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
+    <button class="perfil-foto" type="button" data-modal-open="modal-foto" aria-label="Cambiar la foto de perfil" title="Cambiar la foto">
+      <span class="avatar avatar--perfil{% if mi_avatar_v %} avatar--foto{% endif %}" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 72px" aria-hidden="true">
+        {% if mi_avatar_v and user.id %}<img src="/avatar/{{ user.id }}?v={{ mi_avatar_v }}" alt="" data-avatar-yo />{% else %}<span data-avatar-inicial>{{ (nombre or '?')[:1] | upper }}</span>{% endif %}
+      </span>
+      <span class="perfil-foto__editar" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7H8l1.2-2h5.6L16 7h2.5A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><circle cx="12" cy="12.5" r="3.2" fill="none" stroke="currentColor" stroke-width="1.7" /></svg>
+      </span>
+    </button>
     <div>
       <h1 class="h2">{{ nombre or 'Tu perfil' }}</h1>
       {% if user.username %}<p class="meta">@{{ user.username }}</p>{% endif %}
@@ -109,10 +116,10 @@
       <input type="hidden" name="target" value="banco" />
       <span class="profile-row__label">Banco</span>
       <div class="profile-row__value">
-        <div class="field-row">
+        <div class="perfil-banco">
           <input class="input" type="text" name="banco" maxlength="60" value="{{ cuenta.banco }}" placeholder="Banco" aria-label="Nombre del banco" />
           <input class="input" type="text" name="cuenta" maxlength="40" value="{{ cuenta.cuenta }}" placeholder="Número de cuenta" aria-label="Número de cuenta" />
-          <button type="submit" class="btn btn--primary">Guardar</button>
+          <button type="submit" class="btn btn--secondary btn--sm">Guardar</button>
         </div>
         <p class="meta">Lo ven las personas a las que les debés, para transferirte.</p>
       </div>
@@ -122,6 +129,13 @@
       <span class="profile-row__label">Contraseña</span>
       <div class="profile-row__value">
         <a class="btn btn--ghost btn--sm profile-row__link" href="/perfil/cambiar-contrasena">Cambiar contraseña</a>
+      </div>
+    </div>
+
+    <div class="profile-row">
+      <span class="profile-row__label">Cuenta</span>
+      <div class="profile-row__value">
+        <button class="perfil-eliminar" type="button" data-modal-open="modal-eliminar-cuenta">Eliminar mi cuenta</button>
       </div>
     </div>
 
@@ -152,10 +166,82 @@
 </section>
 
 
+<dialog class="modal modal--foto" id="modal-foto" aria-labelledby="modal-foto-title" data-avatar-modal data-url="{{ url_for('avatar.cambiar_avatar') }}" data-user-id="{{ user.id }}">
+  <div class="modal-head">
+    <h2 class="modal-title" id="modal-foto-title">Tu foto de perfil</h2>
+    <button class="modal-close" type="button" data-cerrar-dialogo aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+  <div class="modal-body foto-editor">
+
+    <div class="foto-editor__vista">
+      <span class="avatar avatar--perfil{% if mi_avatar_v %} avatar--foto{% endif %}" style="--h: {{ (nombre | length * 47) % 360 }}; --size: 112px" aria-hidden="true" data-foto-vista>
+        {% if mi_avatar_v and user.id %}<img src="/avatar/{{ user.id }}?v={{ mi_avatar_v }}" alt="" />{% else %}{{ (nombre or '?')[:1] | upper }}{% endif %}
+      </span>
+    </div>
+
+    <div class="foto-editor__bloque">
+      <p class="foto-editor__titulo">Elegí un avatar</p>
+      <div class="foto-editor__avatares" role="group" aria-label="Avatares">
+        {% for n in range(1, 6) %}
+        <button class="foto-avatar" type="button" data-preset="{{ n }}" aria-label="Avatar {{ n }}">
+          <img src="{{ url_for('static', filename='avatares/avatar-' ~ n ~ '.svg') }}" alt="" width="56" height="56" />
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="foto-editor__bloque">
+      <p class="foto-editor__titulo">O subí una foto</p>
+      <div class="foto-editor__acciones">
+        <label class="btn btn--secondary btn--sm foto-editor__subir">
+          Elegir de mi dispositivo
+          <input type="file" accept="image/jpeg,image/png,image/webp" data-foto-archivo hidden />
+        </label>
+        <button class="btn btn--ghost btn--sm" type="button" data-foto-quitar{% if not mi_avatar_v %} hidden{% endif %}>Quitar foto</button>
+      </div>
+      <p class="meta foto-editor__estado" data-foto-estado role="status" hidden></p>
+    </div>
+
+  </div>
+</dialog>
+
+
+<dialog class="modal" id="modal-eliminar-cuenta" aria-labelledby="modal-eliminar-cuenta-title">
+  <form method="post" action="{{ url_for('profile.eliminar_cuenta') }}">
+    <div class="modal-head">
+      <h2 class="modal-title" id="modal-eliminar-cuenta-title">¿Eliminar tu cuenta?</h2>
+      <button class="modal-close" type="button" data-cerrar-dialogo aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Se borran tu perfil, tus amistades, tus chats, tus publicaciones y tus deudas, y salís de todos tus grupos. No se puede deshacer.</p>
+      <div class="modal-field">
+        <label for="eliminar-password">Escribí tu contraseña para confirmar</label>
+        <input id="eliminar-password" name="password" type="password" autocomplete="current-password" required />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn--secondary" type="button" data-cerrar-dialogo>Cancelar</button>
+      <button class="btn btn--danger-solid" type="submit">Eliminar definitivamente</button>
+    </div>
+  </form>
+</dialog>
+
 {% if logueado %}
   </div>
 
 </div>
 {% endif %}
+
+<script defer src="{{ url_for('static', filename='avatar.js', v='20261028-avatar1') }}"></script>
 
 {% endblock %}

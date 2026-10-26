@@ -150,9 +150,11 @@ def getUsersInGroupWithIds(group_id):
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash", u."Descripcion", ug."Es_Admin"
+                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash", u."Descripcion", ug."Es_Admin",
+                       EXTRACT(EPOCH FROM av."Actualizada_En")::bigint
                 FROM public."Usuarios" u
                 JOIN public."Usuario-Grupo" ug ON u."Id_Usuario" = ug."Id_Usuario"
+                LEFT JOIN public."Usuario_Avatar" av ON av."Id_Usuario" = u."Id_Usuario"
                 WHERE ug."Id_Grupo" = %s
                 ORDER BY u."Nombre"
                 """,
@@ -167,6 +169,7 @@ def getUsersInGroupWithIds(group_id):
                     "id": result[0],
                     "user": User(result[1], result[2], result[3], result[4], result[5], result[6]),
                     "es_admin": result[7],
+                    "avatar": int(result[8]) if result[8] else None,
                 })
             return users
 

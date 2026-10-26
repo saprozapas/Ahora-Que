@@ -39,14 +39,14 @@
     />
 
     <!-- Sereno: tokens → componentes → marca → pantallas → grupos, social y asistente. -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261026-barra-original') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261028-avatar2') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261026-barra-original') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261026-barra-original') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261028-roles') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261023-sereno-ui-v3') }}" />
 
     <link
@@ -79,7 +79,7 @@
       src="{{ url_for('static', filename='distancia.js', v='20261024-distancia') }}"
     ></script>
 
-    {% if logueado %}
+    {% if logueado and guia_nueva %}
     <script
       defer
       src="{{ url_for('static', filename='guia.js', v='20261026-barra-original') }}"

@@ -58,7 +58,6 @@
             {% if pendientes %}
             <a class="btn btn--secondary btn--lg" href="/inbox">Ver inbox <span class="badge">{{ pendientes }}</span></a>
             {% endif %}
-            <a class="btn btn--secondary btn--lg" href="/deudas">Deudas{% if deudas_pendientes and deudas_pendientes > 0 %} <span class="badge badge--danger" aria-label="Tenés deudas pendientes">{{ deudas_pendientes }}</span>{% endif %}</a>
           </div>
 
         </div>
@@ -91,7 +90,7 @@
     <section class="container page dash-body">
 
       {# Primeros pasos: se tildan solos y la tarjeta desaparece al completarse (o si la persona la oculta). #}
-      {% if primeros_pasos and not primeros_pasos.completo %}
+      {% if guia_nueva and primeros_pasos and not primeros_pasos.completo %}
       <aside class="primeros" data-primeros aria-labelledby="primeros-titulo" hidden>
         <header class="primeros__cab">
           <h2 class="h3" id="primeros-titulo">Primeros pasos</h2>

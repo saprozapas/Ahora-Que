@@ -9,6 +9,7 @@ El Inbox queda para las solicitudes y los avisos de publicaciones."""
 
 from flask import Blueprint, flash, jsonify, make_response, redirect, render_template, session, url_for
 
+from services.guia_nueva import COOKIE as COOKIE_GUIA
 from services.inicio_service import InicioService
 from services.sugerencia_service import SugerenciaService
 
@@ -64,3 +65,14 @@ def guardar_sugerencia(sugerencia_id):
         return redirect("/dashboard")
     flash("Guardado en tus planes. Ahora podés proponerlo en un grupo.")
     return redirect(url_for("planes.detalle", plan_id=idea_id))
+
+
+# La guía de bienvenida terminó (o se omitió): se borra la cookie y no vuelve a mostrarse.
+guia_bp = Blueprint("guia", __name__)
+
+
+@guia_bp.route("/guia/terminada", methods=["POST"])
+def guia_terminada():
+    respuesta = make_response(jsonify({"ok": True}))
+    respuesta.delete_cookie(COOKIE_GUIA)
+    return respuesta

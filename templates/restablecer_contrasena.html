@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva contraseña — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<section class="auth container dot-grid">
+
+  <div class="auth__inner">
+
+    {% if invalido %}
+    <header class="auth__head">
+      <h1 class="h2">Enlace vencido.</h1>
+      <p class="lead">Este enlace ya se usó o venció. Pedí uno nuevo.</p>
+    </header>
+    <p class="auth__alt"><a href="/olvide-contrasena">Pedir otro enlace</a></p>
+    {% else %}
+    <header class="auth__head">
+      <h1 class="h2">Elegí tu nueva contraseña.</h1>
+    </header>
+
+    <form class="auth__form" method="post">
+
+      {% if error %}
+      <p class="notice notice--error" role="alert">{{ error }}</p>
+      {% endif %}
+
+      <div class="field">
+        <label for="nueva">Nueva contraseña</label>
+        <input class="input" id="nueva" name="nueva" type="password" autocomplete="new-password"
+               data-password-strength minlength="8" required />
+
+        <div class="password-strength">
+          <div class="password-strength-track" role="progressbar" aria-label="Seguridad de la contraseña" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1" data-strength-bar>
+            <span></span>
+          </div>
+          <p class="password-strength-label is-weak" aria-live="polite" data-strength-label>Débil — usá al menos 8 caracteres.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="confirmar">Repetí la nueva contraseña</label>
+        <input class="input" id="confirmar" name="confirmar" type="password" autocomplete="new-password" minlength="8" required />
+      </div>
+
+      <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">
+        Guardar contraseña <span class="btn__hint" aria-hidden="true">↵</span>
+      </button>
+
+    </form>
+
+    <script src="{{ url_for('static', filename='password_strength.js') }}" defer></script>
+    {% endif %}
+
+  </div>
+
+</section>
+
+{% endblock %}

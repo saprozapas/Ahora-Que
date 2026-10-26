@@ -151,7 +151,14 @@
     el.className = "mapa-persona" + (persona.yo ? " is-yo" : "") + (persona.vieja ? " is-vieja" : "");
     el.title = persona.yo ? "Vos" : persona.nombre;
     var inicial = document.createElement("span");
-    inicial.textContent = (persona.nombre || "?").charAt(0).toUpperCase();
+    if (persona.avatar) {
+      var imagen = document.createElement("img");
+      imagen.alt = "";
+      imagen.src = "/avatar/" + persona.id + "?v=" + persona.avatar;
+      inicial.appendChild(imagen);
+    } else {
+      inicial.textContent = (persona.nombre || "?").charAt(0).toUpperCase();
+    }
     el.appendChild(inicial);
     return el;
   }
@@ -160,41 +167,39 @@
     while (nodo.firstChild) { nodo.removeChild(nodo.firstChild); }
   }
 
-  function pintarLista(personas) {
+  function crearCara(persona) {
 
-    limpiarHijos(lista);
+    var item = document.createElement("li");
+    item.className = "mapa-cara" + (persona.comparte ? " is-comparte" : "") + (persona.yo ? " is-yo" : "");
+    item.tabIndex = 0;
 
-    personas.forEach(function (persona) {
+    var detalle = persona.comparte
+      ? [kilometros(persona.km), hace(persona.hace_segundos)].filter(Boolean).join(" · ")
+      : "No comparte su ubicación";
+    item.dataset.tip = (persona.yo ? "Vos" : persona.nombre) + " — " + detalle;
+    item.setAttribute("aria-label", item.dataset.tip);
 
-      var item = document.createElement("li");
-      item.className = "mapa-plan__persona" + (persona.comparte ? "" : " is-sin");
+    var cara = document.createElement("span");
+    cara.className = "avatar" + (persona.avatar ? " avatar--foto" : "");
+    cara.style.setProperty("--size", "36px");
+    cara.style.setProperty("--h", String(((persona.nombre || "").length * 47) % 360));
 
-      var cara = document.createElement("span");
-      cara.className = "avatar";
-      cara.style.setProperty("--size", "32px");
-      cara.style.setProperty("--h", String(((persona.nombre || "").length * 47) % 360));
+    if (persona.avatar) {
+      var imagen = document.createElement("img");
+      imagen.alt = "";
+      imagen.src = "/avatar/" + persona.id + "?v=" + persona.avatar;
+      cara.appendChild(imagen);
+    } else {
       cara.textContent = (persona.nombre || "?").charAt(0).toUpperCase();
+    }
 
-      var cuerpo = document.createElement("span");
-      cuerpo.className = "mapa-plan__persona-texto";
+    item.appendChild(cara);
+    return item;
+  }
 
-      var nombre = document.createElement("strong");
-      nombre.textContent = persona.yo ? "Vos" : persona.nombre;
-
-      var detalle = document.createElement("small");
-
-      if (persona.comparte) {
-        detalle.textContent = [kilometros(persona.km), hace(persona.hace_segundos)].filter(Boolean).join(" · ");
-      } else {
-        detalle.textContent = "No comparte su ubicación";
-      }
-
-      cuerpo.appendChild(nombre);
-      cuerpo.appendChild(detalle);
-      item.appendChild(cara);
-      item.appendChild(cuerpo);
-      lista.appendChild(item);
-    });
+  function pintarLista(personas) {
+    limpiarHijos(lista);
+    personas.forEach(function (persona) { lista.appendChild(crearCara(persona)); });
   }
 
   function pintarMapa(datos) {
@@ -251,8 +256,10 @@
     }
   }
 
+  // El aviso solo aparece cuando hay algo que decir (un error o la ubicación en pausa); si no, no ocupa lugar.
   function avisar(texto) {
     estado.textContent = texto || "";
+    estado.hidden = !texto;
   }
 
   function textoBoton() {
@@ -308,7 +315,7 @@
       .then(function (respuesta) { return respuesta.json().catch(function () { return {}; }); })
       .then(function (datos) {
         if (datos && datos.ok) {
-          avisar("Compartiendo tu ubicación. Se actualiza mientras tengas esta página abierta.");
+          avisar("");
           cargar();
         } else {
           avisar((datos && datos.error) || "No se pudo guardar tu ubicación.");
@@ -324,7 +331,7 @@
       return;
     }
 
-    avisar("Pidiendo tu ubicación…");
+    avisar("");
 
     vigilando = navigator.geolocation.watchPosition(enviar, function (error) {
       vigilando = null;
@@ -339,15 +346,15 @@
 
   function retomar() {
 
-    if (!navigator.permissions) { avisar("Tocá el botón para retomar tu ubicación."); return; }
+    if (!navigator.permissions) { return; }
 
     navigator.permissions.query({ name: "geolocation" }).then(function (permiso) {
       if (permiso.state === "granted") {
         empezar();
       } else {
-        avisar("Tu ubicación sigue compartida, pero está pausada. Tocá el botón para retomarla o dejar de compartir.");
+        avisar("");  // en pausa: los botones "Retomar" y "Dejar de compartir" ya lo dicen
       }
-    }).catch(function () { avisar("Tocá el botón para retomar tu ubicación."); });
+    }).catch(function () { /* queda el botón Retomar */ });
   }
 
   function detener() {
@@ -359,7 +366,7 @@
 
     comparte = false;
     textoBoton();
-    avisar("Dejaste de compartir tu ubicación.");
+    avisar("");
 
     fetch("/planes/" + planId + "/ubicacion/detener", { method: "POST", credentials: "same-origin" })
       .then(cargar)
