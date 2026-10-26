@@ -129,6 +129,28 @@ def cambiar_contrasena():
     return render_template("cambiar_contrasena.html", error=error, exito=exito)
 
 
+@profile.route("/perfil/eliminar", methods=["POST"])
+def eliminar_cuenta():
+    if not session.get("user_id"):
+        return redirect(url_for("auth.login"))
+
+    hash_actual = auth_service.get_password_hash_by_id(session["user_id"])
+    if hash_actual is None or not check_password_hash(hash_actual, request.form.get("password", "")):
+        flash("La contraseña es incorrecta. No se eliminó la cuenta.")
+        return redirect(url_for("profile.perfil"))
+
+    try:
+        auth_service.delete_user(session["user_id"])
+    except Exception as e:
+        print(f"No se pudo eliminar la cuenta: {e}")
+        flash("No se pudo eliminar la cuenta. Probá de nuevo.")
+        return redirect(url_for("profile.perfil"))
+
+    session.clear()
+    flash("Tu cuenta se eliminó.", "success")
+    return redirect(url_for("auth.login"))
+
+
 @profile.route("/usuarios/<user_id>")
 def perfil_publico(user_id):
     """Perfil de otro usuario: solo lectura, sin ningún formulario."""

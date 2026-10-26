@@ -35,6 +35,18 @@ Almacena temporalmente los datos de registro y el hash del código de confirmaci
 
 La creación de esta tabla está en `migraciones/confirmacion_registro.sql`.
 
+## Table `Recuperacion_Contrasena`
+
+Código para "Olvidé mi contraseña". Un solo código vigente por usuario; se guarda el hash, no el código. Se borra al usarse. Migración: `migraciones/recuperar_contrasena.sql`.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Usuario` | `uuid` | Primary, Foreign Key → `Usuarios.Id_Usuario` (`ON DELETE CASCADE`) |
+| `Codigo_Hash` | `text` | Not null, unique. SHA-256 del código enviado por correo |
+| `Expira_En` | `timestamptz` | Not null. Vence 1 hora después de pedirlo |
+
 ## Table `Lugar`
 
 ### Columns

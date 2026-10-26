@@ -125,6 +125,13 @@
       </div>
     </div>
 
+    <div class="profile-row">
+      <span class="profile-row__label">Cuenta</span>
+      <div class="profile-row__value">
+        <button class="btn btn--danger-solid btn--sm" type="button" data-modal-open="modal-eliminar-cuenta">Eliminar</button>
+      </div>
+    </div>
+
   </div>
 
 
@@ -151,6 +158,31 @@
 
 </section>
 
+
+<dialog class="modal" id="modal-eliminar-cuenta" aria-labelledby="modal-eliminar-cuenta-title">
+  <form method="post" action="{{ url_for('profile.eliminar_cuenta') }}">
+    <div class="modal-head">
+      <h2 class="modal-title" id="modal-eliminar-cuenta-title">¿Eliminar tu cuenta?</h2>
+      <button class="modal-close" type="button" data-cerrar-dialogo aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Se borran tu perfil, tus amistades, tus chats, tus publicaciones y tus deudas, y salís de todos tus grupos. No se puede deshacer.</p>
+      <div class="modal-field">
+        <label for="eliminar-password">Escribí tu contraseña para confirmar</label>
+        <input id="eliminar-password" name="password" type="password" autocomplete="current-password" required />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn--secondary" type="button" data-cerrar-dialogo>Cancelar</button>
+      <button class="btn btn--danger-solid" type="submit">Eliminar definitivamente</button>
+    </div>
+  </form>
+</dialog>
 
 {% if logueado %}
   </div>

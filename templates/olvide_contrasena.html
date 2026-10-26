@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Olvidé mi contraseña — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<section class="auth container dot-grid">
+
+  <div class="auth__inner">
+
+    <header class="auth__head">
+      <h1 class="h2">¿Olvidaste tu contraseña?</h1>
+      <p class="lead">Poné tu usuario o email y te mandamos un enlace para elegir una nueva.</p>
+    </header>
+
+    {% if enviado %}
+    <p class="notice" role="status">Si la cuenta existe, te mandamos un correo con el enlace. Revisá también el spam. Vence en 1 hora.</p>
+    <p class="auth__alt"><a href="/login">Volver a iniciar sesión</a></p>
+    {% else %}
+    <form class="auth__form" action="/olvide-contrasena" method="post">
+
+      <div class="field">
+        <label for="username">Usuario o email</label>
+        <input class="input" id="username" name="username" type="text" autocomplete="username" required />
+      </div>
+
+      <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">
+        Enviar enlace <span class="btn__hint" aria-hidden="true">↵</span>
+      </button>
+
+    </form>
+    <p class="auth__alt"><a href="/login">Volver a iniciar sesión</a></p>
+    {% endif %}
+
+  </div>
+
+</section>
+
+{% endblock %}

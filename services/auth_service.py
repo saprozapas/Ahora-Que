@@ -6,6 +6,7 @@ import psycopg2
 
 from database import get_db_connection, release_db_connection
 from models.user import User
+from services.group_auth_service import GroupAuthService
 
 
 class AuthService:
@@ -352,5 +353,108 @@ class AuthService:
         except psycopg2.Error:
             connection.rollback()
             return False, "Hubo un error al guardar la descripción. Intentá de nuevo."
+        finally:
+            release_db_connection(connection)
+
+    # Borrado de cuenta. Social, deudas, cuenta bancaria, sugerencias y ubicaciones
+    # se van solas por ON DELETE CASCADE al borrar el usuario; lo demás se limpia acá.
+    _BORRAR_CUENTA = (
+        # Ideas personales (sin grupo): se borran enteras. Planes de grupo: quedan sin creador.
+        'DELETE FROM public."Usuario-Plan" WHERE "Plan_id" IN (SELECT "id_Plan" FROM public."Plan" WHERE "Creado_Por" = %(u)s AND "Grupo_id" IS NULL)',
+        'DELETE FROM public."Plan" WHERE "Creado_Por" = %(u)s AND "Grupo_id" IS NULL',
+        'UPDATE public."Plan" SET "Creado_Por" = NULL WHERE "Creado_Por" = %(u)s',
+        'UPDATE public."Grupos" SET "Creado_Por" = NULL WHERE "Creado_Por" = %(u)s',
+        'UPDATE public."Grupo_Encuesta" SET "Creado_Por" = NULL WHERE "Creado_Por" = %(u)s',
+        'DELETE FROM public."Usuario-Plan" WHERE "Usuario_id" = %(u)s',
+        'DELETE FROM public."Plan_Voto" WHERE "Id_Usuario" = %(u)s',
+        'DELETE FROM public."Plan_Horario_Voto" WHERE "Id_Usuario" = %(u)s OR "Id_Horario" IN (SELECT "Id_Horario" FROM public."Plan_Horario" WHERE "Propuesto_Por" = %(u)s)',
+        'DELETE FROM public."Plan_Horario" WHERE "Propuesto_Por" = %(u)s',
+        'DELETE FROM public."Grupo_Encuesta_Voto" WHERE "Id_Usuario" = %(u)s',
+        'DELETE FROM public."Grupo_Encuesta_Respuesta" WHERE "Id_Usuario" = %(u)s',
+        'DELETE FROM public."Grupo_Encuesta_Disponibilidad" WHERE "Id_Usuario" = %(u)s',
+        'DELETE FROM public."gasto_detalle" WHERE "usuario_id" = %(u)s OR "gasto_id" IN (SELECT "id_gasto" FROM public."gasto" WHERE "pagado_por" = %(u)s)',
+        'DELETE FROM public."gasto" WHERE "pagado_por" = %(u)s',
+        'DELETE FROM public."Invitaciones" WHERE "Id_Usuario" = %(u)s',
+        'DELETE FROM public."Amistades" WHERE "Id_Usuario1" = %(u)s OR "Id_Usuario2" = %(u)s',
+        'DELETE FROM public."Solicitudes_Amistad" WHERE "Id_Solicitante" = %(u)s OR "Id_Destinatario" = %(u)s',
+        'DELETE FROM public."Mensajes" WHERE "Id_Usuario" = %(u)s',
+        # Conversaciones: la del bot y las privadas se borran (con sus mensajes, por CASCADE).
+        'DELETE FROM public."Conversacion" c WHERE c."Id_Usuario_A" = %(u)s OR c."Id_Usuario_B" = %(u)s OR (c."Tipo" = \'bot\' AND EXISTS (SELECT 1 FROM public."Conversacion_Miembro" cm WHERE cm."Id_Conversacion" = c."Id_Conversacion" AND cm."Id_Usuario" = %(u)s))',
+        'DELETE FROM public."Mensaje" WHERE "Id_Remitente" = %(u)s',
+        'DELETE FROM public."Conversacion_Miembro" WHERE "Id_Usuario" = %(u)s',
+        'DELETE FROM public."Intentos_Login" WHERE "Id_Usuario" = %(u)s',
+        'DELETE FROM public."Usuarios" WHERE "Id_Usuario" = %(u)s',
+    )
+
+    def delete_user(self, user_id):
+        """Borra la cuenta y todo lo suyo. Una sola transacción: si algo falla, no se borra nada."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT "Id_Grupo" FROM public."Usuario-Grupo" WHERE "Id_Usuario" = %s', (user_id,))
+                for (grupo,) in cursor.fetchall():
+                    GroupAuthService.salir_del_grupo(cursor, grupo, user_id)  # sucesión de admin incluida
+                cursor.execute(";\n".join(self._BORRAR_CUENTA), {"u": str(user_id)})
+            connection.commit()
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
+
+    # --- Olvidé mi contraseña ---------------------------------------------
+
+    def crear_codigo_recuperacion(self, user_id, codigo_hash):
+        """Un solo código vigente por usuario: pedir otro invalida el anterior. Vence en 1 hora."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    '''INSERT INTO public."Recuperacion_Contrasena" ("Id_Usuario", "Codigo_Hash", "Expira_En")
+                       VALUES (%s, %s, NOW() + INTERVAL '1 hour')
+                       ON CONFLICT ("Id_Usuario") DO UPDATE
+                       SET "Codigo_Hash" = EXCLUDED."Codigo_Hash", "Expira_En" = EXCLUDED."Expira_En"''',
+                    (user_id, codigo_hash),
+                )
+            connection.commit()
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def codigo_recuperacion_valido(self, codigo_hash):
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT 1 FROM public."Recuperacion_Contrasena" WHERE "Codigo_Hash" = %s AND "Expira_En" > NOW()',
+                    (codigo_hash,),
+                )
+                return cursor.fetchone() is not None
+        finally:
+            release_db_connection(connection)
+
+    def restablecer_contrasena(self, codigo_hash, password_hash):
+        """Cambia la contraseña y gasta el código en una sola sentencia (sirve una vez).
+        Devuelve False si el código no existe o venció."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    '''WITH usado AS (
+                           DELETE FROM public."Recuperacion_Contrasena"
+                           WHERE "Codigo_Hash" = %s AND "Expira_En" > NOW()
+                           RETURNING "Id_Usuario")
+                       UPDATE public."Usuarios" u SET "Password_Hash" = %s
+                       FROM usado WHERE u."Id_Usuario" = usado."Id_Usuario"''',
+                    (codigo_hash, password_hash),
+                )
+                cambiado = cursor.rowcount == 1
+            connection.commit()
+            return cambiado
+        except psycopg2.Error:
+            connection.rollback()
+            raise
         finally:
             release_db_connection(connection)

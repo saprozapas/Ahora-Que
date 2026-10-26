@@ -127,35 +127,40 @@ class GroupAuthService:
         finally:
             release_db_connection(conn)
 
+    @staticmethod
+    def salir_del_grupo(cursor, group_id, user_id):
+        """Saca al usuario del grupo dentro de la transacción del cursor recibido."""
+        cursor.execute(
+            """
+            DELETE FROM public."Usuario-Grupo"
+            WHERE "Id_Usuario" = %s AND "Id_Grupo" = %s
+            RETURNING "Es_Admin"
+            """,
+            (user_id, group_id)
+        )
+        fila = cursor.fetchone()
+        # Se fue un admin y no quedó ninguno: pasa a admin el más antiguo
+        # (si la antigüedad empata, al azar). Va en una sentencia aparte
+        # porque en un solo CTE todavía vería al admin que se fue.
+        if fila and fila[0]:
+            cursor.execute(
+                """
+                UPDATE public."Usuario-Grupo" SET "Es_Admin" = true
+                WHERE "Id_Grupo" = %(g)s
+                  AND NOT EXISTS (SELECT 1 FROM public."Usuario-Grupo"
+                                  WHERE "Id_Grupo" = %(g)s AND "Es_Admin")
+                  AND "Id_Usuario" = (SELECT "Id_Usuario" FROM public."Usuario-Grupo"
+                                      WHERE "Id_Grupo" = %(g)s
+                                      ORDER BY "Fecha_Union", random() LIMIT 1)
+                """,
+                {"g": group_id}
+            )
+
     def delete_user_from_group(self, group_id, user_id):
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                cursor.execute(
-                    """
-                    DELETE FROM public."Usuario-Grupo"
-                    WHERE "Id_Usuario" = %s AND "Id_Grupo" = %s
-                    RETURNING "Es_Admin"
-                    """,
-                    (user_id, group_id)
-                )
-                fila = cursor.fetchone()
-                # Se fue un admin y no quedó ninguno: pasa a admin el más antiguo
-                # (si la antigüedad empata, al azar). Va en una sentencia aparte
-                # porque en un solo CTE todavía vería al admin que se fue.
-                if fila and fila[0]:
-                    cursor.execute(
-                        """
-                        UPDATE public."Usuario-Grupo" SET "Es_Admin" = true
-                        WHERE "Id_Grupo" = %(g)s
-                          AND NOT EXISTS (SELECT 1 FROM public."Usuario-Grupo"
-                                          WHERE "Id_Grupo" = %(g)s AND "Es_Admin")
-                          AND "Id_Usuario" = (SELECT "Id_Usuario" FROM public."Usuario-Grupo"
-                                              WHERE "Id_Grupo" = %(g)s
-                                              ORDER BY "Fecha_Union", random() LIMIT 1)
-                        """,
-                        {"g": group_id}
-                    )
+                self.salir_del_grupo(cursor, group_id, user_id)
             conn.commit()
         except Exception:
             conn.rollback()

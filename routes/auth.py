@@ -3,7 +3,7 @@ import hashlib
 import secrets
 
 import psycopg2
-from flask import Blueprint, current_app, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
 from models import user
 from models.user import User
 from services.auth_service import AuthService
@@ -54,6 +54,55 @@ def login():
             return render_template("login.html", mensaje="Usuario o contraseña incorrectos.")
 
     return render_template("login.html",mensaje = "")
+
+
+@auth.route("/olvide-contrasena", methods=["GET", "POST"])
+def olvide_contrasena():
+    enviado = False
+    if request.method == "POST":
+        identificador = request.form.get("username", "").strip()
+        resultado = auth_service.getUserAndId(identificador) if identificador else None
+        # Mismo mensaje exista o no la cuenta, así no se revela qué mails están registrados.
+        # "reset:" separa este límite (5 cada 30 min) del de los intentos de login.
+        if resultado and auth_service.registrar_intento_login(f"reset:{identificador}", resultado[1]):
+            usuario, user_id = resultado
+            codigo = secrets.token_urlsafe(32)
+            try:
+                auth_service.crear_codigo_recuperacion(user_id, hashlib.sha256(codigo.encode("utf-8")).hexdigest())
+                link = url_for("auth.restablecer_contrasena", codigo=codigo, _external=True)
+                MailService().enviar(
+                    usuario.get_email(),
+                    "Cambiá tu contraseña — Ahora Qué",
+                    f"Hola {usuario.get_name()},\n\n"
+                    f"Para elegir una contraseña nueva, abrí este enlace:\n{link}\n\n"
+                    "El enlace vence en 1 hora y sirve una sola vez. "
+                    "Si no lo pediste vos, ignorá este mensaje: tu contraseña no cambia.",
+                )
+            except Exception:
+                current_app.logger.exception("No se pudo enviar el correo para cambiar la contraseña")
+        enviado = True
+    return render_template("olvide_contrasena.html", enviado=enviado)
+
+
+@auth.route("/olvide-contrasena/<codigo>", methods=["GET", "POST"])
+def restablecer_contrasena(codigo):
+    codigo_hash = hashlib.sha256(codigo.encode("utf-8")).hexdigest()
+    if not auth_service.codigo_recuperacion_valido(codigo_hash):
+        return render_template("restablecer_contrasena.html", invalido=True), 400
+
+    error = ""
+    if request.method == "POST":
+        nueva = request.form.get("nueva", "")
+        if (error_contrasena := validar_contrasena(nueva)):
+            error = error_contrasena
+        elif nueva != request.form.get("confirmar", ""):
+            error = "Las contraseñas no coinciden."
+        elif auth_service.restablecer_contrasena(codigo_hash, generate_password_hash(nueva)):
+            flash("Tu contraseña se actualizó. Iniciá sesión con la nueva.", "success")
+            return redirect(url_for("auth.login"))
+        else:
+            return render_template("restablecer_contrasena.html", invalido=True), 400
+    return render_template("restablecer_contrasena.html", invalido=False, error=error)
 
 
 ########################################################################################################################
