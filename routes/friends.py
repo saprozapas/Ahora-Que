@@ -4,6 +4,7 @@ import psycopg2
 from services.friend_service import FriendService
 from services.invitation_service import InvitationService
 from services.group_auth_service import GroupAuthService
+from services.avatar_service import AvatarService
 from database_bridge.database_bridge import getFriendsForUser, getGroupsForUser, buscarUsuarios, getUser
 
 
@@ -42,6 +43,8 @@ def buscar_amigos():
         return jsonify(resultados=[])
 
     resultados = buscarUsuarios(consulta, session["user_id"])
+    for r in resultados:
+        r["avatar"] = AvatarService.version_de(r["id"])
     return jsonify(resultados=resultados)
 
 

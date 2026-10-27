@@ -25,6 +25,7 @@ import psycopg2
 from psycopg2 import errors
 
 from database import get_db_connection, release_db_connection
+from services.avatar_service import AvatarService
 from services.plan_service import PlanService
 
 MAX_TEXTO = 500
@@ -277,7 +278,7 @@ class SocialService:
             "texto": f[7],
             "visibilidad": f[8],
             "creada_en": f[9].isoformat(),
-            "autor": {"id": str(f[10]), "nombre": f[11], "username": f[12]},
+            "autor": {"id": str(f[10]), "nombre": f[11], "username": f[12], "avatar": AvatarService.version_de(f[10])},
             "es_mio": str(f[10]) == str(user_id),
             "plan": {
                 "id": str(plan["id"]),

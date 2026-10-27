@@ -321,8 +321,16 @@
 
     tarjeta.dataset.publicacionId = publicacion.id;
 
-    $("[data-soc-avatar]", tarjeta).textContent =
-      (publicacion.autor.nombre || "?").trim().charAt(0).toUpperCase();
+    const caraAutor = $("[data-soc-avatar]", tarjeta);
+    if (publicacion.autor.avatar) {
+      const foto = document.createElement("img");
+      foto.alt = "";
+      foto.src = `/avatar/${publicacion.autor.id}?v=${publicacion.autor.avatar}`;
+      caraAutor.classList.add("soc-avatar--foto");
+      caraAutor.appendChild(foto);
+    } else {
+      caraAutor.textContent = (publicacion.autor.nombre || "?").trim().charAt(0).toUpperCase();
+    }
     $("[data-soc-autor]", tarjeta).textContent = autor;
     $("[data-soc-autor-enlace]", tarjeta).href = publicacion.es_mio
       ? urls.miPerfil

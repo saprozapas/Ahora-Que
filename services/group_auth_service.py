@@ -93,7 +93,8 @@ class GroupAuthService:
         return self.get_rol(user_id, group_id)[0]
 
     def get_owner_id(self, group_id):
-        """Id (texto) del owner del grupo, o None si ya no es integrante."""
+        """Id (texto) del owner del grupo. Si el grupo no tiene (lo creó alguien que ya no está), pasa a serlo
+        el admin más antiguo, o el integrante más antiguo si no hubiera admins."""
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
@@ -108,7 +109,30 @@ class GroupAuthService:
                     (group_id,)
                 )
                 fila = cursor.fetchone()
-                return fila[0] if fila else None
+                if fila:
+                    return fila[0]
+                cursor.execute(
+                    """
+                    UPDATE public."Grupos" SET "Creado_Por" = (
+                        SELECT "Id_Usuario" FROM public."Usuario-Grupo"
+                        WHERE "Id_Grupo" = %(g)s
+                        ORDER BY "Es_Admin" DESC, "Fecha_Union", random() LIMIT 1)
+                    WHERE "Id_Grupo" = %(g)s
+                    RETURNING "Creado_Por"::text
+                    """,
+                    {"g": group_id}
+                )
+                nuevo = cursor.fetchone()
+                if nuevo and nuevo[0]:
+                    cursor.execute(
+                        'UPDATE public."Usuario-Grupo" SET "Es_Admin" = true WHERE "Id_Grupo" = %s AND "Id_Usuario"::text = %s',
+                        (group_id, nuevo[0])
+                    )
+            conn.commit()
+            return nuevo[0] if nuevo else None
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             release_db_connection(conn)
 
@@ -162,6 +186,11 @@ class GroupAuthService:
     def salir_del_grupo(cursor, group_id, user_id):
         """Saca al usuario del grupo dentro de la transacción del cursor recibido."""
         cursor.execute(
+            'SELECT "Creado_Por"::text = %s FROM public."Grupos" WHERE "Id_Grupo" = %s',
+            (str(user_id), group_id)
+        )
+        era_owner = bool((cursor.fetchone() or (False,))[0])
+        cursor.execute(
             """
             DELETE FROM public."Usuario-Grupo"
             WHERE "Id_Usuario" = %s AND "Id_Grupo" = %s
@@ -186,6 +215,48 @@ class GroupAuthService:
                 """,
                 {"g": group_id}
             )
+        # Se fue el owner: pasa a serlo el admin más antiguo (que ya es admin, así que nadie pierde ni gana permisos de más).
+        if era_owner:
+            cursor.execute(
+                """
+                UPDATE public."Grupos" SET "Creado_Por" = (
+                    SELECT "Id_Usuario" FROM public."Usuario-Grupo"
+                    WHERE "Id_Grupo" = %(g)s AND "Es_Admin"
+                    ORDER BY "Fecha_Union", random() LIMIT 1)
+                WHERE "Id_Grupo" = %(g)s
+                """,
+                {"g": group_id}
+            )
+
+    def transferir_owner(self, group_id, nuevo_owner_id):
+        """El nuevo owner queda también como admin; quien era owner sigue de admin."""
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE public."Usuario-Grupo" SET "Es_Admin" = true
+                    WHERE "Id_Usuario" = %s AND "Id_Grupo" = %s
+                    """,
+                    (nuevo_owner_id, group_id)
+                )
+                cursor.execute(
+                    'UPDATE public."Grupos" SET "Creado_Por" = %s WHERE "Id_Grupo" = %s',
+                    (nuevo_owner_id, group_id)
+                )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            release_db_connection(conn)
+
+    def puede_transferir_owner(self, actor_id, group_id, target_id):
+        """Solo el owner, y solo a otro integrante."""
+        if str(actor_id) == str(target_id):
+            return False
+        _, es_owner = self.get_rol(actor_id, group_id)
+        return es_owner and self.is_user_in_group(target_id, group_id)
 
     def delete_user_from_group(self, group_id, user_id):
         conn = get_db_connection()

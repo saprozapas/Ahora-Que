@@ -2,9 +2,7 @@
 
 {% block title %}Agregar deuda — Ahora Qué{% endblock %}
 
-{% macro cara(nombre, tam=34) -%}
-<span class="avatar" style="--h: {{ (nombre | length * 47) % 360 }}; --size: {{ tam }}px" aria-hidden="true">{{ (nombre or '?')[:1] | upper }}</span>
-{%- endmacro %}
+{% from '_macros.html' import cara %}
 
 {% block content %}
 
@@ -57,7 +55,7 @@
 
       <li class="persona persona--yo">
         <div class="persona__cab">
-          {{ cara(current_user.name | default('Vos', true)) }}
+          {{ cara(current_user.id, current_user.name | default('Vos', true), 34) }}
           <strong>Vos</strong>
         </div>
         <div class="persona__montos">
@@ -71,7 +69,7 @@
       <li class="persona{% if tildado %} is-activa{% endif %}" data-persona data-nombre="{{ c.nombre | lower }}">
         <label class="persona__cab">
           <input class="persona__tick" type="checkbox" name="participantes" value="{{ c.id }}" data-tick {{ 'checked' if tildado }}>
-          {{ cara(c.nombre) }}
+          {{ cara(c.id, c.nombre, 34) }}
           <strong>{{ c.nombre }}</strong>
         </label>
         <div class="persona__montos" data-montos{% if not tildado %} style="display:none"{% endif %}>

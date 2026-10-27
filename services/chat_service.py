@@ -3,6 +3,7 @@ import threading
 import time
 
 from database import get_db_connection, release_db_connection
+from services.avatar_service import AvatarService
 
 
 _LIMPIEZA_CADA_SEGUNDOS = 24 * 60 * 60
@@ -164,6 +165,7 @@ class ChatService:
                     mensajes.append({
                         "id": str(fila[0]),
                         "user_id": str(fila[1]),
+                        "avatar": AvatarService.version_de(fila[1]),
                         "username": self._nombre_visible(fila[2], fila[3]),
                         "message": fila[4],
                         "created_at": fila[5].isoformat()

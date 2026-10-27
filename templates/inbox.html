@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import chispa %}
+{% from '_macros.html' import chispa, cara %}
 
 {% block title %}Bandeja de entrada — Ahora Qué{% endblock %}
 
@@ -116,7 +116,7 @@
       {% for solicitud in solicitudes_amistad %}
       <li class="card item inbox-item">
 
-        {{ avatar(solicitud.get_nombre_solicitante()) }}
+        {{ cara(solicitud.get_id_solicitante(), solicitud.get_nombre_solicitante()) }}
 
         <div class="item__body">
           <div class="item__top">
