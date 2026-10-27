@@ -112,36 +112,27 @@
     </div>
     {% endif %}
 
+    {% set canal_notificaciones = 'mail' if preferencias_notificaciones.mail_activo else ('dispositivo' if preferencias_notificaciones.dispositivo_activo else 'apagadas') %}
     <form method="post" action="/perfil" class="profile-row profile-row--texto">
       <input type="hidden" name="target" value="canales_notificaciones" />
-      {% if preferencias_notificaciones.dispositivo_activo %}<input type="hidden" name="dispositivo_activo" value="on" />{% endif %}
-      <span class="profile-row__label">Notificaciones por mail</span>
+      <input type="hidden" name="mail_activo" value="{{ 'on' if preferencias_notificaciones.mail_activo else '' }}" />
+      <input type="hidden" name="dispositivo_activo" value="{{ 'on' if preferencias_notificaciones.dispositivo_activo else '' }}" />
+      <span class="profile-row__label">Notificaciones</span>
       <div class="profile-row__value">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--s-3)">
-          <label><input class="notificaciones-switch" type="checkbox" name="mail_activo" onchange="this.form.submit()" {% if preferencias_notificaciones.mail_activo %}checked{% endif %} /> Activadas</label>
-        {% if preferencias_notificaciones.mail_activo %}
-        <button class="notificaciones-mas" type="button" data-modal-open="modal-opciones-notificaciones" aria-label="Opciones de notificaciones por mail" title="Más opciones">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
-        </button>
-        {% endif %}
+          <div class="seg seg--lg" role="radiogroup" aria-label="Canal de notificaciones">
+            {% for valor, texto in [('apagadas', 'Apagadas'), ('mail', 'Mail'), ('dispositivo', 'Dispositivo')] %}
+            <label>
+              <input type="radio" name="modo_notificaciones" value="{{ valor }}" onchange="this.form.elements.mail_activo.value=this.value==='mail'?'on':''; this.form.elements.dispositivo_activo.value=this.value==='dispositivo'?'on':''; this.form.submit()" {% if canal_notificaciones == valor %}checked{% endif %} />
+              <span>{{ texto }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          <button class="notificaciones-mas" type="button" data-modal-open="modal-opciones-notificaciones" aria-label="Opciones de notificaciones" title="Más opciones">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+          </button>
         </div>
-      </div>
-    </form>
-
-    <form method="post" action="/perfil" class="profile-row profile-row--texto">
-      <input type="hidden" name="target" value="canales_notificaciones" />
-      {% if preferencias_notificaciones.mail_activo %}<input type="hidden" name="mail_activo" value="on" />{% endif %}
-      <span class="profile-row__label">Notificaciones en dispositivo</span>
-      <div class="profile-row__value">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--s-3)">
-          <label><input class="notificaciones-switch" type="checkbox" name="dispositivo_activo" onchange="this.form.submit()" {% if preferencias_notificaciones.dispositivo_activo %}checked{% endif %} /> Activadas</label>
-        {% if preferencias_notificaciones.dispositivo_activo %}
-        <button class="notificaciones-mas" type="button" data-modal-open="modal-opciones-notificaciones" aria-label="Opciones de notificaciones en dispositivo" title="Más opciones">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
-        </button>
-        {% endif %}
-        </div>
-        <small class="meta">Solo si se agrega la app a inicio. Por ahora no hace nada.</small>
+        <small class="meta">Dispositivo: solo si agregás la app a Inicio; por ahora no envía avisos.</small>
       </div>
     </form>
 
