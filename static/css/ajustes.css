@@ -1279,7 +1279,10 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
    Landing: puntos en todo el fondo (desde la segunda sección se prenden y apagan despacio) y filtros de la demo más legibles.
    ========================================================================== */
 .landing-fondo { position: relative; isolation: isolate; overflow: clip; }
-.landing-fondo::before {
+/* La misma grilla de puntos en todo el dashboard (el área principal de cada página, sin la barra lateral). */
+.dashboard-main { position: relative; isolation: isolate; }
+.landing-fondo::before,
+.dashboard-main::before {
   content: ""; position: absolute; inset: 0; z-index: -2; pointer-events: none;
   background-image: radial-gradient(var(--dot) 1px, transparent 1.3px);
   background-size: 22px 22px;

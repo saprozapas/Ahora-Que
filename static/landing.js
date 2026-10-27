@@ -51,63 +51,7 @@
   document.documentElement.classList.add("reveal-on");
 
 
-  // ---- 2. Puntos del fondo que se prenden y apagan (desde la segunda sección) ----------------------------------------
-
-  var fondo = document.querySelector("[data-landing-fondo]");
-  var segunda = document.querySelector(".landing-demo");
-
-  if (fondo && segunda) {
-
-    var PASO = 22;           // el mismo paso que la grilla de puntos del CSS
-    var capa = document.createElement("div");
-    capa.className = "fondo-brillos";
-    capa.setAttribute("aria-hidden", "true");
-    fondo.appendChild(capa);
-
-    var pintarBrillos = function () {
-      var arriba = segunda.getBoundingClientRect().top - fondo.getBoundingClientRect().top;
-      var ancho = fondo.clientWidth;
-      var alto = fondo.clientHeight - arriba;
-      capa.style.top = arriba + "px";
-      capa.style.height = alto + "px";
-      capa.textContent = "";
-      var columnas = Math.floor(ancho / PASO);
-      var filas = Math.floor(alto / PASO);
-      var cantidad = Math.round(columnas * filas * 0.035);
-      var usados = {};
-      var fragmento = document.createDocumentFragment();
-      for (var n = 0; n < cantidad; n++) {
-        var c = Math.floor(Math.random() * columnas);
-        var f = Math.floor(Math.random() * filas);
-        if (usados[c + "," + f]) { continue; }
-        usados[c + "," + f] = true;
-        var punto = document.createElement("i");
-        punto.style.left = c * PASO + "px";
-        punto.style.top = f * PASO + "px";
-        punto.style.setProperty("--b-t", (7 + Math.random() * 9).toFixed(1) + "s");
-        punto.style.setProperty("--b-d", "-" + (Math.random() * 16).toFixed(1) + "s");
-        fragmento.appendChild(punto);
-      }
-      capa.appendChild(fragmento);
-    };
-
-    pintarBrillos();
-
-    var ultimoAncho = fondo.clientWidth;
-    var pendiente = 0;
-    window.addEventListener("resize", function () {
-      window.clearTimeout(pendiente);
-      pendiente = window.setTimeout(function () {
-        if (fondo.clientWidth !== ultimoAncho) {
-          ultimoAncho = fondo.clientWidth;
-          pintarBrillos();
-        }
-      }, 250);
-    });
-  }
-
-
-  // ---- 3. Tipeo de la respuesta del asistente -----------------------------------------------------------------
+  // ---- 2. Tipeo de la respuesta del asistente -----------------------------------------------------------------
 
   var voz = document.querySelector(".landing-demo__brief .voice");
   var boton = document.querySelector(".landing-demo__brief .btn");
