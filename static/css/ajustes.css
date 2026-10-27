@@ -1197,7 +1197,7 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
   -webkit-mask-image: radial-gradient(circle closest-side, #000 25%, transparent 92%);
           mask-image: radial-gradient(circle closest-side, #000 25%, transparent 92%);
 }
-.led-signo { position: relative; width: calc(var(--anillo) * 1.587); height: calc(var(--anillo) * 1.587); max-width: 100%; overflow: visible; }
+.led-signo { position: relative; width: calc(var(--anillo) * 1.586); height: calc(var(--anillo) * 1.586); max-width: 100%; overflow: visible; }
 .led-signo .led { fill: var(--ink); }
 .led-signo .led--on { opacity: 0.85; animation: led-parpadeo calc(var(--t, 4s) * 3.8) steps(1, end) var(--d, 0s) infinite; }
 .led-signo .led--falla { animation-name: led-falla; animation-duration: calc(var(--t, 4s) * 2.6); }
