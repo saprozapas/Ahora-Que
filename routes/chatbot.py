@@ -299,6 +299,7 @@ def confirmar_plan():
                 notification_service.notificar_grupo(
                     grupo_id, user_id, "El grupo está votando",
                     "El grupo está votando. Hay un plan nuevo para votar.",
+                    f"/grupos/{grupo_id}",
                 )
             except Exception:
                 pass

@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+vapid_private.pem
 
 # Python
 __pycache__/

@@ -113,7 +113,8 @@
     {% endif %}
 
     {% set canal_notificaciones = 'mail' if preferencias_notificaciones.mail_activo else ('dispositivo' if preferencias_notificaciones.dispositivo_activo else 'apagadas') %}
-    <form method="post" action="/perfil" class="profile-row profile-row--texto">
+    <form method="post" action="/perfil" class="profile-row profile-row--texto"
+          data-current-mode="{{ canal_notificaciones }}" data-vapid-public-key="{{ config.get('VAPID_PUBLIC_KEY', '') }}">
       <input type="hidden" name="target" value="canales_notificaciones" />
       <input type="hidden" name="mail_activo" value="{{ 'on' if preferencias_notificaciones.mail_activo else '' }}" />
       <input type="hidden" name="dispositivo_activo" value="{{ 'on' if preferencias_notificaciones.dispositivo_activo else '' }}" />
@@ -123,7 +124,7 @@
           <div class="seg seg--lg" role="radiogroup" aria-label="Canal de notificaciones">
             {% for valor, texto in [('apagadas', 'Apagadas'), ('mail', 'Mail'), ('dispositivo', 'Dispositivo')] %}
             <label>
-              <input type="radio" name="modo_notificaciones" value="{{ valor }}" onchange="this.form.elements.mail_activo.value=this.value==='mail'?'on':''; this.form.elements.dispositivo_activo.value=this.value==='dispositivo'?'on':''; this.form.submit()" {% if canal_notificaciones == valor %}checked{% endif %} />
+              <input type="radio" name="modo_notificaciones" value="{{ valor }}" onchange="activarCanalNotificaciones(this)" {% if canal_notificaciones == valor %}checked{% endif %} />
               <span>{{ texto }}</span>
             </label>
             {% endfor %}
@@ -132,7 +133,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
           </button>
         </div>
-        <small class="meta">Dispositivo: solo si agregás la app a Inicio; por ahora no envía avisos.</small>
+        <small class="meta">Requiere permiso; en iPhone, agregá Ahora Qué a Inicio.</small>
       </div>
     </form>
 
@@ -199,7 +200,7 @@
     </div>
     <div class="modal-body">
       <input type="hidden" name="target" value="notificaciones" />
-      <p class="meta">Elegí qué avisos querés recibir por mail. Las notificaciones en dispositivo estarán disponibles más adelante.</p>
+      <p class="meta">Elegí qué tipos de avisos querés recibir en el canal que tengas activo.</p>
       <div class="notificaciones-opciones">
         <label><span>Solicitudes de amistad</span><input type="checkbox" name="amistad" {% if preferencias_notificaciones.amistad %}checked{% endif %} /></label>
         <label><span>Invitaciones a grupos</span><input type="checkbox" name="grupo" {% if preferencias_notificaciones.grupo %}checked{% endif %} /></label>

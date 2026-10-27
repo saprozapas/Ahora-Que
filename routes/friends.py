@@ -69,6 +69,8 @@ def solicitar_amistad():
                 destinatario_id, "amistad", "Nueva solicitud de amistad — Ahora Qué",
                 f"{solicitante.get_name()} te mandó una solicitud de amistad.\n\n"
                 f"Revisala en {request.url_root.rstrip('/')}/inbox",
+                "/inbox",
+                f"{solicitante.get_name()} te mandó una solicitud de amistad.",
             )
         except Exception:
             pass
@@ -123,6 +125,8 @@ def invitar_amigo_a_grupo(friend_id):
                 friend_id, "grupo", "Nueva invitación a un grupo — Ahora Qué",
                 f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.\n\n"
                 f"Revisá la invitación en {request.url_root.rstrip('/')}/inbox",
+                "/inbox",
+                f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.",
             )
         except Exception:
             pass

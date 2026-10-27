@@ -215,6 +215,8 @@ def invitar_usuario(group_id):
             user_id, "grupo", "Nueva invitación a un grupo — Ahora Qué",
             f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.\n\n"
             f"Revisá la invitación en {request.url_root.rstrip('/')}/inbox",
+            "/inbox",
+            f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.",
         )
     except Exception:
         pass

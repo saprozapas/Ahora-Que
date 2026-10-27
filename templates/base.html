@@ -12,6 +12,9 @@
     />
 
     <title>{% block title %}Ahora Qué{% endblock %}</title>
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}" />
+    <meta name="theme-color" content="#151515" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     {% block extra_head %}{% endblock %}
 
     <!-- Aplica el tema guardado ANTES de pintar, para que no haya un
@@ -68,6 +71,8 @@
       defer
       src="{{ url_for('static', filename='app.js', v='20261029-caras') }}"
     ></script>
+
+    <script defer src="{{ url_for('static', filename='push-notifications.js', v='20261103-push1') }}"></script>
 
     <script
       defer

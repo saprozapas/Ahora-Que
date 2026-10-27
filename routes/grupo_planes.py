@@ -28,6 +28,7 @@ def _avisar_votacion(group_id, user_id, detalle):
         notification_service.notificar_grupo(
             group_id, user_id, f"El grupo {nombre_grupo} está votando",
             f"El grupo {nombre_grupo} está votando.\n\n{detalle}.",
+            f"/grupos/{group_id}",
         )
     except Exception:
         pass

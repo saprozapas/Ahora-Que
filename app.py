@@ -17,6 +17,7 @@ from routes.grupo_planes import grupo_planes_bp
 from routes.chatbot import chatbot_bp
 from routes.inicio import guia_bp, inicio_bp
 from routes.avatar import avatar_bp
+from routes.push import push_bp
 from services.avatar_service import AvatarService
 from routes.deudas import deudas_bp
 from services.inicio_service import InicioService
@@ -36,6 +37,12 @@ app.config.update(
     BREVO_API_KEY=os.environ.get("BREVO_API_KEY"),
     BREVO_SENDER_EMAIL=os.environ.get("BREVO_SENDER_EMAIL"),
     BREVO_SENDER_NAME=os.environ.get("BREVO_SENDER_NAME", "Ahora Qué"),
+    VAPID_PUBLIC_KEY=os.environ.get("VAPID_PUBLIC_KEY", ""),
+    VAPID_PRIVATE_KEY=os.environ.get("VAPID_PRIVATE_KEY", ""),
+    VAPID_SUBJECT=os.environ.get(
+        "VAPID_SUBJECT",
+        f'mailto:{os.environ.get("BREVO_SENDER_EMAIL", "admin@example.com")}',
+    ),
 )
 app.permanent_session_lifetime = timedelta(days=5)
 app.register_blueprint(auth)
@@ -53,6 +60,7 @@ app.register_blueprint(guia_bp)
 app.register_blueprint(avatar_bp)
 app.register_blueprint(deudas_bp)
 app.register_blueprint(social_api)
+app.register_blueprint(push_bp)
 invitation_service = InvitationService()
 friend_service = FriendService()
 deuda_service = DeudaService()
@@ -136,6 +144,14 @@ def _empezar_cronometro():
 def _mostrar_tiempo(response):
     if hasattr(g, "_inicio") and not request.path.startswith("/static"):
         print(f"{request.method} {request.path} -> {(time.perf_counter() - g._inicio) * 1000:.0f} ms")
+    return response
+
+
+@app.route("/service-worker.js")
+def service_worker():
+    response = send_from_directory(app.static_folder, "service-worker.js", mimetype="application/javascript")
+    response.headers["Service-Worker-Allowed"] = "/"
+    response.headers["Cache-Control"] = "no-cache"
     return response
 
 # ---- Inbox guardado en memoria ----

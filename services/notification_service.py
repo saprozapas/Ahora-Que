@@ -1,12 +1,11 @@
 from services.mail_service import MailService
 from flask import current_app, has_app_context
-import psycopg2
 from database import get_db_connection, release_db_connection
 
 
 def _registrar_error():
     if has_app_context():
-        current_app.logger.exception("No se pudo enviar la notificación por correo")
+        current_app.logger.exception("No se pudo enviar la notificación")
 
 
 class NotificationService:
@@ -65,17 +64,18 @@ class NotificationService:
         finally:
             release_db_connection(conn)
 
-    def notificar_usuario(self, user_id, tipo, subject, cuerpo):
-        """Envía si la persona habilitó ese tipo; los avisos por mail no frenan la acción principal."""
+    def notificar_usuario(self, user_id, tipo, subject, cuerpo, url="/dashboard", cuerpo_push=None):
+        """Envía cada aviso por los canales activos y permitidos para esa categoría."""
         claves = {"amistad": "Solicitudes_Amistad", "grupo": "Invitaciones_Grupo",
-                  "votos": "Votos_Grupo", "puntuar": "Puntuar_Plan"}
+                  "votos": "Votos_Grupo", "puntuar": "Puntuar_Plan", "menciones": "Menciones_Chat"}
         if tipo not in claves:
             raise ValueError("Tipo de notificación desconocido.")
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    f'''SELECT u."Mail", COALESCE(p."Mail_Activo", true) AND COALESCE(p."{claves[tipo]}", true)
+                    f'''SELECT u."Id_Usuario", u."Mail", COALESCE(p."Mail_Activo", true),
+                               COALESCE(p."Dispositivo_Activo", false), COALESCE(p."{claves[tipo]}", true)
                         FROM public."Usuarios" u LEFT JOIN public."Preferencias_Notificacion" p
                           ON p."Id_Usuario" = u."Id_Usuario"
                         WHERE u."Id_Usuario" = %s''', (user_id,)
@@ -83,25 +83,33 @@ class NotificationService:
                 fila = cursor.fetchone()
         finally:
             release_db_connection(conn)
-        if not fila or not fila[0] or not fila[1]:
+        if not fila:
             return False
-        try:
-            self.enviar(fila[0], subject, cuerpo)
-            return True
-        except Exception:
-            _registrar_error()
+        _, email, mail_activo, push_activo, categoria_activa = fila
+        if not categoria_activa:
             return False
+        enviado = False
+        if mail_activo and email:
+            try:
+                self.enviar(email, subject, cuerpo)
+                enviado = True
+            except Exception:
+                _registrar_error()
+        if push_activo:
+            from services.push_service import PushService
+            enviado = bool(PushService().enviar_a_usuario(
+                user_id, subject, cuerpo_push or cuerpo, url
+            )) or enviado
+        return enviado
 
-    def notificar_grupo(self, group_id, actor_id, subject, cuerpo):
+    def notificar_grupo(self, group_id, actor_id, subject, cuerpo, url=None):
         """Notifica a los demás integrantes del grupo según su preferencia de votos."""
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    '''SELECT u."Id_Usuario", u."Mail", COALESCE(p."Mail_Activo", true) AND COALESCE(p."Votos_Grupo", true)
+                    '''SELECT ug."Id_Usuario"
                        FROM public."Usuario-Grupo" ug
-                       JOIN public."Usuarios" u ON u."Id_Usuario" = ug."Id_Usuario"
-                       LEFT JOIN public."Preferencias_Notificacion" p ON p."Id_Usuario" = u."Id_Usuario"
                        WHERE ug."Id_Grupo" = %s AND ug."Id_Usuario" <> %s''',
                     (group_id, actor_id),
                 )
@@ -109,13 +117,15 @@ class NotificationService:
         finally:
             release_db_connection(conn)
         enviados = 0
-        for _, email, habilitado in destinatarios:
-            if email and habilitado:
-                try:
-                    self.enviar(email, subject, cuerpo)
+        for (destinatario_id,) in destinatarios:
+            try:
+                if self.notificar_usuario(
+                    destinatario_id, "votos", subject, cuerpo,
+                    url or f"/grupos/{group_id}", cuerpo_push=cuerpo.split("\n\n", 1)[0],
+                ):
                     enviados += 1
-                except Exception:
-                    _registrar_error()
+            except Exception:
+                _registrar_error()
         return enviados
 
     def notificar_asistentes(self, plan_id, subject, cuerpo):
@@ -124,22 +134,24 @@ class NotificationService:
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    '''SELECT u."Mail", COALESCE(p."Mail_Activo", true) AND COALESCE(p."Puntuar_Plan", true)
+                    '''SELECT up."Usuario_id", p."Grupo_id"
                        FROM public."Usuario-Plan" up
-                       JOIN public."Usuarios" u ON u."Id_Usuario" = up."Usuario_id"
-                       LEFT JOIN public."Preferencias_Notificacion" p ON p."Id_Usuario" = u."Id_Usuario"
+                       JOIN public."Plan" p ON p."id_Plan" = up."Plan_id"
                        WHERE up."Plan_id" = %s AND up."Confirmado"''',
                     (plan_id,),
                 )
                 destinatarios = cursor.fetchall()
         finally:
             release_db_connection(conn)
-        for email, habilitado in destinatarios:
-            if email and habilitado:
-                try:
-                    self.enviar(email, subject, cuerpo)
-                except Exception:
-                    _registrar_error()
+        for user_id, group_id in destinatarios:
+            try:
+                self.notificar_usuario(
+                    user_id, "puntuar", subject, cuerpo,
+                    f"/grupos/{group_id}#plan-{plan_id}",
+                    cuerpo_push=cuerpo.split("\n\n", 1)[0],
+                )
+            except Exception:
+                _registrar_error()
 
     def notificar_menciones_chat(self, group_id, actor_id, mensaje):
         import re
@@ -148,35 +160,17 @@ class NotificationService:
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                try:
-                    cursor.execute(
-                        '''SELECT u."Nombre", u."Username", u."Mail", COALESCE(p."Mail_Activo", true) AND COALESCE(p."Menciones_Chat", true),
-                                  g."Nombre", actor."Nombre"
-                           FROM public."Usuario-Grupo" ug JOIN public."Usuarios" u ON u."Id_Usuario" = ug."Id_Usuario"
-                           JOIN public."Grupos" g ON g."Id_Grupo" = ug."Id_Grupo"
-                           JOIN public."Usuarios" actor ON actor."Id_Usuario" = %s
-                           LEFT JOIN public."Preferencias_Notificacion" p ON p."Id_Usuario" = u."Id_Usuario"
-                           WHERE ug."Id_Grupo" = %s AND ug."Id_Usuario" <> %s''', (actor_id, group_id, actor_id)
-                    )
-                except (psycopg2.errors.UndefinedTable, psycopg2.errors.UndefinedColumn):
-                    # La app puede tener desplegado el código antes de aplicar la migración:
-                    # en ese caso usamos el valor predeterminado (notificaciones activas).
-                    conn.rollback()
-                    if has_app_context():
-                        current_app.logger.warning(
-                            'Falta aplicar migraciones/notificaciones_email.sql; se usarán preferencias predeterminadas.'
-                        )
-                    cursor.execute(
-                        '''SELECT u."Nombre", u."Username", u."Mail", true, g."Nombre", actor."Nombre"
-                           FROM public."Usuario-Grupo" ug JOIN public."Usuarios" u ON u."Id_Usuario" = ug."Id_Usuario"
-                           JOIN public."Grupos" g ON g."Id_Grupo" = ug."Id_Grupo"
-                           JOIN public."Usuarios" actor ON actor."Id_Usuario" = %s
-                           WHERE ug."Id_Grupo" = %s AND ug."Id_Usuario" <> %s''', (actor_id, group_id, actor_id)
-                    )
+                cursor.execute(
+                    '''SELECT u."Id_Usuario", u."Nombre", u."Username", g."Nombre", actor."Nombre"
+                       FROM public."Usuario-Grupo" ug JOIN public."Usuarios" u ON u."Id_Usuario" = ug."Id_Usuario"
+                       JOIN public."Grupos" g ON g."Id_Grupo" = ug."Id_Grupo"
+                       JOIN public."Usuarios" actor ON actor."Id_Usuario" = %s
+                       WHERE ug."Id_Grupo" = %s AND ug."Id_Usuario" <> %s''', (actor_id, group_id, actor_id)
+                )
                 destinatarios = cursor.fetchall()
         finally:
             release_db_connection(conn)
-        for nombre, username, email, habilitado, nombre_grupo, nombre_actor in destinatarios:
+        for user_id, nombre, username, nombre_grupo, nombre_actor in destinatarios:
             handle = ChatService.handle(username, nombre)
             menciona_a_todos = any(
                 re.search(rf"(?<![\w@])@{etiqueta}(?![\w])", mensaje, flags=re.IGNORECASE | re.UNICODE)
@@ -186,10 +180,13 @@ class NotificationService:
                 rf"(?<![\w@])@{re.escape(handle)}(?![\w])", mensaje,
                 flags=re.IGNORECASE | re.UNICODE,
             )
-            if habilitado and email and (menciona_a_todos or menciona_a_esta_persona):
+            if menciona_a_todos or menciona_a_esta_persona:
                 try:
                     asunto = f"{nombre_actor} te mencionó en {nombre_grupo}"
                     cuerpo = f"{nombre_actor} te mencionó en el grupo {nombre_grupo}."
-                    self.enviar(email, asunto, cuerpo)
+                    self.notificar_usuario(
+                        user_id, "menciones", asunto, cuerpo,
+                        f"/grupos/{group_id}/chat", cuerpo_push=cuerpo,
+                    )
                 except Exception:
                     _registrar_error()

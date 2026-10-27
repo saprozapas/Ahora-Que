@@ -631,6 +631,26 @@ Preferencias de correo para los avisos que se generan desde los pendientes del d
 
 La tabla tiene RLS activado y no define políticas; la aplicación accede mediante su conexión de servidor.
 
+## Table `Notificacion_Push_Suscripcion`
+
+Una fila por navegador/dispositivo suscrito a Web Push. Migración: `migraciones/notificaciones_push.sql`.
+El endpoint y las claves de suscripción son datos privados de capacidad; solo los administra el servidor.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Suscripcion` | `uuid` | Primary. Default `gen_random_uuid()` |
+| `Id_Usuario` | `uuid` | Not null. FK `Usuarios` (ON DELETE CASCADE) |
+| `Endpoint` | `text` | Not null, unique. Endpoint asignado por el servicio push del navegador |
+| `P256dh` | `text` | Not null. Clave pública de cifrado de la suscripción |
+| `Auth` | `text` | Not null. Secreto de autenticación de la suscripción |
+| `Activa` | `boolean` | Default `true` |
+| `Creada_En` | `timestamptz` | Default `now()` |
+| `Actualizada_En` | `timestamptz` | Default `now()` |
+
+La tabla tiene RLS activado y no define políticas; la aplicación la administra mediante su conexión de servidor.
+
 ## RLS Policies
 
 ### `Usuario-Grupo`
