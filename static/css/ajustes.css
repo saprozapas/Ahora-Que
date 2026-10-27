@@ -1798,3 +1798,12 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .cuenta__ahora { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600; line-height: 1.1; color: var(--ok); }
 .proximo__acciones { grid-template-columns: minmax(0, 1fr); }
 @media (max-width: 900px) { .cuenta__u b { font-size: 1.875rem; } }
+
+/* Avisos: siempre una sola columna, un aviso por fila (dos en la misma línea se leían raros). */
+.notifs { grid-template-columns: minmax(0, 1fr); column-gap: 0; }
+.notifs > .notif:last-child:nth-child(odd) { grid-column: auto; }
+.notifs > .notif:not(:last-child) { border-bottom-color: var(--line); }
+.notifs > .notif:last-child { border-bottom-color: transparent; }
+
+.notif-canal__nota + .notif-canal__nota { margin-top: var(--s-1); }
+.notif-canal__nota strong { color: var(--ink-2); font-weight: 600; }
