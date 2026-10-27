@@ -625,32 +625,63 @@
       return;
     }
 
-    const texto = () => {
+    // Las tres unidades más grandes que quedan, cada una con su número y su etiqueta:
+    //   más de un día: días · horas · minutos   |   menos de un día: horas · minutos · segundos   |   menos de una hora: minutos · segundos
+    const unidades = () => {
 
       const falta = momento - Date.now();
 
       if (falta <= 0) {
-        cuenta.classList.add("is-ahora");
-        return "Está pasando ahora";
+        return null;
       }
 
       const segundos = Math.floor(falta / 1000);
       const dias = Math.floor(segundos / 86400);
       const horas = Math.floor((segundos % 86400) / 3600);
       const minutos = Math.floor((segundos % 3600) / 60);
+      const seg = segundos % 60;
 
       if (dias >= 1) {
-        return dias + (dias === 1 ? " día " : " días ") + horas + " h " + minutos + " min";
+        return [[dias, dias === 1 ? "día" : "días"], [horas, "horas"], [minutos, "min"]];
       }
 
       if (horas >= 1) {
-        return horas + " h " + minutos + " min";
+        return [[horas, "horas"], [minutos, "min"], [seg, "seg"]];
       }
 
-      return minutos + " min " + String(segundos % 60).padStart(2, "0") + " s";
+      return [[minutos, "min"], [seg, "seg"]];
     };
 
-    const pintar = () => { valor.textContent = texto(); };
+    const pintar = () => {
+
+      const lista = unidades();
+
+      valor.textContent = "";
+
+      if (!lista) {
+        cuenta.classList.add("is-ahora");
+        const ahora = document.createElement("span");
+        ahora.className = "cuenta__ahora";
+        ahora.textContent = "Está pasando ahora";
+        valor.appendChild(ahora);
+        cuenta.setAttribute("aria-label", "Está pasando ahora");
+        return;
+      }
+
+      lista.forEach((par) => {
+        const caja = document.createElement("span");
+        caja.className = "cuenta__u";
+        const numero = document.createElement("b");
+        numero.textContent = String(par[0]);
+        const etiqueta = document.createElement("small");
+        etiqueta.textContent = par[1];
+        caja.appendChild(numero);
+        caja.appendChild(etiqueta);
+        valor.appendChild(caja);
+      });
+
+      cuenta.setAttribute("aria-label", "Faltan " + lista.map((par) => par[0] + " " + par[1]).join(", "));
+    };
 
     pintar();
     setInterval(pintar, 1000);

@@ -1785,3 +1785,16 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .proximo__acciones .btn--secondary { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
 .proximo__acciones .btn--secondary:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 34%, transparent); }
 :root[data-theme="night"] .proximo__acciones .btn--secondary { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22); }
+
+/* ==========================================================================
+   Cuenta regresiva del próximo plan: tres unidades parejas (número grande y etiqueta chica), separadas por una línea fina
+   ========================================================================== */
+.dash-hero .proximo__cuenta { padding: var(--s-4) 0 0; margin: 0 0 var(--s-4); border-top: 1px solid var(--line); font-size: 1rem; line-height: 1; }
+.proximo__cuenta [data-cuenta-valor] { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: stretch; }
+.cuenta__u { display: grid; justify-items: center; align-content: center; gap: 6px; padding: 2px var(--s-2); min-width: 0; }
+.cuenta__u + .cuenta__u { border-left: 1px solid var(--line); }
+.cuenta__u b { font-family: var(--font-sans); font-size: 2.125rem; font-weight: 650; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; color: var(--ink); }
+.cuenta__u small { color: var(--ink-3); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1; white-space: nowrap; }
+.cuenta__ahora { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600; line-height: 1.1; color: var(--ok); }
+.proximo__acciones { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 900px) { .cuenta__u b { font-size: 1.875rem; } }
