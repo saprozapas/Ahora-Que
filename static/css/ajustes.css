@@ -1331,3 +1331,80 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 :root[data-theme="night"] .landing-demo__cards .plan-tile .plan-tile__text { color: var(--ink-2); }
 :root[data-theme="night"] .landing-demo__cards .plan-tile .meta { color: var(--ink-2); }
 @media (hover: hover) { :root[data-theme="night"] .landing-demo__cards .plan-tile:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.08), 0 20px 36px -14px rgb(0 0 0 / 0.8); } }
+
+/* ==========================================================================
+   CONTROLES PLANOS
+   Botones, pestañas, segmentados, chips, campos y el ítem activo de la barra lateral: superficies lisas, un borde fino o un tinte,
+   sin sombras interiores, brillos ni relieves. El estado activo se marca con color, no con volumen.
+   ========================================================================== */
+
+/* --- Botones --- */
+.btn, .btn--primary, .btn--secondary, .btn--danger-solid { box-shadow: none; }
+.btn--primary { background: var(--ink); color: var(--on-ink); }
+.btn--primary:hover { background: color-mix(in srgb, var(--ink) 84%, var(--paper)); box-shadow: none; }
+.btn--secondary { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.btn--secondary:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 34%, transparent); }
+.btn--secondary:active, .btn--primary:active { transform: none; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.btn--primary:active { background: color-mix(in srgb, var(--ink) 74%, var(--paper)); }
+.btn--danger { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 45%, transparent); }
+.btn--danger:hover { background: var(--danger-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 60%, transparent); }
+.btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* --- Pestañas, segmentados y grupos de chips: una pista tenue y la opción activa con relleno liso --- */
+.tabs, .seg, .chips, .chip-row--seg {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  box-shadow: none; border-radius: var(--r-md); padding: 3px; gap: 2px;
+}
+.tab, .chip, .seg button, .seg label span, .landing-demo__seg span { border-radius: calc(var(--r-md) - 3px); color: var(--ink-2); box-shadow: none; }
+.tab:hover, .chip:hover, .seg button:hover, .seg label:hover span { color: var(--ink); background: color-mix(in srgb, var(--ink) 5%, transparent); }
+
+.tab[aria-current="page"], .tab[aria-selected="true"],
+.chip[aria-pressed="true"], .chip[aria-current="page"], .chip-check:has(input:checked),
+.seg button[aria-pressed="true"], .seg label input:checked + span, .landing-demo__seg .is-on {
+  background: var(--surface); color: var(--ink); font-weight: 600;
+  box-shadow: 0 0 0 1px var(--line);
+}
+:root[data-theme="night"] .tab[aria-current="page"], :root[data-theme="night"] .tab[aria-selected="true"],
+:root[data-theme="night"] .chip[aria-pressed="true"], :root[data-theme="night"] .chip[aria-current="page"], :root[data-theme="night"] .chip-check:has(input:checked),
+:root[data-theme="night"] .seg button[aria-pressed="true"], :root[data-theme="night"] .seg label input:checked + span, :root[data-theme="night"] .landing-demo__seg .is-on {
+  background: color-mix(in srgb, var(--ink) 14%, transparent); box-shadow: none;
+}
+:root[data-theme="night"] .tabs, :root[data-theme="night"] .seg, :root[data-theme="night"] .chips, :root[data-theme="night"] .chip-row--seg,
+:root[data-theme="night"] .landing-demo__seg.seg { background: color-mix(in srgb, var(--ink) 7%, transparent); box-shadow: none; }
+
+/* Chips sueltos (cada uno con su fondo): seleccionados en tinta sólida, sin sombra. */
+.chip-row .chip { background: color-mix(in srgb, var(--ink) 6%, transparent); box-shadow: none; }
+.chip-row .chip-check:has(input:checked), .chip-row .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.encuesta-atajos .chip { box-shadow: inset 0 0 0 1px var(--line-strong); background: transparent; }
+.encuesta-atajos .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+
+/* Las condiciones de la demo de la landing: etiquetas con borde fino, sin volumen. */
+.landing-demo__chips.chips { background: transparent; padding: 0; gap: var(--s-2); }
+.landing-demo__chips .chip, :root[data-theme="night"] .landing-demo__chips .chip {
+  background: transparent; color: var(--ink); font-weight: 550; box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+:root[data-theme="night"] .landing-demo__chips .chip { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2); }
+.landing-demo__seg.seg { box-shadow: none; }
+
+/* --- Barra lateral: el ítem activo es un tinte liso --- */
+.dashboard-sidebar-link.is-active, .dashboard-sidebar-perfil.is-active { background: color-mix(in srgb, var(--ink) 8%, transparent); box-shadow: none; color: var(--ink); font-weight: 600; }
+:root[data-theme="night"] .dashboard-sidebar-link.is-active, :root[data-theme="night"] .dashboard-sidebar-perfil.is-active { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+
+/* --- Campos: borde fino, sin pozo hundido --- */
+.input, textarea.input, select.input, .select { box-shadow: none; }
+:root[data-theme="night"] .input, :root[data-theme="night"] textarea.input, :root[data-theme="night"] select.input { box-shadow: none; background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
+.input:focus, :root[data-theme="night"] .input:focus, .select:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent); }
+.modal-field input, .modal-field textarea, .modal-field select { box-shadow: none; }
+
+/* --- Chat y calendario: nada hundido ni en relieve --- */
+.chat__messages, :root[data-theme="night"] .chat__messages { box-shadow: inset 0 0 0 1px var(--line); }
+.chat-bubble, .chat-message.is-own .chat-bubble { box-shadow: none; }
+.cal-evento { box-shadow: inset 0 0 0 1px var(--line); }
+@media (hover: hover) { .cal-evento:hover { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-strong); transform: none; } }
+.planner__search, .empty-state { box-shadow: inset 0 0 0 1px var(--line); }
+
+/* --- Tarjetas de la demo de la landing en modo oscuro: borde fino, sin brillo arriba --- */
+:root[data-theme="night"] .landing-demo__cards .plan-tile { background: color-mix(in srgb, var(--ink) 5%, var(--surface)); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1); }
+@media (hover: hover) { :root[data-theme="night"] .landing-demo__cards .plan-tile:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18); } }
+:root[data-theme="night"] .btn--secondary { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22); }
+:root[data-theme="night"] .btn--secondary:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4); }

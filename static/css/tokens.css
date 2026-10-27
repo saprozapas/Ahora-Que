@@ -77,10 +77,10 @@
      la tarjeta principal, los menús y las ventanas). Cada una suma un filete, un brillo fino arriba que marca el
      borde, una sombra de contacto y una difusa y larga, de tono azulado en vez de negro. */
   --sh-hair:  0 0 0 1px var(--line);
-  --sh-card:  0 0 0 1px rgb(16 24 40 / 0.05), inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 1px rgb(16 24 40 / 0.04), 0 3px 6px -2px rgb(16 24 40 / 0.05), 0 14px 24px -14px rgb(16 24 40 / 0.14);
-  --sh-lift:  0 0 0 1px rgb(16 24 40 / 0.06), inset 0 1px 0 rgb(255 255 255 / 0.9), 0 2px 4px rgb(16 24 40 / 0.05), 0 8px 14px -4px rgb(16 24 40 / 0.08), 0 24px 36px -16px rgb(16 24 40 / 0.22);
-  --sh-float: 0 0 0 1px rgb(16 24 40 / 0.06), inset 0 1px 0 rgb(255 255 255 / 0.95), 0 2px 4px rgb(16 24 40 / 0.05), 0 12px 24px -8px rgb(16 24 40 / 0.12), 0 32px 56px -24px rgb(16 24 40 / 0.28);
-  --sh-btn:   inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(16 24 40 / 0.24);
+  --sh-card:  0 0 0 1px rgb(16 24 40 / 0.05), 0 1px 1px rgb(16 24 40 / 0.04), 0 3px 6px -2px rgb(16 24 40 / 0.05), 0 14px 24px -14px rgb(16 24 40 / 0.14);
+  --sh-lift:  0 0 0 1px rgb(16 24 40 / 0.06), 0 2px 4px rgb(16 24 40 / 0.05), 0 8px 14px -4px rgb(16 24 40 / 0.08), 0 24px 36px -16px rgb(16 24 40 / 0.22);
+  --sh-float: 0 0 0 1px rgb(16 24 40 / 0.06), 0 2px 4px rgb(16 24 40 / 0.05), 0 12px 24px -8px rgb(16 24 40 / 0.12), 0 32px 56px -24px rgb(16 24 40 / 0.28);
+  --sh-btn:    0 0 0 0 transparent;
 
   /* ---------- 7. MOVIMIENTO ---------- */
   --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -132,10 +132,10 @@
   --surface-2: hsl(var(--brand-paper-hue) 10% 13.6%);
   --ink: #F2F1EE; --ink-2: #CFCEC9; --ink-3: #A9A8A3; --ink-4: #6E6D69; --on-ink: #121314;
   --line: rgb(255 255 255 / 0.075); --line-strong: rgb(255 255 255 / 0.15); --line-control: rgb(255 255 255 / 0.5); --dot: rgb(255 255 255 / 0.09);
-  --sh-card: 0 0 0 1px rgb(255 255 255 / 0.06), inset 0 1px 0 rgb(255 255 255 / 0.05), 0 2px 4px rgb(0 0 0 / 0.35), 0 14px 26px -14px rgb(0 0 0 / 0.75);
-  --sh-lift: 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.07), 0 4px 8px rgb(0 0 0 / 0.4), 0 22px 36px -16px rgb(0 0 0 / 0.85);
-  --sh-float: 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.08), 0 6px 14px rgb(0 0 0 / 0.4), 0 28px 56px -22px rgb(0 0 0 / 0.9);
-  --sh-btn: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 1px 2px rgb(0 0 0 / 0.4);
+  --sh-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 2px 4px rgb(0 0 0 / 0.35), 0 14px 26px -14px rgb(0 0 0 / 0.75);
+  --sh-lift: 0 0 0 1px rgb(255 255 255 / 0.09), 0 4px 8px rgb(0 0 0 / 0.4), 0 22px 36px -16px rgb(0 0 0 / 0.85);
+  --sh-float: 0 0 0 1px rgb(255 255 255 / 0.09), 0 6px 14px rgb(0 0 0 / 0.4), 0 28px 56px -22px rgb(0 0 0 / 0.9);
+  --sh-btn:  0 0 0 0 transparent;
   /* Sereno usa un naranja en oscuro; acá sigue siendo el gris-azul, más
      claro para que tenga contraste AA sobre el papel oscuro (7,4:1). */
   --brand-accent: #9AA6AE;
