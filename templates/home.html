@@ -467,27 +467,29 @@
     <h2 class="h2">Preguntas frecuentes.</h2>
 
     <div class="faq">
-      <details>
-        <summary>¿Cómo invito a alguien a mi grupo?</summary>
+      <div class="faq__item">
+        <h3 class="faq__q">¿Cómo invito a alguien a mi grupo?</h3>
         <p>Desde el grupo, con su nombre de usuario. Le llega la invitación a su inbox y la acepta o la rechaza.</p>
-      </details>
-      <details>
-        <summary>¿Dónde veo los planes que ya están confirmados?</summary>
+      </div>
+      <div class="faq__item">
+        <h3 class="faq__q">¿Dónde veo los planes que ya están confirmados?</h3>
         <p>En tu calendario, mes a mes, y en Planes, dentro de Confirmados.</p>
-      </details>
-      <details>
-        <summary>¿Puedo guardar un plan para más adelante?</summary>
+      </div>
+      <div class="faq__item">
+        <h3 class="faq__q">¿Puedo guardar un plan para más adelante?</h3>
         <p>Sí. Lo guardás en "Para después" y lo proponés en un grupo cuando quieras.</p>
-      </details>
-      <details>
-        <summary>¿Se puede puntuar un plan?</summary>
+      </div>
+      <div class="faq__item">
+        <h3 class="faq__q">¿Se puede puntuar un plan?</h3>
         <p>Sí. Quienes fueron le ponen de 0 a 5 estrellas y el plan queda en su historial, en Planes archivados.</p>
-      </details>
+      </div>
     </div>
 
   </div>
 
 </section>
+
+<script defer src="{{ url_for('static', filename='landing.js', v='20261030-landing1') }}"></script>
 
 {% endif %}
 

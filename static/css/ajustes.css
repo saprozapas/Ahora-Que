@@ -1199,8 +1199,8 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 }
 .led-signo { position: relative; width: calc(var(--anillo) * 1.587); height: calc(var(--anillo) * 1.587); max-width: 100%; overflow: visible; }
 .led-signo .led { fill: var(--ink); }
-.led-signo .led--on { opacity: 0.85; animation: led-parpadeo var(--t, 4s) steps(1, end) var(--d, 0s) infinite; }
-.led-signo .led--falla { animation-name: led-falla; animation-duration: calc(var(--t, 4s) * 0.7); }
+.led-signo .led--on { opacity: 0.85; animation: led-parpadeo calc(var(--t, 4s) * 2.2) steps(1, end) var(--d, 0s) infinite; }
+.led-signo .led--falla { animation-name: led-falla; animation-duration: calc(var(--t, 4s) * 1.5); }
 /* Cada punto está prendido y se apaga del todo (transparente: se ve el fondo del hero), con cortes secos y sin grises a medias.
    En cada instante hay alrededor de una cuarta parte apagada. */
 @keyframes led-parpadeo {
@@ -1227,3 +1227,50 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
   .landing-hero__marca { --anillo: 99px; }
 }
 @media (prefers-reduced-motion: reduce) { .led-signo .led--on { animation: none; opacity: 0.85; } }
+
+/* ==========================================================================
+   Landing: tarjetas con hover suave y pesado, aparición al scrollear, tipeo del asistente y preguntas frecuentes abiertas.
+   ========================================================================== */
+:root { --ease-pesado: cubic-bezier(0.33, 0, 0.15, 1); --d-pesado: 820ms; }
+
+/* Hover: la tarjeta se levanta despacio, con inercia, y la sombra se abre con ella. */
+.landing-pile > .item,
+.landing-demo__cards .plan-tile { transition: transform var(--d-pesado) var(--ease-pesado), box-shadow var(--d-pesado) var(--ease-pesado); }
+.landing-pile .avatar { transition: transform var(--d-pesado) var(--ease-pesado); }
+.landing-pile .item__name { text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 0.2em; transition: text-decoration-color 620ms var(--ease-pesado); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .landing-pile > .item:hover {
+    transform: translateX(calc(var(--x, 0px) - 6px)) translateY(-6px) rotate(0deg) scale(1.018);
+    box-shadow: var(--sh-float);
+  }
+  .landing-pile > .item:hover .avatar { transform: scale(1.06); }
+  .landing-pile > .item:hover .item__name { text-decoration-color: var(--line-strong); }
+  .landing-demo__cards .plan-tile:hover { transform: translateY(-5px); box-shadow: var(--sh-float); }
+}
+
+/* Aparición al scrollear: fundido con un deslizamiento corto. Al terminar el elemento vuelve a su estado normal, así el hover sigue andando. */
+.reveal-on [data-reveal]:not(.is-visible) { opacity: 0; transform: translateY(34px); }
+.reveal-on [data-reveal].is-visible { animation: aparecer 1100ms var(--ease-pesado) var(--rev-d, 0ms) backwards; }
+@keyframes aparecer { from { opacity: 0; transform: translateY(34px); } }
+
+/* Tipeo del asistente. */
+.tipeo-cursor { display: inline-block; width: 2px; height: 1.05em; margin-left: 2px; vertical-align: -0.16em; background: var(--ink); animation: tipeo-cursor 1s steps(1, end) infinite; }
+.tipeo-cursor.is-apagado { opacity: 0; animation: none; transition: opacity 600ms var(--ease-out); }
+@keyframes tipeo-cursor { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+.tipeo-pensando { display: inline-flex; gap: 5px; align-items: center; height: 1.2em; }
+.tipeo-pensando i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-3); animation: tipeo-punto 1.1s ease-in-out infinite; }
+.tipeo-pensando i:nth-child(2) { animation-delay: 0.16s; }
+.tipeo-pensando i:nth-child(3) { animation-delay: 0.32s; }
+@keyframes tipeo-punto { 0%, 70%, 100% { opacity: 0.25; transform: translateY(0); } 35% { opacity: 1; transform: translateY(-3px); } }
+.landing-demo__brief .btn { transition: opacity 700ms var(--ease-pesado), transform 700ms var(--ease-pesado), background-color var(--d-fast) var(--ease-out), box-shadow var(--d-fast) var(--ease-out); }
+.landing-demo__brief .btn.tipeo-pendiente { opacity: 0; transform: translateY(8px); pointer-events: none; visibility: hidden; transition: none; }
+
+/* Preguntas frecuentes: todas abiertas, sin el toggle. */
+.faq__item { padding: var(--s-5) 0; border-bottom: 1px solid var(--line); }
+.faq__q { margin: 0 0 var(--s-2); font-family: var(--font-sans); font-size: 1.0625rem; font-weight: 550; letter-spacing: -0.01em; line-height: 1.35; color: var(--ink); }
+.faq__item p { margin: 0; color: var(--ink-3); max-width: 60ch; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on [data-reveal] { opacity: 1; transform: none; animation: none; }
+  .landing-pile > .item, .landing-demo__cards .plan-tile, .landing-pile .avatar { transition: none; }
+}
