@@ -9,7 +9,7 @@ from models import user
 from models.user import User
 from services.auth_service import AuthService
 from services.password_policy import validar_contrasena
-from services.mail_service import MailService
+from services.notification_service import NotificationService
 from werkzeug.security import check_password_hash,generate_password_hash
 
 auth = Blueprint("auth", __name__)
@@ -71,7 +71,7 @@ def olvide_contrasena():
             try:
                 auth_service.crear_codigo_recuperacion(user_id, hashlib.sha256(codigo.encode("utf-8")).hexdigest())
                 link = url_for("auth.restablecer_contrasena", codigo=codigo, _external=True)
-                MailService().enviar(
+                NotificationService().enviar(
                     usuario.get_email(),
                     "Cambiá tu contraseña — Ahora Qué",
                     f"Hola {usuario.get_name()},\n\n"
@@ -174,7 +174,7 @@ def register():
                 "El enlace vence en 24 horas. Si no pediste crear esta cuenta, podés ignorar este mensaje."
             )
             try:
-                MailService().enviar(email, "Confirmá tu correo — Ahora Qué", cuerpo)
+                NotificationService().enviar(email, "Confirmá tu correo — Ahora Qué", cuerpo)
             except Exception:
                 current_app.logger.exception("No se pudo enviar el correo de confirmación")
                 auth_service.discard_pending_registration(pending_user_id)
