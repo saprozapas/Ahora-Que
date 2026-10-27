@@ -2,6 +2,7 @@
   Botón "+ Crear": un solo lugar para empezar algo nuevo.
 
   Se incluye dos veces con `variante`:
+    dock      en el dock de abajo (celular): botón redondo en el centro y la lista que sube.
     lateral   en la barra lateral (escritorio). La lista se abre en el lugar, sin
               flotar, porque la barra tiene scroll propio y la cortaría.
     cabecera  en el encabezado (celular), como botón de ícono con la lista flotante.
@@ -14,6 +15,8 @@
     {% if variante == 'lateral' %}
     class="btn btn--primary btn--block crear-menu__boton"
     data-guia-id="crear" data-guia-orden="1" data-guia-titulo="Todo empieza acá" data-guia-texto="Con + Crear armás un plan, le pedís uno al asistente o creás un grupo. Es el botón que más vas a usar."
+    {% elif variante == 'dock' %}
+    class="dock__crear" aria-label="Crear"
     {% else %}
     class="icon-btn crear-menu__icono" aria-label="Crear"
     {% endif %}
