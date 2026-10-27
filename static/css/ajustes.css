@@ -1180,22 +1180,23 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 @media (min-width: 901px) {
   /* El signo y sus anillos van en el centro exacto del viewport: la grilla es simétrica (1fr · signo · 1fr) y el texto y las tarjetas
      se acomodan a cada lado. */
-  .landing-hero__grid { max-width: min(1680px, 100% - 72px); padding-inline: 0; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: clamp(20px, 3vw, 56px); }
+  .landing-hero__grid { max-width: min(clamp(1120px, 84vw, 1560px), 100% - 72px); padding-inline: 0; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: clamp(20px, 3vw, 48px); }
   .landing-hero__copy { justify-self: start; }
-  .landing-hero__copy .display { font-size: clamp(2rem, 3.2vw, 3.3rem); }
+  .landing-hero__copy .display { font-size: clamp(1.9rem, 2.85vw, 3.3rem); }
   .landing-pile { justify-self: end; width: min(100%, 400px); }
 }
 .landing-hero { overflow: clip; }
 /* Los anillos ya no son del fondo del hero: salen del signo, así el signo queda justo en el centro. */
 .landing-hero > .topo__svg { display: none; }
-/* El tamaño de los anillos sale del alto del signo: el primer anillo queda siempre un poco más grande que la diagonal del "?", así el signo va entero adentro. */
-.landing-hero__marca { --signo-h: clamp(230px, 46vh, 400px); position: relative; display: grid; place-items: center; }
+/* El primer anillo mide --anillo de radio y el signo se dimensiona desde él: la punta más lejana del "?" llega al 92% del radio, así que
+   el signo ocupa casi todo el círculo y queda entero adentro. (30 filas, y 16,2 filas de radio hasta el punto más lejano.) */
+.landing-hero__marca { --anillo: 165px; position: relative; display: grid; place-items: center; }
 .landing-hero__marca .topo__svg {
-  inset: auto; left: 50%; top: 50%; width: calc(var(--signo-h) * 5.6); height: calc(var(--signo-h) * 5.6); transform: translate(-50%, -50%);
+  inset: auto; left: 50%; top: 50%; width: calc(var(--anillo) / 0.11); height: calc(var(--anillo) / 0.11); transform: translate(-50%, -50%);
   -webkit-mask-image: radial-gradient(circle closest-side, #000 25%, transparent 92%);
           mask-image: radial-gradient(circle closest-side, #000 25%, transparent 92%);
 }
-.led-signo { position: relative; width: auto; height: var(--signo-h); max-width: 100%; overflow: visible; }
+.led-signo { position: relative; width: auto; height: calc(var(--anillo) * 0.92 * 30 / 16.22); max-width: 100%; overflow: visible; }
 .led-signo .led { fill: var(--ink); }
 .led-signo .led--on { opacity: 0.8; animation: led-parpadeo var(--t, 4s) ease-in-out var(--d, 0s) infinite; }
 .led-signo .led--falla { animation-name: led-falla; animation-duration: calc(var(--t, 4s) * 0.7); }
@@ -1215,9 +1216,8 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
   61% { opacity: 0.12; }
   68% { opacity: 0.7; }
 }
-@media (min-width: 901px) and (max-width: 1180px) { .landing-hero__marca { --signo-h: 260px; } }
 @media (max-width: 900px) {
   .landing-hero__marca { order: -1; }
-  .landing-hero__marca { --signo-h: 170px; }
+  .landing-hero__marca { --anillo: 99px; }
 }
 @media (prefers-reduced-motion: reduce) { .led-signo .led--on { animation: none; opacity: 0.8; } }
