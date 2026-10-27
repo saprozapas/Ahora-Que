@@ -23,10 +23,12 @@ from services.crypto_service import ClaveMaestraFaltante
 from services.llm_service import LLMNoConfigurado
 from services.plan_service import PlanService
 from services.grupo_plan_service import GrupoPlanError, GrupoPlanService
+from services.notification_service import NotificationService
 
 chatbot_bp = Blueprint("chatbot", __name__, url_prefix="/chatbot")
 plan_service = PlanService()
 grupo_plan_service = GrupoPlanService()
+notification_service = NotificationService()
 
 MAX_LARGO_MENSAJE = 1000
 LIMITE_HISTORIAL = 20
@@ -293,6 +295,13 @@ def confirmar_plan():
             plan_grupo_id = grupo_plan_service.postular_idea(
                 grupo_id, user_id, plan_id, fecha or None, hora or None
             )
+            try:
+                notification_service.notificar_grupo(
+                    grupo_id, user_id, "El grupo está votando",
+                    "El grupo está votando. Hay un plan nuevo para votar.",
+                )
+            except Exception:
+                pass
         except GrupoPlanError as e:
             return _error(str(e), 400)
         except Exception as e:

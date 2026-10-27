@@ -15,6 +15,7 @@ from services.grupo_encuesta_service import (
     GrupoEncuestaService, MAX_FRANJAS, opciones_de_distancia, opciones_de_precio,
 )
 from services.lugar_service import LugarService
+from services.notification_service import NotificationService
 from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, getUsersInGroupWithIds, isUserInGroup, getGroupById, buscarUsuariosInvitables
 
 
@@ -28,6 +29,7 @@ chat_service = ChatService()
 racha_service = RachaService()
 grupo_encuesta_service = GrupoEncuestaService()
 lugar_service = LugarService()
+notification_service = NotificationService()
 
 def _require_login():
     if not session.get("user_id"):
@@ -206,6 +208,16 @@ def invitar_usuario(group_id):
     except Exception as e:
         print(f"Error al invitar al grupo: {e}")
         return responder(False, "Error al invitar. Intentá de nuevo.")
+
+    try:
+        grupo = getGroupById(group_id)
+        notification_service.notificar_usuario(
+            user_id, "grupo", "Nueva invitación a un grupo — Ahora Qué",
+            f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.\n\n"
+            f"Revisá la invitación en {request.url_root.rstrip('/')}/inbox",
+        )
+    except Exception:
+        pass
 
     return responder(True, "Invitación enviada.")
 

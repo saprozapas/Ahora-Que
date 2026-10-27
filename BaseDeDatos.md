@@ -611,6 +611,24 @@ Datos para que te transfieran. Migración: `migraciones/deudas_v2.sql`. Los ve s
 
 Las tablas de deudas tienen RLS activado y sin políticas (como Social).
 
+## Table `Preferencias_Notificacion`
+
+Preferencias de correo para los avisos que se generan desde los pendientes del dashboard. Migración:
+`migraciones/notificaciones_email.sql`. Todas las categorías quedan activadas por defecto para usuarios sin una fila de preferencias.
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `Id_Usuario` | `uuid` | Primary. FK `Usuarios` (ON DELETE CASCADE) |
+| `Solicitudes_Amistad` | `boolean` | Default `true` |
+| `Invitaciones_Grupo` | `boolean` | Default `true` |
+| `Votos_Grupo` | `boolean` | Default `true` |
+| `Puntuar_Plan` | `boolean` | Default `true` |
+| `Menciones_Chat` | `boolean` | Default `true` |
+
+La tabla tiene RLS activado y no define políticas; la aplicación accede mediante su conexión de servidor.
+
 ## RLS Policies
 
 ### `Usuario-Grupo`

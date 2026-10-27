@@ -6,11 +6,13 @@ from services.plan_service import PlanService
 from database_bridge.database_bridge import getUser
 from werkzeug.security import check_password_hash, generate_password_hash
 from services.password_policy import validar_contrasena
+from services.notification_service import NotificationService
 
 profile = Blueprint("profile", __name__)
 auth_service = AuthService()
 deuda_service = DeudaService()
 plan_service = PlanService()
+notification_service = NotificationService()
 
 @profile.route("/perfil", methods=["GET", "POST"])
 def perfil():
@@ -24,6 +26,16 @@ def perfil():
 
     if request.method == "POST":
         target = request.form.get("target", "")
+        if target == "notificaciones":
+            notification_service.guardar_preferencias(session["user_id"], {
+                "amistad": request.form.get("amistad") == "on",
+                "grupo": request.form.get("grupo") == "on",
+                "votos": request.form.get("votos") == "on",
+                "puntuar": request.form.get("puntuar") == "on",
+                "menciones": request.form.get("menciones") == "on",
+            })
+            flash("Preferencias de notificaciones guardadas.", "success")
+            return redirect(url_for("profile.perfil"))
         if target == "banco":
             try:
                 deuda_service.guardar_cuenta(session["user_id"], request.form.get("banco"), request.form.get("cuenta"))
@@ -82,10 +94,17 @@ def perfil():
         print(f"No se pudo leer la cuenta bancaria: {error}")
         cuenta = {"banco": "", "cuenta": ""}
 
+    try:
+        preferencias_notificaciones = notification_service.preferencias(session["user_id"])
+    except Exception as error:
+        print(f"No se pudieron leer las preferencias de notificaciones: {error}")
+        preferencias_notificaciones = {"amistad": True, "grupo": True, "votos": True, "puntuar": True, "menciones": True}
+
     return render_template(
         "perfil.html",
         user=user,
         cuenta=cuenta,
+        preferencias_notificaciones=preferencias_notificaciones,
         resumen=resumen,
         autor_id=session["user_id"],
         error_name=error_name,

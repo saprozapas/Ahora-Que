@@ -113,6 +113,19 @@
     {% endif %}
 
     <form method="post" action="/perfil" class="profile-row profile-row--texto">
+      <input type="hidden" name="target" value="notificaciones" />
+      <span class="profile-row__label">Notificaciones por email</span>
+      <div class="profile-row__value">
+        <label><input type="checkbox" name="amistad" {% if preferencias_notificaciones.amistad %}checked{% endif %} /> Solicitudes de amistad</label><br />
+        <label><input type="checkbox" name="grupo" {% if preferencias_notificaciones.grupo %}checked{% endif %} /> Invitaciones a grupos</label><br />
+        <label><input type="checkbox" name="votos" {% if preferencias_notificaciones.votos %}checked{% endif %} /> Votaciones y encuestas de grupo</label><br />
+        <label><input type="checkbox" name="puntuar" {% if preferencias_notificaciones.puntuar %}checked{% endif %} /> Puntuar planes realizados</label><br />
+        <label><input type="checkbox" name="menciones" {% if preferencias_notificaciones.menciones %}checked{% endif %} /> Menciones en el chat</label><br />
+        <button type="submit" class="btn btn--secondary btn--sm">Guardar preferencias</button>
+      </div>
+    </form>
+
+    <form method="post" action="/perfil" class="profile-row profile-row--texto">
       <input type="hidden" name="target" value="banco" />
       <span class="profile-row__label">Banco</span>
       <div class="profile-row__value">

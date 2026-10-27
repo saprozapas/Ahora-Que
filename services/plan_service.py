@@ -6,6 +6,7 @@ import psycopg2
 from database import get_db_connection, release_db_connection
 from services.lugar_service import url_mapa
 from services.precio_lugar import rango_de_nivel, sumar_rangos
+from services.notification_service import NotificationService
 
 
 # Texto para mostrar cada estado en pantalla.
@@ -220,17 +221,22 @@ class PlanService:
             _ultimo_mantenimiento = time.monotonic()
 
         connection = get_db_connection()
+        planes_para_puntuar = []
+        mantenimiento_ok = False
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
+                    '''UPDATE public."Plan"
+                       SET "Estado" = 'archivado'
+                       WHERE "Estado" = 'confirmado'
+                         AND "Grupo_id" IS NOT NULL
+                         AND "Fecha" + COALESCE("Hora", '00:00'::time) + INTERVAL '12 hours'
+                             <= (now() AT TIME ZONE 'America/Montevideo')
+                       RETURNING "id_Plan", "Nombre"'''
+                )
+                planes_para_puntuar = cursor.fetchall()
+                cursor.execute(
                     """
-                    UPDATE public."Plan"
-                    SET "Estado" = 'archivado'
-                    WHERE "Estado" = 'confirmado'
-                      AND "Grupo_id" IS NOT NULL
-                      AND "Fecha" + COALESCE("Hora", '00:00'::time) + INTERVAL '12 hours'
-                          <= (now() AT TIME ZONE 'America/Montevideo');
-
                     UPDATE public."Plan"
                     SET "Estado" = 'vencido'
                     WHERE "Estado" = 'votacion'
@@ -249,11 +255,21 @@ class PlanService:
                     """
                 )
             connection.commit()
+            mantenimiento_ok = True
         except psycopg2.Error as e:
             connection.rollback()
             print(f"No se pudieron archivar los planes vencidos: {e}")
         finally:
             release_db_connection(connection)
+
+        if mantenimiento_ok and planes_para_puntuar:
+            service = NotificationService()
+            for plan_id, nombre in planes_para_puntuar:
+                service.notificar_asistentes(
+                    plan_id, "¿Cómo estuvo el plan? — Ahora Qué",
+                    f"¿Cómo estuvo {nombre}? Ya podés puntuarlo en Ahora Qué.\n\n"
+                    "Entrá a la app para dejar tu opinión.",
+                )
 
     # --- Listados -------------------------------------------------------
 

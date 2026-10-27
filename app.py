@@ -207,6 +207,10 @@ def home():
 def dashboard():
     if not session.get('user_id'):
         return redirect('/login')
+    try:
+        plan_service.archivar_vencidos()
+    except Exception as e:
+        print(f"No se pudieron actualizar los planes para puntuar: {e}")
     invitaciones, _ = _inbox_guardado(session["user_id"])
     # Lo que espera tu voto en todos tus grupos (se refresca solo desde el navegador, ver routes/inicio.py).
     try:

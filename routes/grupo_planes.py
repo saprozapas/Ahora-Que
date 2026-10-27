@@ -11,12 +11,26 @@ from services.grupo_plan_service import GrupoPlanError, GrupoPlanService
 from services.lugar_service import LugarService
 from services.plan_service import PlanService, capitalizar
 from database_bridge.database_bridge import getGroupById, isUserInGroup
+from services.notification_service import NotificationService
 
 grupo_planes_bp = Blueprint("grupo_planes", __name__, url_prefix="/grupos/<group_id>")
 grupo_plan_service = GrupoPlanService()
 grupo_encuesta_service = GrupoEncuestaService()
 lugar_service = LugarService()
 plan_service = PlanService()
+notification_service = NotificationService()
+
+
+def _avisar_votacion(group_id, user_id, detalle):
+    try:
+        grupo = getGroupById(group_id)
+        nombre_grupo = grupo.get_name()
+        notification_service.notificar_grupo(
+            group_id, user_id, f"El grupo {nombre_grupo} está votando",
+            f"El grupo {nombre_grupo} está votando.\n\n{detalle}.",
+        )
+    except Exception:
+        pass
 
 MENSAJES_RESULTADO = {
     "confirmado": "¡Votaron todos y el plan quedó confirmado! Ya está en el calendario de los que pueden.",
@@ -87,6 +101,7 @@ def postular(group_id):
                 raise GrupoPlanError("Elegí un plan para proponer.")
             fecha, hora = _leer_fecha_hora()
             grupo_plan_service.postular_idea(group_id, user_id, idea_id, fecha, hora)
+            _avisar_votacion(group_id, user_id, "Hay un plan nuevo para votar")
         except GrupoPlanError as e:
             error = str(e)
         except Exception as e:
@@ -161,7 +176,9 @@ def cerrar(group_id, plan_id):
 def proponer_horario(group_id, plan_id):
     def accion():
         fecha, hora = _leer_fecha_hora()
-        return grupo_plan_service.proponer_horario(group_id, plan_id, session["user_id"], fecha, hora)
+        resultado = grupo_plan_service.proponer_horario(group_id, plan_id, session["user_id"], fecha, hora)
+        _avisar_votacion(group_id, session["user_id"], "Hay un horario nuevo para votar")
+        return resultado
     return _ejecutar(group_id, accion, "Horario propuesto: ahora lo vota el grupo.",
                      f"plan-{plan_id}", mensajes=MENSAJES_HORARIO)
 
@@ -214,6 +231,7 @@ def nueva_encuesta(group_id):
                 barrio=request.form.get("barrio", "").strip(),
                 distancia_km=request.form.get("distancia_km", "").strip(),
             )
+            _avisar_votacion(group_id, user_id, "Hay una encuesta nueva para votar")
         except GrupoPlanError as e:
             error = str(e)
         except Exception as e:

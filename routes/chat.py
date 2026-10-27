@@ -1,7 +1,8 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, current_app, jsonify, request, session
 from services.chat_service import ChatService
 from database_bridge.database_bridge import isUserInGroup
 from services.group_auth_service import GroupAuthService
+from services.notification_service import NotificationService
 import ia_bridge
 
 
@@ -11,6 +12,7 @@ chat = Blueprint("chat", __name__)
 MAX_LARGO_MENSAJE = 1000
 chat_service = ChatService()
 group_auth_service = GroupAuthService()
+notification_service = NotificationService()
 
 
 # La página del chat vive en /grupos/<id>/chat (routes/group_auth.py):
@@ -69,6 +71,10 @@ def enviar_mensaje(group_id):
             user_id,
             mensaje
         )
+        try:
+            notification_service.notificar_menciones_chat(group_id, user_id, mensaje)
+        except Exception:
+            current_app.logger.exception("No se pudo procesar el email de mención del chat")
     except Exception:
         return jsonify({
             "error": "No se pudo enviar el mensaje. Intentá de nuevo."

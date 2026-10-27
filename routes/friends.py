@@ -6,12 +6,14 @@ from services.invitation_service import InvitationService
 from services.group_auth_service import GroupAuthService
 from services.avatar_service import AvatarService
 from database_bridge.database_bridge import getFriendsForUser, getGroupsForUser, buscarUsuarios, getUser
+from services.notification_service import NotificationService
 
 
 friends_bp = Blueprint("friends", __name__)
 friend_service = FriendService()
 invitation_service = InvitationService()
 group_auth_service = GroupAuthService()
+notification_service = NotificationService()
 
 
 def _require_login():
@@ -61,6 +63,15 @@ def solicitar_amistad():
         resultado = friend_service.send_request(session["user_id"], destinatario_id)
         if resultado == "amigos":
             return jsonify(ok=True, estado="amigos")
+        try:
+            solicitante = getUser(session["user_id"])
+            notification_service.notificar_usuario(
+                destinatario_id, "amistad", "Nueva solicitud de amistad — Ahora Qué",
+                f"{solicitante.get_name()} te mandó una solicitud de amistad.\n\n"
+                f"Revisala en {request.url_root.rstrip('/')}/inbox",
+            )
+        except Exception:
+            pass
         return jsonify(ok=True, estado="solicitud_enviada")
     except ValueError as e:
         return jsonify(ok=False, error=str(e))
@@ -106,6 +117,15 @@ def invitar_amigo_a_grupo(friend_id):
 
     try:
         invitation_service.invite_user(friend_id, group_id, None, nombre_invitante)
+        try:
+            grupo = getGroupById(group_id)
+            notification_service.notificar_usuario(
+                friend_id, "grupo", "Nueva invitación a un grupo — Ahora Qué",
+                f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.\n\n"
+                f"Revisá la invitación en {request.url_root.rstrip('/')}/inbox",
+            )
+        except Exception:
+            pass
         flash("Invitación enviada.")
     except psycopg2.errors.UniqueViolation:
         flash("Tu amigo ya tiene una invitación pendiente para ese grupo.")
