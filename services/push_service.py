@@ -72,7 +72,8 @@ class PushService:
         # no hay disco persistente, la variable puede contener el PEM o su base64.
         if isinstance(clave_privada, str):
             if "-----BEGIN" in clave_privada:
-                clave_privada = clave_privada.replace("\\n", "\n").encode("utf-8")
+                pem = clave_privada.replace("\\n", "\n").encode("utf-8")
+                clave_privada = self._pem_a_clave_vapid(pem)
             else:
                 try:
                     es_archivo = Path(clave_privada).is_file()
@@ -80,10 +81,20 @@ class PushService:
                     es_archivo = False
                 if not es_archivo:
                     try:
-                        clave_privada = base64.b64decode(clave_privada, validate=True)
-                    except (ValueError, TypeError):
+                        contenido = base64.b64decode(
+                            clave_privada + "=" * (-len(clave_privada) % 4),
+                            altchars=b"-_",
+                            validate=True,
+                        )
+                        if b"-----BEGIN" in contenido:
+                            clave_privada = self._pem_a_clave_vapid(contenido)
+                        else:
+                            # pywebpush recibe DER en base64 URL-safe como str,
+                            # no los bytes decodificados.
+                            clave_privada = base64.urlsafe_b64encode(contenido).rstrip(b"=").decode("ascii")
+                    except (ValueError, TypeError, UnicodeEncodeError):
                         current_app.logger.error(
-                            "VAPID_PRIVATE_KEY debe ser una ruta PEM existente, PEM o base64 del PEM."
+                            "VAPID_PRIVATE_KEY debe ser una ruta PEM existente, PEM o clave DER en base64."
                         )
                         return 0
 
@@ -101,6 +112,9 @@ class PushService:
             release_db_connection(conn)
 
         if not suscripciones:
+            current_app.logger.info(
+                "No hay suscripciones push activas para user_id=%s.", user_id
+            )
             return 0
 
         try:
@@ -149,4 +163,23 @@ class PushService:
                     current_app.logger.exception("Falló el envío Web Push (status=%s).", status)
             except Exception:
                 current_app.logger.exception("Falló el envío Web Push.")
+        current_app.logger.info(
+            "Envío Web Push terminado para user_id=%s: suscripciones=%s, enviados=%s.",
+            user_id,
+            len(suscripciones),
+            enviados,
+        )
         return enviados
+
+    @staticmethod
+    def _pem_a_clave_vapid(pem):
+        """Convierte un PEM a DER base64 URL-safe, formato aceptado por pywebpush."""
+        from cryptography.hazmat.primitives import serialization
+
+        clave = serialization.load_pem_private_key(pem, password=None)
+        der = clave.private_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        return base64.urlsafe_b64encode(der).rstrip(b"=").decode("ascii")

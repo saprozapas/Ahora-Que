@@ -24,7 +24,12 @@ def main():
 
     print(f"Clave privada guardada en {archivo_privado.resolve()} (no la compartas ni la subas a Git).\n")
     print(f"VAPID_PUBLIC_KEY={publica_b64}")
-    privada_b64 = base64.b64encode(pem).decode("ascii")
+    privada_der = privada.private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    privada_b64 = base64.urlsafe_b64encode(privada_der).rstrip(b"=").decode("ascii")
     print(f"VAPID_PRIVATE_KEY={privada_b64}")
     print("VAPID_SUBJECT=mailto:tu-correo@dominio.com")
 
