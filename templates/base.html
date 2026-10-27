@@ -46,7 +46,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261026-barra-original') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261102-dock4') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261103-android2') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261023-sereno-ui-v3') }}" />
 
     <link
@@ -98,13 +98,9 @@
 
 
     <script>
-      // Sin zoom con los dedos: el pellizco se frena acá (iOS ignora user-scalable) y el doble toque lo evita CSS (touch-action).
-      (() => {
-        const frenar = (e) => e.preventDefault();
-        document.addEventListener("gesturestart", frenar, { passive: false });
-        document.addEventListener("gesturechange", frenar, { passive: false });
-        document.addEventListener("touchmove", (e) => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, { passive: false });
-      })();
+      // Sin zoom con los dedos: user-scalable=no y touch-action (CSS) alcanzan en Android; en iOS, que los ignora, se frena el gesto de pellizco.
+      // No se escucha touchmove: un manejador no pasivo ahí retrasa o pierde el desplazamiento con el dedo en Android.
+      document.addEventListener("gesturestart", (e) => e.preventDefault());
     </script>
 
   </head>
@@ -151,7 +147,7 @@
               <a href="/tutorial">Tutorial</a>
               {# Solo celular: lo que no entra en el dock de abajo. #}
               <a class="app-header__link--celular" href="/perfil">Perfil</a>
-              <a class="app-header__link--celular" href="/grupos">Grupos</a>
+              <a class="app-header__link--celular" href="/amigos">Amigos</a>
               <a class="app-header__link--celular" href="/calendario">Calendario</a>
               <a class="app-header__link--celular" href="/deudas">Deudas</a>
 
@@ -266,7 +262,7 @@
       {% block content %}{% endblock %}
     </main>
 
-    {# Dock de navegación (solo celular y con sesión): Inicio · Planes · + Crear · Social · Amigos. #}
+    {# Dock de navegación (solo celular y con sesión): Inicio · Planes · + Crear · Grupos · Social. #}
     {% if logueado %}
     {% set ruta_actual = request.path %}
     <nav class="dock" aria-label="Navegación principal">
@@ -283,14 +279,14 @@
 
       {% with variante = 'dock' %}{% include '_crear_menu.html' %}{% endwith %}
 
+      <a class="dock__item{% if ruta_actual.startswith('/grupos') or ruta_actual.startswith('/racha') %} is-activo{% endif %}" href="/grupos"{% if ruta_actual.startswith('/grupos') or ruta_actual.startswith('/racha') %} aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M3.5 19c.6-3 2.4-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 15c2.7-.3 4.7 1 5.3 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        <span>Grupos</span>
+      </a>
+
       <a class="dock__item{% if ruta_actual.startswith('/social') %} is-activo{% endif %}" href="/social"{% if ruta_actual.startswith('/social') %} aria-current="page"{% endif %}>
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="18" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="18" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="m7.8 11 8.4-4M7.8 13l8.4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
         <span>Social</span>
-      </a>
-
-      <a class="dock__item{% if ruta_actual.startswith('/amigos') %} is-activo{% endif %}" href="/amigos"{% if ruta_actual.startswith('/amigos') %} aria-current="page"{% endif %}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M3.5 19.5c.6-3.4 2.6-5 5.5-5s4.9 1.6 5.5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /><path d="M16 5.3c1.4.3 2.4 1.5 2.4 3s-1 2.7-2.4 3M18.5 19c-.4-2.4-1.4-3.9-3.1-4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
-        <span>Amigos</span>
       </a>
 
     </nav>
