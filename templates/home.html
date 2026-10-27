@@ -179,7 +179,9 @@
 
 <!-- HERO ------------------------------------------------------------------ -->
 
-<section class="landing-hero topo dot-grid">
+<div class="landing-fondo" data-landing-fondo>
+
+<section class="landing-hero topo">
 
   {% include '_topografia.html' %}
 
@@ -489,7 +491,9 @@
 
 </section>
 
-<script defer src="{{ url_for('static', filename='landing.js', v='20261030-landing1') }}"></script>
+</div>
+
+<script defer src="{{ url_for('static', filename='landing.js', v='20261030-landing2') }}"></script>
 
 {% endif %}
 
