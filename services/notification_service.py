@@ -25,14 +25,16 @@ class NotificationService:
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    'SELECT "Solicitudes_Amistad", "Invitaciones_Grupo", "Votos_Grupo", "Puntuar_Plan", "Menciones_Chat" '
+                    'SELECT "Solicitudes_Amistad", "Invitaciones_Grupo", "Votos_Grupo", "Puntuar_Plan", "Menciones_Chat", '
+                    '"Mail_Activo", "Dispositivo_Activo" '
                     'FROM public."Preferencias_Notificacion" WHERE "Id_Usuario" = %s',
                     (user_id,),
                 )
                 fila = cursor.fetchone()
                 if fila:
-                    return dict(zip(("amistad", "grupo", "votos", "puntuar", "menciones"), fila))
-                return {"amistad": True, "grupo": True, "votos": True, "puntuar": True, "menciones": True}
+                    return dict(zip(("amistad", "grupo", "votos", "puntuar", "menciones", "mail_activo", "dispositivo_activo"), fila))
+                return {"amistad": True, "grupo": True, "votos": True, "puntuar": True, "menciones": True,
+                        "mail_activo": True, "dispositivo_activo": False}
         finally:
             release_db_connection(conn)
 
@@ -42,16 +44,19 @@ class NotificationService:
             with conn.cursor() as cursor:
                 cursor.execute(
                     '''INSERT INTO public."Preferencias_Notificacion"
-                       ("Id_Usuario", "Solicitudes_Amistad", "Invitaciones_Grupo", "Votos_Grupo", "Puntuar_Plan", "Menciones_Chat")
-                       VALUES (%s, %s, %s, %s, %s, %s)
+                       ("Id_Usuario", "Solicitudes_Amistad", "Invitaciones_Grupo", "Votos_Grupo", "Puntuar_Plan", "Menciones_Chat", "Mail_Activo", "Dispositivo_Activo")
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                        ON CONFLICT ("Id_Usuario") DO UPDATE SET
                          "Solicitudes_Amistad" = EXCLUDED."Solicitudes_Amistad",
                          "Invitaciones_Grupo" = EXCLUDED."Invitaciones_Grupo",
                          "Votos_Grupo" = EXCLUDED."Votos_Grupo",
                          "Puntuar_Plan" = EXCLUDED."Puntuar_Plan",
-                         "Menciones_Chat" = EXCLUDED."Menciones_Chat"''',
+                         "Menciones_Chat" = EXCLUDED."Menciones_Chat",
+                         "Mail_Activo" = EXCLUDED."Mail_Activo",
+                         "Dispositivo_Activo" = EXCLUDED."Dispositivo_Activo"''',
                     (user_id, preferencias["amistad"], preferencias["grupo"],
-                     preferencias["votos"], preferencias["puntuar"], preferencias["menciones"]),
+                     preferencias["votos"], preferencias["puntuar"], preferencias["menciones"],
+                     preferencias["mail_activo"], preferencias["dispositivo_activo"]),
                 )
             conn.commit()
         except Exception:
@@ -70,7 +75,7 @@ class NotificationService:
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    f'''SELECT u."Mail", COALESCE(p."{claves[tipo]}", true)
+                    f'''SELECT u."Mail", COALESCE(p."Mail_Activo", true) AND COALESCE(p."{claves[tipo]}", true)
                         FROM public."Usuarios" u LEFT JOIN public."Preferencias_Notificacion" p
                           ON p."Id_Usuario" = u."Id_Usuario"
                         WHERE u."Id_Usuario" = %s''', (user_id,)
@@ -93,7 +98,7 @@ class NotificationService:
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    '''SELECT u."Id_Usuario", u."Mail", COALESCE(p."Votos_Grupo", true)
+                    '''SELECT u."Id_Usuario", u."Mail", COALESCE(p."Mail_Activo", true) AND COALESCE(p."Votos_Grupo", true)
                        FROM public."Usuario-Grupo" ug
                        JOIN public."Usuarios" u ON u."Id_Usuario" = ug."Id_Usuario"
                        LEFT JOIN public."Preferencias_Notificacion" p ON p."Id_Usuario" = u."Id_Usuario"
@@ -119,7 +124,7 @@ class NotificationService:
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    '''SELECT u."Mail", COALESCE(p."Puntuar_Plan", true)
+                    '''SELECT u."Mail", COALESCE(p."Mail_Activo", true) AND COALESCE(p."Puntuar_Plan", true)
                        FROM public."Usuario-Plan" up
                        JOIN public."Usuarios" u ON u."Id_Usuario" = up."Usuario_id"
                        LEFT JOIN public."Preferencias_Notificacion" p ON p."Id_Usuario" = u."Id_Usuario"
@@ -145,7 +150,7 @@ class NotificationService:
             with conn.cursor() as cursor:
                 try:
                     cursor.execute(
-                        '''SELECT u."Nombre", u."Username", u."Mail", COALESCE(p."Menciones_Chat", true),
+                        '''SELECT u."Nombre", u."Username", u."Mail", COALESCE(p."Mail_Activo", true) AND COALESCE(p."Menciones_Chat", true),
                                   g."Nombre", actor."Nombre"
                            FROM public."Usuario-Grupo" ug JOIN public."Usuarios" u ON u."Id_Usuario" = ug."Id_Usuario"
                            JOIN public."Grupos" g ON g."Id_Grupo" = ug."Id_Grupo"

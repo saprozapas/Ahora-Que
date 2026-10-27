@@ -112,16 +112,29 @@
     </div>
     {% endif %}
 
-    <form method="post" action="/perfil" class="profile-row profile-row--texto">
-      <input type="hidden" name="target" value="notificaciones" />
-      <span class="profile-row__label">Notificaciones por email</span>
-      <div class="profile-row__value">
-        <label><input type="checkbox" name="amistad" {% if preferencias_notificaciones.amistad %}checked{% endif %} /> Solicitudes de amistad</label><br />
-        <label><input type="checkbox" name="grupo" {% if preferencias_notificaciones.grupo %}checked{% endif %} /> Invitaciones a grupos</label><br />
-        <label><input type="checkbox" name="votos" {% if preferencias_notificaciones.votos %}checked{% endif %} /> Votaciones y encuestas de grupo</label><br />
-        <label><input type="checkbox" name="puntuar" {% if preferencias_notificaciones.puntuar %}checked{% endif %} /> Puntuar planes realizados</label><br />
-        <label><input type="checkbox" name="menciones" {% if preferencias_notificaciones.menciones %}checked{% endif %} /> Menciones en el chat</label><br />
-        <button type="submit" class="btn btn--secondary btn--sm">Guardar preferencias</button>
+    <form method="post" action="/perfil" class="notificaciones-canales">
+      <input type="hidden" name="target" value="canales_notificaciones" />
+      <label class="notificaciones-canal">
+        <span class="notificaciones-canal__texto">
+          <strong>Notificaciones por mail</strong>
+          <small>Recibí avisos importantes en tu correo.</small>
+        </span>
+        <input class="notificaciones-switch" type="checkbox" name="mail_activo" {% if preferencias_notificaciones.mail_activo %}checked{% endif %} aria-label="Activar notificaciones por mail" />
+      </label>
+      <label class="notificaciones-canal">
+        <span class="notificaciones-canal__texto">
+          <strong>Notificaciones en dispositivo</strong>
+          <small>Solo si se agrega la app a inicio. Próximamente.</small>
+        </span>
+        <input class="notificaciones-switch" type="checkbox" name="dispositivo_activo" {% if preferencias_notificaciones.dispositivo_activo %}checked{% endif %} aria-label="Activar notificaciones en dispositivo" />
+      </label>
+      <div class="notificaciones-canales__acciones">
+        <button type="submit" class="btn btn--secondary btn--sm">Guardar canales</button>
+        {% if preferencias_notificaciones.mail_activo or preferencias_notificaciones.dispositivo_activo %}
+        <button class="notificaciones-mas" type="button" data-modal-open="modal-opciones-notificaciones" aria-label="Más opciones de notificaciones" title="Más opciones">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+        </button>
+        {% endif %}
       </div>
     </form>
 
@@ -177,6 +190,32 @@
   </div>
 
 </section>
+
+<dialog class="modal modal--notificaciones" id="modal-opciones-notificaciones" aria-labelledby="modal-opciones-notificaciones-titulo">
+  <form method="post" action="/perfil">
+    <div class="modal-head">
+      <h2 class="modal-title" id="modal-opciones-notificaciones-titulo">Qué notificaciones recibir</h2>
+      <button class="modal-close" type="button" data-cerrar-dialogo aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" name="target" value="notificaciones" />
+      <p class="meta">Elegí qué avisos querés recibir por mail. Las notificaciones en dispositivo estarán disponibles más adelante.</p>
+      <div class="notificaciones-opciones">
+        <label><span>Solicitudes de amistad</span><input type="checkbox" name="amistad" {% if preferencias_notificaciones.amistad %}checked{% endif %} /></label>
+        <label><span>Invitaciones a grupos</span><input type="checkbox" name="grupo" {% if preferencias_notificaciones.grupo %}checked{% endif %} /></label>
+        <label><span>Votaciones y encuestas de grupo</span><input type="checkbox" name="votos" {% if preferencias_notificaciones.votos %}checked{% endif %} /></label>
+        <label><span>Puntuar planes realizados</span><input type="checkbox" name="puntuar" {% if preferencias_notificaciones.puntuar %}checked{% endif %} /></label>
+        <label><span>Menciones en el chat</span><input type="checkbox" name="menciones" {% if preferencias_notificaciones.menciones %}checked{% endif %} /></label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn--secondary" type="button" data-cerrar-dialogo>Cancelar</button>
+      <button class="btn btn--primary" type="submit">Guardar opciones</button>
+    </div>
+  </form>
+</dialog>
 
 
 <dialog class="modal modal--foto" id="modal-foto" aria-labelledby="modal-foto-title" data-avatar-modal data-url="{{ url_for('avatar.cambiar_avatar') }}" data-user-id="{{ user.id }}">

@@ -26,14 +26,23 @@ def perfil():
 
     if request.method == "POST":
         target = request.form.get("target", "")
+        if target == "canales_notificaciones":
+            actuales = notification_service.preferencias(session["user_id"])
+            actuales["mail_activo"] = request.form.get("mail_activo") == "on"
+            actuales["dispositivo_activo"] = request.form.get("dispositivo_activo") == "on"
+            notification_service.guardar_preferencias(session["user_id"], actuales)
+            flash("Canales de notificación guardados.", "success")
+            return redirect(url_for("profile.perfil"))
         if target == "notificaciones":
-            notification_service.guardar_preferencias(session["user_id"], {
+            actuales = notification_service.preferencias(session["user_id"])
+            actuales.update({
                 "amistad": request.form.get("amistad") == "on",
                 "grupo": request.form.get("grupo") == "on",
                 "votos": request.form.get("votos") == "on",
                 "puntuar": request.form.get("puntuar") == "on",
                 "menciones": request.form.get("menciones") == "on",
             })
+            notification_service.guardar_preferencias(session["user_id"], actuales)
             flash("Preferencias de notificaciones guardadas.", "success")
             return redirect(url_for("profile.perfil"))
         if target == "banco":
@@ -98,7 +107,10 @@ def perfil():
         preferencias_notificaciones = notification_service.preferencias(session["user_id"])
     except Exception as error:
         print(f"No se pudieron leer las preferencias de notificaciones: {error}")
-        preferencias_notificaciones = {"amistad": True, "grupo": True, "votos": True, "puntuar": True, "menciones": True}
+        preferencias_notificaciones = {
+            "amistad": True, "grupo": True, "votos": True, "puntuar": True,
+            "menciones": True, "mail_activo": True, "dispositivo_activo": False,
+        }
 
     return render_template(
         "perfil.html",

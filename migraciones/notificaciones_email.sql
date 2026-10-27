@@ -6,10 +6,16 @@ CREATE TABLE IF NOT EXISTS public."Preferencias_Notificacion" (
     "Invitaciones_Grupo" boolean NOT NULL DEFAULT true,
     "Votos_Grupo" boolean NOT NULL DEFAULT true,
     "Puntuar_Plan" boolean NOT NULL DEFAULT true,
-    "Menciones_Chat" boolean NOT NULL DEFAULT true
+    "Menciones_Chat" boolean NOT NULL DEFAULT true,
+    "Mail_Activo" boolean NOT NULL DEFAULT true,
+    "Dispositivo_Activo" boolean NOT NULL DEFAULT false
 );
 
 ALTER TABLE public."Preferencias_Notificacion"
     ADD COLUMN IF NOT EXISTS "Menciones_Chat" boolean NOT NULL DEFAULT true;
+
+ALTER TABLE public."Preferencias_Notificacion"
+    ADD COLUMN IF NOT EXISTS "Mail_Activo" boolean NOT NULL DEFAULT true,
+    ADD COLUMN IF NOT EXISTS "Dispositivo_Activo" boolean NOT NULL DEFAULT false;
 
 ALTER TABLE public."Preferencias_Notificacion" ENABLE ROW LEVEL SECURITY;

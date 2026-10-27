@@ -1666,3 +1666,24 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 /* Los avisos van en una sola columna en tableta y celular (una regla de dos columnas más abajo en este archivo lo pisaba). */
 @media (max-width: 1100px) { .notifs { grid-template-columns: minmax(0, 1fr); column-gap: 0; } }
+
+/* Preferencias de notificaciones del perfil. */
+.notificaciones-canales { display: grid; gap: var(--s-3); padding: var(--s-3) 0; }
+.notificaciones-canal { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); min-height: 72px; padding: var(--s-4); border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); cursor: pointer; }
+.notificaciones-canal__texto { display: grid; gap: 4px; }
+.notificaciones-canal__texto strong { color: var(--ink); font-size: var(--t-ui); font-weight: 600; }
+.notificaciones-canal__texto small { color: var(--ink-3); font-size: var(--t-meta); line-height: 1.35; }
+.notificaciones-switch { appearance: none; position: relative; flex: 0 0 44px; width: 44px; height: 26px; margin: 0; border: 0; border-radius: 999px; background: var(--line-strong); cursor: pointer; transition: background var(--d-fast) var(--ease-out); }
+.notificaciones-switch::before { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: white; box-shadow: var(--sh-card); transition: transform var(--d-fast) var(--ease-out); }
+.notificaciones-switch:checked { background: var(--accent); }
+.notificaciones-switch:checked::before { transform: translateX(18px); }
+.notificaciones-switch:focus-visible, .notificaciones-mas:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.notificaciones-canales__acciones { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); }
+.notificaciones-mas { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.notificaciones-mas:hover { background: var(--surface-2); color: var(--ink); }
+.notificaciones-mas svg { width: 20px; height: 20px; fill: currentColor; }
+.modal--notificaciones { width: min(520px, calc(100% - 24px)); }
+.notificaciones-opciones { display: grid; gap: 0; margin-top: var(--s-4); border-top: 1px solid var(--line); }
+.notificaciones-opciones label { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: 48px; border-bottom: 1px solid var(--line); color: var(--ink-2); font-size: var(--t-ui); }
+.notificaciones-opciones input { width: 18px; height: 18px; accent-color: var(--accent); }
+@media (max-width: 520px) { .notificaciones-canal { padding: var(--s-3); } }

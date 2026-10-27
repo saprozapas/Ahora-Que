@@ -626,6 +626,8 @@ Preferencias de correo para los avisos que se generan desde los pendientes del d
 | `Votos_Grupo` | `boolean` | Default `true` |
 | `Puntuar_Plan` | `boolean` | Default `true` |
 | `Menciones_Chat` | `boolean` | Default `true` |
+| `Mail_Activo` | `boolean` | Default `true`. Activa o pausa el canal de correo completo |
+| `Dispositivo_Activo` | `boolean` | Default `false`. Preferencia reservada; el envío push todavía no está implementado |
 
 La tabla tiene RLS activado y no define políticas; la aplicación accede mediante su conexión de servidor.
 
