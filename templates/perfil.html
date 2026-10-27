@@ -120,8 +120,8 @@
       <input type="hidden" name="dispositivo_activo" value="{{ 'on' if preferencias_notificaciones.dispositivo_activo else '' }}" />
       <span class="profile-row__label">Notificaciones</span>
       <div class="profile-row__value">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--s-3)">
-          <div class="seg seg--lg" role="radiogroup" aria-label="Canal de notificaciones">
+        <div class="notif-canal__fila">
+          <div class="seg notif-canal" role="radiogroup" aria-label="Canal de notificaciones">
             {% for valor, texto in [('apagadas', 'Apagadas'), ('mail', 'Mail'), ('dispositivo', 'Dispositivo')] %}
             <label>
               <input type="radio" name="modo_notificaciones" value="{{ valor }}" onchange="activarCanalNotificaciones(this)" {% if canal_notificaciones == valor %}checked{% endif %} />
@@ -129,11 +129,11 @@
             </label>
             {% endfor %}
           </div>
-          <button class="notificaciones-mas" type="button" data-modal-open="modal-opciones-notificaciones" aria-label="Opciones de notificaciones" title="Más opciones">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+          <button class="notificaciones-mas" type="button" data-modal-open="modal-opciones-notificaciones" aria-label="Elegir qué avisos recibir" title="Elegir qué avisos recibir">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.7" /><circle cx="8" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.7" /></svg>
           </button>
         </div>
-        <small class="meta">Requiere permiso; en iPhone, agregá Ahora Qué a Inicio.</small>
+        <p class="meta notif-canal__nota">Requiere permiso; en iPhone, agregá Ahora Qué a Inicio.</p>
       </div>
     </form>
 

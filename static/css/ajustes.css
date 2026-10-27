@@ -1690,3 +1690,51 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 /* Un aviso suelto (o el último, si son impares) ocupa todo el ancho: antes quedaba en media tarjeta con la acción en el medio. */
 .notifs > .notif:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+/* ==========================================================================
+   Inicio con más aire (resumen y próximo plan) y preferencias de notificaciones ordenadas
+   ========================================================================== */
+@media (min-width: 901px) {
+  .dashboard-layout--fija-grupo .dash-hero .page { padding-block: 40px 36px; }
+  .dash-hero__grid:has(.proximo) { column-gap: clamp(40px, 5vw, 80px); }
+  .dash-brief { gap: var(--s-5); padding-top: 0; }
+  .dash-brief .voice { line-height: 1.32; max-width: 34ch; }
+  .dash-brief .actions { margin-top: var(--s-3); gap: var(--s-3); }
+  .dash-hero .proximo { padding: 28px 32px; gap: var(--s-2); }
+  .dash-hero .proximo__etiqueta { margin-bottom: var(--s-1); }
+  .dash-hero .proximo__nombre { font-size: 1.375rem; }
+  .dash-hero .proximo__donde { line-height: 1.5; }
+  .dash-hero .proximo__cuenta { font-size: 1.75rem; margin: var(--s-4) 0 var(--s-3); }
+  .proximo__acciones { margin-top: var(--s-2); gap: var(--s-5); }
+  /* Con más aire arriba, si las secciones de abajo no entran se recorren dentro de su propio panel. */
+  .dash-body { overflow-y: auto; overscroll-behavior: contain; padding-block: var(--s-5) var(--s-4); }
+}
+@media (max-width: 900px) {
+  .dash-hero .page { padding-block: var(--s-5) var(--s-5); }
+  .dash-hero .proximo { padding: var(--s-5); gap: var(--s-2); margin-top: var(--s-5); }
+  .dash-hero .proximo__cuenta { margin: var(--s-3) 0 var(--s-2); }
+}
+
+/* Perfil → Notificaciones: el selector de canal ocupa su ancho, con el botón de opciones a la derecha y la nota debajo. */
+.notif-canal__fila { display: flex; align-items: center; gap: var(--s-3); }
+.seg.notif-canal { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); flex: 1 1 auto; max-width: 360px; padding: 3px; }
+.seg.notif-canal label, .seg.notif-canal label span { width: 100%; justify-content: center; }
+.seg.notif-canal label span { height: 34px; padding: 0 var(--s-2); font-size: var(--t-ui); white-space: nowrap; }
+.notificaciones-mas { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: var(--ink-3); box-shadow: none; transition: background-color var(--d-fast) var(--ease-out), color var(--d-fast) var(--ease-out); }
+.notificaciones-mas:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink); }
+.notificaciones-mas svg { width: 20px; height: 20px; fill: none; }
+.notif-canal__nota { margin: var(--s-2) 0 0; color: var(--ink-3); font-size: 0.8125rem; line-height: 1.4; }
+.perfil-pantalla .profile-row:has(.notif-canal__fila) { align-items: start; padding-block: var(--s-3); }
+.perfil-pantalla .profile-row:has(.notif-canal__fila) .profile-row__label { padding-top: 8px; }
+
+/* Ventana "Qué notificaciones recibir": filas parejas con la casilla a la derecha. */
+.notificaciones-opciones { margin-top: var(--s-3); }
+.notificaciones-opciones label { min-height: 52px; cursor: pointer; color: var(--ink); }
+.notificaciones-opciones label:last-child { border-bottom: 0; }
+.notificaciones-opciones input { flex: none; width: 20px; height: 20px; }
+@media (max-width: 520px) { .seg.notif-canal { max-width: none; } }
+@media (max-width: 520px) {
+  /* En celular la fila de Notificaciones pone el nombre arriba y el selector a todo el ancho. */
+  .perfil-pantalla .profile-row:has(.notif-canal__fila) { grid-template-columns: minmax(0, 1fr); row-gap: var(--s-2); }
+  .perfil-pantalla .profile-row:has(.notif-canal__fila) .profile-row__label { padding-top: 0; }
+}
