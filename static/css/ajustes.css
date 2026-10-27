@@ -1408,3 +1408,15 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 @media (hover: hover) { :root[data-theme="night"] .landing-demo__cards .plan-tile:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18); } }
 :root[data-theme="night"] .btn--secondary { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22); }
 :root[data-theme="night"] .btn--secondary:hover { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4); }
+
+/* Demo de la landing: el contenedor de las condiciones no pinta nada detrás (en oscuro asomaba una caja cuadrada tras las esquinas redondeadas). */
+:root[data-theme="night"] .landing-demo__chips.chips, .landing-demo__chips.chips { background: transparent; box-shadow: none; }
+
+/* La ventana de la demo es translúcida, como un panel de vidrio: se ve la grilla de puntos detrás, desenfocada. */
+.landing-demo .window {
+  background: color-mix(in srgb, var(--surface) 42%, transparent);
+  -webkit-backdrop-filter: blur(3px) saturate(1.2); backdrop-filter: blur(3px) saturate(1.2);
+  box-shadow: 0 28px 64px -28px rgb(16 24 40 / 0.28), inset 0 0 0 1px var(--line-strong);
+}
+.landing-demo .window__bar { background: color-mix(in srgb, var(--surface) 30%, transparent); }
+:root[data-theme="night"] .landing-demo .window { background: color-mix(in srgb, var(--surface) 38%, transparent); box-shadow: 0 30px 70px -20px rgb(0 0 0 / 0.7), inset 0 0 0 1px rgb(255 255 255 / 0.1); }

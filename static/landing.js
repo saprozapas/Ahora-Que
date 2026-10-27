@@ -88,8 +88,8 @@
   if (boton) { boton.classList.add("tipeo-pendiente"); }
 
   function pausaPara(caracter) {
-    if (".!?".indexOf(caracter) !== -1) { return 200; }
-    if (",;:".indexOf(caracter) !== -1) { return 90; }
+    if (".!?".indexOf(caracter) !== -1) { return 150; }
+    if (",;:".indexOf(caracter) !== -1) { return 70; }
     return 0;
   }
 
@@ -99,7 +99,7 @@
       if (i >= texto.length) { alTerminar(); return; }
       var c = texto.charAt(i++);
       destino.textContent += c;
-      window.setTimeout(siguiente, 14 + Math.random() * 18 + pausaPara(c));
+      window.setTimeout(siguiente, 9 + Math.random() * 13 + pausaPara(c));
     }());
   }
 
@@ -115,9 +115,9 @@
             if (boton) { boton.classList.remove("tipeo-pendiente"); }
             window.setTimeout(function () { cursor.classList.add("is-apagado"); }, 2600);
           });
-        }, 280);
+        }, 220);
       });
-    }, 800);
+    }, 650);
   }
 
   var arranque = new IntersectionObserver(function (entradas) {
