@@ -1738,3 +1738,50 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   .perfil-pantalla .profile-row:has(.notif-canal__fila) { grid-template-columns: minmax(0, 1fr); row-gap: var(--s-2); }
   .perfil-pantalla .profile-row:has(.notif-canal__fila) .profile-row__label { padding-top: 0; }
 }
+
+/* ==========================================================================
+   Tarjeta "Tu próximo plan": cabecera, dos datos con ícono, cuenta regresiva y dos acciones parejas
+   ========================================================================== */
+.dash-hero .proximo { display: grid; gap: 0; align-content: start; padding: 24px 28px; }
+.proximo__cab { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin: 0 0 var(--s-3); }
+.dash-hero .proximo__etiqueta { margin: 0; font-size: 0.6875rem; letter-spacing: 0.1em; }
+.proximo__van { flex: none; padding: 3px 10px; border-radius: var(--r-full); background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink-2); font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+.dash-hero .proximo__nombre { margin: 0 0 var(--s-3); font-size: 1.5rem; line-height: 1.15; }
+.proximo__datos { display: grid; gap: var(--s-2); margin: 0 0 var(--s-4); padding: 0; list-style: none; }
+.proximo__dato { display: flex; align-items: center; gap: var(--s-2); min-width: 0; color: var(--ink-2); font-size: 0.875rem; line-height: 1.3; }
+.proximo__dato svg { flex: none; width: 16px; height: 16px; color: var(--ink-3); }
+.proximo__dato-texto { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.proximo__dato .dist { flex: none; margin-left: auto; padding-left: var(--s-3); white-space: nowrap; font-size: 0.8125rem; }
+.dash-hero .proximo__cuenta { margin: 0 0 var(--s-4); padding-top: var(--s-4); border-top: 1px solid var(--line); font-size: 1.875rem; line-height: 1.1; }
+.proximo__acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); margin: 0; }
+.proximo__acciones .btn { width: 100%; justify-content: center; height: 38px; font-size: 0.875rem; text-decoration: none; }
+.proximo__acciones .btn:hover { text-decoration: none; }
+@media (max-width: 900px) {
+  .dash-hero .proximo { padding: var(--s-5); }
+  .dash-hero .proximo__cuenta { font-size: 1.625rem; }
+}
+
+/* ==========================================================================
+   Perfil → Cuenta bancaria: dos campos parejos y, abajo, la nota a la izquierda y "Guardar" a la derecha
+   ========================================================================== */
+.perfil-banco { display: grid; gap: var(--s-3); grid-template-columns: minmax(0, 1fr); align-items: start; }
+.perfil-banco__campos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--s-2); }
+.perfil-banco .input { height: 42px; padding-inline: var(--s-3); font-size: var(--t-ui); }
+.perfil-banco__pie { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); }
+.perfil-banco__pie .meta { margin: 0; flex: 1 1 auto; font-size: 0.8125rem; line-height: 1.4; }
+.perfil-banco__pie .btn { flex: none; height: 36px; padding-inline: var(--s-5); }
+.perfil-pantalla .profile-row--texto:has(.perfil-banco) { padding-block: var(--s-3); }
+@media (max-width: 520px) {
+  .perfil-banco__campos { grid-template-columns: minmax(0, 1fr); }
+  .perfil-banco__pie { flex-direction: column; align-items: stretch; gap: var(--s-3); }
+  .perfil-banco__pie .btn { width: 100%; justify-content: center; height: 40px; }
+}
+
+/* Las dos acciones de la tarjeta vuelven a ser botones (una regla anterior las dejaba como enlaces): "Ver mapa" lleno y "Ver plan" con borde. */
+.proximo__acciones { gap: var(--s-2); }
+.proximo__acciones .btn { width: 100%; height: 38px; min-height: 0; padding: 0 var(--s-4); border-radius: var(--r-md); justify-content: center; justify-self: stretch; font-size: 0.875rem; font-weight: 600; text-decoration: none; }
+.proximo__acciones .btn--primary { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.proximo__acciones .btn--primary:hover { background: color-mix(in srgb, var(--ink) 84%, var(--paper)); }
+.proximo__acciones .btn--secondary { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.proximo__acciones .btn--secondary:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 34%, transparent); }
+:root[data-theme="night"] .proximo__acciones .btn--secondary { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22); }

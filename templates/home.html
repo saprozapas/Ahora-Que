@@ -66,18 +66,29 @@
         {% if proximo_plan %}
         <aside class="card proximo" aria-label="Tu próximo plan" data-proximo data-guia-id="inicio-proximo" data-guia-orden="4"
                data-guia-titulo="Tu próximo plan" data-guia-texto="La cuenta regresiva y el mapa de la salida confirmada. Desde ahí podés ver quiénes van y a qué distancia están.">
-          <p class="proximo__etiqueta">Tu próximo plan</p>
+          <header class="proximo__cab">
+            <p class="proximo__etiqueta">Tu próximo plan</p>
+            <span class="proximo__van">{{ proximo_plan.van }} {{ 'va' if proximo_plan.van == 1 else 'van' }}</span>
+          </header>
           <h2 class="proximo__nombre"><a href="/planes/{{ proximo_plan.id }}">{{ proximo_plan.nombre }}</a></h2>
-          <p class="meta proximo__donde">
-            {{ proximo_plan.fecha | cuando(proximo_plan.hora) }}{% if proximo_plan.resumen_lugares %} · {{ proximo_plan.resumen_lugares }}{% endif %}
-            {% set con_mapa = proximo_plan.lugares | selectattr('lat') | list %}
-            {% if con_mapa %}<span class="dist" data-dist data-lat="{{ con_mapa[0].lat }}" data-lon="{{ con_mapa[0].lon }}"></span>{% endif %}
-          </p>
+          {% set con_mapa = proximo_plan.lugares | selectattr('lat') | list %}
+          <ul class="proximo__datos">
+            <li class="proximo__dato">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.7" /><path d="M12 7.5V12l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              <span class="proximo__dato-texto">{{ proximo_plan.fecha | cuando(proximo_plan.hora) }}</span>
+            </li>
+            {% if proximo_plan.resumen_lugares or con_mapa %}
+            <li class="proximo__dato">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /><circle cx="12" cy="10" r="2.3" fill="none" stroke="currentColor" stroke-width="1.7" /></svg>
+              <span class="proximo__dato-texto">{{ proximo_plan.resumen_lugares }}</span>
+              {% if con_mapa %}<span class="meta dist proximo__dist" data-dist data-lat="{{ con_mapa[0].lat }}" data-lon="{{ con_mapa[0].lon }}"></span>{% endif %}
+            </li>
+            {% endif %}
+          </ul>
           <p class="proximo__cuenta" data-cuenta data-momento="{{ proximo_plan.momento_iso }}" aria-live="off"><span data-cuenta-valor>…</span></p>
           <div class="proximo__acciones">
             <a class="btn btn--primary btn--sm" href="/planes/{{ proximo_plan.id }}#mapa">Ver mapa</a>
-            <a class="btn btn--ghost btn--sm" href="/planes/{{ proximo_plan.id }}">Ver plan</a>
-            <span class="meta">{{ proximo_plan.van }} {{ 'va' if proximo_plan.van == 1 else 'van' }}</span>
+            <a class="btn btn--secondary btn--sm" href="/planes/{{ proximo_plan.id }}">Ver plan</a>
           </div>
         </aside>
         {% endif %}

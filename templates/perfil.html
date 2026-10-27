@@ -142,11 +142,15 @@
       <span class="profile-row__label">Banco</span>
       <div class="profile-row__value">
         <div class="perfil-banco">
-          <input class="input" type="text" name="banco" maxlength="60" value="{{ cuenta.banco }}" placeholder="Banco" aria-label="Nombre del banco" />
-          <input class="input" type="text" name="cuenta" maxlength="40" value="{{ cuenta.cuenta }}" placeholder="Número de cuenta" aria-label="Número de cuenta" />
-          <button type="submit" class="btn btn--secondary btn--sm">Guardar</button>
+          <div class="perfil-banco__campos">
+            <input class="input" type="text" name="banco" maxlength="60" value="{{ cuenta.banco }}" placeholder="Banco" aria-label="Nombre del banco" autocomplete="off" />
+            <input class="input" type="text" name="cuenta" maxlength="40" value="{{ cuenta.cuenta }}" placeholder="Número de cuenta" aria-label="Número de cuenta" inputmode="numeric" autocomplete="off" />
+          </div>
+          <div class="perfil-banco__pie">
+            <p class="meta">Lo ven las personas a las que les debés, para transferirte.</p>
+            <button type="submit" class="btn btn--secondary btn--sm">Guardar</button>
+          </div>
         </div>
-        <p class="meta">Lo ven las personas a las que les debés, para transferirte.</p>
       </div>
     </form>
 
