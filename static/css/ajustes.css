@@ -1687,3 +1687,6 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .notificaciones-opciones label { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); min-height: 48px; border-bottom: 1px solid var(--line); color: var(--ink-2); font-size: var(--t-ui); }
 .notificaciones-opciones input { width: 18px; height: 18px; accent-color: var(--accent); }
 @media (max-width: 520px) { .notificaciones-canal { padding: var(--s-3); } }
+
+/* Un aviso suelto (o el último, si son impares) ocupa todo el ancho: antes quedaba en media tarjeta con la acción en el medio. */
+.notifs > .notif:last-child:nth-child(odd) { grid-column: 1 / -1; }
