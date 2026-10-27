@@ -124,7 +124,7 @@
     if (!entradas.some(function (e) { return e.isIntersecting; })) { return; }
     arranque.disconnect();
     empezar();
-  }, { threshold: 0.7 });
+  }, { threshold: 0.4 });
 
   arranque.observe(voz);
 

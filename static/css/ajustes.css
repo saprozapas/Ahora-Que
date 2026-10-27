@@ -1420,3 +1420,56 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 }
 .landing-demo .window__bar { background: color-mix(in srgb, var(--surface) 30%, transparent); }
 :root[data-theme="night"] .landing-demo .window { background: color-mix(in srgb, var(--surface) 38%, transparent); box-shadow: 0 30px 70px -20px rgb(0 0 0 / 0.7), inset 0 0 0 1px rgb(255 255 255 / 0.1); }
+
+/* ==========================================================================
+   CELULAR — repaso general: nada queda suelto, a un costado ni con un hueco al lado
+   ========================================================================== */
+@media (max-width: 900px) {
+  /* Pie de página: el tercer grupo (Ayuda) ocupa el ancho entero y reparte sus enlaces en dos columnas, sin dejar un hueco a la derecha. */
+  .app-footer__inner > .app-footer__col:last-child { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s-8); }
+  .app-footer__inner > .app-footer__col:last-child .app-footer__title { grid-column: 1 / -1; }
+
+  /* Acciones del grupo: si queda una sola sin pareja, ocupa el ancho entero. */
+  .group-actions > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+  /* Proponer un plan: fecha y hora, una al lado de la otra y a todo el ancho. */
+  .postular__when { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3); }
+  .postular__when .field { max-width: none; }
+
+  /* Los encabezados de formularios dentro del dashboard van a la izquierda, como los de las demás pantallas. */
+  .dashboard-layout .auth--inline .auth__head { text-align: left; }
+  .dashboard-layout .auth__head .lead { margin-inline: 0; }
+}
+
+@media (max-width: 900px) {
+  /* Inicio: el "próximo plan" se separa de los botones de arriba. */
+  .dash-hero .proximo { margin-top: var(--s-5); }
+
+  /* Plan: las acciones van apiladas y a todo el ancho, no sueltas a la izquierda con anchos distintos. */
+  .plan-detail__actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-2); }
+  .plan-detail__actions form, .plan-detail__actions .btn, .plan-detail__rating .btn { width: 100%; justify-content: center; }
+
+  /* Proponer un plan: el botón principal a todo el ancho, como en el resto de los formularios. */
+  .postular > .btn { width: 100%; justify-content: center; }
+}
+
+/* En celular la página fluye (no hay pantalla fija), así que las tres sugerencias se ven apiladas. */
+@media (max-width: 650px) { .sug-lista > li:nth-child(n+2) { display: list-item; } }
+
+/* Chat vacío: una línea que explica qué hacer, en vez de una caja gris sin nada. */
+.chat__messages:not(:has(.chat-message))::before {
+  content: "Todavía no hay mensajes. Escribí el primero o mencioná a @AhoraQue."; margin: auto; max-width: 30ch; text-align: center; color: var(--ink-3); font-size: var(--t-ui); line-height: 1.45;
+}
+
+/* Todas las ventanas miden lo mismo en celular: el ancho de la pantalla menos un margen parejo a cada lado. */
+@media (max-width: 520px) { dialog.modal, dialog.modal--foto { width: calc(100% - 32px); max-width: none; margin-inline: auto; } }
+
+/* Un solo plan en el tablero: ocupa todo el ancho en vez de media tarjeta con un hueco al lado. */
+.board-pista:has(> :only-child) { --por-pagina: 1; }
+
+/* Portada en celular y tableta: el signo está centrado, así que el titular, la bajada y los botones también. */
+@media (max-width: 900px) {
+  .landing-hero__copy { text-align: center; }
+  .landing-hero__copy .lead { margin-inline: auto; }
+  .landing-hero__actions { justify-content: center; }
+}
