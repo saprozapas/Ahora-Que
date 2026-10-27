@@ -1199,28 +1199,28 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 }
 .led-signo { position: relative; width: calc(var(--anillo) * 1.586); height: calc(var(--anillo) * 1.586); max-width: 100%; overflow: visible; }
 .led-signo .led { fill: var(--ink); }
-.led-signo .led--on { opacity: 0.85; animation: led-parpadeo calc(var(--t, 4s) * 3.8) steps(1, end) var(--d, 0s) infinite; }
-.led-signo .led--falla { animation-name: led-falla; animation-duration: calc(var(--t, 4s) * 2.6); }
+.led-signo .led--on { opacity: 0.85; animation: led-parpadeo calc(var(--t, 4s) * 6) steps(1, end) calc(var(--d, 0s) * 6) infinite; }
+.led-signo .led--falla { animation-name: led-falla; animation-duration: calc(var(--t, 4s) * 4.2); }
 /* Cada punto está prendido y se apaga del todo (transparente: se ve el fondo del hero), con cortes secos y sin grises a medias.
    En cada instante hay alrededor de una cuarta parte apagada. */
 @keyframes led-parpadeo {
-  0%, 54.4% { opacity: 0.85; }
-  54.8%, 65.2% { opacity: 0; }
-  65.6%, 73.4% { opacity: 0.85; }
-  73.8%, 81.2% { opacity: 0; }
-  81.6%, 89.4% { opacity: 0.85; }
-  89.8%, 95.2% { opacity: 0; }
-  95.6%, 100% { opacity: 0.85; }
+  0%, 52.4% { opacity: 0.85; }
+  52.8%, 64.2% { opacity: 0; }
+  64.6%, 71.4% { opacity: 0.85; }
+  71.8%, 80.2% { opacity: 0; }
+  80.6%, 87.4% { opacity: 0.85; }
+  87.8%, 94.2% { opacity: 0; }
+  94.6%, 100% { opacity: 0.85; }
 }
 /* Unos pocos puntos "fallan" más seguido. */
 @keyframes led-falla {
-  0%, 24.4% { opacity: 0.85; }
-  24.8%, 33.2% { opacity: 0; }
-  33.6%, 44.4% { opacity: 0.85; }
-  44.8%, 55.2% { opacity: 0; }
-  55.6%, 66.4% { opacity: 0.85; }
-  66.8%, 75.2% { opacity: 0; }
-  75.6%, 100% { opacity: 0.85; }
+  0%, 22.4% { opacity: 0.85; }
+  22.8%, 32.2% { opacity: 0; }
+  32.6%, 42.4% { opacity: 0.85; }
+  42.8%, 54.2% { opacity: 0; }
+  54.6%, 64.4% { opacity: 0.85; }
+  64.8%, 74.2% { opacity: 0; }
+  74.6%, 100% { opacity: 0.85; }
 }
 @media (max-width: 900px) {
   .landing-hero__marca { order: -1; }
