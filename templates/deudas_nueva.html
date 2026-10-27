@@ -27,7 +27,7 @@
 
   <header class="page-head">
     <h1 class="h2">Agregar deuda.</h1>
-    <p class="lead">Tildá con quién salieron y cargá cuánto gastó y cuánto pagó cada uno, incluido vos. Se calcula en el momento quién le paga a quién.</p>
+      <p class="lead">Tildá con quiénes salieron y cargá cuánto consumió y pagó cada uno. Se calcula en el momento quién le paga a quién.</p>
   </header>
 
   {% if candidatos %}
@@ -47,7 +47,21 @@
         <p class="meta" data-sin-resultados style="display:none">No hay nadie con ese nombre.</p>
       </div>
 
-      <p class="deuda-nueva__ayuda">Gastó es lo que consumió cada uno; pagó, lo que puso de su bolsillo. La diferencia dice quién le debe a quién.</p>
+      <label class="deuda-nueva__igual"><input type="checkbox" name="consumieron_lo_mismo" value="1" data-modo-igual {{ 'checked' if form.get('consumieron_lo_mismo') }}> Consumieron lo mismo</label>
+
+      <div data-modo-detallado>
+        <p class="deuda-nueva__ayuda">Consumió es lo que le corresponde a cada uno; pagó, lo que puso de su bolsillo. La diferencia dice quién le debe a quién.</p>
+      </div>
+      <div data-modo-repartido hidden>
+        <label class="monto-campo"><span>Total</span><input class="input" name="total_consumo" inputmode="decimal" placeholder="0" aria-label="Total consumido" value="{{ form.get('total_consumo', '') }}"></label>
+        <label class="field" for="pagador"><span>Quién pagó</span>
+          <select class="input" id="pagador" name="pagador">
+            <option value="yo" {{ 'selected' if form.get('pagador', 'yo') == 'yo' }}>Vos</option>
+            {% for c in candidatos %}<option value="{{ c.id }}" {{ 'selected' if form.get('pagador') == c.id }}>{{ c.nombre }}</option>{% endfor %}
+          </select>
+        </label>
+        <p class="deuda-nueva__ayuda">El total se divide en partes iguales entre vos y las personas seleccionadas.</p>
+      </div>
 
       <button class="btn btn--primary btn--lg" type="submit">Calcular y guardar</button>
 
@@ -61,7 +75,7 @@
           <strong>Vos</strong>
         </div>
         <div class="persona__montos">
-          <label class="monto-campo"><span>Gastó</span><input class="input" name="gasto_yo" inputmode="decimal" placeholder="0" aria-label="Cuánto gastaste vos" value="{{ form.get('gasto_yo', '') }}"></label>
+          <label class="monto-campo" data-detalle><span>Consumió</span><input class="input" name="gasto_yo" inputmode="decimal" placeholder="0" aria-label="Cuánto consumiste vos" value="{{ form.get('gasto_yo', '') }}"></label>
           <label class="monto-campo"><span>Pagó</span><input class="input" name="pago_yo" inputmode="decimal" placeholder="0" aria-label="Cuánto pagaste vos" value="{{ form.get('pago_yo', '') }}"></label>
         </div>
       </li>
@@ -75,7 +89,7 @@
           <strong>{{ c.nombre }}</strong>
         </label>
         <div class="persona__montos" data-montos{% if not tildado %} style="display:none"{% endif %}>
-          <label class="monto-campo"><span>Gastó</span><input class="input" name="gasto_{{ c.id }}" inputmode="decimal" placeholder="0" aria-label="Cuánto gastó {{ c.nombre }}" value="{{ form.get('gasto_' ~ c.id, '') }}"></label>
+          <label class="monto-campo" data-detalle><span>Consumió</span><input class="input" name="gasto_{{ c.id }}" inputmode="decimal" placeholder="0" aria-label="Cuánto consumió {{ c.nombre }}" value="{{ form.get('gasto_' ~ c.id, '') }}"></label>
           <label class="monto-campo"><span>Pagó</span><input class="input" name="pago_{{ c.id }}" inputmode="decimal" placeholder="0" aria-label="Cuánto pagó {{ c.nombre }}" value="{{ form.get('pago_' ~ c.id, '') }}"></label>
         </div>
       </li>
@@ -101,6 +115,22 @@
   if (!buscador) return;
   var personas = document.querySelectorAll('[data-persona]');
   var vacio = document.querySelector('[data-sin-resultados]');
+  var modoIgual = document.querySelector('[data-modo-igual]');
+  var detalle = document.querySelector('[data-modo-detallado]');
+  var repartido = document.querySelector('[data-modo-repartido]');
+  function actualizarModo() {
+    var igual = modoIgual.checked;
+    detalle.hidden = igual;
+    repartido.hidden = !igual;
+    document.querySelectorAll('[data-detalle]').forEach(function (el) { el.hidden = igual; });
+    document.querySelectorAll('.persona__montos').forEach(function (el) {
+      var t = el.closest('[data-persona]');
+      el.hidden = igual;
+      el.style.display = igual ? 'none' : (t && !t.querySelector('[data-tick]').checked ? 'none' : '');
+    });
+  }
+  modoIgual.addEventListener('change', actualizarModo);
+  actualizarModo();
   // Sin tildes ni mayúsculas: "jose" encuentra "José".
   function limpio(s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
 

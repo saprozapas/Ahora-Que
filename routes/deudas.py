@@ -37,11 +37,25 @@ def nueva():
     if request.method == "POST":
         f = request.form
         try:
-            # El creador carga lo gastado y lo pagado de todos, incluido él mismo.
-            montos = {_uid(): (parsear_monto(f.get("gasto_yo")), parsear_monto(f.get("pago_yo")))}
-            for id_persona in f.getlist("participantes"):
-                montos[id_persona] = (parsear_monto(f.get("gasto_" + id_persona)),
-                                      parsear_monto(f.get("pago_" + id_persona)))
+            participantes = [str(_uid())] + f.getlist("participantes")
+            if f.get("consumieron_lo_mismo"):
+                total = parsear_monto(f.get("total_consumo"))
+                pagador = str(_uid()) if f.get("pagador") == "yo" else f.get("pagador")
+                if pagador not in participantes:
+                    raise ValueError("Elegí como quién pagó a una persona participante.")
+                if total <= 0:
+                    raise ValueError("Cargá un total mayor que cero.")
+                centavos, resto = divmod(int(total * 100), len(participantes))
+                montos = {}
+                for i, persona in enumerate(participantes):
+                    consumo = parsear_monto(f"{(centavos + (1 if i < resto else 0)) / 100:.2f}")
+                    montos[persona] = (consumo, total if persona == pagador else parsear_monto("0"))
+            else:
+                # El creador carga lo consumido y lo pagado de todos, incluido él mismo.
+                montos = {_uid(): (parsear_monto(f.get("gasto_yo")), parsear_monto(f.get("pago_yo")))}
+                for id_persona in f.getlist("participantes"):
+                    montos[id_persona] = (parsear_monto(f.get("gasto_" + id_persona)),
+                                          parsear_monto(f.get("pago_" + id_persona)))
             pagos = deuda_service.crear_reparto(_uid(), f.get("descripcion"), montos, id_grupo)
             flash("Listo: ya se calculó quién le paga a quién." if pagos else "Listo: nadie le debe nada a nadie.")
             return redirect(url_for("deudas.deudas"))
