@@ -112,29 +112,36 @@
     </div>
     {% endif %}
 
-    <form method="post" action="/perfil" class="notificaciones-canales">
+    <form method="post" action="/perfil" class="profile-row profile-row--texto">
       <input type="hidden" name="target" value="canales_notificaciones" />
-      <label class="notificaciones-canal">
-        <span class="notificaciones-canal__texto">
-          <strong>Notificaciones por mail</strong>
-          <small>Recibí avisos importantes en tu correo.</small>
-        </span>
-        <input class="notificaciones-switch" type="checkbox" name="mail_activo" {% if preferencias_notificaciones.mail_activo %}checked{% endif %} aria-label="Activar notificaciones por mail" />
-      </label>
-      <label class="notificaciones-canal">
-        <span class="notificaciones-canal__texto">
-          <strong>Notificaciones en dispositivo</strong>
-          <small>Solo si se agrega la app a inicio. Próximamente.</small>
-        </span>
-        <input class="notificaciones-switch" type="checkbox" name="dispositivo_activo" {% if preferencias_notificaciones.dispositivo_activo %}checked{% endif %} aria-label="Activar notificaciones en dispositivo" />
-      </label>
-      <div class="notificaciones-canales__acciones">
-        <button type="submit" class="btn btn--secondary btn--sm">Guardar canales</button>
-        {% if preferencias_notificaciones.mail_activo or preferencias_notificaciones.dispositivo_activo %}
-        <button class="notificaciones-mas" type="button" data-modal-open="modal-opciones-notificaciones" aria-label="Más opciones de notificaciones" title="Más opciones">
+      {% if preferencias_notificaciones.dispositivo_activo %}<input type="hidden" name="dispositivo_activo" value="on" />{% endif %}
+      <span class="profile-row__label">Notificaciones por mail</span>
+      <div class="profile-row__value">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--s-3)">
+          <label><input class="notificaciones-switch" type="checkbox" name="mail_activo" onchange="this.form.submit()" {% if preferencias_notificaciones.mail_activo %}checked{% endif %} /> Activadas</label>
+        {% if preferencias_notificaciones.mail_activo %}
+        <button class="notificaciones-mas" type="button" data-modal-open="modal-opciones-notificaciones" aria-label="Opciones de notificaciones por mail" title="Más opciones">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
         </button>
         {% endif %}
+        </div>
+      </div>
+    </form>
+
+    <form method="post" action="/perfil" class="profile-row profile-row--texto">
+      <input type="hidden" name="target" value="canales_notificaciones" />
+      {% if preferencias_notificaciones.mail_activo %}<input type="hidden" name="mail_activo" value="on" />{% endif %}
+      <span class="profile-row__label">Notificaciones en dispositivo</span>
+      <div class="profile-row__value">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--s-3)">
+          <label><input class="notificaciones-switch" type="checkbox" name="dispositivo_activo" onchange="this.form.submit()" {% if preferencias_notificaciones.dispositivo_activo %}checked{% endif %} /> Activadas</label>
+        {% if preferencias_notificaciones.dispositivo_activo %}
+        <button class="notificaciones-mas" type="button" data-modal-open="modal-opciones-notificaciones" aria-label="Opciones de notificaciones en dispositivo" title="Más opciones">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+        </button>
+        {% endif %}
+        </div>
+        <small class="meta">Solo si se agrega la app a inicio. Por ahora no hace nada.</small>
       </div>
     </form>
 
