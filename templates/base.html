@@ -46,7 +46,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261026-barra-original') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261101-movil5') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261101-md2') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261023-sereno-ui-v3') }}" />
 
     <link
@@ -82,6 +82,11 @@
     <script
       defer
       src="{{ url_for('static', filename='fondo_puntos.js', v='20261031-fondo') }}"
+    ></script>
+
+    <script
+      defer
+      src="{{ url_for('static', filename='markdown_ligero.js', v='20261101-md1') }}"
     ></script>
 
     {% if logueado and guia_nueva %}

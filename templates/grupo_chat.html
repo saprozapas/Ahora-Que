@@ -500,10 +500,12 @@ async function pedirPlanAlAsistente(pedido, anclaMensajeId, esperando) {
         const parrafo = document.createElement("p");
         const textoRespuesta = String(datos.respuesta || "").trim();
         const pareceJson = /^(?:\{|\[)/.test(textoRespuesta);
-        parrafo.textContent = datos.borrador
+        const textoFinal = datos.borrador
             ? "Armé esta propuesta para el grupo. Si les cierra, propónganla: el horario se define al votar."
             : (pareceJson ? "No pude armar una propuesta legible. Probá describiendo de nuevo qué plan quieren." : textoRespuesta);
-        burbuja.appendChild(parrafo);
+        // Las respuestas del asistente traen markdown: se muestran formateadas (negrita, listas…).
+        if (window.renderMarkdownLigero) window.renderMarkdownLigero(burbuja, textoFinal, false);
+        else { parrafo.textContent = textoFinal; burbuja.appendChild(parrafo); }
         if (!datos.borrador) salida.appendChild(burbuja);
 
         if (datos.borrador) {

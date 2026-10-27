@@ -38,7 +38,9 @@
   function agregarMensaje(rol, texto) {
     var div = document.createElement("div");
     div.className = "chatbot-mensaje chatbot-mensaje-" + rol;
-    div.textContent = texto;
+    // Las respuestas del asistente vienen con markdown (**negrita**, listas…): se muestran formateadas.
+    if (rol === "assistant" && window.renderMarkdownLigero) { window.renderMarkdownLigero(div, texto, false); }
+    else { div.textContent = texto; }
     caja.appendChild(div);
     mostrarVacio();
     bajarAlFinal();
@@ -231,7 +233,7 @@
   // La burbuja de la respuesta recién se crea cuando llega el primer texto.
   function crearVista() {
     var pensamiento = null, lineaEstado = null, lineaTexto = null, nodoPensar = null;
-    var burbuja = null, nodoTexto = null;
+    var burbuja = null, textoBot = "";
     var colaPensar = "", colaTexto = "", programado = false;
 
     function mostrarPensamiento() {
@@ -262,9 +264,8 @@
       if (burbuja) { return; }
       ocultarPensamiento();
       burbuja = agregarMensaje("assistant", "");
-      nodoTexto = document.createTextNode("");
-      burbuja.appendChild(nodoTexto);
-      burbuja.classList.add("chatbot-transmitiendo");
+      textoBot = "";
+      burbuja.classList.add("md", "chatbot-transmitiendo");
     }
 
     // Los fragmentos llegan muy seguidos: en vez de tocar la página con cada
@@ -276,9 +277,16 @@
         lineaTexto.scrollTop = lineaTexto.scrollHeight;  // se ve siempre lo último
       }
       colaPensar = "";
-      if (colaTexto && nodoTexto) { nodoTexto.appendData(colaTexto); }
+      if (colaTexto && burbuja) { textoBot += colaTexto; pintarBot(true); }
       colaTexto = "";
       bajarSiEstaAbajo();
+    }
+
+    // La respuesta se vuelve a dibujar completa con el texto acumulado: así el markdown queda bien aunque llegue de a pedazos.
+    function pintarBot(enCurso) {
+      if (!burbuja) { return; }
+      if (window.renderMarkdownLigero) { window.renderMarkdownLigero(burbuja, textoBot, enCurso); }
+      else { burbuja.textContent = textoBot; }
     }
 
     function programar() {
@@ -312,7 +320,7 @@
       // una herramienta): se vuelve al estado de "trabajando".
       reiniciar: function () {
         if (burbuja) { burbuja.remove(); }
-        burbuja = nodoTexto = null;
+        burbuja = null; textoBot = "";
         colaTexto = "";
         mostrarPensamiento();
       },
@@ -320,7 +328,8 @@
       // final agregada).
       terminar: function (respuesta) {
         crearBurbuja();
-        nodoTexto.data = respuesta;
+        textoBot = respuesta;
+        pintarBot(false);
         colaTexto = "";
         burbuja.classList.remove("chatbot-transmitiendo");
         bajarAlFinal();
@@ -328,7 +337,7 @@
       cancelar: function () {
         ocultarPensamiento();
         if (burbuja) { burbuja.remove(); }
-        burbuja = nodoTexto = null;
+        burbuja = null; textoBot = "";
         colaTexto = "";
       },
       arrancar: mostrarPensamiento
