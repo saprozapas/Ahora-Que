@@ -374,7 +374,7 @@
 
 
 /* ==========================================================================
-   Inicio: "Te toca a vos" — votaciones de todos los grupos, en vivo
+   Inicio: "Notificaciones" — votaciones de todos los grupos, en vivo
    ========================================================================== */
 .dash-pend { display: grid; gap: var(--s-3); min-height: 0; }
 .dash-pend__cab { display: flex; align-items: baseline; gap: var(--s-3); }
@@ -726,7 +726,7 @@
 
 
 /* ==========================================================================
-   "Te toca a vos": avisos como filas finas (no tarjetas), para distinguirlos de los planes sugeridos
+   "Notificaciones": avisos como filas finas (no tarjetas), para distinguirlos de los planes sugeridos
    ========================================================================== */
 .notifs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s-8, 40px); margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
 .notif { min-width: 0; border-bottom: 1px solid var(--line); transition: opacity 240ms ease; }

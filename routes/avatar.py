@@ -31,12 +31,14 @@ def ver_avatar(user_id):
         abort(404)
 
     if avatar["tipo"] == "preset":
-        return redirect(url_for("static", filename=f"avatares/avatar-{avatar['preset']}.svg", v=avatar["version"]), code=302)
+        respuesta = redirect(url_for("static", filename=f"avatares/avatar-{avatar['preset']}.svg", v=avatar["version"]), code=302)
+        respuesta.headers["Cache-Control"] = "private, max-age=31536000, immutable"   # la dirección lleva ?v=: no cambia mientras no cambie la foto
+        return respuesta
 
     respuesta = make_response(avatar["datos"])
     respuesta.headers["Content-Type"] = "image/jpeg"
     # La dirección lleva ?v=<versión>: al cambiar la foto cambia la dirección, así que puede cachearse sin miedo.
-    respuesta.headers["Cache-Control"] = "private, max-age=86400"
+    respuesta.headers["Cache-Control"] = "private, max-age=31536000, immutable"
     return respuesta
 
 

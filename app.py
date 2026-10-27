@@ -1,4 +1,5 @@
 ﻿import time
+from concurrent.futures import ThreadPoolExecutor
 
 import os
 from dotenv import load_dotenv
@@ -15,7 +16,7 @@ from routes.friends import friends_bp
 from routes.chat import chat
 from routes.grupo_planes import grupo_planes_bp
 from routes.chatbot import chatbot_bp
-from routes.inicio import guia_bp, inicio_bp
+from routes.inicio import guia_bp, inicio_bp, invalidar_pendientes
 from routes.avatar import avatar_bp
 from routes.push import push_bp
 from services.avatar_service import AvatarService
@@ -45,6 +46,15 @@ app.config.update(
     ),
 )
 app.permanent_session_lifetime = timedelta(days=5)
+
+# Comprime las respuestas de texto (HTML, CSS, JS, JSON, SVG): viajan en una fracción del tamaño. Si el paquete no está instalado, la app sigue igual.
+try:
+    from flask_compress import Compress
+    app.config.update(COMPRESS_MIMETYPES=["text/html", "text/css", "text/plain", "text/javascript", "application/javascript",
+                                          "application/json", "image/svg+xml"], COMPRESS_MIN_SIZE=400, COMPRESS_ALGORITHM=["br", "gzip"])
+    Compress(app)
+except ImportError:
+    print("flask-compress no está instalado: las respuestas van sin comprimir.")
 app.register_blueprint(auth)
 app.register_blueprint(group_auth)
 app.register_blueprint(profile)
@@ -141,6 +151,23 @@ def _empezar_cronometro():
 
 
 @app.after_request
+def _cache_de_estaticos(response):
+    """Los archivos de /static llevan su versión en la dirección (?v=…): se pueden guardar un año. Sin versión, un día."""
+    if request.path.startswith("/static/") and response.status_code == 200:
+        if request.args.get("v"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        else:
+            response.headers["Cache-Control"] = "public, max-age=86400"
+    return response
+
+
+@app.route("/healthz")
+def healthz():
+    """Para que Render (o un servicio que visite la página cada pocos minutos) sepa que la app está viva, sin tocar la base."""
+    return "ok", 200, {"Cache-Control": "no-store"}
+
+
+@app.after_request
 def _mostrar_tiempo(response):
     if hasattr(g, "_inicio") and not request.path.startswith("/static"):
         print(f"{request.method} {request.path} -> {(time.perf_counter() - g._inicio) * 1000:.0f} ms")
@@ -203,6 +230,7 @@ def _borrar_inbox_guardado():
     if session.get("user_id") and (request.method == "POST" or request.path == "/inbox"):
         _inbox_cache.pop(session["user_id"], None)
         _deudas_cache.pop(session["user_id"], None)
+        invalidar_pendientes(session["user_id"])
 
 
 @app.route('/')
@@ -219,6 +247,20 @@ def home():
         return redirect('/dashboard')
     return render_template('home.html', featured=PLANS[0], plans=PLANS)
 
+def _en_paralelo(*tareas):
+    """Corre varias lecturas independientes a la vez. Cada tarea es (función, valor si falla, qué lee)."""
+    def correr(tarea):
+        funcion, por_defecto, que = tarea
+        try:
+            return funcion()
+        except Exception as e:
+            print(f"No se pudo leer {que}: {e}")
+            return por_defecto
+
+    with ThreadPoolExecutor(max_workers=len(tareas)) as pool:
+        return list(pool.map(correr, tareas))
+
+
 @app.route('/dashboard')
 def dashboard():
     if not session.get('user_id'):
@@ -228,28 +270,15 @@ def dashboard():
     except Exception as e:
         print(f"No se pudieron actualizar los planes para puntuar: {e}")
     invitaciones, _ = _inbox_guardado(session["user_id"])
-    # Lo que espera tu voto en todos tus grupos (se refresca solo desde el navegador, ver routes/inicio.py).
-    try:
-        pendientes_datos = InicioService().pendientes(session["user_id"])
-    except Exception as e:
-        print(f"No se pudieron leer las votaciones pendientes: {e}")
-        pendientes_datos = None
-    try:
-        proximo_plan = InicioService().proximo_plan(session["user_id"])
-    except Exception as e:
-        print(f"No se pudo leer el proximo plan: {e}")
-        proximo_plan = None
-    try:
-        primeros_pasos = InicioService().primeros_pasos(session["user_id"])
-    except Exception as e:
-        print(f"No se pudieron calcular los primeros pasos: {e}")
-        primeros_pasos = None
-    # Las sugerencias de la semana solo se leen si ya están armadas; si no, la página las pide y se arman ahí.
-    try:
-        sugerencias_semana = SugerenciaService().existentes(session["user_id"])
-    except Exception as e:
-        print(f"No se pudieron leer las sugerencias: {e}")
-        sugerencias_semana = []
+    # Cuatro lecturas que no dependen una de otra: salen a la vez, así la página tarda lo de la más lenta y no la suma de todas.
+    uid = session["user_id"]
+    pendientes_datos, proximo_plan, primeros_pasos, sugerencias_semana = _en_paralelo(
+        (lambda: InicioService().pendientes(uid), None, "las votaciones pendientes"),
+        (lambda: InicioService().proximo_plan(uid), None, "el próximo plan"),
+        (lambda: InicioService().primeros_pasos(uid), None, "los primeros pasos"),
+        # Las sugerencias de la semana solo se leen si ya están armadas; si no, la página las pide y se arman ahí.
+        (lambda: SugerenciaService().existentes(uid), [], "las sugerencias"),
+    )
     return render_template('home.html', featured=PLANS[0], plans=PLANS, dashboard=True,
                            invitaciones=invitaciones, pendientes_datos=pendientes_datos,
                            proximo_plan=proximo_plan, sugerencias_semana=sugerencias_semana,

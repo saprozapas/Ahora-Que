@@ -458,7 +458,7 @@
 
 
   /* ========================================================================
-     10a. AVISOS DE VOTACIÓN DEL INICIO ("Te toca a vos")
+     10a. NOTIFICACIONES DEL INICIO (votaciones, horarios y menciones)
 
      El panel se vuelve a pedir al servidor cada pocos segundos (y al volver a la pestaña), así que una
      votación nueva de cualquier grupo aparece sola. Son solo avisos: cada tarjeta lleva al grupo, donde

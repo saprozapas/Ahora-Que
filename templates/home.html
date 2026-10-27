@@ -124,8 +124,7 @@
       <div class="dash-section dash-pend">
 
         <div class="dash-pend__cab">
-          <h2 class="h3" data-guia-id="inicio-avisos" data-guia-orden="2"              data-guia-titulo="Te toca a vos" data-guia-texto="Acá aparece lo que espera tu respuesta: votaciones, horarios y menciones de tus grupos. Tocá un aviso para ir directo.">Te toca a vos</h2>
-          <span class="meta">Avisos de tus grupos</span>
+          <h2 class="h3" data-guia-id="inicio-avisos" data-guia-orden="2"              data-guia-titulo="Notificaciones" data-guia-texto="Acá aparece lo que espera tu respuesta: votaciones, horarios y menciones de tus grupos. Tocá una notificación para ir directo.">Notificaciones</h2>
           <span class="badge dash-pend__total" data-pend-contador{% if not pendientes_datos or not pendientes_datos.total %} hidden{% endif %}>{{ pendientes_datos.total if pendientes_datos else 0 }}</span>
           <span class="board__nav dash-pend__nav" data-pend-nav hidden>
             <span class="meta" data-pend-pagina>1 de 1</span>
@@ -139,7 +138,7 @@
         </div>
 
         {# Se actualiza solo: app.js vuelve a pedir el panel cada pocos segundos (y al volver a la pestaña). #}
-        <div class="dash-pend__cuerpo" data-pend data-url="/inicio/pendientes" data-intervalo="8000" aria-live="polite">
+        <div class="dash-pend__cuerpo" data-pend data-url="/inicio/pendientes" data-intervalo="20000" aria-live="polite">
           {% if pendientes_datos is none %}
           <div class="pend-vacio"><p class="voice"><strong>No pudimos cargar tus avisos.</strong> Reintentamos en unos segundos.</p></div>
           {% else %}

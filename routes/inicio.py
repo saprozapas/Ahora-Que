@@ -7,6 +7,8 @@ POST /inicio/sugerencias/<id>/guardar    guarda una sugerencia como idea en tus 
 Los avisos solo avisan: cada tarjeta lleva al grupo o al chat, donde se vota, se elige el horario o se contesta.
 El Inbox queda para las solicitudes y los avisos de publicaciones."""
 
+import time
+
 from flask import Blueprint, flash, jsonify, make_response, redirect, render_template, session, url_for
 
 from services.guia_nueva import COOKIE as COOKIE_GUIA
@@ -22,12 +24,31 @@ def _sin_sesion():
     return jsonify({"ok": False, "error": "Tu sesión venció. Volvé a iniciar sesión."}), 401
 
 
+# Los pendientes se vuelven a pedir cada pocos segundos desde el Inicio y cada pedido son varias consultas a la base:
+# se guardan unos segundos por persona. Cualquier POST suyo (votar, aceptar…) lo borra al instante (ver app.py).
+_SEGUNDOS_PENDIENTES = 10
+_cache_pendientes = {}  # user_id -> (datos, momento)
+
+
+def invalidar_pendientes(user_id):
+    _cache_pendientes.pop(user_id, None)
+
+
+def _pendientes_guardados(user_id):
+    guardado = _cache_pendientes.get(user_id)
+    if guardado and time.monotonic() - guardado[1] < _SEGUNDOS_PENDIENTES:
+        return guardado[0]
+    datos = inicio_service.pendientes(user_id)
+    _cache_pendientes[user_id] = (datos, time.monotonic())
+    return datos
+
+
 @inicio_bp.route("/pendientes")
 def pendientes():
     if not session.get("user_id"):
         return _sin_sesion()
     try:
-        datos = inicio_service.pendientes(session["user_id"])
+        datos = _pendientes_guardados(session["user_id"])
     except Exception as e:
         print(f"No se pudieron leer los pendientes: {e}")
         return jsonify({"ok": False, "error": "No se pudieron cargar tus votaciones."}), 500
