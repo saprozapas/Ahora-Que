@@ -1158,7 +1158,15 @@
         avatar.style.setProperty("--h", String(((usuario.nombre || "").length * 47) % 360));
         avatar.style.setProperty("--size", "36px");
         avatar.setAttribute("aria-hidden", "true");
-        avatar.textContent = (usuario.nombre || "?").slice(0, 1).toUpperCase();
+        if (usuario.avatar) {
+          avatar.classList.add("avatar--foto");
+          const foto = document.createElement("img");
+          foto.alt = "";
+          foto.src = `/avatar/${usuario.id}?v=${usuario.avatar}`;
+          avatar.appendChild(foto);
+        } else {
+          avatar.textContent = (usuario.nombre || "?").slice(0, 1).toUpperCase();
+        }
 
         const nombres = document.createElement("span");
         nombres.className = "friend-result__names";

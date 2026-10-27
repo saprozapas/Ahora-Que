@@ -89,6 +89,7 @@ def apple_touch_icon():
 # Fechas en lenguaje de todos los días ("hoy", "mañana", "el sábado"): ver services/fechas.py.
 from services.fechas import cuando as _cuando, dia_relativo as _dia_relativo
 app.jinja_env.filters["dia_rel"] = _dia_relativo
+app.jinja_env.globals["avatar_v"] = AvatarService.version_de
 app.jinja_env.filters["cuando"] = lambda fecha, hora=None: _cuando(fecha, hora)
 
 
@@ -190,6 +191,16 @@ def _borrar_inbox_guardado():
 
 @app.route('/')
 def home():
+    user_agent = request.headers.get("User-Agent", "").lower()
+
+    es_celular = any(palabra in user_agent for palabra in [
+        "iphone",
+        "ipad",
+        "android",
+        "mobile"
+    ])
+    if session.get('user_id') and es_celular:
+        return redirect('/dashboard')
     return render_template('home.html', featured=PLANS[0], plans=PLANS)
 
 @app.route('/dashboard')

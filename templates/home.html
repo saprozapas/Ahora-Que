@@ -27,7 +27,7 @@
 
   <div class="dashboard-main">
 
-    <section class="topo topo--sutil dot-grid dash-hero">
+    <section class="topo topo--sutil dash-hero">
 
       {% include '_topografia.html' %}
 
@@ -179,7 +179,9 @@
 
 <!-- HERO ------------------------------------------------------------------ -->
 
-<section class="landing-hero topo dot-grid">
+<div class="landing-fondo" data-fondo-brillos=".landing-demo">
+
+<section class="landing-hero topo">
 
   {% include '_topografia.html' %}
 
@@ -210,6 +212,66 @@
 
       <p class="meta">Para salir con amigos, en familia, en pareja o solo.</p>
 
+    </div>
+
+
+    {# El signo de pregunta como panel de puntos (estilo pantalla LED): decorativo, cada punto se apaga y prende a su ritmo. #}
+    {% set filas = [
+      '.........###########...........',
+      '....####################.......',
+      '..########################.....',
+      '###########################....',
+      '############################...',
+      '#############################..',
+      '##########.....###############.',
+      '######............############.',
+      '###.................###########',
+      '##...................##########',
+      '.....................##########',
+      '.....................##########',
+      '.....................##########',
+      '.....................##########',
+      '.....................#########.',
+      '....................##########.',
+      '...................##########..',
+      '..................##########...',
+      '.................##########....',
+      '................##########.....',
+      '..............###########......',
+      '.............###########.......',
+      '............##########.........',
+      '...........##########..........',
+      '..........##########...........',
+      '.........#########.............',
+      '........#########..............',
+      '........#########..............',
+      '........########...............',
+      '........########...............',
+      '........########...............',
+      '........########...............',
+      '........#########..............',
+      '........#########..............',
+      '...............................',
+      '...............................',
+      '...............................',
+      '............###................',
+      '.........########..............',
+      '........###########............',
+      '........###########............',
+      '.......############............',
+      '........###########............',
+      '........###########............',
+      '.........#########.............',
+      '...........#####...............'
+    ] %}
+    <div class="landing-hero__marca" aria-hidden="true">
+      {# Los anillos de la marca nacen del signo: su centro es el centro del "?". #}
+      {% include '_topografia.html' %}
+      <svg class="led-signo" viewBox="-103.7 -16.9 483.0 483.0" focusable="false">
+        {% for fila in filas %}{% set y = loop.index0 %}{% for celda in fila %}{% set x = loop.index0 %}{% if celda == '#' %}
+        <circle class="led led--on{% if (x * 11 + y * 7) % 11 == 0 %} led--falla{% endif %}" cx="{{ x * 10 + 5 }}" cy="{{ y * 10 + 5 }}" r="3.7" style="--d: -{{ ((x * 7 + y * 13 + x * y * 3) % 17) * 0.45 }}s; --t: {{ 3.4 + ((x * 5 + y * 3) % 5) * 0.8 }}s" />
+        {% endif %}{% endfor %}{% endfor %}
+      </svg>
     </div>
 
 
@@ -408,27 +470,31 @@
     <h2 class="h2">Preguntas frecuentes.</h2>
 
     <div class="faq">
-      <details>
-        <summary>¿Cómo invito a alguien a mi grupo?</summary>
+      <div class="faq__item">
+        <h3 class="faq__q">¿Cómo invito a alguien a mi grupo?</h3>
         <p>Desde el grupo, con su nombre de usuario. Le llega la invitación a su inbox y la acepta o la rechaza.</p>
-      </details>
-      <details>
-        <summary>¿Dónde veo los planes que ya están confirmados?</summary>
+      </div>
+      <div class="faq__item">
+        <h3 class="faq__q">¿Dónde veo los planes que ya están confirmados?</h3>
         <p>En tu calendario, mes a mes, y en Planes, dentro de Confirmados.</p>
-      </details>
-      <details>
-        <summary>¿Puedo guardar un plan para más adelante?</summary>
+      </div>
+      <div class="faq__item">
+        <h3 class="faq__q">¿Puedo guardar un plan para más adelante?</h3>
         <p>Sí. Lo guardás en "Para después" y lo proponés en un grupo cuando quieras.</p>
-      </details>
-      <details>
-        <summary>¿Se puede puntuar un plan?</summary>
+      </div>
+      <div class="faq__item">
+        <h3 class="faq__q">¿Se puede puntuar un plan?</h3>
         <p>Sí. Quienes fueron le ponen de 0 a 5 estrellas y el plan queda en su historial, en Planes archivados.</p>
-      </details>
+      </div>
     </div>
 
   </div>
 
 </section>
+
+</div>
+
+<script defer src="{{ url_for('static', filename='landing.js', v='20261101-tipeo4') }}"></script>
 
 {% endif %}
 

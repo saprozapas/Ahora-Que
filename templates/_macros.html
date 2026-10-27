@@ -48,6 +48,11 @@
 
 {# Chip de racha: llama + semanas y, si el grupo ganó un título, su nombre.
    `enlace` (opcional) lo vuelve un link a la pantalla de la racha. #}
+{# La cara de una persona: su foto si eligió una, o su inicial. El tono sale del largo del nombre. #}
+{% macro cara(user_id, nombre, tam=40) -%}
+{% set v = avatar_v(user_id) if user_id else none %}<span class="avatar{% if v %} avatar--foto{% endif %}" style="--h: {{ ((nombre or '?') | length * 47) % 360 }}; --size: {{ tam }}px" aria-hidden="true">{% if v %}<img src="/avatar/{{ user_id }}?v={{ v }}" alt="" loading="lazy" />{% else %}{{ (nombre or '?')[:1] | upper }}{% endif %}</span>
+{%- endmacro %}
+
 {# Emblema del grupo: su inicial en un avatar. Con `marco` (el rango: mercurio, venus, tierra, marte,
    jupiter o saturno) lleva un anillo del color de ese rango. #}
 {% macro emblema(nombre, marco=none, tam=56) -%}

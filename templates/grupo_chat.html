@@ -52,7 +52,7 @@
       id="group-chat-input"
       name="mensaje"
       rows="1"
-      placeholder="Escribile al grupo… Escribí @ para mencionar o llamar al chatbot"
+      placeholder="Escribile al grupo… (@ para mencionar)"
       aria-label="Escribir mensaje"
       aria-haspopup="listbox"
       aria-expanded="false"
@@ -321,7 +321,16 @@ function agregarMensaje(mensaje, anterior, destino = chatMessages) {
         const nombre = document.createElement("span");
 
         nombre.classList.add("chat-message-author");
-        nombre.textContent = mensaje.username;
+
+        if (mensaje.avatar) {
+            const foto = document.createElement("img");
+            foto.className = "chat-message-author__foto";
+            foto.alt = "";
+            foto.src = "/avatar/" + mensaje.user_id + "?v=" + mensaje.avatar;
+            nombre.appendChild(foto);
+        }
+
+        nombre.appendChild(document.createTextNode(mensaje.username));
 
         mensajeDiv.appendChild(nombre);
     }
@@ -491,10 +500,12 @@ async function pedirPlanAlAsistente(pedido, anclaMensajeId, esperando) {
         const parrafo = document.createElement("p");
         const textoRespuesta = String(datos.respuesta || "").trim();
         const pareceJson = /^(?:\{|\[)/.test(textoRespuesta);
-        parrafo.textContent = datos.borrador
+        const textoFinal = datos.borrador
             ? "Armé esta propuesta para el grupo. Si les cierra, propónganla: el horario se define al votar."
             : (pareceJson ? "No pude armar una propuesta legible. Probá describiendo de nuevo qué plan quieren." : textoRespuesta);
-        burbuja.appendChild(parrafo);
+        // Las respuestas del asistente traen markdown: se muestran formateadas (negrita, listas…).
+        if (window.renderMarkdownLigero) window.renderMarkdownLigero(burbuja, textoFinal, false);
+        else { parrafo.textContent = textoFinal; burbuja.appendChild(parrafo); }
         if (!datos.borrador) salida.appendChild(burbuja);
 
         if (datos.borrador) {
@@ -608,7 +619,15 @@ function pintarMenuMenciones() {
         const icono = document.createElement("span");
         icono.className = "chat-slash-option__icon";
         icono.setAttribute("aria-hidden", "true");
-        icono.textContent = opcion.icono || (opcion.etiqueta || "?").slice(0, 1).toUpperCase();
+        if (opcion.foto) {
+            const foto = document.createElement("img");
+            foto.alt = "";
+            foto.src = opcion.foto;
+            icono.classList.add("chat-slash-option__icon--foto");
+            icono.appendChild(foto);
+        } else {
+            icono.textContent = opcion.icono || (opcion.etiqueta || "?").slice(0, 1).toUpperCase();
+        }
 
         const texto = document.createElement("span");
         const titulo = document.createElement("strong");
@@ -647,7 +666,7 @@ function actualizarMenuMenciones() {
     const personas = INTEGRANTES
         .filter(function (persona) { return String(persona.id) !== MI_USER_ID; })
         .map(function (persona) {
-            return { handle: persona.handle, etiqueta: persona.handle, detalle: persona.nombre !== persona.handle ? persona.nombre : "Integrante del grupo", tipo: "persona" };
+            return { handle: persona.handle, etiqueta: persona.handle, detalle: persona.nombre !== persona.handle ? persona.nombre : "Integrante del grupo", tipo: "persona", foto: persona.avatar ? "/avatar/" + persona.id + "?v=" + persona.avatar : "" };
         });
 
     mencionesVisibles = MENCIONES_ESPECIALES.concat(personas).filter(function (opcion) {

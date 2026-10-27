@@ -1,4 +1,4 @@
-{% from '_macros.html' import racha_chip, emblema %}
+{% from '_macros.html' import racha_chip, emblema, cara %}
 
 {# =========================================================================
    CABECERA DEL GRUPO (la comparten el tablero y el chat)
@@ -28,7 +28,7 @@
   <div class="group-members">
     <span class="group-members__faces">
       {% for integrante in users[:5] %}
-      <span class="avatar" style="--h: {{ (integrante.user.get_name() | length * 47) % 360 }}; --size: 30px" aria-hidden="true">{{ integrante.user.get_name()[:1] | upper }}</span>
+      {{ cara(integrante.id, integrante.user.get_name(), 30) }}
       {% endfor %}
     </span>
     <span class="meta">{{ users | length }} integrante{{ 's' if users | length != 1 }}</span>
