@@ -1181,9 +1181,17 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
   /* La grilla del hero es más ancha que el resto de la página: el texto queda más a la izquierda y las tarjetas más a la derecha. */
   .landing-hero__grid { max-width: min(1480px, 100% - 2 * var(--gutter)); padding-inline: 0; grid-template-columns: minmax(0, 1.12fr) minmax(170px, 0.62fr) minmax(0, 0.86fr); gap: clamp(24px, 3.4vw, 64px); }
 }
-.landing-hero__marca { display: grid; place-items: center; }
-.led-signo { width: auto; height: clamp(190px, 33vh, 310px); max-width: 100%; overflow: visible; }
-.led-signo .led { fill: var(--ink); opacity: 0.07; }
+.landing-hero { overflow: clip; }
+/* Los anillos ya no son del fondo del hero: salen del signo, así el signo queda justo en el centro. */
+.landing-hero > .topo__svg { display: none; }
+.landing-hero__marca { position: relative; display: grid; place-items: center; }
+.landing-hero__marca .topo__svg {
+  inset: auto; left: 50%; top: 50%; width: 1500px; height: 1500px; transform: translate(-50%, -50%);
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 25%, transparent 92%);
+          mask-image: radial-gradient(circle closest-side, #000 25%, transparent 92%);
+}
+.led-signo { position: relative; width: auto; height: clamp(190px, 33vh, 310px); max-width: 100%; overflow: visible; }
+.led-signo .led { fill: var(--ink); }
 .led-signo .led--on { opacity: 0.8; animation: led-parpadeo var(--t, 4s) ease-in-out var(--d, 0s) infinite; }
 .led-signo .led--falla { animation-name: led-falla; animation-duration: calc(var(--t, 4s) * 0.7); }
 /* Casi siempre prendidos; cada punto tiene su propio ritmo y se apaga un instante, como en un letrero. */
@@ -1202,8 +1210,10 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
   61% { opacity: 0.12; }
   68% { opacity: 0.7; }
 }
+@media (min-width: 901px) and (max-width: 1180px) { .led-signo { height: 190px; } }
 @media (max-width: 900px) {
   .landing-hero__marca { order: -1; }
   .led-signo { height: 132px; }
+  .landing-hero__marca .topo__svg { width: 900px; height: 900px; }
 }
 @media (prefers-reduced-motion: reduce) { .led-signo .led--on { animation: none; opacity: 0.8; } }
