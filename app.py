@@ -190,6 +190,9 @@ def _borrar_inbox_guardado():
 
 @app.route('/')
 def home():
+    es_celular = request.user_agent.platform in ["iphone", "android"]
+    if session.get('user_id') and es_celular:
+        return redirect('/dashboard')
     return render_template('home.html', featured=PLANS[0], plans=PLANS)
 
 @app.route('/dashboard')
