@@ -1188,15 +1188,16 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
 .landing-hero { overflow: clip; }
 /* Los anillos ya no son del fondo del hero: salen del signo, así el signo queda justo en el centro. */
 .landing-hero > .topo__svg { display: none; }
-/* El primer anillo mide --anillo de radio y el signo se dimensiona desde él: la punta más lejana del "?" llega al 92% del radio, así que
-   el signo ocupa casi todo el círculo y queda entero adentro. (30 filas, y 16,2 filas de radio hasta el punto más lejano.) */
+/* El primer anillo mide --anillo de radio y el signo se dimensiona desde él. El centro del dibujo es el centro del círculo mínimo que
+   contiene todos los puntos (no el de su caja): así las puntas más lejanas del "?" quedan a la misma distancia del anillo, ninguna más
+   cerca que otra, y llegan al 90% del radio. */
 .landing-hero__marca { --anillo: 165px; position: relative; display: grid; place-items: center; }
 .landing-hero__marca .topo__svg {
   inset: auto; left: 50%; top: 50%; width: calc(var(--anillo) / 0.11); height: calc(var(--anillo) / 0.11); transform: translate(-50%, -50%);
   -webkit-mask-image: radial-gradient(circle closest-side, #000 25%, transparent 92%);
           mask-image: radial-gradient(circle closest-side, #000 25%, transparent 92%);
 }
-.led-signo { position: relative; width: auto; height: calc(var(--anillo) * 0.92 * 30 / 16.22); max-width: 100%; overflow: visible; }
+.led-signo { position: relative; width: calc(var(--anillo) * 1.879); height: calc(var(--anillo) * 1.879); max-width: 100%; overflow: visible; }
 .led-signo .led { fill: var(--ink); }
 .led-signo .led--on { opacity: 0.8; animation: led-parpadeo var(--t, 4s) ease-in-out var(--d, 0s) infinite; }
 .led-signo .led--falla { animation-name: led-falla; animation-duration: calc(var(--t, 4s) * 0.7); }
