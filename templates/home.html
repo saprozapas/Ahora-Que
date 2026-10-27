@@ -215,23 +215,43 @@
 
     {# El signo de pregunta como panel de puntos (estilo pantalla LED): decorativo, cada punto se apaga y prende a su ritmo. #}
     {% set filas = [
-      '.#####.',
-      '##...##',
-      '##...##',
-      '.....##',
-      '....##.',
-      '...##..',
-      '...##..',
-      '.......',
-      '...##..',
-      '...##..'
+      '....######.....',
+      '.###########...',
+      '#############..',
+      '####.....#####.',
+      '##........#####',
+      '...........####',
+      '...........####',
+      '...........####',
+      '...........####',
+      '...........###.',
+      '..........####.',
+      '.........####..',
+      '........####...',
+      '.......#####...',
+      '......####.....',
+      '......###......',
+      '.....####......',
+      '....####.......',
+      '....###........',
+      '....###........',
+      '....###........',
+      '....####.......',
+      '....####.......',
+      '...............',
+      '...............',
+      '.....###.......',
+      '....#####......',
+      '....#####......',
+      '....#####......',
+      '.....###.......'
     ] %}
     <div class="landing-hero__marca" aria-hidden="true">
       {# Los anillos de la marca nacen del signo: su centro es el centro del "?". #}
       {% include '_topografia.html' %}
-      <svg class="led-signo" viewBox="0 0 70 100" focusable="false">
+      <svg class="led-signo" viewBox="0 0 150 300" focusable="false">
         {% for fila in filas %}{% set y = loop.index0 %}{% for celda in fila %}{% set x = loop.index0 %}{% if celda == '#' %}
-        <circle class="led led--on{% if (x * 11 + y * 7) % 9 == 0 %} led--falla{% endif %}" cx="{{ x * 10 + 5 }}" cy="{{ y * 10 + 5 }}" r="3.8" style="--d: -{{ ((x * 7 + y * 13 + x * y * 3) % 17) * 0.45 }}s; --t: {{ 3.4 + ((x * 5 + y * 3) % 5) * 0.8 }}s" />
+        <circle class="led led--on{% if (x * 11 + y * 7) % 11 == 0 %} led--falla{% endif %}" cx="{{ x * 10 + 5 }}" cy="{{ y * 10 + 5 }}" r="3.5" style="--d: -{{ ((x * 7 + y * 13 + x * y * 3) % 17) * 0.45 }}s; --t: {{ 3.4 + ((x * 5 + y * 3) % 5) * 0.8 }}s" />
         {% endif %}{% endfor %}{% endfor %}
       </svg>
     </div>
