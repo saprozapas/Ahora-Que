@@ -165,7 +165,7 @@ class SocialService:
                      WHERE x."Plan_id" = p."id_Plan"),
                    (SELECT COUNT(x."Puntaje") FROM public."Usuario-Plan" x
                      WHERE x."Plan_id" = p."id_Plan"),
-                   pub."Aspecto",
+                   pub."Aspecto", u."Premium",
                    p."Precio_Min", p."Precio_Max"
             FROM public."Publicacion" pub
             JOIN public."Usuarios" u ON u."Id_Usuario" = pub."Id_Autor"
@@ -278,7 +278,7 @@ class SocialService:
             "texto": f[7],
             "visibilidad": f[8],
             "creada_en": f[9].isoformat(),
-            "autor": {"id": str(f[10]), "nombre": f[11], "username": f[12], "avatar": AvatarService.version_de(f[10])},
+            "autor": {"id": str(f[10]), "nombre": f[11], "username": f[12], "avatar": AvatarService.version_de(f[10]), "premium": bool(f[21])},
             "es_mio": str(f[10]) == str(user_id),
             "plan": {
                 "id": str(plan["id"]),
@@ -677,7 +677,7 @@ class SocialService:
                     """
                     SELECT c."Id_Comentario", c."Contenido", c."Creado_En",
                            u."Id_Usuario", u."Nombre", u."Username",
-                           pub."Id_Autor"
+                           pub."Id_Autor", u."Premium"
                     FROM public."Publicacion_Comentario" c
                     JOIN public."Usuarios" u ON u."Id_Usuario" = c."Id_Usuario"
                     JOIN public."Publicacion" pub ON pub."Id_Publicacion" = c."Id_Publicacion"
@@ -698,7 +698,7 @@ class SocialService:
             "id": str(fila[0]),
             "texto": fila[1],
             "creado_en": fila[2].isoformat(),
-            "autor": {"id": str(fila[3]), "nombre": fila[4], "username": fila[5]},
+            "autor": {"id": str(fila[3]), "nombre": fila[4], "username": fila[5], "premium": bool(fila[7])},
             # Borra el autor del comentario o el autor de la publicación.
             "puedo_borrar": str(user_id) in (str(fila[3]), str(fila[6])),
         }
@@ -735,7 +735,7 @@ class SocialService:
                     )
                     SELECT n."Id_Comentario", n."Contenido", n."Creado_En",
                            u."Id_Usuario", u."Nombre", u."Username",
-                           pub."Id_Autor"
+                           pub."Id_Autor", u."Premium"
                     FROM nuevo n
                     JOIN public."Usuarios" u ON u."Id_Usuario" = n."Id_Usuario"
                     JOIN public."Publicacion" pub ON pub."Id_Publicacion" = %s

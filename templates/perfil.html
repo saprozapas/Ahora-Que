@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import estrella %}
 
 {% block title %}Perfil — Ahora Qué{% endblock %}
 
@@ -37,7 +38,7 @@
       </span>
     </button>
     <div>
-      <h1 class="h2">{{ nombre or 'Tu perfil' }}</h1>
+      <h1 class="h2">{{ nombre or 'Tu perfil' }}{{ estrella(es_premium) }}</h1>
       {% if user.username %}<p class="meta">@{{ user.username }}</p>{% endif %}
     </div>
   </header>

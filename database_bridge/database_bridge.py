@@ -20,7 +20,8 @@ def getUser(uid):
                     "Username",
                     "Mail",
                     "Password_Hash",
-                    "Descripcion"
+                    "Descripcion",
+                    "Premium"
                 FROM public."Usuarios"
                 WHERE "Id_Usuario" = %s
                 """,
@@ -38,7 +39,8 @@ def getUser(uid):
                 result[3],  # Username
                 result[4],  # Mail
                 result[5],  # Password_Hash
-                result[6]   # Descripcion
+                result[6],  # Descripcion
+                result[7]   # Premium
             )
 
     except psycopg2.Error:
@@ -151,7 +153,7 @@ def getUsersInGroupWithIds(group_id):
             cursor.execute(
                 """
                 SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash", u."Descripcion", ug."Es_Admin",
-                       EXTRACT(EPOCH FROM av."Actualizada_En")::bigint
+                       EXTRACT(EPOCH FROM av."Actualizada_En")::bigint, u."Premium"
                 FROM public."Usuarios" u
                 JOIN public."Usuario-Grupo" ug ON u."Id_Usuario" = ug."Id_Usuario"
                 LEFT JOIN public."Usuario_Avatar" av ON av."Id_Usuario" = u."Id_Usuario"
@@ -167,7 +169,7 @@ def getUsersInGroupWithIds(group_id):
             for result in results:
                 users.append({
                     "id": result[0],
-                    "user": User(result[1], result[2], result[3], result[4], result[5], result[6]),
+                    "user": User(result[1], result[2], result[3], result[4], result[5], result[6], result[9]),
                     "es_admin": result[7],
                     "avatar": int(result[8]) if result[8] else None,
                 })
@@ -188,7 +190,7 @@ def getFriendsForUser(uid):
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash", u."Descripcion"
+                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash", u."Descripcion", u."Premium"
                 FROM public."Usuarios" u
                 JOIN public."Amistades" a
                     ON u."Id_Usuario" = CASE
@@ -207,7 +209,7 @@ def getFriendsForUser(uid):
             for result in results:
                 amigos.append({
                     "id": result[0],
-                    "user": User(result[1], result[2], result[3], result[4], result[5], result[6]),
+                    "user": User(result[1], result[2], result[3], result[4], result[5], result[6], result[7]),
                 })
             return amigos
 

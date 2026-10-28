@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Suscripción — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="container page">
+
+      <a class="back-link" href="/dashboard">← Inicio</a>
+
+      <header class="page-head">
+        <h1 class="h2">Tu suscripción.</h1>
+        <p class="lead">Mirá tu plan y cambialo cuando quieras.</p>
+      </header>
+
+      <article class="card premium-plan{% if es_premium %} premium-plan--premium{% endif %}">
+        {% if es_premium %}
+        <h2 class="h3"><span class="estrella-premium" aria-hidden="true">★</span> Plan Premium</h2>
+        <ul class="premium-plan__lista">
+          <li>Planes con la IA sin límite semanal</li>
+          <li>Una estrella junto a tu nombre</li>
+        </ul>
+        <form method="post" action="/suscripcion/cancelar"
+              data-confirmar="¿Cancelar tu suscripción Premium? Volvés al plan gratis (1 plan por semana con la IA) y perdés la estrella.">
+          <button class="btn btn--secondary" type="submit">Cancelar suscripción</button>
+        </form>
+        {% else %}
+        <h2 class="h3">Plan Gratis</h2>
+        <ul class="premium-plan__lista">
+          <li>1 plan por semana con la IA (se recarga los lunes)</li>
+          <li>Grupos, votaciones, chat y deudas sin límite</li>
+        </ul>
+        <a class="btn btn--primary" href="/premium/pagar">Actualizar a Premium</a>
+        <a href="/premium">Comparar planes</a>
+        {% endif %}
+      </article>
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

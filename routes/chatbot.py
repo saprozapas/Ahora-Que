@@ -24,11 +24,13 @@ from services.llm_service import LLMNoConfigurado
 from services.plan_service import PlanService
 from services.grupo_plan_service import GrupoPlanError, GrupoPlanService
 from services.notification_service import NotificationService
+from services.suscripcion_service import MENSAJE_LIMITE_IA, SuscripcionService
 
 chatbot_bp = Blueprint("chatbot", __name__, url_prefix="/chatbot")
 plan_service = PlanService()
 grupo_plan_service = GrupoPlanService()
 notification_service = NotificationService()
+suscripcion_service = SuscripcionService()
 
 MAX_LARGO_MENSAJE = 1000
 LIMITE_HISTORIAL = 20
@@ -40,6 +42,11 @@ def _no_autorizado():
 
 def _error(mensaje, codigo):
     return jsonify(error=mensaje), codigo
+
+
+def _limite_semanal():
+    """El plan gratis ya usó su plan con IA de la semana (el frontend muestra el cartel de Premium)."""
+    return jsonify(error=MENSAJE_LIMITE_IA, limite_ia=True), 403
 
 
 def _mensaje_para_cliente(mensaje):
@@ -90,6 +97,9 @@ def historial():
 def _preparar_turno(user_id, datos):
     """Valida el pedido y arma lo que el bot necesita (lo comparten /mensaje
     y /mensaje_stream). Devuelve (turno, None), o (None, respuesta_de_error)."""
+    if suscripcion_service.limite_ia_alcanzado(user_id):
+        return None, _limite_semanal()
+
     texto_usuario = str(datos.get("mensaje") or "").strip()
     if not texto_usuario:
         return None, _error("El mensaje está vacío.", 400)
@@ -243,6 +253,10 @@ def confirmar_plan():
     if borrador is None:
         return _error("No se encontró ese borrador.", 404)
 
+    # Un borrador armado antes de llegar al límite tampoco se puede guardar de más.
+    if suscripcion_service.limite_ia_alcanzado(user_id):
+        return _limite_semanal()
+
     # Se vuelve a verificar por si algún lugar se borró desde que se propuso.
     ids = [lugar["id_lugar"] for lugar in borrador["lugares"]]
     existentes = ia_bridge.lugares_por_ids(ids)
@@ -288,7 +302,11 @@ def confirmar_plan():
         print(f"Error al guardar la idea del chatbot: {e}")
         return _error("No se pudo guardar el plan. Intentá de nuevo.", 500)
 
+    suscripcion_service.registrar_plan_ia(user_id)
     respuesta = {"status": "ok", "plan_id": str(plan_id), "url": url_for("planes.detalle", plan_id=plan_id)}
+    # Con este plan el gratis agotó la semana: el frontend muestra el cartel.
+    if suscripcion_service.limite_ia_alcanzado(user_id):
+        respuesta["limite_ia"] = True
 
     if grupo_id and (momento or request_desde_chat(datos)):
         try:

@@ -57,7 +57,9 @@
     return fetch(url, opciones).then(function (respuesta) {
       return respuesta.json().catch(function () { return {}; }).then(function (datos) {
         if (!respuesta.ok) {
-          throw new Error(datos.error || "Algo salió mal. Probá de nuevo.");
+          var error = new Error(datos.error || "Algo salió mal. Probá de nuevo.");
+          error.limiteIA = !!datos.limite_ia;
+          throw error;
         }
         return datos;
       });
@@ -160,11 +162,13 @@
             link.textContent = "Ver el plan →";
           }
           estado.appendChild(link);
+          if (datos.limite_ia) { window.avisoLimiteIA(); }
         })
         .catch(function (error) {
           guardar.disabled = false;
           guardar.textContent = "Guardar para después";
           estado.textContent = error.message;
+          if (error.limiteIA) { window.avisoLimiteIA(); }
         });
     });
 
@@ -375,7 +379,9 @@
       if (!respuesta.ok) {
         // Errores de validación o de sesión: llegan como JSON normal.
         return respuesta.json().catch(function () { return {}; }).then(function (datos) {
-          throw new Error(datos.error || "Algo salió mal. Probá de nuevo.");
+          var error = new Error(datos.error || "Algo salió mal. Probá de nuevo.");
+          error.limiteIA = !!datos.limite_ia;
+          throw error;
         });
       }
       return leerEventos(respuesta, alEvento);
@@ -420,6 +426,7 @@
       .catch(function (error) {
         vista.cancelar();
         agregarMensaje("error", error.message);
+        if (error.limiteIA) { window.avisoLimiteIA(); }
         // Se devuelve el texto al campo para poder reintentar.
         if (!input.value) { input.value = texto; }
       })

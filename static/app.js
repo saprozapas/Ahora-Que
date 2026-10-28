@@ -1050,6 +1050,40 @@
 
   window.preguntar = preguntar;
 
+  /* Cartel del límite semanal de la IA (plan gratis): lleva a la página de Premium.
+     Devuelve una promesa que se resuelve al cerrarlo. */
+  window.avisoLimiteIA = () => new Promise((resolver) => {
+    const dialogo = document.createElement("dialog");
+    dialogo.className = "modal";
+    dialogo.setAttribute("role", "alertdialog");
+    dialogo.setAttribute("aria-labelledby", "limite-ia-titulo");
+    dialogo.innerHTML = `
+      <form method="dialog">
+        <div class="modal-head"><h2 class="modal-title" id="limite-ia-titulo">Llegaste a tu límite semanal</h2></div>
+        <div class="modal-body"><p>Con el plan gratis podés armar 1 plan por semana con la IA. El límite se recarga los lunes. Si querés seguir, actualizá al plan Premium.</p></div>
+        <div class="modal-actions">
+          <button class="btn btn--secondary" value="no" autofocus>Ahora no</button>
+          <a class="btn btn--primary" href="/premium">Actualizar a Premium</a>
+        </div>
+      </form>`;
+    dialogo.addEventListener("click", (evento) => {
+      if (evento.target === dialogo) { dialogo.close(); }
+    });
+    dialogo.addEventListener("close", () => { dialogo.remove(); resolver(); });
+    document.body.append(dialogo);
+    dialogo.showModal();
+  });
+
+  /* La estrella del plan Premium, para los nombres que se arman desde JS. */
+  window.estrellaPremium = () => {
+    const estrella = document.createElement("span");
+    estrella.className = "estrella-premium";
+    estrella.title = "Plan Premium";
+    estrella.setAttribute("aria-label", "Plan Premium");
+    estrella.textContent = "★";
+    return estrella;
+  };
+
 
       /* ========================================================================
      13. CAMPOS EDITABLES DEL PERFIL

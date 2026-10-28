@@ -331,6 +331,7 @@ function agregarMensaje(mensaje, anterior, destino = chatMessages) {
         }
 
         nombre.appendChild(document.createTextNode(mensaje.username));
+        if (mensaje.premium) nombre.appendChild(window.estrellaPremium());
 
         mensajeDiv.appendChild(nombre);
     }
@@ -484,7 +485,10 @@ async function pedirPlanAlAsistente(pedido, anclaMensajeId, esperando) {
             body: JSON.stringify({ mensaje: pedido, grupo_id: "{{ group.get_id() }}" })
         });
         const datos = await respuesta.json();
-        if (!respuesta.ok) throw new Error(datos.error || "No se pudo armar el plan.");
+        if (!respuesta.ok) {
+            if (datos.limite_ia) { esperando.remove(); window.avisoLimiteIA(); return; }
+            throw new Error(datos.error || "No se pudo armar el plan.");
+        }
         esperando.remove();
 
         const salida = document.createElement("div");
@@ -570,7 +574,12 @@ async function confirmarBorradorVotable(borrador) {
             })
         });
         const resultado = await guardado.json();
-        if (!guardado.ok) throw new Error(resultado.error || "No se pudo proponer el plan al grupo.");
+        if (!guardado.ok) {
+            if (resultado.limite_ia) { borrador.boton.disabled = false; borrador.boton.textContent = "Proponer al grupo →"; window.avisoLimiteIA(); return; }
+            throw new Error(resultado.error || "No se pudo proponer el plan al grupo.");
+        }
+        // Con este plan el gratis agotó la semana: se avisa antes de ir a la votación.
+        if (resultado.limite_ia) await window.avisoLimiteIA();
         window.location.href = resultado.votacion_url;
     } catch (error) {
         borrador.boton.disabled = false;

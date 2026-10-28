@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Plan Premium — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="container page">
+
+      <a class="back-link" href="/dashboard">← Inicio</a>
+
+      <header class="page-head">
+        <h1 class="h2">Planes.</h1>
+        <p class="lead">Elegí cómo querés usar la IA para armar tus planes.</p>
+      </header>
+
+      <div class="premium-planes">
+
+        <article class="card premium-plan{% if not es_premium %} premium-plan--actual{% endif %}">
+          <h2 class="h3">Gratis</h2>
+          <p class="premium-plan__precio">$0</p>
+          <ul class="premium-plan__lista">
+            <li>Armá {{ ia_gratis_por_semana }} plan por semana con la IA</li>
+            <li>El límite se recarga los lunes</li>
+            <li>Grupos, votaciones, chat y deudas sin límite</li>
+          </ul>
+          {% if not es_premium %}<p class="meta">Tu plan actual</p>{% endif %}
+        </article>
+
+        <article class="card premium-plan premium-plan--premium{% if es_premium %} premium-plan--actual{% endif %}">
+          <h2 class="h3"><span class="estrella-premium" aria-hidden="true">★</span> Premium</h2>
+          <p class="premium-plan__precio">Precio a definir</p>
+          <ul class="premium-plan__lista">
+            <li>Planes con la IA sin límite semanal</li>
+            <li>Una estrella junto a tu nombre</li>
+            <li>Todo lo del plan gratis</li>
+          </ul>
+          {% if es_premium %}
+          <p class="meta">Tu plan actual</p>
+          <a class="btn btn--secondary" href="/suscripcion">Administrar suscripción</a>
+          {% else %}
+          <a class="btn btn--primary" href="/premium/pagar">Actualizar a Premium</a>
+          {% endif %}
+        </article>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

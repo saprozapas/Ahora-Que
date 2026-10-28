@@ -21,6 +21,7 @@ from routes.avatar import avatar_bp
 from routes.push import push_bp
 from services.avatar_service import AvatarService
 from routes.deudas import deudas_bp
+from routes.suscripcion import suscripcion_bp
 from services.inicio_service import InicioService
 from services.guia_nueva import es_guia_pendiente
 from services.sugerencia_service import SugerenciaService
@@ -28,6 +29,7 @@ from routes.social import es_moderador, social_api
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
 from services.deuda_service import DeudaService
+from services.suscripcion_service import PLANES_IA_GRATIS_POR_SEMANA, SuscripcionService
 from services.plan_service import PlanService
 from services.social_service import SocialService
 
@@ -69,11 +71,13 @@ app.register_blueprint(inicio_bp)
 app.register_blueprint(guia_bp)
 app.register_blueprint(avatar_bp)
 app.register_blueprint(deudas_bp)
+app.register_blueprint(suscripcion_bp)
 app.register_blueprint(social_api)
 app.register_blueprint(push_bp)
 invitation_service = InvitationService()
 friend_service = FriendService()
 deuda_service = DeudaService()
+suscripcion_service = SuscripcionService()
 plan_service = PlanService()
 social_service = SocialService()
 
@@ -141,6 +145,7 @@ def inject_user():
             print(f"No se pudo contar las notificaciones: {e}")
             datos["notificaciones_pendientes"] = 0
         datos["deudas_pendientes"] = _deudas_guardado(session["user_id"])
+        datos["es_premium"] = _premium_guardado(session["user_id"])
     return datos
 
 
@@ -222,6 +227,22 @@ def _deudas_guardado(user_id):
     return cantidad
 
 
+_premium_cache = {}  # user_id -> (es premium, momento)
+
+
+def _premium_guardado(user_id):
+    guardado = _premium_cache.get(user_id)
+    if guardado and time.monotonic() - guardado[1] < _SEGUNDOS_INBOX:
+        return guardado[0]
+    try:
+        premium = suscripcion_service.es_premium(user_id)
+    except Exception as e:  # por ejemplo, si todavía no se corrió migraciones/planes_suscripcion.sql
+        print(f"No se pudo leer el plan del usuario: {e}")
+        premium = False
+    _premium_cache[user_id] = (premium, time.monotonic())
+    return premium
+
+
 @app.before_request
 def _borrar_inbox_guardado():
     # Si el usuario acepta/rechaza algo (cualquier POST), o abre el Inbox
@@ -231,6 +252,7 @@ def _borrar_inbox_guardado():
         _inbox_cache.pop(session["user_id"], None)
         _deudas_cache.pop(session["user_id"], None)
         invalidar_pendientes(session["user_id"])
+        _premium_cache.pop(session["user_id"], None)  # pagar o cancelar el plan se ve al instante
 
 
 @app.route('/')
@@ -289,6 +311,13 @@ def tutorial():
     if not session.get('user_id'):
         return redirect('/login')
     return render_template('tutorial.html')
+
+@app.route('/premium')
+def premium():
+    # Por ahora solo muestra los planes: todavía no hay sistema de pago.
+    if not session.get('user_id'):
+        return redirect('/login')
+    return render_template('premium.html', ia_gratis_por_semana=PLANES_IA_GRATIS_POR_SEMANA)
 
 @app.route('/social')
 def social():

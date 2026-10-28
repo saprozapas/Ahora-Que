@@ -149,7 +149,8 @@ class ChatService:
                         u."Username",
                         u."Nombre",
                         c."Contenido",
-                        c."Fecha_Envio"
+                        c."Fecha_Envio",
+                        u."Premium"
                     FROM public."Mensajes" c
                     JOIN public."Usuarios" u
                         ON c."Id_Usuario" = u."Id_Usuario"
@@ -167,6 +168,7 @@ class ChatService:
                         "user_id": str(fila[1]),
                         "avatar": AvatarService.version_de(fila[1]),
                         "username": self._nombre_visible(fila[2], fila[3]),
+                        "premium": bool(fila[6]),
                         "message": fila[4],
                         "created_at": fila[5].isoformat()
                     })

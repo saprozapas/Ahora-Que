@@ -1,12 +1,13 @@
 class User:
 
-    def __init__(self, name, birth_date, username, email, password_hash, descripcion=None):
+    def __init__(self, name, birth_date, username, email, password_hash, descripcion=None, premium=False):
         self.__name = name
         self.__birth_date = birth_date
         self.__username = username
         self.__email = email
         self.__password_hash = password_hash
         self.__descripcion = descripcion
+        self.__premium = bool(premium)
 
     def get_name(self):
         return self.__name
@@ -20,6 +21,8 @@ class User:
         return self.__email
     def get_descripcion(self):
         return self.__descripcion
+    def es_premium(self):
+        return self.__premium
 
     def set_name(self, name):
         self.__name = name

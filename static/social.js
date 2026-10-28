@@ -332,6 +332,7 @@
       caraAutor.textContent = (publicacion.autor.nombre || "?").trim().charAt(0).toUpperCase();
     }
     $("[data-soc-autor]", tarjeta).textContent = autor;
+    if (publicacion.autor.premium) { $("[data-soc-autor]", tarjeta).append(window.estrellaPremium()); }
     $("[data-soc-autor-enlace]", tarjeta).href = publicacion.es_mio
       ? urls.miPerfil
       : urls.perfil.replace("__ID__", publicacion.autor.id);
@@ -384,6 +385,7 @@
 
     fila.dataset.comentarioId = comentario.id;
     $("[data-soc-comentario-autor]", fila).textContent = comentario.autor.nombre;
+    if (comentario.autor.premium) { $("[data-soc-comentario-autor]", fila).append(window.estrellaPremium()); }
     $("[data-soc-comentario-fecha]", fila).textContent = hace(comentario.creado_en);
     $("[data-soc-comentario-texto]", fila).textContent = comentario.texto;
     $("[data-soc-comentario-eliminar]", fila).hidden = !comentario.puedo_borrar;

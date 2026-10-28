@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Pagar Premium — Ahora Qué{% endblock %}
+
+{% block content %}
+
+{# Un campo del formulario de pago. Solo repone el valor (y muestra el error) en el método que se envió,
+   y nunca repone los datos sensibles (número, CVV, cuenta, cédula). #}
+{% macro campo(metodo, nombre, etiqueta, ph='', auto='off', modo=None, tipo='text', secreto=False) %}
+<div class="field">
+  <label for="{{ metodo }}-{{ nombre }}">{{ etiqueta }}</label>
+  <input class="input" id="{{ metodo }}-{{ nombre }}" name="{{ nombre }}" type="{{ tipo }}"
+         placeholder="{{ ph }}" autocomplete="{{ auto }}"{% if modo %} inputmode="{{ modo }}"{% endif %}
+         value="{{ '' if secreto or abierto != metodo else valores.get(nombre, '') }}" required />
+  {% if abierto == metodo and errores.get(nombre) %}
+  <p class="notice notice--error" role="alert">{{ errores[nombre] }}</p>
+  {% endif %}
+</div>
+{% endmacro %}
+
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="container page">
+
+      <a class="back-link" href="/premium">← Planes</a>
+
+      <header class="page-head">
+        <h1 class="h2">Pagar Premium.</h1>
+        <p class="lead">Elegí cómo querés pagar.</p>
+      </header>
+
+      <p class="notice" role="note">Es una maqueta: no se cobra nada y estos datos no se guardan. Solo se revisa que tengan el formato correcto.</p>
+
+      <div class="pago-metodos">
+
+        <details class="card pago-metodo" {% if abierto == 'tarjeta' %}open{% endif %}>
+          <summary>Tarjeta de crédito o débito</summary>
+          <form method="post" action="/premium/pagar" novalidate>
+            <input type="hidden" name="metodo" value="tarjeta" />
+            {{ campo('tarjeta', 'numero', 'Número de tarjeta', '4242 4242 4242 4242', 'cc-number', 'numeric', secreto=True) }}
+            {{ campo('tarjeta', 'nombre', 'Nombre en la tarjeta', 'Como figura en la tarjeta', 'cc-name') }}
+            <div class="pago-fila">
+              {{ campo('tarjeta', 'vencimiento', 'Vencimiento', 'MM/AA', 'cc-exp', 'numeric') }}
+              {{ campo('tarjeta', 'cvv', 'Código de seguridad', '123', 'cc-csc', 'numeric', 'password', secreto=True) }}
+            </div>
+            <button class="btn btn--primary" type="submit">Activar Premium</button>
+          </form>
+        </details>
+
+        <details class="card pago-metodo" {% if abierto == 'transferencia' %}open{% endif %}>
+          <summary>Transferencia bancaria</summary>
+          <form method="post" action="/premium/pagar" novalidate>
+            <input type="hidden" name="metodo" value="transferencia" />
+            <div class="field">
+              <label for="transferencia-banco">Banco</label>
+              <select class="input" id="transferencia-banco" name="banco" required>
+                <option value="">Elegí tu banco</option>
+                {% for banco in bancos %}
+                <option value="{{ banco }}"{% if abierto == 'transferencia' and valores.get('banco') == banco %} selected{% endif %}>{{ banco }}</option>
+                {% endfor %}
+              </select>
+              {% if abierto == 'transferencia' and errores.get('banco') %}
+              <p class="notice notice--error" role="alert">{{ errores['banco'] }}</p>
+              {% endif %}
+            </div>
+            {{ campo('transferencia', 'cuenta', 'Número de cuenta', '001234567', modo='numeric', secreto=True) }}
+            {{ campo('transferencia', 'titular', 'Titular de la cuenta', '', 'name') }}
+            {{ campo('transferencia', 'documento', 'Cédula del titular', '1.234.567-2', modo='numeric', secreto=True) }}
+            <button class="btn btn--primary" type="submit">Activar Premium</button>
+          </form>
+        </details>
+
+        <details class="card pago-metodo" {% if abierto == 'mercadopago' %}open{% endif %}>
+          <summary>Mercado Pago</summary>
+          <form method="post" action="/premium/pagar" novalidate>
+            <input type="hidden" name="metodo" value="mercadopago" />
+            {{ campo('mercadopago', 'contacto', 'Email o celular de tu cuenta', 'nombre@correo.com o 09X XXX XXX', 'email') }}
+            <button class="btn btn--primary" type="submit">Activar Premium</button>
+          </form>
+        </details>
+
+        <details class="card pago-metodo" {% if abierto == 'applepay' %}open{% endif %}>
+          <summary>Apple Pay</summary>
+          <form method="post" action="/premium/pagar">
+            <input type="hidden" name="metodo" value="applepay" />
+            <p class="meta">En la versión real acá se confirma con Face ID o Touch ID. En la maqueta alcanza con tocar el botón.</p>
+            <button class="btn btn--primary" type="submit"> Pagar con Apple Pay</button>
+          </form>
+        </details>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}
