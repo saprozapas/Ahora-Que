@@ -1453,8 +1453,7 @@ dialog.modal::backdrop { background: rgb(10 14 22 / 0.5); backdrop-filter: blur(
   .postular > .btn { width: 100%; justify-content: center; }
 }
 
-/* En celular la página fluye (no hay pantalla fija), así que las tres sugerencias se ven apiladas. */
-@media (max-width: 650px) { .sug-lista > li:nth-child(n+2) { display: list-item; } }
+/* En celular se ve una sola sugerencia (el resto está en la regla de 650 px de arriba). */
 
 /* Chat vacío: una línea que explica qué hacer, en vez de una caja gris sin nada. */
 .chat__messages:not(:has(.chat-message))::before {
@@ -1836,3 +1835,37 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 /* Con sesión, el celular no necesita el menú de arriba: todo está en la barra de abajo y en Perfil. */
 @media (max-width: 900px) { .app-header--app .app-header__menu { display: none !important; } }
+
+/* ==========================================================================
+   Etapa 2: Inicio con un solo foco y grupo con lo principal a la vista
+   ========================================================================== */
+.group-mas .idea-menu__panel { left: auto; right: 0; width: min(290px, calc(100vw - 32px)); z-index: 45; }
+.group-mas__boton { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--r-md); box-shadow: inset 0 0 0 1px var(--line-strong); list-style: none; cursor: pointer; color: var(--ink-2); }
+.group-mas__boton::-webkit-details-marker { display: none; }
+.group-mas__boton svg { width: 22px; height: 22px; }
+.group-mas[open] .group-mas__boton { background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink); }
+button.idea-menu__item { width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
+.idea-menu__item--peligro, .idea-menu__item--peligro .menu-item__icon { color: var(--danger); }
+.idea-menu__item--peligro small { color: color-mix(in srgb, var(--danger) 70%, var(--ink-3)); }
+
+@media (max-width: 900px) {
+
+  /* --- Inicio: el saludo se reduce al nombre y el foco es el próximo plan (o "Crear un plan" si no hay) --- */
+  .dash-brief .brief__label { display: none; }
+  .voice__resto:not(.voice__resto--aviso) { display: none; }
+  .dash-hero__grid.tiene-proximo .dash-brief .actions { display: none; }
+  .dash-brief .actions .btn--secondary { display: none; }
+  .dash-brief .voice { font-size: 1.625rem; line-height: 1.2; }
+  .dash-hero .page { padding-block: var(--s-4) var(--s-4); }
+  .dash-hero .proximo { margin-top: var(--s-3); }
+  .dash-sug .dash-pend__cab .meta { display: none; }
+  .dash-sug .sug-lista { padding: 0; }
+
+  /* --- Grupo: Plan e Invitar a todo el ancho y el menú "⋯" al lado --- */
+  .group-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px; gap: var(--s-2); align-items: center; }
+  .group-actions > .group-mas.group-mas { grid-column: auto; }
+  .group-actions .idea-menu > summary { width: 100%; }
+  .group-head .lead { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.9375rem; line-height: 1.4; }
+  .group-brief { display: none; }
+  .group-head { gap: var(--s-2); }
+}

@@ -31,7 +31,7 @@
 
       {% include '_topografia.html' %}
 
-      <div class="container page dash-hero__grid">
+      <div class="container page dash-hero__grid{% if proximo_plan %} tiene-proximo{% endif %}">
 
         <h1 class="visually-hidden" id="dashboard-welcome">Tu inicio</h1>
 
@@ -41,6 +41,7 @@
 
           <p class="voice">
             <strong>Hola{% if nombre %}, {{ nombre.split(' ')[0] }}{% endif %}.</strong>
+            <span class="voice__resto{% if invitaciones %} voice__resto--aviso{% endif %}">
             {% if invitaciones %}
               Te invitaron a {{ invitaciones | length }} grupo{{ 's' if invitaciones | length != 1 }}:
               <span class="ref">{{ invitaciones[0].get_nombre_grupo() }}</span>{% if invitaciones | length > 1 %} y {{ invitaciones | length - 1 }} más{% endif %}.
@@ -50,6 +51,7 @@
               Tu inbox está al día.
             {% endif %}
             Armá un plan y proponelo en un grupo para que lo voten.
+            </span>
           </p>
 
           <div class="actions">
