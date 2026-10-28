@@ -2,58 +2,118 @@
 
 {% block title %}Plan Premium — Ahora Qué{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261107-premium2') }}" />
+{% endblock %}
+
 {% block content %}
 
-<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
+{% macro punto(texto) -%}
+<li><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-check" /></svg><span>{{ texto }}</span></li>
+{%- endmacro %}
+
+{% include '_premium_iconos.html' %}
+
+<div class="dashboard-layout dashboard-layout-page">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
 
-    <section class="container page">
+    <section class="container page premium-page" data-premium-planes data-precios='{{ precios | tojson }}'>
 
       <a class="back-link" href="/dashboard">← Inicio</a>
 
-      <header class="page-head">
-        <h1 class="h2">Planes.</h1>
-        <p class="lead">Elegí cómo querés usar la IA para armar tus planes.</p>
+      <header class="premium-cab">
+        <span class="premium-cab__marca prem-aparece" style="--n: 0"><span class="prem-estrella prem-estrella--brilla"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-estrella" /></svg></span> Premium</span>
+        <h1 class="premium-cab__titulo prem-aparece" style="--n: 1">Planes sin límite,<br>con la IA de tu lado.</h1>
+        <p class="premium-cab__texto prem-aparece" style="--n: 2">Elegí cómo querés armar tus planes. Cambiás o cancelás cuando quieras.</p>
+
+        <div class="prem-ciclo prem-aparece" style="--n: 3" role="radiogroup" aria-label="Frecuencia de pago" data-ciclo="mensual" data-ciclo-selector>
+          <span class="prem-ciclo__pastilla" aria-hidden="true"></span>
+          <button class="prem-ciclo__op" type="button" role="radio" aria-checked="true" data-ciclo-op="mensual">Mensual</button>
+          <button class="prem-ciclo__op" type="button" role="radio" aria-checked="false" data-ciclo-op="anual">Anual <span class="prem-ciclo__ahorro">−{{ precios.anual.descuento }}%</span></button>
+        </div>
       </header>
 
       <div class="premium-planes">
 
-        <article class="card premium-plan{% if not es_premium %} premium-plan--actual{% endif %}">
-          <h2 class="h3">Gratis</h2>
-          <p class="premium-plan__precio">$0</p>
-          <ul class="premium-plan__lista">
-            <li>Armá {{ ia_gratis_por_semana }} plan por semana con la IA</li>
-            <li>El límite se recarga los lunes</li>
-            <li>Grupos, votaciones, chat y deudas sin límite</li>
+        <article class="premium-card prem-aparece" style="--n: 4">
+          <div class="premium-card__cab">
+            <h2 class="premium-card__nombre">Gratis</h2>
+            {% if not es_premium %}<span class="premium-card__etiqueta">Tu plan actual</span>{% endif %}
+          </div>
+          <p class="premium-card__precio">
+            <span class="premium-card__monto">$ 0 <span class="premium-card__periodo">/ mes</span></span>
+            <span class="premium-card__nota">Para empezar, sin pagar nada</span>
+          </p>
+          <ul class="premium-card__lista">
+            {{ punto('Armá ' ~ ia_gratis_por_semana ~ ' plan por semana con la IA') }}
+            {{ punto('El límite se recarga todos los lunes') }}
+            {{ punto('Grupos, votaciones y chat sin límite') }}
+            {{ punto('Deudas y calendario incluidos') }}
           </ul>
-          {% if not es_premium %}<p class="meta">Tu plan actual</p>{% endif %}
+          <div class="premium-card__accion">
+            {% if not es_premium %}
+            <span class="premium-card__actual"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="#i-check" /></svg> Ya estás en este plan</span>
+            {% else %}
+            <a class="btn btn--secondary" href="/suscripcion">Administrar suscripción</a>
+            {% endif %}
+          </div>
         </article>
 
-        <article class="card premium-plan premium-plan--premium{% if es_premium %} premium-plan--actual{% endif %}">
-          <h2 class="h3"><span class="estrella-premium" aria-hidden="true">★</span> Premium</h2>
-          <p class="premium-plan__precio">Precio a definir</p>
-          <ul class="premium-plan__lista">
-            <li>Planes con la IA sin límite semanal</li>
-            <li>Una estrella junto a tu nombre</li>
-            <li>Todo lo del plan gratis</li>
+        <article class="premium-card premium-card--premium prem-aparece" style="--n: 5">
+          <div class="premium-card__cab">
+            <h2 class="premium-card__nombre"><span class="prem-estrella prem-estrella--brilla"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-estrella" /></svg></span> Premium</h2>
+            <span class="premium-card__etiqueta">{% if es_premium %}Tu plan actual{% else %}Recomendado{% endif %}</span>
+          </div>
+          <p class="premium-card__precio">
+            <span class="premium-card__monto"><span data-precio-monto>$ {{ precios.mensual.por_mes }}</span> <span class="premium-card__periodo">/ mes</span></span>
+            <span class="premium-card__nota" data-precio-nota>{{ precios.mensual.nota }}</span>
+          </p>
+          <ul class="premium-card__lista">
+            {{ punto('Planes con la IA sin límite semanal') }}
+            {{ punto('Sin esperar a los lunes para volver a armar') }}
+            {{ punto('Una estrella junto a tu nombre') }}
+            {{ punto('Todo lo del plan gratis') }}
           </ul>
-          {% if es_premium %}
-          <p class="meta">Tu plan actual</p>
-          <a class="btn btn--secondary" href="/suscripcion">Administrar suscripción</a>
-          {% else %}
-          <a class="btn btn--primary" href="/premium/pagar">Actualizar a Premium</a>
-          {% endif %}
+          <div class="premium-card__accion">
+            {% if es_premium %}
+            <a class="btn btn--primary" href="/suscripcion">Administrar suscripción</a>
+            {% else %}
+            <a class="btn btn--primary" href="/premium/pagar?ciclo=mensual" data-cta-premium>Actualizar a Premium</a>
+            {% endif %}
+          </div>
         </article>
 
       </div>
+
+      <ul class="premium-garantias">
+        <li class="prem-aparece" style="--n: 6">
+          <span class="premium-garantias__icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-reloj" /></svg></span>
+          <strong>Cancelás cuando quieras</strong>
+          <span>Sin permanencia: volvés al plan gratis en un toque.</span>
+        </li>
+        <li class="prem-aparece" style="--n: 7">
+          <span class="premium-garantias__icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-escudo" /></svg></span>
+          <strong>Sin cargos ocultos</strong>
+          <span>Pagás lo que ves acá, nada más.</span>
+        </li>
+        <li class="prem-aparece" style="--n: 8">
+          <span class="premium-garantias__icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-corazon" /></svg></span>
+          <strong>Tus planes son tuyos</strong>
+          <span>Si cancelás, tus grupos y planes se quedan como están.</span>
+        </li>
+      </ul>
+
+      <p class="premium-pie">Los precios son de ejemplo: todavía no hay cobros reales.</p>
 
     </section>
 
   </div>
 
 </div>
+
+<script defer src="{{ url_for('static', filename='premium.js', v='20261107-premium2') }}"></script>
 
 {% endblock %}

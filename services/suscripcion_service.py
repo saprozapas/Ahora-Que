@@ -16,6 +16,13 @@ MENSAJE_LIMITE_IA = (
 )
 _MONTEVIDEO = ZoneInfo("America/Montevideo")
 
+# Precios de EJEMPLO (todavía no hay cobros): se cambian acá y se ven en las pantallas de Premium.
+# "por_mes" es lo que se muestra grande; "total" es lo que se cobraría de una vez.
+PRECIOS = {
+    "mensual": {"por_mes": 199, "total": 199, "nota": "Se cobra cada mes", "descuento": 0},
+    "anual": {"por_mes": 159, "total": 1908, "nota": "$ 1.908 por año · ahorrás $ 480", "descuento": 20},
+}
+
 
 def inicio_de_semana(ahora=None):
     """El lunes a las 00:00 (Montevideo) de la semana de `ahora`."""
@@ -32,6 +39,22 @@ class SuscripcionService:
                 cursor.execute('SELECT "Premium" FROM public."Usuarios" WHERE "Id_Usuario" = %s', (str(user_id),))
                 fila = cursor.fetchone()
             return bool(fila and fila[0])
+        finally:
+            release_db_connection(connection)
+
+    def planes_ia_usados(self, user_id):
+        """Cuántos planes con la IA armó esta semana (para el medidor de Tu suscripción)."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT COUNT(*) FROM public."Uso_IA_Plan" WHERE "Id_Usuario" = %s AND "Creado_En" >= %s',
+                    (str(user_id), inicio_de_semana()),
+                )
+                return int(cursor.fetchone()[0])
+        except Exception as e:  # si todavía no se corrió migraciones/planes_suscripcion.sql
+            print(f"No se pudo contar los planes con IA: {e}")
+            return 0
         finally:
             release_db_connection(connection)
 

@@ -1,13 +1,12 @@
 from flask import Blueprint, flash, redirect, render_template, request, session
 
-from services.pago_mock import BANCOS, validar_mercadopago, validar_tarjeta, validar_transferencia
-from services.suscripcion_service import SuscripcionService
+from services.pago_mock import BANCOS
+from services.suscripcion_service import PLANES_IA_GRATIS_POR_SEMANA, PRECIOS, SuscripcionService
 
 suscripcion_bp = Blueprint("suscripcion", __name__)
 suscripcion_service = SuscripcionService()
 
-# Los datos de pago de la maqueta nunca se vuelven a mostrar ni se guardan.
-_SECRETOS = {"numero", "cvv", "cuenta", "documento"}
+_METODOS = {"tarjeta", "transferencia", "mercadopago", "applepay"}
 
 
 def _uid():
@@ -18,7 +17,11 @@ def _uid():
 def suscripcion():
     if not _uid():
         return redirect("/login")
-    return render_template("suscripcion.html")
+    return render_template(
+        "suscripcion.html",
+        ia_usados=suscripcion_service.planes_ia_usados(_uid()),
+        ia_gratis_por_semana=PLANES_IA_GRATIS_POR_SEMANA,
+    )
 
 
 @suscripcion_bp.route("/suscripcion/cancelar", methods=["POST"])
@@ -33,30 +36,25 @@ def cancelar():
 
 @suscripcion_bp.route("/premium/pagar", methods=["GET", "POST"])
 def pagar():
-    """Maqueta de pago: valida el formato de los datos pero no cobra nada."""
+    """Pago de DEMOSTRACIÓN: no cobra nada.
+
+    Los datos de la tarjeta, la cuenta o la cédula se revisan y se descartan en el navegador (ver static/premium.js):
+    nunca llegan acá. Al servidor solo viaja el método elegido y la frecuencia.
+    """
     if not _uid():
         return redirect("/login")
     if suscripcion_service.es_premium(_uid()):
         return redirect("/suscripcion")
 
-    errores, valores, abierto = {}, {}, "tarjeta"
     if request.method == "POST":
-        f = request.form
-        abierto = f.get("metodo", "tarjeta")
-        valores = {k: v for k, v in f.items() if k not in _SECRETOS}
-        if abierto == "tarjeta":
-            errores = validar_tarjeta(f.get("numero"), f.get("nombre"), f.get("vencimiento"), f.get("cvv"))
-        elif abierto == "transferencia":
-            errores = validar_transferencia(f.get("banco"), f.get("cuenta"), f.get("titular"), f.get("documento"))
-        elif abierto == "mercadopago":
-            errores = validar_mercadopago(f.get("contacto"))
-        elif abierto != "applepay":  # Apple Pay no pide datos: la maqueta solo confirma
-            abierto, errores = "tarjeta", {"numero": "Elegí un medio de pago."}
-        if not errores:
+        metodo = request.form.get("metodo", "")
+        if metodo in _METODOS and request.form.get("confirmado") == "1":
             suscripcion_service.cambiar_plan(_uid(), True)
-            flash("¡Listo! Ya sos Premium. (Maqueta: no se cobró nada.)")
+            flash("¡Listo! Ya sos Premium. (Demostración: no se cobró nada.)")
             return redirect("/suscripcion")
+        return redirect("/premium/pagar")
 
-    return render_template(
-        "premium_pagar.html", bancos=BANCOS, errores=errores, valores=valores, abierto=abierto
-    ), (400 if errores else 200)
+    ciclo = request.args.get("ciclo", "mensual")
+    if ciclo not in PRECIOS:
+        ciclo = "mensual"
+    return render_template("premium_pagar.html", bancos=BANCOS, precios=PRECIOS, ciclo=ciclo)

@@ -2,44 +2,102 @@
 
 {% block title %}Suscripción — Ahora Qué{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261107-premium2') }}" />
+{% endblock %}
+
 {% block content %}
 
-<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
+{% macro punto(texto) -%}
+<li><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-check" /></svg><span>{{ texto }}</span></li>
+{%- endmacro %}
+
+{% include '_premium_iconos.html' %}
+
+<div class="dashboard-layout dashboard-layout-page">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
 
-    <section class="container page">
+    <section class="container page susc">
 
       <a class="back-link" href="/dashboard">← Inicio</a>
 
-      <header class="page-head">
-        <h1 class="h2">Tu suscripción.</h1>
-        <p class="lead">Mirá tu plan y cambialo cuando quieras.</p>
+      <header class="premium-cab premium-cab--chico">
+        <h1 class="premium-cab__titulo prem-aparece" style="--n: 0">Tu suscripción.</h1>
+        <p class="premium-cab__texto prem-aparece" style="--n: 1">Mirá tu plan y cambialo cuando quieras.</p>
       </header>
 
-      <article class="card premium-plan{% if es_premium %} premium-plan--premium{% endif %}">
-        {% if es_premium %}
-        <h2 class="h3"><span class="estrella-premium" aria-hidden="true">★</span> Plan Premium</h2>
-        <ul class="premium-plan__lista">
-          <li>Planes con la IA sin límite semanal</li>
-          <li>Una estrella junto a tu nombre</li>
-        </ul>
-        <form method="post" action="/suscripcion/cancelar"
-              data-confirmar="¿Cancelar tu suscripción Premium? Volvés al plan gratis (1 plan por semana con la IA) y perdés la estrella.">
-          <button class="btn btn--secondary" type="submit">Cancelar suscripción</button>
-        </form>
-        {% else %}
-        <h2 class="h3">Plan Gratis</h2>
-        <ul class="premium-plan__lista">
-          <li>1 plan por semana con la IA (se recarga los lunes)</li>
-          <li>Grupos, votaciones, chat y deudas sin límite</li>
-        </ul>
-        <a class="btn btn--primary" href="/premium/pagar">Actualizar a Premium</a>
-        <a href="/premium">Comparar planes</a>
-        {% endif %}
-      </article>
+      <div class="susc__grilla">
+
+        {# ---------- Tu plan ---------- #}
+        <article class="susc__tarjeta{% if es_premium %} susc__tarjeta--premium{% endif %} prem-aparece" style="--n: 2">
+          <div class="susc__cab">
+            <h2 class="susc__nombre">
+              {% if es_premium %}<span class="prem-estrella prem-estrella--brilla"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-estrella" /></svg></span> Premium{% else %}Gratis{% endif %}
+            </h2>
+            <span class="susc__estado">Plan actual</span>
+          </div>
+
+          {% if es_premium %}
+          <ul class="susc__lista">
+            {{ punto('Planes con la IA sin límite semanal') }}
+            {{ punto('Una estrella junto a tu nombre') }}
+            {{ punto('Todo lo del plan gratis') }}
+          </ul>
+          <p class="susc__nota">Es una demostración: no hay ningún cobro asociado a tu suscripción.</p>
+          <div class="susc__acciones">
+            <form method="post" action="/suscripcion/cancelar"
+                  data-confirmar="¿Cancelar tu suscripción Premium? Volvés al plan gratis (1 plan por semana con la IA) y perdés la estrella.">
+              <button class="btn btn--secondary" type="submit">Cancelar suscripción</button>
+            </form>
+          </div>
+          {% else %}
+          <div class="susc__medidor">
+            <div class="susc__medidor-cab"><span>Planes con la IA esta semana</span><strong>{{ ia_usados }} / {{ ia_gratis_por_semana }}</strong></div>
+            <div class="susc__barra" role="progressbar" aria-valuemin="0" aria-valuemax="{{ ia_gratis_por_semana }}" aria-valuenow="{{ ia_usados }}"><span style="--p: {{ [100, (ia_usados / ia_gratis_por_semana * 100) | round | int] | min }}%"></span></div>
+            <p class="susc__nota">{% if ia_usados >= ia_gratis_por_semana %}Llegaste al límite de esta semana. Se recarga el lunes.{% else %}Todavía podés armar un plan con la IA esta semana. Se recarga los lunes.{% endif %}</p>
+          </div>
+          <ul class="susc__lista">
+            {{ punto('Grupos, votaciones y chat sin límite') }}
+            {{ punto('Deudas y calendario incluidos') }}
+          </ul>
+          {% endif %}
+        </article>
+
+        {# ---------- Lo que podés hacer ---------- #}
+        <article class="susc__tarjeta{% if not es_premium %} susc__tarjeta--premium{% endif %} prem-aparece" style="--n: 3">
+          {% if es_premium %}
+          <div class="susc__cab">
+            <h2 class="susc__nombre">Plan gratis</h2>
+            <span class="susc__estado" style="background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink-2)">Si cancelás</span>
+          </div>
+          <ul class="susc__lista">
+            {{ punto('1 plan por semana con la IA (se recarga los lunes)') }}
+            {{ punto('Grupos, votaciones, chat y deudas sin límite') }}
+            {{ punto('Tus planes y grupos se quedan como están') }}
+          </ul>
+          <p class="susc__nota">Perdés la estrella junto a tu nombre y el límite semanal de planes con la IA vuelve.</p>
+          <div class="susc__acciones"><a class="btn btn--secondary" href="/premium">Comparar planes</a></div>
+          {% else %}
+          <div class="susc__cab">
+            <h2 class="susc__nombre"><span class="prem-estrella prem-estrella--brilla"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-estrella" /></svg></span> Premium</h2>
+            <span class="susc__estado">Recomendado</span>
+          </div>
+          <ul class="susc__lista">
+            {{ punto('Planes con la IA sin límite semanal') }}
+            {{ punto('Sin esperar a los lunes para volver a armar') }}
+            {{ punto('Una estrella junto a tu nombre') }}
+          </ul>
+          <div class="susc__acciones">
+            <a class="btn btn--primary" href="/premium/pagar" style="background: var(--prem-tinta); color: #14151a">Actualizar a Premium</a>
+            <a class="susc__enlace" href="/premium">Comparar planes</a>
+          </div>
+          {% endif %}
+        </article>
+
+      </div>
 
     </section>
 

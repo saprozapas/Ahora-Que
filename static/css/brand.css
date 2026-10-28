@@ -1122,12 +1122,4 @@ textarea.input { height: auto; min-height: 104px; padding-block: 14px; line-heig
    Planes gratis / premium (templates/premium.html) y estrella del nombre
    ========================================================================== */
 .estrella-premium { color: #e8a500; margin-left: .2em; font-size: .9em; line-height: 1; }
-.premium-planes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; max-width: 760px; }
-.premium-plan { display: flex; flex-direction: column; gap: .75rem; align-items: flex-start; }
-.premium-plan--actual { outline: 2px solid var(--ink); }
-.premium-plan__precio { font-size: 1.5rem; font-weight: 700; margin: 0; }
-.premium-plan__lista { margin: 0; padding-left: 1.1rem; display: grid; gap: .35rem; }
-.pago-metodos { display: grid; gap: .75rem; max-width: 560px; margin-top: 1rem; }
-.pago-metodo summary { cursor: pointer; font-weight: 600; }
-.pago-metodo form { display: grid; gap: .75rem; margin-top: .75rem; }
-.pago-fila { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+/* Las pantallas de Premium (planes, pago y suscripción) tienen su propia hoja: static/css/premium.css. */

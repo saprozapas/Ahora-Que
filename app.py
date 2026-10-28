@@ -29,7 +29,7 @@ from routes.social import es_moderador, social_api
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
 from services.deuda_service import DeudaService
-from services.suscripcion_service import PLANES_IA_GRATIS_POR_SEMANA, SuscripcionService
+from services.suscripcion_service import PLANES_IA_GRATIS_POR_SEMANA, PRECIOS, SuscripcionService
 from services.plan_service import PlanService
 from services.social_service import SocialService
 
@@ -317,7 +317,7 @@ def premium():
     # Por ahora solo muestra los planes: todavía no hay sistema de pago.
     if not session.get('user_id'):
         return redirect('/login')
-    return render_template('premium.html', ia_gratis_por_semana=PLANES_IA_GRATIS_POR_SEMANA)
+    return render_template('premium.html', ia_gratis_por_semana=PLANES_IA_GRATIS_POR_SEMANA, precios=PRECIOS)
 
 @app.route('/social')
 def social():

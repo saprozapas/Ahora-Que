@@ -1,103 +1,198 @@
 {% extends 'base.html' %}
 
-{% block title %}Pagar Premium — Ahora Qué{% endblock %}
+{% block title %}Activar Premium — Ahora Qué{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261107-premium2') }}" />
+{% endblock %}
 
 {% block content %}
 
-{# Un campo del formulario de pago. Solo repone el valor (y muestra el error) en el método que se envió,
-   y nunca repone los datos sensibles (número, CVV, cuenta, cédula). #}
-{% macro campo(metodo, nombre, etiqueta, ph='', auto='off', modo=None, tipo='text', secreto=False) %}
-<div class="field">
-  <label for="{{ metodo }}-{{ nombre }}">{{ etiqueta }}</label>
-  <input class="input" id="{{ metodo }}-{{ nombre }}" name="{{ nombre }}" type="{{ tipo }}"
-         placeholder="{{ ph }}" autocomplete="{{ auto }}"{% if modo %} inputmode="{{ modo }}"{% endif %}
-         value="{{ '' if secreto or abierto != metodo else valores.get(nombre, '') }}" required />
-  {% if abierto == metodo and errores.get(nombre) %}
-  <p class="notice notice--error" role="alert">{{ errores[nombre] }}</p>
-  {% endif %}
+{% include '_premium_iconos.html' %}
+
+{# Un campo de texto del pago. Ninguno lleva "name": lo que se escribe acá no viaja a ningún lado, solo se revisa en el navegador. #}
+{% macro campo(id, etiqueta, ph='', auto='off', modo=None, mas='', clase='') %}
+<div class="pago-campo {{ clase }}" data-campo="{{ id }}">
+  <label for="{{ id }}">{{ etiqueta }}</label>
+  <div class="pago-campo__caja">
+    <input class="input" id="{{ id }}" type="text" placeholder="{{ ph }}" autocomplete="{{ auto }}" autocapitalize="off" spellcheck="false"{% if modo %} inputmode="{{ modo }}"{% endif %} {{ mas | safe }} />
+    {% if id == 'tarjeta-numero' %}
+    <span class="pago-campo__marca-input" aria-hidden="true"><svg viewBox="0 0 64 40"><use href="#marca-generica" data-marca-input /></svg></span>
+    {% else %}
+    <span class="pago-campo__estado pago-campo__ok" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#i-check" /></svg></span>
+    {% endif %}
+  </div>
+  <p class="pago-campo__error" role="alert" data-error></p>
 </div>
 {% endmacro %}
 
-<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
+<div class="dashboard-layout dashboard-layout-page">
 
   {% include '_dashboard_sidebar.html' %}
 
   <div class="dashboard-main">
 
-    <section class="container page">
+    <section class="container page pago" data-pago data-precios='{{ precios | tojson }}' data-ciclo="{{ ciclo }}">
 
       <a class="back-link" href="/premium">← Planes</a>
 
-      <header class="page-head">
-        <h1 class="h2">Pagar Premium.</h1>
-        <p class="lead">Elegí cómo querés pagar.</p>
+      <header class="premium-cab premium-cab--chico">
+        <h1 class="premium-cab__titulo prem-aparece" style="--n: 0">Activá Premium.</h1>
+        <p class="premium-cab__texto prem-aparece" style="--n: 1">Elegí cómo pagar. Es un minuto.</p>
       </header>
 
-      <p class="notice" role="note">Es una maqueta: no se cobra nada y estos datos no se guardan. Solo se revisa que tengan el formato correcto.</p>
+      <noscript><p class="pago__noscript">Esta pantalla necesita JavaScript para funcionar.</p></noscript>
 
-      <div class="pago-metodos">
+      <div class="pago__grilla">
 
-        <details class="card pago-metodo" {% if abierto == 'tarjeta' %}open{% endif %}>
-          <summary>Tarjeta de crédito o débito</summary>
-          <form method="post" action="/premium/pagar" novalidate>
-            <input type="hidden" name="metodo" value="tarjeta" />
-            {{ campo('tarjeta', 'numero', 'Número de tarjeta', '4242 4242 4242 4242', 'cc-number', 'numeric', secreto=True) }}
-            {{ campo('tarjeta', 'nombre', 'Nombre en la tarjeta', 'Como figura en la tarjeta', 'cc-name') }}
-            <div class="pago-fila">
-              {{ campo('tarjeta', 'vencimiento', 'Vencimiento', 'MM/AA', 'cc-exp', 'numeric') }}
-              {{ campo('tarjeta', 'cvv', 'Código de seguridad', '123', 'cc-csc', 'numeric', 'password', secreto=True) }}
+        {# ============================ Columna de pago ============================ #}
+        <section class="pago__panel prem-aparece" style="--n: 2" aria-label="Datos de pago">
+
+          <p class="pago__demo"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info" /></svg><span>Demostración: no se cobra nada y lo que escribas no sale de este dispositivo.</span></p>
+
+          <div class="pago-metodos" role="tablist" aria-label="Método de pago">
+            <button class="pago-metodo" type="button" role="tab" aria-selected="true" data-metodo="tarjeta"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tarjeta" /></svg><span>Tarjeta</span></button>
+            <button class="pago-metodo" type="button" role="tab" aria-selected="false" data-metodo="transferencia"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-banco" /></svg><span>Transferencia</span></button>
+            <button class="pago-metodo" type="button" role="tab" aria-selected="false" data-metodo="mercadopago"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-billetera" /></svg><span>Mercado Pago</span></button>
+            <button class="pago-metodo" type="button" role="tab" aria-selected="false" data-metodo="applepay"><svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><use href="#i-apple" /></svg><span>Apple Pay</span></button>
+          </div>
+
+          <div class="pago-paneles">
+
+            {# ---------------- Tarjeta ---------------- #}
+            <div class="pago-panel is-activo" role="tabpanel" data-panel="tarjeta">
+
+              <div class="tarjeta3d" data-tarjeta data-marca="">
+                <div class="tarjeta3d__interior">
+                  <div class="tarjeta3d__cara tarjeta3d__frente">
+                    <div class="tarjeta3d__fila">
+                      <span class="tarjeta3d__chip" aria-hidden="true"></span>
+                      <span class="tarjeta3d__marca" data-prev-marca aria-hidden="true"><svg viewBox="0 0 64 40"><use href="#marca-generica" /></svg></span>
+                    </div>
+                    <div class="tarjeta3d__numero" data-prev-numero aria-hidden="true"></div>
+                    <div class="tarjeta3d__pie">
+                      <div><small>Titular</small><span data-prev-nombre>Nombre y apellido</span></div>
+                      <div><small>Vence</small><span data-prev-venc>MM/AA</span></div>
+                    </div>
+                  </div>
+                  <div class="tarjeta3d__cara tarjeta3d__dorso" aria-hidden="true">
+                    <div class="tarjeta3d__banda"></div>
+                    <div class="tarjeta3d__firma"><i></i><b data-prev-cvc>•••</b></div>
+                    <p class="tarjeta3d__dorso-nota">Código de seguridad</p>
+                  </div>
+                </div>
+              </div>
+
+              <ul class="pago-marcas" data-marcas aria-label="Tarjetas aceptadas">
+                <li data-marca-lista="visa" title="Visa"><svg viewBox="0 0 64 40"><use href="#marca-visa" /></svg></li>
+                <li data-marca-lista="mastercard" title="Mastercard"><svg viewBox="0 0 64 40"><use href="#marca-mastercard" /></svg></li>
+                <li data-marca-lista="amex" title="American Express"><svg viewBox="0 0 64 40"><use href="#marca-amex" /></svg></li>
+                <li data-marca-lista="discover" title="Discover"><svg viewBox="0 0 64 40"><use href="#marca-discover" /></svg></li>
+                <li data-marca-lista="diners" title="Diners Club"><svg viewBox="0 0 64 40"><use href="#marca-diners" /></svg></li>
+                <li data-marca-lista="jcb" title="JCB"><svg viewBox="0 0 64 40"><use href="#marca-jcb" /></svg></li>
+              </ul>
+
+              {{ campo('tarjeta-numero', 'Número de tarjeta', '1234 5678 9012 3456', 'cc-number', 'numeric', 'maxlength="23"') }}
+              {{ campo('tarjeta-nombre', 'Nombre en la tarjeta', 'Como figura en la tarjeta', 'cc-name', None, 'maxlength="40"') }}
+              <div class="pago-fila">
+                {{ campo('tarjeta-venc', 'Vencimiento', 'MM/AA', 'cc-exp', 'numeric', 'maxlength="5"') }}
+                {{ campo('tarjeta-cvc', 'Código de seguridad', '123', 'cc-csc', 'numeric', 'maxlength="4"') }}
+              </div>
             </div>
-            <button class="btn btn--primary" type="submit">Activar Premium</button>
-          </form>
-        </details>
 
-        <details class="card pago-metodo" {% if abierto == 'transferencia' %}open{% endif %}>
-          <summary>Transferencia bancaria</summary>
-          <form method="post" action="/premium/pagar" novalidate>
-            <input type="hidden" name="metodo" value="transferencia" />
-            <div class="field">
-              <label for="transferencia-banco">Banco</label>
-              <select class="input" id="transferencia-banco" name="banco" required>
-                <option value="">Elegí tu banco</option>
-                {% for banco in bancos %}
-                <option value="{{ banco }}"{% if abierto == 'transferencia' and valores.get('banco') == banco %} selected{% endif %}>{{ banco }}</option>
-                {% endfor %}
-              </select>
-              {% if abierto == 'transferencia' and errores.get('banco') %}
-              <p class="notice notice--error" role="alert">{{ errores['banco'] }}</p>
-              {% endif %}
+            {# ---------------- Transferencia ---------------- #}
+            <div class="pago-panel" role="tabpanel" data-panel="transferencia" hidden>
+              <div class="pago-campo" data-campo="trans-banco">
+                <label for="trans-banco">Banco</label>
+                <div class="pago-campo__caja">
+                  <select class="input" id="trans-banco">
+                    <option value="">Elegí tu banco</option>
+                    {% for banco in bancos %}<option value="{{ banco }}">{{ banco }}</option>{% endfor %}
+                  </select>
+                </div>
+                <p class="pago-campo__error" role="alert" data-error></p>
+              </div>
+              {{ campo('trans-cuenta', 'Número de cuenta', '001234567', 'off', 'numeric', 'maxlength="15"') }}
+              {{ campo('trans-titular', 'Titular de la cuenta', 'Nombre y apellido', 'name', None, 'maxlength="40"') }}
+              {{ campo('trans-ci', 'Cédula del titular', '1.234.567-2', 'off', 'numeric', 'maxlength="11"') }}
             </div>
-            {{ campo('transferencia', 'cuenta', 'Número de cuenta', '001234567', modo='numeric', secreto=True) }}
-            {{ campo('transferencia', 'titular', 'Titular de la cuenta', '', 'name') }}
-            {{ campo('transferencia', 'documento', 'Cédula del titular', '1.234.567-2', modo='numeric', secreto=True) }}
-            <button class="btn btn--primary" type="submit">Activar Premium</button>
-          </form>
-        </details>
 
-        <details class="card pago-metodo" {% if abierto == 'mercadopago' %}open{% endif %}>
-          <summary>Mercado Pago</summary>
-          <form method="post" action="/premium/pagar" novalidate>
-            <input type="hidden" name="metodo" value="mercadopago" />
-            {{ campo('mercadopago', 'contacto', 'Email o celular de tu cuenta', 'nombre@correo.com o 09X XXX XXX', 'email') }}
-            <button class="btn btn--primary" type="submit">Activar Premium</button>
-          </form>
-        </details>
+            {# ---------------- Mercado Pago ---------------- #}
+            <div class="pago-panel" role="tabpanel" data-panel="mercadopago" hidden>
+              {{ campo('mp-contacto', 'Email o celular de tu cuenta', 'nombre@correo.com o 09X XXX XXX', 'email', None, 'maxlength="60"') }}
+              <p class="pago-ayuda">En la versión real te llevaríamos a Mercado Pago para confirmar el pago.</p>
+            </div>
 
-        <details class="card pago-metodo" {% if abierto == 'applepay' %}open{% endif %}>
-          <summary>Apple Pay</summary>
-          <form method="post" action="/premium/pagar">
-            <input type="hidden" name="metodo" value="applepay" />
-            <p class="meta">En la versión real acá se confirma con Face ID o Touch ID. En la maqueta alcanza con tocar el botón.</p>
-            <button class="btn btn--primary" type="submit"> Pagar con Apple Pay</button>
-          </form>
-        </details>
+            {# ---------------- Apple Pay ---------------- #}
+            <div class="pago-panel" role="tabpanel" data-panel="applepay" hidden>
+              <div class="pago-applepay">
+                <button class="pago-applepay__boton" type="button" data-applepay><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple" /></svg> Pay</button>
+                <p class="pago-ayuda">En la versión real acá se confirma con Face ID o Touch ID. En la demostración alcanza con tocar el botón.</p>
+              </div>
+            </div>
+
+          </div>
+
+          <button class="btn btn--primary pago__confirmar" type="button" data-confirmar>
+            <span class="pago__texto"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="#i-candado" /></svg><span data-confirmar-texto>Activar Premium</span></span>
+            <span class="pago__giro" aria-hidden="true"></span>
+            <span class="pago__tilde" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+          </button>
+
+        </section>
+
+        {# ============================ Columna del resumen ============================ #}
+        <aside class="pago-resumen prem-aparece" style="--n: 3" aria-label="Resumen de tu compra">
+
+          <div class="pago-resumen__cab">
+            <h2 class="pago-resumen__titulo"><span class="prem-estrella prem-estrella--brilla"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-estrella" /></svg></span> Ahora Qué Premium</h2>
+            <span class="pago-resumen__etiqueta">Resumen</span>
+          </div>
+
+          <div class="prem-ciclo" role="radiogroup" aria-label="Frecuencia de pago" data-ciclo="{{ ciclo }}" data-ciclo-selector>
+            <span class="prem-ciclo__pastilla" aria-hidden="true"></span>
+            <button class="prem-ciclo__op" type="button" role="radio" aria-checked="{{ 'true' if ciclo == 'mensual' else 'false' }}" data-ciclo-op="mensual">Mensual</button>
+            <button class="prem-ciclo__op" type="button" role="radio" aria-checked="{{ 'true' if ciclo == 'anual' else 'false' }}" data-ciclo-op="anual">Anual <span class="prem-ciclo__ahorro">−{{ precios.anual.descuento }}%</span></button>
+          </div>
+
+          <ul class="pago-resumen__lista">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check" /></svg><span>Planes con la IA sin límite semanal</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check" /></svg><span>Una estrella junto a tu nombre</span></li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check" /></svg><span>Todo lo del plan gratis</span></li>
+          </ul>
+
+          <div class="pago-resumen__total">
+            <p class="pago-resumen__linea"><span data-resumen-concepto>Premium · mensual</span><span data-resumen-parcial>$ {{ precios.mensual.total }}</span></p>
+            <p class="pago-resumen__linea pago-resumen__linea--total"><span>Total hoy</span><span class="pago-resumen__monto" data-resumen-total>$ {{ precios.mensual.total }}</span></p>
+          </div>
+
+          <p class="pago-resumen__nota">Cancelás cuando quieras desde Tu suscripción. Es una demostración: no se hace ningún cobro.</p>
+        </aside>
 
       </div>
+
+      {# Esta es la única forma que viaja al servidor, y solo lleva el método y la frecuencia: nunca datos de la tarjeta. #}
+      <form id="pago-enviar" method="post" action="/premium/pagar" hidden>
+        <input type="hidden" name="metodo" value="tarjeta" />
+        <input type="hidden" name="ciclo" value="{{ ciclo }}" />
+        <input type="hidden" name="confirmado" value="1" />
+      </form>
 
     </section>
 
   </div>
 
 </div>
+
+{# Cortina de éxito #}
+<div class="pago-exito" data-exito role="status" aria-live="polite">
+  <div class="pago-exito__caja">
+    <span class="pago-exito__aro"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-estrella" /></svg></span>
+    <h2>¡Ya sos Premium!</h2>
+    <p>Un momento, te llevamos a tu suscripción…</p>
+  </div>
+</div>
+
+<script defer src="{{ url_for('static', filename='premium.js', v='20261107-premium2') }}"></script>
 
 {% endblock %}
