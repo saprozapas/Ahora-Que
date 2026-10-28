@@ -65,8 +65,7 @@
 
         {# Cuenta regresiva al próximo plan confirmado (se actualiza sola en el navegador). #}
         {% if proximo_plan %}
-        <aside class="card proximo" aria-label="Tu próximo plan" data-proximo data-guia-id="inicio-proximo" data-guia-orden="4"
-               data-guia-titulo="Tu próximo plan" data-guia-texto="La cuenta regresiva y el mapa de la salida confirmada. Desde ahí podés ver quiénes van y a qué distancia están.">
+        <aside class="card proximo" aria-label="Tu próximo plan" data-proximo>
           <header class="proximo__cab">
             <p class="proximo__etiqueta">Tu próximo plan</p>
             <span class="proximo__van">{{ proximo_plan.van }} {{ 'va' if proximo_plan.van == 1 else 'van' }}</span>
@@ -126,7 +125,7 @@
       <div class="dash-section dash-pend">
 
         <div class="dash-pend__cab">
-          <h2 class="h3" data-guia-id="inicio-avisos" data-guia-orden="2"              data-guia-titulo="Notificaciones" data-guia-texto="Acá aparece lo que espera tu respuesta: votaciones, horarios y menciones de tus grupos. Tocá una notificación para ir directo.">Notificaciones</h2>
+          <h2 class="h3">Notificaciones</h2>
           <span class="badge dash-pend__total" data-pend-contador{% if not pendientes_datos or not pendientes_datos.total %} hidden{% endif %}>{{ pendientes_datos.total if pendientes_datos else 0 }}</span>
           <span class="board__nav dash-pend__nav" data-pend-nav hidden>
             <span class="meta" data-pend-pagina>1 de 1</span>
@@ -156,7 +155,7 @@
       <div class="dash-section dash-sug">
 
         <div class="dash-pend__cab">
-          <h2 class="h3" data-guia-id="inicio-sugeridos" data-guia-orden="3"              data-guia-titulo="Planes para vos" data-guia-texto="Cada semana el asistente te sugiere tres planes según tus gustos. Guardalos para después y proponelos a un grupo.">Para vos esta semana</h2>
+          <h2 class="h3">Para vos esta semana</h2>
           <span class="meta">Sugeridos por el asistente · cambian cada lunes</span>
         </div>
 

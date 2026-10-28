@@ -36,8 +36,8 @@ class InicioService:
         return datos
 
     def primeros_pasos(self, user_id):
-        """Los cuatro primeros pasos para empezar, con cuáles ya se hicieron (se tildan solos con lo que hace la
-        persona, sin guardar nada). {"pasos": [...], "hechos": n, "total": 4, "completo": bool, "siguiente": índice}."""
+        """Los tres primeros pasos para empezar (grupo, invitar, primer plan), con cuáles ya se hicieron (se tildan solos con
+        lo que hace la persona, sin guardar nada). {"pasos": [...], "hechos": n, "total": 3, "completo": bool, "siguiente": índice}."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -62,9 +62,8 @@ class InicioService:
 
         definicion = [
             ("Armá un grupo", "Para planear con tus amigos", "/grupos/nuevo"),
-            ("Sumá a alguien", "Un amigo o alguien de tu grupo", "/amigos"),
-            ("Armá un plan", "Con lugares, solo o con el asistente", "/planes/nueva-idea"),
-            ("Votá o confirmá una salida", "Así se decide entre todos", "/grupos"),
+            ("Invitá a alguien", "Desde tu grupo, con su usuario", "/grupos"),
+            ("Proponé tu primer plan", "Con el asistente, en un minuto", "/crear"),
         ]
         pasos = [{"titulo": t, "detalle": d, "href": h, "hecho": ok} for (t, d, h), ok in zip(definicion, hechos)]
         pendientes = [i for i, p in enumerate(pasos) if not p["hecho"]]

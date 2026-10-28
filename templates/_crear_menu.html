@@ -14,9 +14,9 @@
   <summary
     {% if variante == 'lateral' %}
     class="btn btn--primary btn--block crear-menu__boton"
-    data-guia-id="crear" data-guia-orden="1" data-guia-titulo="Todo empieza acá" data-guia-texto="Con + Crear armás un plan, le pedís uno al asistente o creás un grupo. Es el botón que más vas a usar."
+    data-guia-id="crear" data-guia-orden="1" data-guia-titulo="Todo empieza acá" data-guia-texto="Con + Crear armás un plan (con el asistente, a mano o para que voten) o creás un grupo. Es el botón que más vas a usar."
     {% elif variante == 'dock' %}
-    class="dock__crear" aria-label="Crear"
+    class="dock__crear" aria-label="Crear" data-guia-id="crear" data-guia-orden="1" data-guia-titulo="Todo empieza acá" data-guia-texto="Con + Crear armás un plan (con el asistente, a mano o para que voten) o creás un grupo. Es el botón que más vas a usar."
     {% else %}
     class="icon-btn crear-menu__icono" aria-label="Crear"
     {% endif %}

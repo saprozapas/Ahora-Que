@@ -1884,3 +1884,19 @@ button.idea-menu__item { width: 100%; border: 0; background: none; font: inherit
 .crear__recomendado { flex: none; padding: 3px 10px; border-radius: var(--r-full); background: color-mix(in srgb, var(--on-ink) 16%, transparent); font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; }
 .crear .cuenta__fila .avatar { --size: 36px; flex: none; }
 .crear__borradores { justify-self: center; color: var(--ink-3); font-size: 0.875rem; text-decoration: underline; text-underline-offset: 0.2em; text-decoration-color: var(--line-strong); }
+
+/* ==========================================================================
+   Cómo usar la app: tres pasos
+   ========================================================================== */
+.como { display: grid; gap: var(--s-5); max-width: 560px; margin-inline: auto; align-content: start; }
+.como .page-head { margin: 0; text-align: left; }
+.como .page-head .lead { margin-inline: 0; }
+.como__pasos { display: grid; gap: var(--s-3); margin: 0; padding: 0; list-style: none; }
+.como__paso { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: var(--s-4); align-items: start; padding: var(--s-5); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-card); }
+.como__numero { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: var(--on-ink); font-size: 1.0625rem; font-weight: 700; }
+.como__texto { display: grid; gap: var(--s-2); justify-items: start; min-width: 0; }
+.como__texto p { margin: 0; color: var(--ink-2); font-size: 0.9375rem; line-height: 1.5; }
+.como__texto .btn { margin-top: var(--s-1); }
+.como__despues { display: grid; gap: var(--s-3); padding: 0 var(--s-2); }
+.como__despues ul { display: grid; gap: var(--s-2); margin: 0; padding-left: 1.1em; color: var(--ink-3); font-size: 0.9375rem; line-height: 1.5; }
+.como__despues strong { color: var(--ink-2); font-weight: 600; }

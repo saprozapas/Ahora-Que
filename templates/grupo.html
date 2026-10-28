@@ -186,8 +186,8 @@
         {% if plan.es_creador or es_admin %}
         <form method="post"
               action="{{ url_for('grupo_planes.cerrar', group_id=group.get_id(), plan_id=plan.id) }}"
-              data-confirmar="¿Cerrar la votación con los votos que hay hasta ahora?">
-          <button class="btn btn--ghost btn--sm" type="submit">Cerrar votación ahora</button>
+              data-confirmar="¿Terminar la votación con los votos que hay hasta ahora?">
+          <button class="btn btn--ghost btn--sm" type="submit">Terminar votación</button>
         </form>
         {% endif %}
 
@@ -241,7 +241,7 @@
             {% if plan.es_creador or es_admin %}
             <form method="post"
                   action="{{ url_for('grupo_planes.cerrar_horario', group_id=group.get_id(), horario_id=h.id) }}"
-                  data-confirmar="¿Cerrar la votación de este horario?">
+                  data-confirmar="¿Terminar la votación de este horario?">
               <button class="btn btn--ghost btn--sm" type="submit">Cerrar</button>
             </form>
             {% endif %}

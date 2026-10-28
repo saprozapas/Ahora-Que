@@ -504,7 +504,7 @@ class GrupoPlanService:
             with connection.cursor() as cursor:
                 estado, creado_por, _ = self._plan_del_grupo(cursor, plan_id, group_id, user_id)
                 if str(creado_por) != str(user_id) and not self._es_admin(cursor, group_id, user_id):
-                    raise GrupoPlanError("Solo quien propuso el plan o un admin del grupo puede cerrar la votación.")
+                    raise GrupoPlanError("Solo quien propuso el plan o un admin del grupo puede terminar la votación.")
                 if estado != "votacion":
                     raise GrupoPlanError("La votación de este plan ya se cerró.")
                 resultado = self._resolver_votacion(cursor, plan_id, forzar=True)
@@ -597,7 +597,7 @@ class GrupoPlanService:
             with connection.cursor() as cursor:
                 _, (estado, creado_por, _) = self._horario_del_grupo(cursor, horario_id, group_id, user_id)
                 if str(creado_por) != str(user_id) and not self._es_admin(cursor, group_id, user_id):
-                    raise GrupoPlanError("Solo quien propuso el plan o un admin del grupo puede cerrar la votación.")
+                    raise GrupoPlanError("Solo quien propuso el plan o un admin del grupo puede terminar la votación.")
                 resultado = self._resolver_horario(cursor, horario_id, forzar=True)
             connection.commit()
             return resultado
