@@ -194,6 +194,8 @@ let chatYaCargado = false;
 function bajarAlFinal() {
     const zona = document.querySelector("[data-group-scroll]");
     if (zona) zona.scrollTop = zona.scrollHeight;
+    // En celular la lista de mensajes tiene su propio desplazamiento: también se baja al último mensaje.
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function cargarMensajes() {
@@ -227,6 +229,7 @@ async function cargarMensajes() {
         const estabaAbajo = !chatYaCargado
             || (zona.scrollTop + zona.clientHeight >= zona.scrollHeight - 160);
 
+        const internoAbajo = chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 160;
         const respuestasBot = Array.from(chatMessages.querySelectorAll("[data-bot-efimero]"));
         chatMessages.replaceChildren(fragmento);
         respuestasBot.forEach(function (respuestaBot) {
@@ -238,6 +241,9 @@ async function cargarMensajes() {
 
         if (estabaAbajo) {
             zona.scrollTop = zona.scrollHeight;
+        }
+        if (estabaAbajo || internoAbajo) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         chatYaCargado = true;

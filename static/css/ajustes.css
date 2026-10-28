@@ -1900,3 +1900,89 @@ button.idea-menu__item { width: 100%; border: 0; background: none; font: inherit
 .como__despues { display: grid; gap: var(--s-3); padding: 0 var(--s-2); }
 .como__despues ul { display: grid; gap: var(--s-2); margin: 0; padding-left: 1.1em; color: var(--ink-3); font-size: 0.9375rem; line-height: 1.5; }
 .como__despues strong { color: var(--ink-2); font-weight: 600; }
+
+/* ==========================================================================
+   Celular compacto: menos alto en cada pantalla
+   ========================================================================== */
+.txt-largo { display: inline; }
+
+@media (max-width: 900px) {
+
+  /* --- Tus grupos: solo nombre, planeta y rango chico --- */
+  .groups-list .group-tile { min-height: 0; padding: var(--s-3) var(--s-4); gap: 6px; }
+  .group-tile .plan-tile__text, .group-tile > .meta, .group-tile__avatar { display: none; }
+  .group-tile .plan-tile__title { font-size: 1.25rem; line-height: 1.15; padding-right: 0; }
+  .group-tile__planeta { top: -44px; right: -44px; }
+  .group-tile__planeta .planeta { width: 118px; height: 118px; }
+  .group-tile__planeta ~ .plan-tile__title { padding-right: 70px; }
+  .group-tile .racha-chip { transform-origin: left center; font-size: 0.6875rem; min-height: 0; padding: 2px 8px; gap: 4px; }
+  .group-tile .racha-chip svg { width: 12px; height: 12px; }
+  .groups-list { gap: var(--s-2); }
+  .page-head .page-head__row .lead, .groups-carousel ~ .lead { display: none; }
+
+  /* --- Próximo plan: una tarjeta baja --- */
+  .dash-hero .proximo { padding: 14px 16px; gap: 0; }
+  .proximo__cab { margin-bottom: 4px; }
+  .dash-hero .proximo__nombre { margin-bottom: 8px; font-size: 1.25rem; }
+  .proximo__datos { gap: 4px; margin-bottom: 10px; }
+  .proximo__dato { font-size: 0.8125rem; }
+  .dash-hero .proximo__cuenta { padding-top: 10px; margin-bottom: 10px; }
+  .cuenta__u { gap: 3px; padding: 0 var(--s-2); }
+  .cuenta__u b { font-size: 1.5rem; }
+  .cuenta__u small { font-size: 0.625rem; }
+  .proximo__acciones { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-2); }
+  .proximo__acciones .btn { height: 36px; }
+  .dash-brief .voice { font-size: 1.375rem; }
+  .dash-hero .page { padding-block: var(--s-3) var(--s-2); }
+  .notif__link { padding-block: 9px; }
+
+  /* --- Grupo: las paradas del plan en filas finas --- */
+  .parada { grid-template-columns: auto minmax(0, 1fr) auto; padding: 6px var(--s-3); gap: var(--s-2); }
+  .parada__num { width: 22px; height: 22px; }
+  .parada__mapa { grid-column: auto; justify-self: end; padding: 4px 8px; font-size: 0.75rem; }
+  .parada__mapa span { display: none; }
+  .parada__mapa svg { width: 18px; height: 18px; }
+  .parada__donde.dist { display: none; }
+  .board-plan { padding: var(--s-3) var(--s-4); gap: var(--s-2); }
+  .board-plan__head .plan-tile__title { font-size: 1.375rem; }
+  .board-plan__head .quote { display: none; }
+  .board .board__head { padding-bottom: var(--s-1); }
+  .board { gap: var(--s-3); }
+  .board-plan__votes { gap: var(--s-2); }
+  .board-plan .seg button, .board-plan .seg label span { height: 34px; }
+  .board-plan__form .btn { height: 38px; }
+
+  /* --- Chat: el área de mensajes ocupa la pantalla y es la que se desplaza --- */
+  .group-page--chat .group-head .lead, .group-page--chat .group-members { display: none; }
+  .group-page--chat .group-actions { display: none; }
+  .group-page--chat .group-head { margin-bottom: var(--s-2); }
+  .group-page--chat .chat__toolbar { margin: 0; min-height: 0; }
+  .group-page--chat .chat__toolbar .btn { height: 28px; font-size: 0.75rem; }
+  .group-page--chat .chat__messages { max-height: calc(100dvh - 330px); min-height: 200px; overflow-y: auto; overscroll-behavior: contain; }
+
+  /* --- Amigos: nombre y botón en la misma fila --- */
+  .friend-row { flex-wrap: nowrap; gap: var(--s-2); padding: var(--s-2) var(--s-3); }
+  .friend-row__who { flex: 1 1 0; min-width: 0; }
+  .friend-row__actions { flex: none; width: auto; }
+  .friend-row__actions .btn { flex: none; }
+  .friend-row__who .meta, .friend-row__who small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .txt-largo { display: none; }
+
+  /* --- Ajustes --- */
+  .perfil-pantalla .profile-row { padding-block: var(--s-2); }
+  .perfil-pantalla .profile__head { margin-bottom: var(--s-2); }
+}
+
+@media (max-width: 900px) {
+  /* Chat: cabecera de una sola fila y los mensajes ocupan lo que queda de la pantalla. */
+  .group-page--chat .group-head__title { gap: var(--s-2); }
+  .group-page--chat .group-head__title .avatar, .group-page--chat .group-head__title .emblema { --size: 34px !important; width: 34px; height: 34px; font-size: 0.9375rem; }
+  .group-page--chat .group-head .h2 { font-size: 1.25rem; }
+  .group-page--chat .tabs { margin-top: 0; }
+  .group-page--chat .chat__messages { max-height: calc(100dvh - 522px); }
+
+  /* Votar: "me gusta" y "puedo" lado a lado. */
+  .board-plan__votes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .board-plan__votes .field-group > legend { font-size: 0.75rem; line-height: 1.25; }
+  .board-plan__form { gap: var(--s-2); }
+}

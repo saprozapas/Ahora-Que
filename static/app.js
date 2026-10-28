@@ -797,8 +797,9 @@
     // Los mismos cortes que .groups-list en el CSS: 1 / 2 / 3 columnas.
     const tarjetasPorPagina = () => {
 
+      // Las tarjetas son compactas en celular: caben tres por página.
       if (window.innerWidth <= 650) {
-        return 1;
+        return 3;
       }
 
       if (window.innerWidth <= 900) {
