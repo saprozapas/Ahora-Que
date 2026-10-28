@@ -16,7 +16,7 @@
 
       <header class="page-head">
         <h1 class="h2">Proponé un plan.</h1>
-        <p class="lead">Elegí uno de tus planes guardados y cuándo lo harían. El grupo vota si le gusta y si puede en ese horario.</p>
+        <p class="lead">Elegí uno de tus borradores y cuándo lo harían. El grupo vota si le gusta y si puede en ese horario.</p>
       </header>
 
       {% if error %}
@@ -28,7 +28,7 @@
       <form class="postular" method="post">
 
         <fieldset class="field-group">
-          <legend>Tus planes guardados</legend>
+          <legend>Tus borradores</legend>
 
           <div class="postular__ideas">
             {% for idea in ideas %}
@@ -37,7 +37,7 @@
                      {% if valores.get('idea_id') == idea.id | string %}checked{% endif %} />
               <span class="plan-tile__title">{{ idea.nombre }}</span>
               <span class="meta">
-                {{ 'Guardada' if idea.guardado else 'Archivada' }} · {{ idea.resumen_lugares }}
+                {{ 'Borrador' if idea.guardado else 'Pasado' }} · {{ idea.resumen_lugares }}
                 {% if idea.precio_min is not none and idea.precio_max is not none %}
                   · ${{ idea.precio_min | int }}{% if idea.precio_min != idea.precio_max %} - ${{ idea.precio_max | int }}{% endif %}
                 {% endif %}
@@ -69,7 +69,7 @@
       {% else %}
 
       <div class="empty-state">
-        <h2 class="h3">No tenés planes guardados.</h2>
+        <h2 class="h3">No tenés borradores.</h2>
         <p>Creá un plan o guardá alguno que veas en Social, y después volvé a proponerlo acá.</p>
         <a class="btn btn--primary" href="{{ url_for('grupo_planes.asistente', group_id=group.get_id()) }}">Crear con el asistente</a>
         <a class="btn btn--secondary" href="{{ url_for('planes.nueva_idea') }}">Crear a mano</a>

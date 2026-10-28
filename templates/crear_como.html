@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Armar un plan — Ahora Qué{% endblock %}
+
+{# Una fila con ícono, nombre, explicación y flecha. #}
+{% macro opcion(href, icono, texto, nota) -%}
+<li>
+  <a class="cuenta__fila" href="{{ href }}">
+    <span class="cuenta__icono" aria-hidden="true">{{ icono | safe }}</span>
+    <span class="cuenta__texto"><strong>{{ texto }}</strong><small>{{ nota }}</small></span>
+    <svg class="cuenta__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </a>
+</li>
+{%- endmacro %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="container page crear">
+
+      <a class="back-link" href="/crear">← ¿Con quién?</a>
+
+      <header class="page-head">
+        <h1 class="h2">¿Cómo lo armamos?</h1>
+        <p class="lead">{% if grupo %}Para el grupo <strong>{{ grupo.get_name() }}</strong>.{% else %}Un plan solo para vos.{% endif %}</p>
+      </header>
+
+      <a class="crear__principal" href="{{ '/grupos/' ~ grupo.get_id() ~ '/asistente' if grupo else '/planes/nueva-idea/asistente' }}">
+        <span class="cuenta__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 1.7 4.6L18.3 9l-4.6 1.4L12 15l-1.7-4.6L5.7 9l4.6-1.4ZM18.5 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg></span>
+        <span class="cuenta__texto"><strong>Con el asistente</strong><small>Contale qué querés hacer y te propone un plan</small></span>
+        <span class="crear__recomendado">Recomendado</span>
+      </a>
+
+      <p class="crear__etiqueta">Otras formas</p>
+      <ul class="cuenta__lista">
+        {% if grupo %}
+        {{ opcion('/grupos/' ~ grupo.get_id() ~ '/encuestas/nueva', '<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>', 'Que voten el día', 'Armamos opciones y el grupo vota una') }}
+        {{ opcion('/grupos/' ~ grupo.get_id() ~ '/postular', '<svg viewBox="0 0 24 24"><path d="M6 3.8h12v16.4l-6-4.2-6 4.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>', 'Proponer un borrador', 'Elegí uno de tus planes sin fecha') }}
+        {% else %}
+        {{ opcion('/planes/nueva-idea', '<svg viewBox="0 0 24 24"><path d="M16.5 4.5a2.12 2.12 0 0 1 3 3L8 19l-4 1 1-4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>', 'Armarlo a mano', 'Elegís vos los lugares') }}
+        {{ opcion('/planes/guardados', '<svg viewBox="0 0 24 24"><path d="M6 3.8h12v16.4l-6-4.2-6 4.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>', 'Mis borradores', 'Planes que dejaste sin fecha') }}
+        {% endif %}
+      </ul>
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

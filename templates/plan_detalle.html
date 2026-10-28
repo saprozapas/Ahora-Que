@@ -26,7 +26,7 @@
 
           <p class="plan-detail__meta">
             {% if plan.estado == 'idea' %}
-              <span class="tag">Para después</span>
+              <span class="tag">Borrador</span>
               <span class="meta">Sin fecha: se elige al proponerlo en un grupo.</span>
             {% else %}
               <span class="tag{% if plan.estado == 'confirmado' %} tag--ink{% endif %}">{{ plan.estado_texto }}</span>
@@ -186,11 +186,11 @@
 
           {% if plan.guardado %}
           <form method="post" action="{{ url_for('planes.desguardar', plan_id=plan.id) }}">
-            <button class="btn btn--secondary btn--lg" type="submit">Quitar de planes guardados</button>
+            <button class="btn btn--secondary btn--lg" type="submit">Quitar de borradores</button>
           </form>
           {% else %}
           <form method="post" action="{{ url_for('planes.guardar', plan_id=plan.id) }}">
-            <button class="btn btn--secondary btn--lg" type="submit">Guardar para después</button>
+            <button class="btn btn--secondary btn--lg" type="submit">Guardar como borrador</button>
           </form>
           {% endif %}
 

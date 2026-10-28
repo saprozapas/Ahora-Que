@@ -67,12 +67,12 @@ def de_grupo():
     planes = plan_service.get_planes_grupo(session["user_id"])
     return render_template(
         "planes_lista.html",
-        titulo="Planes de grupo",
-        subtitulo="Planes de tus grupos en votación, esperando horario, o confirmados por otros a los que todavía te podés sumar.",
+        titulo="Planes votando",
+        subtitulo="Planes de tus grupos que se están votando, o confirmados por otros a los que todavía te podés sumar.",
         planes=planes,
         mostrar_fecha=True,
         mostrar_quitar_guardado=False,
-        vacio="No hay planes de grupo pendientes de confirmar.",
+        vacio="No hay planes votándose ahora.",
     )
 
 
@@ -83,12 +83,12 @@ def guardados():
     planes = plan_service.get_planes_guardados(session["user_id"])
     return render_template(
         "planes_lista.html",
-        titulo="Ideas guardadas",
+        titulo="Borradores",
         subtitulo="Tus planes sin fecha: proponelos en un grupo para que los voten.",
         planes=planes,
         mostrar_fecha=False,
         mostrar_quitar_guardado=True,
-        vacio="No guardaste ningún plan todavía. Creá uno o guardá uno desde Social.",
+        vacio="No tenés borradores todavía. Armá un plan o guardá uno desde Social.",
     )
 
 
@@ -99,12 +99,12 @@ def archivados():
     planes = plan_service.get_archivados(session["user_id"])
     return render_template(
         "planes_lista.html",
-        titulo="Planes archivados",
+        titulo="Planes pasados",
         subtitulo="Planes que ya hiciste. También los podés volver a proponer en un grupo.",
         planes=planes,
         mostrar_fecha=True,
         mostrar_quitar_guardado=False,
-        vacio="Todavía no tenés planes archivados.",
+        vacio="Todavía no tenés planes pasados.",
     )
 
 

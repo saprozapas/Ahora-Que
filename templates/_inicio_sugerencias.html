@@ -1,7 +1,7 @@
 {#
   "Para vos esta semana": los 3 planes que el asistente le sugiere a cada usuario (services/sugerencia_service.py).
   Se arman una vez por semana y cambian el lunes. Cada tarjeta muestra lo mínimo (distancia, nombre y por dónde pasa);
-  al tocarla se despliega la descripción y el botón para guardarla en "Para después". Es un <details> nativo con
+  al tocarla se despliega la descripción y el botón para guardarla como borrador. Es un <details> nativo con
   nombre compartido: se abre una a la vez y se maneja con el teclado sin JavaScript.
 #}
 
@@ -21,7 +21,7 @@
       <div class="sug-detalle">
         {% if s.descripcion %}<p class="sug-desc">{{ s.descripcion }}</p>{% endif %}
         <form method="post" action="/inicio/sugerencias/{{ s.id }}/guardar" class="sug-form">
-          <button class="btn btn--secondary btn--sm" type="submit">Guardar para después</button>
+          <button class="btn btn--secondary btn--sm" type="submit">Guardar como borrador</button>
         </form>
       </div>
     </details>

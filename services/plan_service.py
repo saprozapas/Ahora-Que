@@ -11,13 +11,13 @@ from services.notification_service import NotificationService
 
 # Texto para mostrar cada estado en pantalla.
 ESTADOS_PLAN = {
-    "idea": "Para después",
-    "votacion": "Para votar",
-    "esperando_horario": "Esperando horario",
+    "idea": "Borrador",
+    "votacion": "Votando",
+    "esperando_horario": "Votando",
     "confirmado": "Confirmado",
-    "rechazado": "Descartado",
-    "vencido": "Vencido",
-    "archivado": "Archivado",
+    "rechazado": "Pasado",
+    "vencido": "Pasado",
+    "archivado": "Pasado",
     "activo": "Confirmado",
 }
 

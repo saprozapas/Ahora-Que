@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import emblema %}
+
+{% block title %}Armar un plan — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-layout dashboard-layout-page">
+
+  {% include '_dashboard_sidebar.html' %}
+
+  <div class="dashboard-main">
+
+    <section class="container page crear">
+
+      <a class="back-link" href="/dashboard">← Inicio</a>
+
+      <header class="page-head">
+        <h1 class="h2">¿Con quién?</h1>
+        <p class="lead">Elegí dónde querés armar el plan.</p>
+      </header>
+
+      {% if grupos %}
+      <p class="crear__etiqueta">Tus grupos</p>
+      <ul class="cuenta__lista">
+        {% for grupo in grupos %}
+        <li>
+          <a class="cuenta__fila" href="/crear/{{ grupo.get_id() }}">
+            <span class="cuenta__icono" aria-hidden="true" style="background: none; width: auto; height: auto">{{ emblema(grupo.get_name(), none, 36) }}</span>
+            <span class="cuenta__texto"><strong>{{ grupo.get_name() }}</strong><small>Se vota entre todos</small></span>
+            <svg class="cuenta__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <p class="crear__etiqueta">Otra opción</p>
+      <ul class="cuenta__lista">
+        <li>
+          <a class="cuenta__fila" href="/crear/yo">
+            <span class="cuenta__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M5 20c.7-3.700 3.200-5.600 7-5.600s6.300 1.900 7 5.600" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg></span>
+            <span class="cuenta__texto"><strong>Solo yo</strong><small>Un plan personal, sin grupo</small></span>
+            <svg class="cuenta__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+        </li>
+        <li>
+          <a class="cuenta__fila" href="/grupos/nuevo">
+            <span class="cuenta__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg></span>
+            <span class="cuenta__texto"><strong>Un grupo nuevo</strong><small>Armá un grupo e invitá a tus amigos</small></span>
+            <svg class="cuenta__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+        </li>
+      </ul>
+
+      {% if borradores %}
+      <a class="crear__borradores" href="/planes/guardados">Tus borradores ({{ borradores }})</a>
+      {% endif %}
+
+    </section>
+
+  </div>
+
+</div>
+
+{% endblock %}

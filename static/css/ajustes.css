@@ -1869,3 +1869,18 @@ button.idea-menu__item { width: 100%; border: 0; background: none; font: inherit
   .group-brief { display: none; }
   .group-head { gap: var(--s-2); }
 }
+
+/* ==========================================================================
+   Crear: ¿Con quién? → ¿Cómo lo armamos?
+   ========================================================================== */
+.crear { display: grid; gap: var(--s-4); max-width: 560px; margin-inline: auto; align-content: start; }
+.crear .page-head { margin: 0; text-align: left; }
+.crear .page-head .lead { margin-inline: 0; }
+.crear__etiqueta { margin: var(--s-2) 0 0; color: var(--ink-3); font-size: 0.75rem; font-weight: 650; letter-spacing: 0.1em; text-transform: uppercase; }
+.crear__principal { display: flex; align-items: center; gap: var(--s-3); min-height: 72px; padding: 12px var(--s-4); border-radius: var(--r-lg); background: var(--ink); color: var(--on-ink); text-decoration: none; box-shadow: var(--sh-card); }
+.crear__principal .cuenta__icono { background: color-mix(in srgb, var(--on-ink) 14%, transparent); color: var(--on-ink); }
+.crear__principal .cuenta__texto small { color: color-mix(in srgb, var(--on-ink) 70%, transparent); }
+.crear__principal .cuenta__flecha { color: color-mix(in srgb, var(--on-ink) 60%, transparent); }
+.crear__recomendado { flex: none; padding: 3px 10px; border-radius: var(--r-full); background: color-mix(in srgb, var(--on-ink) 16%, transparent); font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; }
+.crear .cuenta__fila .avatar { --size: 36px; flex: none; }
+.crear__borradores { justify-self: center; color: var(--ink-3); font-size: 0.875rem; text-decoration: underline; text-underline-offset: 0.2em; text-decoration-color: var(--line-strong); }

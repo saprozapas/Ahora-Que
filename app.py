@@ -22,6 +22,7 @@ from routes.push import push_bp
 from services.avatar_service import AvatarService
 from routes.deudas import deudas_bp
 from routes.suscripcion import suscripcion_bp
+from routes.crear import crear_bp
 from services.inicio_service import InicioService
 from services.guia_nueva import es_guia_pendiente
 from services.sugerencia_service import SugerenciaService
@@ -72,6 +73,7 @@ app.register_blueprint(guia_bp)
 app.register_blueprint(avatar_bp)
 app.register_blueprint(deudas_bp)
 app.register_blueprint(suscripcion_bp)
+app.register_blueprint(crear_bp)
 app.register_blueprint(social_api)
 app.register_blueprint(push_bp)
 invitation_service = InvitationService()

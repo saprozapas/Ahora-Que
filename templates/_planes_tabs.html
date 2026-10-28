@@ -1,11 +1,10 @@
-{# Pestañas de "Mis planes": las cuatro listas (el calendario tiene su propio lugar en la barra).
+{# Pestañas de "Mis planes": los tres estados (los borradores se ven desde + Crear) (el calendario tiene su propio lugar en la barra).
    Solo la lista actual muestra cuántos planes tiene (la ruta le pasa `planes`
    al template; el calendario no tiene ese número). #}
 {% set pestanas = [
   ('/planes/confirmados', 'Confirmados'),
-  ('/planes/grupo', 'De grupo'),
-  ('/planes/guardados', 'Para después'),
-  ('/planes/archivados', 'Archivados'),
+  ('/planes/grupo', 'Votando'),
+  ('/planes/archivados', 'Pasados'),
 ] %}
 
 <nav class="chips planes-tabs" aria-label="Mis planes">
