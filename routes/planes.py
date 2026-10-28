@@ -1,7 +1,7 @@
 import math
 import uuid
 
-from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, flash, jsonify, make_response, redirect, render_template, request, session, url_for
 from services.plan_service import PlanService
 from services.plan_ubicacion_service import PlanUbicacionService, UbicacionNoPermitida
 from services.lugar_service import LugarService
@@ -313,6 +313,56 @@ def puntuar(plan_id):
     else:
         flash("Solo pueden puntuar quienes fueron al plan, 12 h después de que arrancó.", "error")
     return _volver_a(request.form.get("volver"), plan_id)
+
+
+def _ics_texto(texto):
+    """Escapa un texto para un archivo .ics (RFC 5545)."""
+    texto = str(texto or "").replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
+    return texto.replace("\r", "").replace("\n", "\\n")
+
+
+@planes_bp.route("/<plan_id>/calendario.ics")
+def agregar_al_calendario(plan_id):
+    """Un evento para el calendario del celular (Google, Apple, Outlook): se abre y pregunta si agregarlo."""
+    if _sin_sesion():
+        return redirect(url_for("auth.login"))
+    plan = plan_service.get_plan_detalle(plan_id, session["user_id"])
+    if plan is None or not plan.get("fecha"):
+        abort(404)
+
+    from datetime import datetime, time, timedelta, timezone
+    from zoneinfo import ZoneInfo
+
+    hora = plan.get("hora") or time(0, 0)
+    inicio = datetime.combine(plan["fecha"], hora).replace(tzinfo=ZoneInfo("America/Montevideo"))
+    fin = inicio + timedelta(hours=2)
+    formato = "%Y%m%dT%H%M%SZ"
+    lugares = plan.get("lugares") or []
+    donde = ""
+    if lugares:
+        donde = ", ".join(x for x in [lugares[0].get("nombre"), lugares[0].get("direccion"), lugares[0].get("barrio")] if x)
+    descripcion = "Plan de Ahora Qué" + (f" · Grupo {_ics_texto(plan['grupo'])}" if plan.get("grupo") else "")
+    if len(lugares) > 1:
+        descripcion += "\\nRecorrido: " + " → ".join(_ics_texto(x.get("nombre")) for x in lugares)
+
+    lineas = [
+        "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Ahora Que//Plan//ES", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+        "BEGIN:VEVENT",
+        f"UID:{plan_id}@ahoraque",
+        "DTSTAMP:" + datetime.now(timezone.utc).strftime(formato),
+        "DTSTART:" + inicio.astimezone(timezone.utc).strftime(formato),
+        "DTEND:" + fin.astimezone(timezone.utc).strftime(formato),
+        "SUMMARY:" + _ics_texto(plan["nombre"]),
+        "DESCRIPTION:" + descripcion,
+        "LOCATION:" + _ics_texto(donde),
+        "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + _ics_texto(plan["nombre"]), "TRIGGER:-PT1H", "END:VALARM",
+        "END:VEVENT", "END:VCALENDAR",
+    ]
+    respuesta = make_response("\r\n".join(lineas) + "\r\n")
+    respuesta.headers["Content-Type"] = "text/calendar; charset=utf-8"
+    respuesta.headers["Content-Disposition"] = 'inline; filename="plan.ics"'
+    respuesta.headers["Cache-Control"] = "no-store"
+    return respuesta
 
 
 @planes_bp.route("/<plan_id>")

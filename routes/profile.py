@@ -14,6 +14,14 @@ deuda_service = DeudaService()
 plan_service = PlanService()
 notification_service = NotificationService()
 
+@profile.route("/cuenta")
+def cuenta():
+    """El Perfil en el celular: un menú de accesos (planes, amigos, calendario, deudas, ajustes) en vez de una pantalla de datos."""
+    if not session.get("user_id"):
+        return redirect(url_for("auth.login"))
+    return render_template("cuenta.html")
+
+
 @profile.route("/perfil", methods=["GET", "POST"])
 def perfil():
     if not session.get("user_id"):

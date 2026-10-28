@@ -49,7 +49,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261026-barra-original') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261026-barra-original') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261106-una-fila') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261108-perfil') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261023-sereno-ui-v3') }}" />
 
     <link
@@ -267,7 +267,7 @@
       {% block content %}{% endblock %}
     </main>
 
-    {# Dock de navegación (solo celular y con sesión): Inicio · Planes · + Crear · Grupos · Social. #}
+    {# Dock de navegación (solo celular y con sesión): Inicio · Grupos · + Crear · Social · Perfil. #}
     {% if logueado %}
     {% set ruta_actual = request.path %}
     <nav class="dock" aria-label="Navegación principal">
@@ -277,21 +277,22 @@
         <span>Inicio</span>
       </a>
 
-      <a class="dock__item{% if ruta_actual.startswith('/planes') %} is-activo{% endif %}" href="/planes/"{% if ruta_actual.startswith('/planes') %} aria-current="page"{% endif %}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="13" y="4" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="4" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /><rect x="13" y="13" width="7" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8" /></svg>
-        <span>Planes</span>
-      </a>
-
-      {% with variante = 'dock' %}{% include '_crear_menu.html' %}{% endwith %}
-
       <a class="dock__item{% if ruta_actual.startswith('/grupos') or ruta_actual.startswith('/racha') %} is-activo{% endif %}" href="/grupos"{% if ruta_actual.startswith('/grupos') or ruta_actual.startswith('/racha') %} aria-current="page"{% endif %}>
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M3.5 19c.6-3 2.4-4.5 5.5-4.5s4.9 1.5 5.5 4.5M14 15c2.7-.3 4.7 1 5.3 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
         <span>Grupos</span>
       </a>
 
+      {% with variante = 'dock' %}{% include '_crear_menu.html' %}{% endwith %}
+
       <a class="dock__item{% if ruta_actual.startswith('/social') %} is-activo{% endif %}" href="/social"{% if ruta_actual.startswith('/social') %} aria-current="page"{% endif %}>
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="18" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.8" /><circle cx="18" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="m7.8 11 8.4-4M7.8 13l8.4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
         <span>Social</span>
+      </a>
+
+      {% set en_perfil = ruta_actual.startswith(('/cuenta', '/perfil', '/planes', '/amigos', '/calendario', '/deudas', '/premium', '/suscripcion', '/tutorial')) %}
+      <a class="dock__item{% if en_perfil %} is-activo{% endif %}" href="/cuenta"{% if en_perfil %} aria-current="page"{% endif %}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M5 20c.7-3.7 3.200-5.600 7-5.600s6.300 1.900 7 5.600" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>
+        <span>Perfil</span>
       </a>
 
     </nav>

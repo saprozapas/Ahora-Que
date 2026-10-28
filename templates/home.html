@@ -54,11 +54,6 @@
 
           <div class="actions">
             <a class="btn btn--primary btn--lg" href="/planes/nueva-idea">Crear un plan</a>
-            <a class="btn btn--ghost btn--lg" href="/tutorial">Cómo usar la app</a>
-            {% if not es_premium %}
-            <a class="btn btn--secondary btn--lg" href="/premium">Actualizar a Premium</a>
-            {% endif %}
-            <a class="btn btn--ghost btn--lg" href="/suscripcion">Administrar suscripción</a>
             {% if pendientes %}
             <a class="btn btn--secondary btn--lg" href="/inbox">Ver inbox <span class="badge">{{ pendientes }}</span></a>
             {% endif %}
@@ -92,6 +87,7 @@
           <p class="proximo__cuenta" data-cuenta data-momento="{{ proximo_plan.momento_iso }}" aria-live="off"><span data-cuenta-valor>…</span></p>
           <div class="proximo__acciones">
             <a class="btn btn--primary btn--sm" href="/planes/{{ proximo_plan.id }}">Ver plan</a>
+            <a class="btn btn--secondary btn--sm" href="/planes/{{ proximo_plan.id }}/calendario.ics">Agregar al calendario</a>
           </div>
         </aside>
         {% endif %}
