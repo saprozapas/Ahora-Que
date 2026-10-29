@@ -2094,12 +2094,14 @@ dialog.modal--hoja { width: min(720px, calc(100% - 32px)); }
   .chat-completo .chat__messages { padding: var(--s-3); }
   .chat-completo .chat-compose { padding-inline: var(--s-3); }
 
+  /* La hoja se desplaza ella misma (sin flex con alto 0: en el iPhone dejaba el contenido en cero y solo se veía el título). */
   dialog.modal--hoja {
-    width: 100%; max-width: 100%; margin: auto 0 0; max-height: 88dvh;
+    width: 100%; max-width: 100%; margin: auto 0 0; height: auto; max-height: 88vh; max-height: 88dvh;
     border-radius: var(--r-xl) var(--r-xl) 0 0;
   }
-  dialog.modal--hoja[open] { display: flex; flex-direction: column; }
-  dialog.modal--hoja .hoja-planes { flex: 1; min-height: 0; padding-bottom: calc(var(--s-6) + env(safe-area-inset-bottom, 0px)); }
+  dialog.modal--hoja[open] { display: block; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  dialog.modal--hoja .modal-head { position: sticky; top: 0; z-index: 2; background: var(--surface); }
+  dialog.modal--hoja .hoja-planes { display: grid; overflow: visible; min-height: 0; padding-bottom: calc(var(--s-6) + env(safe-area-inset-bottom, 0px)); }
 }
 
 @media (min-width: 901px) {
