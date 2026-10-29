@@ -1986,3 +1986,164 @@ button.idea-menu__item { width: 100%; border: 0; background: none; font: inherit
   .board-plan__votes .field-group > legend { font-size: 0.75rem; line-height: 1.25; }
   .board-plan__form { gap: var(--s-2); }
 }
+
+
+/* ==========================================================================
+   MENSAJES — la pestaña de conversaciones (como los MD de Instagram) y el chat de grupo a pantalla completa
+   (como WhatsApp): barra fina arriba con la foto y el nombre, el plan fijado en una franja, y todo lo demás es chat.
+   ========================================================================== */
+
+/* --- Globo rojo con los grupos sin leer, en el dock y en la barra lateral --- */
+.dock__icono { position: relative; display: grid; place-items: center; }
+.dock__globo {
+  position: absolute; top: -5px; right: -9px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+  display: grid; place-items: center; background: var(--danger); color: var(--on-danger);
+  font-size: 0.6875rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--surface);
+}
+.dashboard-sidebar-badge { margin-left: auto; }
+
+/* --- Lista de conversaciones --- */
+.msj { display: grid; align-content: start; gap: var(--s-3); max-width: 720px; }
+.msj__cab { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.msj__cab .h2 { margin: 0; }
+.msj__nuevo { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.msj__foto--planeta { width: 56px; height: 56px; }
+.msj__hora { flex: none; color: var(--ink-3); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.msj__fila.is-sin-leer .msj__nombre { font-weight: 700; }
+.msj__fila.is-sin-leer .msj__preview { color: var(--ink); font-weight: 600; }
+.msj__fila.is-sin-leer .msj__hora { color: var(--danger); font-weight: 600; }
+.msj__globo {
+  flex: none; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--danger); color: var(--on-danger); font-size: 0.75rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.msj__votando { flex: none; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink-2); font-size: 0.6875rem; font-weight: 600; }
+.msj__vacio { display: grid; justify-items: center; gap: var(--s-2); padding: var(--s-10) var(--s-4); text-align: center; color: var(--ink-3); }
+.msj__vacio-icono { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; border: 2px solid var(--ink-4); color: var(--ink-3); }
+.msj__vacio-icono svg { width: 34px; height: 34px; }
+.msj__vacio .h3 { margin: var(--s-2) 0 0; color: var(--ink); }
+.msj__vacio p { margin: 0 0 var(--s-2); max-width: 32ch; }
+
+/* --- Info del grupo --- */
+.info-grupo { display: grid; align-content: start; gap: var(--s-4); max-width: 640px; }
+.info-grupo__cab { display: grid; justify-items: center; gap: var(--s-2); text-align: center; }
+.info-grupo__cab .h2, .info-grupo__cab .lead { margin: 0; }
+.info-grupo__titulo { display: flex; align-items: baseline; gap: var(--s-2); margin: 0 0 var(--s-2); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
+.info-grupo__bloque { padding: var(--s-3) var(--s-4); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--sh-card); }
+.info-grupo .modal-members { margin: 0; }
+button.cuenta__fila { width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
+.info-grupo__boton--peligro .cuenta__texto strong { color: var(--danger); }
+
+/* --- Chat de grupo a pantalla completa --- */
+.chat-completo { padding: 0 !important; margin: 0; max-width: none; }
+.chat-completo > * { max-width: none; }
+
+.chat-barra {
+  flex: none; display: flex; align-items: center; gap: var(--s-1); min-height: 56px; padding: 6px var(--s-2);
+  background: var(--surface); box-shadow: inset 0 -1px 0 var(--line); position: relative; z-index: 6;
+}
+.chat-barra__volver { display: none; }
+.chat-barra__grupo { display: flex; align-items: center; gap: var(--s-2); min-width: 0; flex: 1; padding: 2px var(--s-2); border-radius: var(--r-md); color: inherit; text-decoration: none; }
+.chat-barra__grupo:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.chat-barra__textos { display: grid; min-width: 0; line-height: 1.2; }
+.chat-barra__textos strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.0625rem; font-weight: 650; }
+.chat-barra__textos small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-3); font-size: 0.75rem; }
+.chat-barra__mas { position: relative; flex: none; }
+.chat-barra__mas > summary { list-style: none; cursor: pointer; }
+.chat-barra__mas > summary::-webkit-details-marker { display: none; }
+.chat-barra__mas .idea-menu__panel { right: 0; left: auto; top: calc(100% + 6px); min-width: 250px; }
+
+/* Plan fijado: una franja fina; no molesta y se puede seguir chateando. */
+.chat-fijado {
+  flex: none; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: 46px; padding: 6px var(--s-4);
+  border: 0; font: inherit; text-align: left; cursor: pointer; color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 5%, var(--surface)); box-shadow: inset 0 -1px 0 var(--line);
+}
+.chat-fijado:hover { background: color-mix(in srgb, var(--ink) 8%, var(--surface)); }
+.chat-fijado__icono { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--on-ink); }
+.chat-fijado__icono svg { width: 15px; height: 15px; }
+.chat-fijado__textos { display: grid; min-width: 0; flex: 1; line-height: 1.2; }
+.chat-fijado__textos small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-3); font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+.chat-fijado__textos strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9375rem; font-weight: 600; }
+.chat-fijado--vacio .chat-fijado__icono { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink-4); }
+.chat-fijado--vacio .chat-fijado__textos strong { color: var(--ink-2); font-weight: 500; }
+
+/* Todo lo de abajo es el chat: los mensajes ocupan el alto y se desplazan solos; el campo queda abajo. */
+.chat-completo .group-scroll { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.chat-completo .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0; max-width: none; }
+.chat-completo .chat__messages {
+  flex: 1; min-height: 0; max-height: none; overflow-y: auto; overscroll-behavior: contain; border-radius: 0;
+  padding: var(--s-4) max(var(--s-4), calc((100% - 880px) / 2));
+}
+.chat-completo .chat-compose { flex: none; position: relative; max-width: none; padding: var(--s-2) max(var(--s-3), calc((100% - 880px) / 2)) calc(var(--s-2) + env(safe-area-inset-bottom, 0px)); background: var(--paper); box-shadow: inset 0 1px 0 var(--line); }
+.chat-completo .chat-slash-menu { left: var(--s-3); }
+
+/* --- La hoja con los planes (de abajo en el celular, centrada en escritorio) --- */
+dialog.modal--hoja { width: min(720px, calc(100% - 32px)); }
+.hoja-planes { display: grid; gap: var(--s-4); padding: var(--s-4); overflow-y: auto; }
+.hoja-planes__nuevo { justify-self: stretch; }
+.hoja-planes .board-pista { flex-direction: column; align-items: stretch; }
+
+@media (max-width: 900px) {
+  /* El chat ocupa TODA la pantalla: sin encabezado, sin dock y sin pie. */
+  body.chat-pantalla .app-header, body.chat-pantalla .dock, body.chat-pantalla .app-footer { display: none !important; }
+  body.chat-pantalla.tiene-dock, body.chat-pantalla { padding-bottom: 0; }
+  body.chat-pantalla .dashboard-layout, body.chat-pantalla .dashboard-main { display: block; height: 100dvh; min-height: 0; padding: 0; margin: 0; }
+  body.chat-pantalla .chat-completo { display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow: hidden; }
+  .chat-barra__volver { display: inline-grid; }
+  .chat-barra { padding-left: 2px; }
+  .chat-completo .chat__messages { padding: var(--s-3); }
+  .chat-completo .chat-compose { padding-inline: var(--s-3); }
+
+  dialog.modal--hoja {
+    width: 100%; max-width: 100%; margin: auto 0 0; max-height: 88dvh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+  }
+  dialog.modal--hoja[open] { display: flex; flex-direction: column; }
+  dialog.modal--hoja .hoja-planes { flex: 1; min-height: 0; padding-bottom: calc(var(--s-6) + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (min-width: 901px) {
+  /* En escritorio se queda la barra lateral y el chat ocupa el resto de la pantalla. */
+  .dashboard-layout--fija-grupo .dashboard-main > section.chat-completo { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+}
+
+
+/* --- Mensajes: la tarjeta de grupo de siempre (marco del rango, planeta de fondo), con el último mensaje --- */
+.msj__lista { display: grid; gap: var(--s-3); margin: 0; padding: 0; list-style: none; }
+.msj-tarjeta { display: grid; align-content: start; gap: 6px; min-height: 0; padding: var(--s-4) var(--s-5); color: inherit; text-decoration: none; }
+.msj-tarjeta .group-tile__planeta { top: -52px; right: -52px; }
+.msj-tarjeta .group-tile__planeta .planeta { width: 150px; height: 150px; }
+.msj-tarjeta .plan-tile__title { margin: 0; padding-right: 84px; font-size: 1.375rem; line-height: 1.15; overflow-wrap: anywhere; }
+.msj-tarjeta__preview {
+  margin: 0; padding-right: 72px; color: var(--ink-3); font-size: 0.9375rem; line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+}
+.msj-tarjeta.is-sin-leer .msj-tarjeta__preview { color: var(--ink); font-weight: 600; }
+.msj-tarjeta__pie { display: flex; align-items: center; gap: var(--s-2); min-width: 0; margin-top: 2px; }
+.msj-tarjeta__pie .racha-chip { align-self: center; }
+.msj-tarjeta__fin { display: flex; align-items: center; gap: var(--s-2); margin-left: auto; flex: none; }
+.msj-tarjeta.is-sin-leer .msj__hora { color: var(--danger); font-weight: 600; }
+@media (max-width: 900px) {
+  .msj-tarjeta { padding: var(--s-3) var(--s-4); gap: 4px; }
+  .msj-tarjeta .group-tile__planeta { top: -46px; right: -46px; }
+  .msj-tarjeta .group-tile__planeta .planeta { width: 128px; height: 128px; }
+  .msj-tarjeta .plan-tile__title { padding-right: 70px; font-size: 1.25rem; }
+  .msj-tarjeta__preview { padding-right: 56px; font-size: 0.875rem; }
+}
+
+/* --- Plan fijado: más alto, con la votación a la vista (barra de votos y botón) --- */
+.chat-fijado { min-height: 68px; padding: 10px var(--s-4); gap: var(--s-3); }
+.chat-fijado__icono { width: 36px; height: 36px; }
+.chat-fijado__icono svg { width: 18px; height: 18px; }
+.chat-fijado__textos { gap: 2px; }
+.chat-fijado__textos small { font-size: 0.6875rem; }
+.chat-fijado__textos strong { font-size: 1.0625rem; line-height: 1.2; }
+.chat-fijado__votos { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+.chat-fijado__barra { flex: none; width: 64px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 14%, transparent); overflow: hidden; }
+.chat-fijado__barra i { display: block; height: 100%; border-radius: inherit; background: var(--ink); }
+.chat-fijado__votos em, .chat-fijado__sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-3); font-size: 0.75rem; font-style: normal; }
+.chat-fijado__accion { flex: none; padding: 7px 14px; border-radius: 999px; background: var(--ink); color: var(--on-ink); font-size: 0.8125rem; font-weight: 600; }
+.chat-fijado__accion:not(.is-urgente) { background: color-mix(in srgb, var(--ink) 10%, transparent); color: var(--ink); }
+.chat-fijado__flecha { flex: none; width: 16px; height: 16px; color: var(--ink-4); }
+.chat-fijado--vacio { min-height: 52px; }
+.chat-fijado--vacio .chat-fijado__icono { width: 30px; height: 30px; }

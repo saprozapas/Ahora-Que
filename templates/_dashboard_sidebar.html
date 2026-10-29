@@ -29,6 +29,8 @@
   {%- elif nombre == 'calendario' %}
   <rect x="3.5" y="5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" />
   <path d="M3.5 9.5h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+  {%- elif nombre == 'mensajes' %}
+  <path d="M21.5 2.5 10.2 13.8M21.5 2.5l-6.8 19-4.5-8.2L2 8.8l19.5-6.3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
   {%- elif nombre == 'grupos' %}
   <circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8" />
   <circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8" />
@@ -98,6 +100,9 @@
 
     <div class="dashboard-sidebar-group">
       {{ destino('/dashboard', 'inicio', 'Inicio', ruta == '/dashboard') }}
+      {% call destino('/mensajes', 'mensajes', 'Mensajes', ruta.startswith('/mensajes') or ruta.startswith('/grupos') or ruta.startswith('/racha')) %}
+        {% if mensajes_sin_leer and mensajes_sin_leer > 0 %}<span class="badge badge--danger dashboard-sidebar-badge" aria-label="{{ mensajes_sin_leer }} sin leer">{{ mensajes_sin_leer }}</span>{% endif %}
+      {% endcall %}
 
       {% call destino('/inbox', 'inbox', 'Inbox', ruta.startswith('/inbox'), 'solo-escritorio') %}
         {% if notificaciones_pendientes and notificaciones_pendientes > 0 %}
@@ -110,7 +115,6 @@
       <p class="dashboard-sidebar-heading" id="sidebar-planear">Planear</p>
       {{ destino('/planes', 'planes', 'Mis planes', en_planes) }}
       {{ destino('/calendario', 'calendario', 'Calendario', ruta.startswith('/calendario')) }}
-      {{ destino('/grupos', 'grupos', 'Grupos', ruta.startswith('/grupos') or ruta.startswith('/racha')) }}
     </div>
 
     <div class="dashboard-sidebar-group" role="group" aria-labelledby="sidebar-gente">

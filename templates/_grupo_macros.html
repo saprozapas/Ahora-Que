@@ -1,0 +1,4 @@
+{% from '_macros.html' import nombre_rango, estrella %}
+{# La cara de un integrante: su foto si la eligió, o la inicial. #}
+{% macro cara_integrante(integrante) %}<span class="modal-member-avatar{% if integrante.avatar %} avatar--foto{% endif %}" aria-hidden="true">{% if integrante.avatar %}<img src="/avatar/{{ integrante.id }}?v={{ integrante.avatar }}" alt="" />{% else %}{{ integrante.user.get_name()[:1] | upper }}{% endif %}</span>{% endmacro %}
+{% macro rol_integrante(integrante) %}{% if integrante.id | string == owner_id | string %}<small>Owner</small>{% elif integrante.es_admin %}<small>Admin</small>{% endif %}{% endmacro %}

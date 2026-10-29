@@ -48,16 +48,11 @@ def _solo_admin(group_id):
 
 @group_auth.route("/grupos")
 def grupos():
+    """La lista de grupos ahora es la pestaña Mensajes (cada grupo es una conversación)."""
     redirect_response = _require_login()
     if redirect_response:
         return redirect_response
-
-    grupos = getGroupsForUser(session.get("user_id"))
-    rachas = racha_service.obtener_resumenes(
-        [grupo.get_id() for grupo in grupos if grupo.get_id()]
-    )
-
-    return render_template("grupos.html", groups=grupos, groups_page=True, rachas=rachas)
+    return redirect(url_for("mensajes.mensajes"))
 
 
 @group_auth.route("/grupos/nuevo", methods=["GET", "POST"])
@@ -88,23 +83,27 @@ def nuevo_grupo():
         flash("Grupo creado. Invitá a tus amigos para empezar a armar planes.")
         return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 
-    return render_template("crear_grupos.html", 
-                           error=None, 
+    return render_template("crear_grupos.html",
+                           error=None,
                            form_data={})
 
 
 @group_auth.route("/grupos/<group_id>")
 def detalle_grupo(group_id):
+    """Entrar a un grupo es entrar a su chat: los planes se ven fijados arriba del chat y los integrantes en la info."""
     redirect_response = _require_login()
     if redirect_response:
         return redirect_response
 
     if not isUserInGroup(session.get("user_id"), group_id):
-        return redirect(url_for("group_auth.grupos"))
+        return redirect(url_for("mensajes.mensajes"))
 
+    return redirect(url_for("group_auth.chat_grupo", group_id=group_id))
+
+
+def _datos_del_grupo(group_id):
+    """Lo que comparten el chat y la info del grupo. Son lecturas independientes: salen a la vez."""
     user_id = session.get("user_id")
-    plan_service.archivar_vencidos()
-    chat_service.eliminar_mensajes_viejos()
 
     def datos_del_grupo():
         group = getGroupById(group_id)
@@ -115,38 +114,34 @@ def detalle_grupo(group_id):
         owner_id = group_auth_service.get_owner_id(group_id)  # antes que el rol: si el grupo no tenía owner, lo asigna
         return owner_id, group_auth_service.get_rol(user_id, group_id)
 
-    # Lecturas independientes: salen a la vez y la página tarda lo de la más lenta (la racha), no la suma.
-    group, users, racha, tablero, encuestas, (owner_id, (es_admin, es_owner)) = correr_en_paralelo(
+    group, racha, (owner_id, (es_admin, es_owner)) = correr_en_paralelo(
         datos_del_grupo,
-        lambda: getUsersInGroupWithIds(group_id),
         lambda: racha_service.actualizar_racha(group_id),
-        lambda: grupo_plan_service.get_tablero(group_id, user_id),
-        lambda: grupo_encuesta_service.get_abiertas(group_id, user_id),
         owner_y_rol,
     )
-    return render_template("grupo.html", group=group, groups_page=True, users=users, racha=racha,
-                           es_admin=es_admin, es_owner=es_owner, owner_id=owner_id,
-                           seccion="planes", tablero=tablero, hoy=date.today().isoformat(),
-                           encuestas=encuestas)
+    return group, racha, owner_id, es_admin, es_owner
 
 
 @group_auth.route("/grupos/<group_id>/chat")
 def chat_grupo(group_id):
-    """Página del chat del grupo (los mensajes en sí los sirve routes/chat.py)."""
+    """El grupo: un chat a pantalla completa. El plan que se está votando (o confirmado) queda fijado arriba."""
     redirect_response = _require_login()
     if redirect_response:
         return redirect_response
 
     if not isUserInGroup(session.get("user_id"), group_id):
-        return redirect(url_for("group_auth.grupos"))
+        return redirect(url_for("mensajes.mensajes"))
 
-    group = getGroupById(group_id)
-    group.set_user(getUser(session.get("user_id")))
-    racha = racha_service.actualizar_racha(group_id)
-    owner_id = group_auth_service.get_owner_id(group_id)
-    es_admin, es_owner = group_auth_service.get_rol(session.get("user_id"), group_id)
-    chat_service.marcar_visto(session.get("user_id"), group_id, siempre=True)
-    integrantes = getUsersInGroupWithIds(group_id)
+    user_id = session.get("user_id")
+    plan_service.archivar_vencidos()
+    group, racha, owner_id, es_admin, es_owner = _datos_del_grupo(group_id)
+    # Lecturas independientes: salen a la vez y la página tarda lo de la más lenta, no la suma.
+    integrantes, tablero, encuestas, _ = correr_en_paralelo(
+        lambda: getUsersInGroupWithIds(group_id),
+        lambda: grupo_plan_service.get_tablero(group_id, user_id),
+        lambda: grupo_encuesta_service.get_abiertas(group_id, user_id),
+        lambda: chat_service.marcar_visto(user_id, group_id, siempre=True),
+    )
     # Quiénes se pueden mencionar con @ en el chat: se los nombra por su username (o su nombre sin espacios).
     integrantes_chat = [
         {
@@ -159,7 +154,23 @@ def chat_grupo(group_id):
     ]
     return render_template("grupo_chat.html", group=group, groups_page=True,
                            users=integrantes, seccion="chat", racha=racha,
-                           es_admin=es_admin, es_owner=es_owner, owner_id=owner_id, integrantes_chat=integrantes_chat)
+                           es_admin=es_admin, es_owner=es_owner, owner_id=owner_id, integrantes_chat=integrantes_chat,
+                           tablero=tablero, encuestas=encuestas, hoy=date.today().isoformat())
+
+
+@group_auth.route("/grupos/<group_id>/info")
+def info_grupo(group_id):
+    """La configuración del grupo: integrantes, invitar, editar, deudas y salir."""
+    redirect_response = _require_login()
+    if redirect_response:
+        return redirect_response
+
+    if not isUserInGroup(session.get("user_id"), group_id):
+        return redirect(url_for("mensajes.mensajes"))
+
+    group, racha, owner_id, es_admin, es_owner = _datos_del_grupo(group_id)
+    return render_template("grupo_info.html", group=group, groups_page=True, users=getUsersInGroupWithIds(group_id),
+                           racha=racha, es_admin=es_admin, es_owner=es_owner, owner_id=owner_id, seccion="info")
 
 
 @group_auth.route("/grupos/<group_id>/invitables")
@@ -199,7 +210,7 @@ def invitar_usuario(group_id):
     if not isUserInGroup(user_id_sesion, group_id):
         if es_ajax:
             return jsonify(ok=False, mensaje="No sos integrante de este grupo."), 403
-        return redirect(url_for("group_auth.grupos"))
+        return redirect(url_for("mensajes.mensajes"))
 
     mensaje = request.form.get("mensaje")
     nombre_invitante = getUser(user_id_sesion).get_name()
@@ -244,7 +255,7 @@ def editar_grupo(group_id):
         return redirect_response
 
     if not isUserInGroup(session.get("user_id"), group_id):
-        return redirect(url_for("group_auth.grupos"))
+        return redirect(url_for("mensajes.mensajes"))
 
     nombre = (request.form.get("nombre") or "").strip()
     descripcion = request.form.get("descripcion")
@@ -356,7 +367,7 @@ def abandonar_grupo(group_id):
         return redirect_response
 
     if not isUserInGroup(session.get("user_id"), group_id):
-        return redirect(url_for("group_auth.grupos"))
+        return redirect(url_for("mensajes.mensajes"))
 
     try:
         group_auth_service.delete_user_from_group(group_id, session.get("user_id"))
@@ -365,7 +376,7 @@ def abandonar_grupo(group_id):
         print(f"Error al abandonar el grupo: {e}")
         flash("Error al abandonar el grupo.")
 
-    return redirect(url_for("group_auth.grupos"))
+    return redirect(url_for("mensajes.mensajes"))
 
 
 
@@ -377,7 +388,7 @@ def racha_grupo(group_id):
         return redirect_response
 
     if not isUserInGroup(session.get("user_id"), group_id):
-        return redirect(url_for("group_auth.grupos"))
+        return redirect(url_for("mensajes.mensajes"))
 
     group = getGroupById(group_id)
     group.set_user(getUser(session.get("user_id")))
