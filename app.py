@@ -24,6 +24,7 @@ from routes.deudas import deudas_bp
 from routes.suscripcion import suscripcion_bp
 from routes.crear import crear_bp
 from services.inicio_service import InicioService
+from services.paralelo_service import correr_en_paralelo
 from services.guia_nueva import es_guia_pendiente
 from services.sugerencia_service import SugerenciaService
 from routes.social import es_moderador, social_api
@@ -141,13 +142,13 @@ def inject_user():
     # template; como _inbox_guardado cachea 30 s, no suma viajes a la base
     # en cada página.
     if session.get("user_id"):
-        try:
-            _, datos["notificaciones_pendientes"] = _inbox_guardado(session["user_id"])
-        except Exception as e:
-            print(f"No se pudo contar las notificaciones: {e}")
-            datos["notificaciones_pendientes"] = 0
-        datos["deudas_pendientes"] = _deudas_guardado(session["user_id"])
-        datos["es_premium"] = _premium_guardado(session["user_id"])
+        uid = session["user_id"]
+        # Tres lecturas independientes: salen a la vez (con la caché vencida eran unos siete viajes seguidos a la base).
+        datos["notificaciones_pendientes"], datos["deudas_pendientes"], datos["es_premium"] = _en_paralelo(
+            (lambda: _inbox_guardado(uid)[1], 0, "las notificaciones"),
+            (lambda: _deudas_guardado(uid), 0, "las deudas"),
+            (lambda: _premium_guardado(uid), False, "el plan del usuario"),
+        )
     return datos
 
 
@@ -200,15 +201,21 @@ def _inbox_guardado(user_id):
     if guardado and time.monotonic() - guardado[2] < _SEGUNDOS_INBOX:
         return guardado[0], guardado[1]
 
-    invitaciones = invitation_service.get_invitations_for_user(user_id)
-    solicitudes = friend_service.get_requests_for_user(user_id)
-    cantidad = len(invitaciones) + len(solicitudes)
-    # Los me gusta y comentarios nuevos también suman. Si todavía no existe la
-    # tabla de avisos, el contador sigue funcionando sin ellos.
-    try:
-        cantidad += social_service.contar_avisos_no_leidos(user_id)
-    except Exception as e:
-        print(f"No se pudieron contar los avisos de publicaciones: {e}")
+    def avisos_sin_leer():
+        # Los me gusta y comentarios nuevos también suman. Si todavía no existe la
+        # tabla de avisos, el contador sigue funcionando sin ellos.
+        try:
+            return social_service.contar_avisos_no_leidos(user_id)
+        except Exception as e:
+            print(f"No se pudieron contar los avisos de publicaciones: {e}")
+            return 0
+
+    invitaciones, solicitudes, avisos = correr_en_paralelo(
+        lambda: invitation_service.get_invitations_for_user(user_id),
+        lambda: friend_service.get_requests_for_user(user_id),
+        avisos_sin_leer,
+    )
+    cantidad = len(invitaciones) + len(solicitudes) + avisos
     _inbox_cache[user_id] = (invitaciones, cantidad, time.monotonic())
     return invitaciones, cantidad
 

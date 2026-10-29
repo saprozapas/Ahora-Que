@@ -95,16 +95,35 @@ class RachaService:
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
+                # Todo lo que no depende de lo calculado se lee en un solo viaje a la base (antes eran cuatro).
                 cursor.execute(
                     '''
-                    SELECT "Activa", "Semanas", "Ultima_Reunion",
-                           "Ultimo_Plan_Procesado", "Planes_Hechos"
-                    FROM public."Rachas"
-                    WHERE "Id_Grupo" = %s
+                    SELECT r."Activa", r."Semanas", r."Ultima_Reunion",
+                           r."Ultimo_Plan_Procesado", r."Planes_Hechos",
+                           r."Id_Grupo" IS NOT NULL,
+                           ARRAY(SELECT "Semanas" FROM public."Grupo_Insignia" WHERE "Id_Grupo" = %(g)s),
+                           (SELECT "Marco_Semanas" FROM public."Grupo_Apariencia" WHERE "Id_Grupo" = %(g)s),
+                           ARRAY(
+                               SELECT DISTINCT "Fecha"
+                               FROM public."Plan"
+                               WHERE "Grupo_id" = %(g)s
+                                 AND "Fecha" BETWEEN %(desde)s AND %(hasta)s
+                                 AND (
+                                   "Estado" = 'archivado'
+                                   OR (
+                                     "Estado" = 'confirmado'
+                                     AND "Fecha" + COALESCE("Hora", '00:00'::time)
+                                         <= (now() AT TIME ZONE 'America/Montevideo')
+                                   )
+                                 )
+                           )
+                    FROM (SELECT 1) AS uno
+                    LEFT JOIN public."Rachas" r ON r."Id_Grupo" = %(g)s
                     ''',
-                    (group_id,),
+                    {"g": group_id, "desde": inicio_semana, "hasta": hoy},
                 )
-                estado_guardado = cursor.fetchone()
+                *fila_racha, existe, hitos_guardados, marco_guardado, reuniones = cursor.fetchone()
+                estado_guardado = tuple(fila_racha) if existe else None
                 if estado_guardado:
                     _activa_guardada, semanas, ultima_reunion, ultimo_procesado, planes_hechos = estado_guardado
                     planes_hechos = planes_hechos or 0
@@ -175,24 +194,28 @@ class RachaService:
                 else:
                     activa = semanas > 0 and (hoy - ultima_reunion).days < 7
 
-                cursor.execute(
-                    '''
-                    INSERT INTO public."Rachas"
-                        ("Id_Grupo", "Activa", "Semanas", "Ultima_Reunion",
-                         "Ultimo_Plan_Procesado", "Planes_Hechos")
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    ON CONFLICT ("Id_Grupo") DO UPDATE SET
-                        "Activa" = EXCLUDED."Activa",
-                        "Semanas" = EXCLUDED."Semanas",
-                        "Ultima_Reunion" = EXCLUDED."Ultima_Reunion",
-                        "Ultimo_Plan_Procesado" = EXCLUDED."Ultimo_Plan_Procesado",
-                        "Planes_Hechos" = EXCLUDED."Planes_Hechos"
-                    ''',
-                    (group_id, activa, semanas, ultima_reunion, ultimo_procesado, planes_hechos),
-                )
+                # Solo se escribe si algo cambió: antes cada visita al grupo hacía dos escrituras (2 viajes a la base).
+                nuevo_estado = (activa, semanas, ultima_reunion, ultimo_procesado, planes_hechos)
+                if not estado_guardado or tuple(estado_guardado) != nuevo_estado:
+                    cursor.execute(
+                        '''
+                        INSERT INTO public."Rachas"
+                            ("Id_Grupo", "Activa", "Semanas", "Ultima_Reunion",
+                             "Ultimo_Plan_Procesado", "Planes_Hechos")
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        ON CONFLICT ("Id_Grupo") DO UPDATE SET
+                            "Activa" = EXCLUDED."Activa",
+                            "Semanas" = EXCLUDED."Semanas",
+                            "Ultima_Reunion" = EXCLUDED."Ultima_Reunion",
+                            "Ultimo_Plan_Procesado" = EXCLUDED."Ultimo_Plan_Procesado",
+                            "Planes_Hechos" = EXCLUDED."Planes_Hechos"
+                        ''',
+                        (group_id, activa, semanas, ultima_reunion, ultimo_procesado, planes_hechos),
+                    )
 
+                hitos_desbloqueados = set(hitos_guardados)
                 # Los logros son permanentes aunque la racha actual se reinicie.
-                hitos_a_insertar = [hito for hito in _HITOS if semanas >= hito]
+                hitos_a_insertar = [hito for hito in _HITOS if semanas >= hito and hito not in hitos_desbloqueados]
                 if hitos_a_insertar:
                     cursor.execute(
                         '''
@@ -203,37 +226,9 @@ class RachaService:
                         ''',
                         (group_id, hitos_a_insertar),
                     )
-                cursor.execute(
-                    'SELECT "Semanas" FROM public."Grupo_Insignia" WHERE "Id_Grupo" = %s',
-                    (group_id,),
-                )
-                hitos_desbloqueados = {fila[0] for fila in cursor.fetchall()}
-                cursor.execute(
-                    '''SELECT "Marco_Semanas", "Titulo_Semanas"
-                       FROM public."Grupo_Apariencia" WHERE "Id_Grupo" = %s''',
-                    (group_id,),
-                )
-                apariencia = cursor.fetchone()
-                marco_seleccionado, titulo_seleccionado = apariencia or (None, None)
-
-                cursor.execute(
-                    '''
-                    SELECT DISTINCT "Fecha"
-                    FROM public."Plan"
-                    WHERE "Grupo_id" = %s
-                      AND "Fecha" BETWEEN %s AND %s
-                      AND (
-                        "Estado" = 'archivado'
-                        OR (
-                          "Estado" = 'confirmado'
-                          AND "Fecha" + COALESCE("Hora", '00:00'::time)
-                              <= (now() AT TIME ZONE 'America/Montevideo')
-                        )
-                      )
-                    ''',
-                    (group_id, inicio_semana, hoy),
-                )
-                reuniones_semana = {fila[0] for fila in cursor.fetchall()}
+                    hitos_desbloqueados.update(hitos_a_insertar)
+                marco_seleccionado = marco_guardado
+                reuniones_semana = set(reuniones)
 
             conn.commit()
             proximo_hito = next((hito for hito in _HITOS if hito not in hitos_desbloqueados), None)

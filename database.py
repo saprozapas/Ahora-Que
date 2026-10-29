@@ -119,10 +119,17 @@ class _Cursor:
         return not _en_transaccion(self._conn) and _ES_ESCRITURA.match(texto)
 
     def execute(self, sql, params=None):
-        if isinstance(sql, (str, bytes)) and self._necesita_begin(sql):
-            sql = self._cur.mogrify(sql, params)
-            return self._cur.execute(b"BEGIN; " + sql)
-        return self._cur.execute(sql, params)
+        # ponytail: medición temporal; sacar el try/finally cuando termine la optimización.
+        inicio = time.perf_counter()
+        try:
+            if isinstance(sql, (str, bytes)) and self._necesita_begin(sql):
+                sql = self._cur.mogrify(sql, params)
+                return self._cur.execute(b"BEGIN; " + sql)
+            return self._cur.execute(sql, params)
+        finally:
+            ms = (time.perf_counter() - inicio) * 1000
+            if ms >= 50:
+                print(f"    SQL {ms:.0f} ms: {' '.join(str(sql).split())[:80]}")
 
     def executemany(self, sql, lista):
         if isinstance(sql, (str, bytes)) and self._necesita_begin(sql):

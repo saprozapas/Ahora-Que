@@ -15,6 +15,7 @@ from services.grupo_encuesta_service import (
     GrupoEncuestaService, MAX_FRANJAS, opciones_de_distancia, opciones_de_precio,
 )
 from services.lugar_service import LugarService
+from services.paralelo_service import correr_en_paralelo
 from services.notification_service import NotificationService
 from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, getUsersInGroupWithIds, isUserInGroup, getGroupById, buscarUsuariosInvitables
 
@@ -101,16 +102,28 @@ def detalle_grupo(group_id):
     if not isUserInGroup(session.get("user_id"), group_id):
         return redirect(url_for("group_auth.grupos"))
 
-    group = getGroupById(group_id)
-    group.set_user(getUser(session.get("user_id")))
-    users = getUsersInGroupWithIds(group_id)
+    user_id = session.get("user_id")
     plan_service.archivar_vencidos()
     chat_service.eliminar_mensajes_viejos()
-    racha = racha_service.actualizar_racha(group_id)
-    tablero = grupo_plan_service.get_tablero(group_id, session.get("user_id"))
-    encuestas = grupo_encuesta_service.get_abiertas(group_id, session.get("user_id"))
-    owner_id = group_auth_service.get_owner_id(group_id)  # antes que el rol: si el grupo no tenía owner, lo asigna
-    es_admin, es_owner = group_auth_service.get_rol(session.get("user_id"), group_id)
+
+    def datos_del_grupo():
+        group = getGroupById(group_id)
+        group.set_user(getUser(user_id))
+        return group
+
+    def owner_y_rol():
+        owner_id = group_auth_service.get_owner_id(group_id)  # antes que el rol: si el grupo no tenía owner, lo asigna
+        return owner_id, group_auth_service.get_rol(user_id, group_id)
+
+    # Lecturas independientes: salen a la vez y la página tarda lo de la más lenta (la racha), no la suma.
+    group, users, racha, tablero, encuestas, (owner_id, (es_admin, es_owner)) = correr_en_paralelo(
+        datos_del_grupo,
+        lambda: getUsersInGroupWithIds(group_id),
+        lambda: racha_service.actualizar_racha(group_id),
+        lambda: grupo_plan_service.get_tablero(group_id, user_id),
+        lambda: grupo_encuesta_service.get_abiertas(group_id, user_id),
+        owner_y_rol,
+    )
     return render_template("grupo.html", group=group, groups_page=True, users=users, racha=racha,
                            es_admin=es_admin, es_owner=es_owner, owner_id=owner_id,
                            seccion="planes", tablero=tablero, hoy=date.today().isoformat(),
