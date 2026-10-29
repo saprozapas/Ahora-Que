@@ -10,30 +10,47 @@
 
     <header class="auth__head">
       <h1 class="h2">Escribinos.</h1>
-      <p class="lead">¿Tenés una idea o encontraste algo que no anda? Contanos.</p>
+      <p class="lead">¿Tenés una idea, encontraste algo que no anda o querés consultar por tus datos? Contanos.</p>
     </header>
 
 
-    <form class="auth__form" method="post">
+    <form class="auth__form" method="post" action="{{ url_for('contacto') }}">
 
       {% if enviado %}
-      <p class="notice" role="status">Mensaje recibido. Gracias por escribirnos.</p>
+      <p class="notice" role="status">Mensaje enviado. Gracias por escribirnos: te respondemos al correo que dejaste.</p>
+      {% endif %}
+
+      {% if error %}
+      <p class="notice notice--error" role="alert">{{ error }}</p>
       {% endif %}
 
       <div class="field">
         <label for="nombre">Nombre</label>
-        <input class="input" id="nombre" name="nombre" type="text" autocomplete="name" required />
+        <input class="input" id="nombre" name="nombre" type="text" autocomplete="name" maxlength="80"
+               value="{{ form_data.nombre | default('', true) }}" required />
       </div>
 
       <div class="field">
         <label for="email">Email</label>
-        <input class="input" id="email" name="email" type="email" autocomplete="email" required />
+        <input class="input" id="email" name="email" type="email" autocomplete="email" maxlength="254"
+               value="{{ form_data.email | default('', true) }}" required />
       </div>
 
       <div class="field">
         <label for="mensaje">Mensaje</label>
-        <textarea class="input" id="mensaje" name="mensaje" rows="6" required></textarea>
+        <textarea class="input" id="mensaje" name="mensaje" rows="6" minlength="10" maxlength="3000" required>{{ form_data.mensaje | default('', true) }}</textarea>
       </div>
+
+      {# Campo trampa para bots: fuera de pantalla y sin foco. Una persona nunca lo completa. #}
+      <div aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;">
+        <label for="sitio_web">No completes este campo</label>
+        <input id="sitio_web" name="sitio_web" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <p class="meta">
+        Usamos tu nombre y tu correo solo para responderte; el mensaje llega al equipo por correo y no se guarda en
+        la aplicación. Más en la <a href="{{ url_for('auth.politica_privacidad') }}">política de privacidad</a>.
+      </p>
 
       <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">Enviar mensaje</button>
 

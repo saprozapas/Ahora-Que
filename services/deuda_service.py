@@ -3,8 +3,24 @@ from decimal import Decimal, InvalidOperation
 import psycopg2
 
 from database import get_db_connection, release_db_connection
+from services.crypto_service import cifrar_campo, descifrar_campo
 
 CENTAVO = Decimal("0.01")
+
+
+def _aad_cuenta(user_id):
+    """Ata el número de cuenta cifrado a su dueño (ver crypto_service.cifrar_campo)."""
+    return b"cuenta-bancaria:" + str(user_id).lower().encode("utf-8")
+
+
+def _leer_nro_cuenta(valor, user_id):
+    """Descifra el número de cuenta. Si no se puede (p. ej. cambió la clave maestra) devuelve vacío
+    en vez de romper la pantalla de deudas."""
+    try:
+        return descifrar_campo(valor, _aad_cuenta(user_id))
+    except Exception:
+        print(f"No se pudo descifrar la cuenta bancaria del usuario {user_id}")
+        return ""
 _MAX_EXACTO = 12  # hasta acá se busca el mínimo exacto de transferencias
 
 
@@ -119,7 +135,7 @@ class DeudaService:
                     WHERE d."Id_Usuario1" = %s OR d."Id_Usuario2" = %s
                     ORDER BY u."Nombre"
                     """, (user_id,) * 4)
-                filas = [{"id": str(r[0]), "nombre": r[1], "monto": r[2], "banco": r[3], "cuenta": r[4]}
+                filas = [{"id": str(r[0]), "nombre": r[1], "monto": r[2], "banco": r[3], "cuenta": _leer_nro_cuenta(r[4], r[0])}
                          for r in cur.fetchall()]
                 # monto > 0: yo le debo a esa persona; monto < 0: ella me debe a mí
                 debo = [f for f in filas if f["monto"] > 0]
@@ -228,7 +244,7 @@ class DeudaService:
                 cur.execute('SELECT "Banco", "Nro_Cuenta" FROM public."Cuenta_Bancaria" WHERE "Id_Usuario" = %s',
                             (user_id,))
                 fila = cur.fetchone()
-                return {"banco": fila[0], "cuenta": fila[1]} if fila else {"banco": "", "cuenta": ""}
+                return {"banco": fila[0], "cuenta": _leer_nro_cuenta(fila[1], user_id)} if fila else {"banco": "", "cuenta": ""}
         finally:
             release_db_connection(conn)
 
@@ -244,7 +260,8 @@ class DeudaService:
         else:
             sql = ('INSERT INTO public."Cuenta_Bancaria" ("Id_Usuario", "Banco", "Nro_Cuenta") VALUES (%s, %s, %s) '
                    'ON CONFLICT ("Id_Usuario") DO UPDATE SET "Banco" = EXCLUDED."Banco", "Nro_Cuenta" = EXCLUDED."Nro_Cuenta"')
-            params = (user_id, banco, cuenta)
+            # El número de cuenta se guarda cifrado; el banco queda en claro.
+            params = (user_id, banco, cifrar_campo(cuenta, _aad_cuenta(user_id)))
         conn = get_db_connection()
         try:
             with conn.cursor() as cur:

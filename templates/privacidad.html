@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Política de privacidad — Ahora Qué{% endblock %}
+
+{% block content %}
+
+<section class="container page">
+
+  <a class="back-link" href="{{ url_for('auth.register') }}">← Volver</a>
+
+  <header class="page-head">
+    <h1 class="h2">Política de privacidad.</h1>
+    <p class="lead">Última actualización: 29 de octubre de 2026 · Versión 1.0</p>
+  </header>
+
+  <article class="prose">
+
+    <p>Acá contamos, sin vueltas, qué datos tuyos usa Ahora Qué, para qué, con quién se comparten y qué podés hacer con ellos. Se rige por la Ley N.º 18.331 de Protección de Datos Personales de Uruguay y su reglamentación.</p>
+
+    <h2 class="h3">1. Quién es el responsable</h2>
+    <p>El responsable del tratamiento es el equipo del proyecto académico Ahora Qué. Contacto para cualquier consulta o pedido sobre tus datos: <a href="mailto:ahora.que.app@gmail.com">ahora.que.app@gmail.com</a>.</p>
+
+    <h2 class="h3">2. Qué datos tratamos</h2>
+    <ul>
+      <li><strong>De tu cuenta:</strong> nombre, fecha de nacimiento, nombre de usuario, correo electrónico y tu contraseña (que guardamos transformada con un hash, nunca en texto legible).</li>
+      <li><strong>De tu perfil:</strong> la foto de perfil si la subís y tus preferencias de notificaciones.</li>
+      <li><strong>De tu uso de la app:</strong> amistades, grupos, invitaciones, planes, votos, calificaciones, mensajes del chat de grupos y mensajes privados, y lo que publiques en Social (textos, fotos, comentarios y "me gusta").</li>
+      <li><strong>Ubicación (opcional):</strong> solo si, dentro de un plan confirmado, elegís compartir tu ubicación. Guardamos únicamente la última, nunca un historial.</li>
+      <li><strong>Datos bancarios (opcionales):</strong> banco y número de cuenta, si querés que las personas que te deben dinero puedan transferirte. Y las deudas entre integrantes que se registran en la app.</li>
+      <li><strong>Conversaciones con el asistente de IA:</strong> lo que le escribís y lo que responde.</li>
+      <li><strong>Notificaciones en el dispositivo (opcionales):</strong> los datos técnicos de la suscripción de tu navegador, si activás las notificaciones.</li>
+      <li><strong>Seguridad:</strong> un registro de intentos de inicio de sesión, para limitar los intentos fallidos.</li>
+    </ul>
+    <p>No usamos herramientas de análisis ni de publicidad, y no vendemos tus datos.</p>
+
+    <h2 class="h3">3. Para qué los usamos</h2>
+    <p>Para crear y mantener tu cuenta, permitir que armes grupos y planes con otras personas, mostrar el mapa y la ubicación de quien decide compartirla, calcular quién le debe a quién, enviarte avisos que vos activaste, mantener la seguridad de la aplicación y responder tus consultas. No los usamos para otra finalidad distinta sin pedirte antes tu consentimiento.</p>
+
+    <h2 class="h3">4. Tu consentimiento</h2>
+    <p>Al registrarte aceptás esta política y consentís el tratamiento de tus datos para esas finalidades. La ubicación, los datos bancarios y las notificaciones son opcionales y se activan solo cuando vos lo decidís; podés desactivarlos o borrarlos cuando quieras.</p>
+
+    <h2 class="h3">5. Con quién se comparten</h2>
+    <p>Lo que hacés dentro de la app lo ven las personas con las que lo compartís (tu grupo, tus amistades, o todo Social si publicás ahí). Los datos bancarios solo los ve la persona que tiene que transferirte dinero. Además usamos estos proveedores, que procesan datos por encargo nuestro:</p>
+    <ul>
+      <li><strong>Supabase</strong> (base de datos, servidores en Ohio, EE. UU.): guarda toda la información de la cuenta.</li>
+      <li><strong>Render</strong> (alojamiento de la aplicación, EE. UU.): ejecuta la aplicación.</li>
+      <li><strong>Groq</strong> (inteligencia artificial, EE. UU.): recibe los mensajes que le escribís al asistente, el nombre del grupo y la cantidad de integrantes cuando armás un plan en grupo.</li>
+      <li><strong>Brevo</strong> (envío de correo, Unión Europea): recibe tu correo y el contenido de los mensajes que te enviamos (confirmación de cuenta, recuperación de contraseña, avisos) y los mensajes del formulario de contacto.</li>
+      <li><strong>Servicios de notificaciones de tu navegador</strong> (Google, Apple o Mozilla, según tu navegador): solo si activás las notificaciones.</li>
+      <li><strong>OpenFreeMap y OpenStreetMap</strong> (mapas): al ver un mapa, tu navegador les pide las imágenes del mapa, por lo que reciben tu dirección IP y la zona consultada.</li>
+    </ul>
+
+    <h2 class="h3">6. Transferencias internacionales</h2>
+    <p>Varios de estos proveedores están fuera de Uruguay (principalmente en EE. UU.). Al aceptar esta política consentís esas transferencias. Elegimos proveedores reconocidos y compartimos solo lo necesario para que el servicio funcione.</p>
+
+    <h2 class="h3">7. Asistente de inteligencia artificial</h2>
+    <p>El asistente es una IA, no una persona. Tus conversaciones se guardan cifradas en nuestra base de datos, pero para generar cada respuesta el texto viaja a Groq. Por eso te pedimos que no escribas datos personales ni sensibles, tuyos o de otras personas. Las respuestas son orientativas y pueden tener errores.</p>
+
+    <h2 class="h3">8. Cookies y almacenamiento en tu navegador</h2>
+    <p>Usamos solo elementos necesarios para que la aplicación funcione; no usamos cookies de análisis ni de publicidad:</p>
+    <ul>
+      <li><strong>Cookie de sesión:</strong> te mantiene con la sesión iniciada (hasta 5 días o hasta que cierres sesión).</li>
+      <li><strong>Cookie de la guía de bienvenida:</strong> recuerda, por unos días, que se te ofrezca la guía una sola vez.</li>
+      <li><strong>Almacenamiento local:</strong> tu preferencia de tema claro u oscuro, y datos temporales de la pestaña (por ejemplo la posición de la pantalla).</li>
+      <li><strong>Caché de la aplicación:</strong> archivos guardados en tu dispositivo para que cargue más rápido.</li>
+    </ul>
+
+    <h2 class="h3">9. Cuánto tiempo los conservamos</h2>
+    <ul>
+      <li>Tu cuenta y su contenido, hasta que la elimines.</li>
+      <li>La ubicación compartida en un plan, hasta que dejás de compartir, te bajás del plan o el plan termina.</li>
+      <li>Los intentos de inicio de sesión, solo durante la ventana de 30 minutos que usamos para limitar los intentos.</li>
+      <li>Los mensajes del formulario de contacto no se guardan en la aplicación: llegan por correo al equipo y los borramos cuando terminamos de atender la consulta.</li>
+    </ul>
+
+    <h2 class="h3">10. Tus derechos</h2>
+    <p>Podés acceder a tus datos, rectificarlos, actualizarlos, incluirlos o pedir su supresión. Muchas cosas las hacés vos mismo desde <a href="/perfil">tu perfil</a>, incluido <strong>eliminar tu cuenta</strong>, que borra tus datos y tu contenido. Para cualquier otro pedido, escribinos a <a href="mailto:ahora.que.app@gmail.com">ahora.que.app@gmail.com</a>: respondemos dentro de los plazos de la ley (cinco días hábiles para el acceso). Si no estás conforme con la respuesta, podés presentar un reclamo ante la <a href="https://www.gub.uy/unidad-reguladora-control-datos-personales" target="_blank" rel="noopener">Unidad Reguladora y de Control de Datos Personales (URCDP)</a>.</p>
+
+    <h2 class="h3">11. Menores de edad</h2>
+    <p>Hace falta tener 13 años o más para crear una cuenta. Si tenés menos de 18 años, declarás contar con la autorización de tu madre, padre o tutor. Si sos madre, padre o tutor y creés que un menor a tu cargo se registró sin tu autorización, escribinos y eliminamos la cuenta.</p>
+
+    <h2 class="h3">12. Seguridad</h2>
+    <p>Protegemos los datos con conexión cifrada (HTTPS), contraseñas con hash, cifrado de las conversaciones del asistente y del número de cuenta bancaria, límites a los intentos de inicio de sesión y acceso restringido a la base de datos. Ningún sistema es infalible: si ocurriera una vulneración que afecte tus datos, la comunicaremos como corresponde.</p>
+
+    <h2 class="h3">13. Cambios en esta política</h2>
+    <p>Si la actualizamos, cambiaremos la fecha de arriba y, si el cambio es importante, te avisaremos dentro de la app o por correo.</p>
+
+  </article>
+
+</section>
+
+{% endblock %}

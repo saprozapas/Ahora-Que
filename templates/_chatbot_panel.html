@@ -34,6 +34,12 @@
     <button class="btn btn--primary btn--lg chatbot-enviar" type="submit" id="chatbot-enviar">Enviar</button>
   </form>
 
+  <p class="meta chatbot-aviso">
+    Este asistente es una inteligencia artificial. Lo que escribís se envía a un proveedor externo (Groq, en
+    EE. UU.) para generar la respuesta: no incluyas datos personales ni sensibles tuyos o de otras personas.
+    <a href="{{ url_for('auth.politica_privacidad') }}">Más información</a>.
+  </p>
+
 </section>
 
 <script defer src="{{ url_for('static', filename='chatbot.js', v='20261101-premium') }}"></script>

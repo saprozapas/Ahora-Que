@@ -15,6 +15,17 @@ from werkzeug.security import check_password_hash,generate_password_hash
 auth = Blueprint("auth", __name__)
 auth_service = AuthService()
 
+# Edad mínima para registrarse. Si querés cambiarla, es solo este número.
+EDAD_MINIMA = 13
+# En Uruguay se es menor de edad hasta los 18: entre EDAD_MINIMA y 17 se pide la autorización de
+# madre, padre o tutor (casilla del registro).
+EDAD_MAYORIA = 18
+
+
+def _edad(nacimiento, hoy):
+    """Años cumplidos a la fecha `hoy`."""
+    return hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day))
+
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -155,6 +166,26 @@ def register():
                 form_data=form_data,
             ), 400
 
+        edad = _edad(birth_date, datetime.now().date())
+        if edad > 120:
+            return render_template(
+                "register.html",
+                error="Revisá la fecha de nacimiento: no parece válida.",
+                form_data=form_data,
+            ), 400
+        if edad < EDAD_MINIMA:
+            return render_template(
+                "register.html",
+                error=f"Ahora Qué es para personas de {EDAD_MINIMA} años o más.",
+                form_data=form_data,
+            ), 400
+        if edad < EDAD_MAYORIA and form_data.get("guardian_ok") != "on":
+            return render_template(
+                "register.html",
+                error="Si tenés menos de 18 años, necesitamos que tu madre, padre o tutor autorice el uso de Ahora Qué. Marcá la casilla de autorización.",
+                form_data=form_data,
+            ), 400
+
         password_hash = generate_password_hash(password)
         # Guardamos una cuenta pendiente; Usuarios se escribe solo al confirmar.
         codigo = secrets.token_urlsafe(32)
@@ -186,7 +217,7 @@ def register():
 
             respuesta = redirect(url_for("auth.estado_confirmacion", user_id=pending_user_id))
             # Cuenta nueva: en este navegador se ofrece la guía de bienvenida (una sola vez, ver services/guia_nueva.py).
-            respuesta.set_cookie(COOKIE_GUIA, token_guia(email), max_age=VIGENCIA_GUIA, httponly=True, samesite="Lax")
+            respuesta.set_cookie(COOKIE_GUIA, token_guia(email), max_age=VIGENCIA_GUIA, httponly=True, samesite="Lax", secure=request.is_secure)
             return respuesta
         except ValueError:
             return render_template(
@@ -255,6 +286,11 @@ def estado_confirmacion(user_id):
 @auth.route("/terminos-y-condiciones")
 def terminos_y_condiciones():
     return render_template("terminos.html")
+
+
+@auth.route("/privacidad")
+def politica_privacidad():
+    return render_template("privacidad.html")
 
 @auth.route("/logout")
 def logout():

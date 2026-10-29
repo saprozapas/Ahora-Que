@@ -36,6 +36,8 @@ from services.deuda_service import DeudaService
 from services.suscripcion_service import PLANES_IA_GRATIS_POR_SEMANA, PRECIOS, SuscripcionService
 from services.plan_service import PlanService
 from services.social_service import SocialService
+from services import seguridad
+from services.contacto_service import ContactoInvalido, ContactoLimitado, ContactoService
 
 
 app = Flask(__name__)
@@ -52,6 +54,10 @@ app.config.update(
     ),
 )
 app.permanent_session_lifetime = timedelta(days=5)
+
+# Seguridad general: cookies, cabeceras y verificación de origen (ver services/seguridad.py).
+seguridad.instalar(app)
+contacto_service = ContactoService()
 
 # Comprime las respuestas de texto (HTML, CSS, JS, JSON, SVG): viajan en una fracción del tamaño. Si el paquete no está instalado, la app sigue igual.
 try:
@@ -400,8 +406,27 @@ def ver_producto(id):
 
 @app.route('/contacto', methods=['GET', 'POST'])
 def contacto():
-    enviado = request.method == 'POST'
-    return render_template('contacto.html', enviado=enviado)
+    if request.method == 'GET':
+        return render_template('contacto.html', form_data={})
+
+    form_data = request.form.to_dict()
+    # Campo "trampa" oculto: una persona no lo ve ni lo completa, un bot sí. Si viene lleno, se
+    # responde como si hubiera salido bien, pero no se manda nada.
+    if form_data.get('sitio_web'):
+        return render_template('contacto.html', enviado=True, form_data={})
+
+    try:
+        contacto_service.enviar(form_data.get('nombre'), form_data.get('email'), form_data.get('mensaje'))
+    except ContactoInvalido as e:
+        return render_template('contacto.html', error=str(e), form_data=form_data), 400
+    except ContactoLimitado:
+        return render_template('contacto.html', form_data=form_data,
+                               error='Enviaste varios mensajes seguidos. Probá de nuevo en un rato.'), 429
+    except Exception:
+        app.logger.exception('No se pudo enviar el mensaje de contacto')
+        return render_template('contacto.html', form_data=form_data,
+                               error='No pudimos enviar tu mensaje. Probá de nuevo en un momento.'), 503
+    return render_template('contacto.html', enviado=True, form_data={})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -7,7 +7,6 @@ import time
 import psycopg2
 from psycopg2 import extensions
 
-#PASS de la BD: AhoraQue2026
 # ---- CONEXIÓN A LA BASE DE DATOS (Supabase / PostgreSQL) ----
 # Reemplazar esto con el connection string que da Supabase
 # (Project Settings -> Database -> Connection String)

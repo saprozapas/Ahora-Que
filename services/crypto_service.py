@@ -63,3 +63,26 @@ def cifrar(dek: bytes, texto: str, aad: bytes) -> bytes:
 
 def descifrar(dek: bytes, blob: bytes, aad: bytes) -> str:
     return AESGCM(dek).decrypt(blob[:_NONCE_BYTES], blob[_NONCE_BYTES:], aad).decode("utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Campos sueltos (p. ej. el número de cuenta bancaria)
+# ---------------------------------------------------------------------------
+# A diferencia de los mensajes del chat (una DEK por conversación), un campo suelto se cifra directo con la
+# clave maestra. El AAD ata el dato a su dueño: un valor copiado a la fila de otra persona no se puede descifrar.
+# Los valores cifrados llevan el prefijo "enc1:"; los que no lo llevan son datos viejos sin cifrar.
+
+_PREFIJO_CAMPO = "enc1:"
+
+
+def cifrar_campo(texto: str, aad: bytes) -> str:
+    nonce = os.urandom(_NONCE_BYTES)
+    blob = nonce + _get_kek().encrypt(nonce, texto.encode("utf-8"), aad)
+    return _PREFIJO_CAMPO + base64.urlsafe_b64encode(blob).decode("ascii")
+
+
+def descifrar_campo(valor: str, aad: bytes) -> str:
+    if not valor or not valor.startswith(_PREFIJO_CAMPO):
+        return valor  # dato viejo, todavía sin cifrar
+    blob = base64.urlsafe_b64decode(valor[len(_PREFIJO_CAMPO):])
+    return _get_kek().decrypt(blob[:_NONCE_BYTES], blob[_NONCE_BYTES:], aad).decode("utf-8")

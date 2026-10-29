@@ -33,13 +33,9 @@
       })();
     </script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Fraunces:opsz,wght@9..144,300..700&display=swap"
-    />
+    {# Fuentes alojadas en el propio sitio, así no se le manda la IP de cada visita a Google.
+       El archivo se genera con scripts/descargar_fuentes.py (ver LEEME_CAMBIOS.md). #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fuentes.css', v='20261029-local') }}" />
 
     <!-- Sereno: tokens → componentes → marca → pantallas → grupos, social y asistente. -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261028-avatar2') }}" />
@@ -348,6 +344,8 @@
           <h2 class="app-footer__title" id="pie-ayuda">Ayuda</h2>
           <a href="/#preguntas">Preguntas frecuentes</a>
           <a href="/contacto">Contacto</a>
+          <a href="/terminos-y-condiciones">Términos y condiciones</a>
+          <a href="/privacidad">Política de privacidad</a>
         </nav>
 
       </div>

@@ -58,9 +58,14 @@
         </div>
       </div>
 
+      <label class="check-row" for="guardian_ok">
+        <input id="guardian_ok" name="guardian_ok" type="checkbox" {% if form_data.guardian_ok == 'on' %}checked{% endif %} />
+        <span>Si tenés menos de 18 años: mi madre, padre o tutor sabe que uso Ahora Qué y lo autoriza. (Hace falta tener 13 años o más.)</span>
+      </label>
+
       <label class="check-row" for="accept_terms">
         <input id="accept_terms" name="accept_terms" type="checkbox" required {% if form_data.accept_terms == 'on' %}checked{% endif %} />
-        <span>Acepto los <a href="{{ url_for('auth.terminos_y_condiciones') }}" target="_blank" rel="noopener">términos y condiciones</a>.</span>
+        <span>Leí y acepto los <a href="{{ url_for('auth.terminos_y_condiciones') }}" target="_blank" rel="noopener">términos y condiciones</a> y la <a href="{{ url_for('auth.politica_privacidad') }}" target="_blank" rel="noopener">política de privacidad</a>, y consiento el tratamiento de mis datos personales para usar la aplicación.</span>
       </label>
 
       <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">
