@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import planeta, emblema %}
+{% from '_macros.html' import planeta, racha_chip, nombre_rango %}
 
 {% block title %}Mensajes — Ahora Qué{% endblock %}
 
@@ -24,22 +24,22 @@
       <ul class="msj__lista">
         {% for c in conversaciones %}
         <li>
-          <a class="msj__fila{% if c.no_leidos %} is-sin-leer{% endif %}" href="/grupos/{{ c.grupo_id }}/chat">
+          {# La tarjeta de siempre: el marco del rango del grupo y su planeta asomando de la esquina, de fondo. #}
+          <a class="card plan-tile group-tile msj-tarjeta{% if c.marco %} marco-tarjeta marco--{{ c.marco }}{% endif %}{% if c.no_leidos %} is-sin-leer{% endif %}" href="/grupos/{{ c.grupo_id }}/chat"{% if c.marco %} title="Rango {{ nombre_rango(c.marco) | trim }}"{% endif %}>
 
-            <span class="msj__foto{% if c.marco %} msj__foto--planeta{% endif %}" aria-hidden="true">
-              {% if c.marco %}{{ planeta(c.marco, 64) }}{% else %}{{ emblema(c.grupo, none, 52) }}{% endif %}
-            </span>
+            {% if c.marco %}<span class="group-tile__planeta">{{ planeta(c.marco, 200) }}</span>{% endif %}
 
-            <span class="msj__texto">
-              <span class="msj__linea">
-                <strong class="msj__nombre">{{ c.grupo }}</strong>
-                <span class="msj__hora">{{ c.cuando }}</span>
-              </span>
-              <span class="msj__linea">
-                <span class="msj__preview">
-                  {% if c.texto %}{% if c.es_mio %}Vos: {% else %}{{ c.autor }}: {% endif %}{{ c.texto }}{% else %}Todavía no hay mensajes. Escribí el primero.{% endif %}
-                </span>
-                {% if c.votando %}<span class="msj__votando" title="Hay un plan para votar">Votando</span>{% endif %}
+            <h2 class="plan-tile__title">{{ c.grupo }}</h2>
+
+            <p class="msj-tarjeta__preview">
+              {% if c.texto %}{% if c.es_mio %}Vos: {% else %}{{ c.autor }}: {% endif %}{{ c.texto }}{% else %}Todavía no hay mensajes. Escribí el primero.{% endif %}
+            </p>
+
+            <span class="msj-tarjeta__pie">
+              {% if c.racha %}{{ racha_chip(c.racha) }}{% endif %}
+              {% if c.votando %}<span class="msj__votando" title="Hay un plan para votar">Votando</span>{% endif %}
+              <span class="msj-tarjeta__fin">
+                {% if c.cuando %}<span class="msj__hora">{{ c.cuando }}</span>{% endif %}
                 {% if c.no_leidos %}<span class="msj__globo" aria-label="{{ c.no_leidos }} mensajes sin leer">{{ c.no_leidos if c.no_leidos < 100 else '99+' }}</span>{% endif %}
               </span>
             </span>

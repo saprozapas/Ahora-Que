@@ -42,5 +42,6 @@ def mensajes():
         rachas = {}
     for c in conversaciones:
         c["cuando"] = _cuando(c["momento"])
-        c["marco"] = (rachas.get(c["grupo_id"]) or {}).get("marco")
+        c["racha"] = rachas.get(c["grupo_id"])
+        c["marco"] = (c["racha"] or {}).get("marco")
     return render_template("mensajes.html", conversaciones=conversaciones)

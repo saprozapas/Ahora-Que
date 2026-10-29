@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import planeta, emblema %}
+
 
 {% block title %}{{ group.get_name() }} — Ahora Qué{% endblock %}
 
@@ -20,7 +20,7 @@
 
 <section class="group-page group-page--fija group-page--chat chat-completo">
 
-  {# ---- Barra fina: volver, la foto del grupo (su planeta) y el nombre. Tocar el nombre abre la configuración. ---- #}
+  {# ---- Barra fina: volver y el nombre del grupo. Tocar el nombre abre la configuración. ---- #}
   <header class="chat-barra">
 
     <a class="chat-barra__volver icon-btn" href="/mensajes" aria-label="Volver a los mensajes">
@@ -28,7 +28,6 @@
     </a>
 
     <a class="chat-barra__grupo" href="{{ url_for('group_auth.info_grupo', group_id=group.get_id()) }}" aria-label="Configuración del grupo {{ group.get_name() }}">
-      <span class="chat-foto{% if racha.marco %} chat-foto--planeta{% endif %}">{% if racha.marco %}{{ planeta(racha.marco, 46) }}{% else %}{{ emblema(group.get_name(), none, 38) }}{% endif %}</span>
       <span class="chat-barra__textos">
         <strong>{{ group.get_name() }}</strong>
         <small>{{ users | length }} integrante{{ 's' if users | length != 1 }}{% if racha.semanas %} · racha de {{ racha.semanas }}{% endif %}</small>
@@ -67,15 +66,15 @@
   {% set pin = none %}
   {% if n_votacion %}
     {% set p1 = sin_votar[0] if sin_votar else tablero.votacion[0] %}
-    {% set pin = {'tipo': 'votando', 'etiqueta': 'Votando', 'titulo': p1.nombre, 'detalle': ('Te falta votar' if p1.mi_gusta is none else (p1.votos ~ ' de ' ~ p1.miembros ~ ' votaron')), 'mas': n_votacion - 1, 'urgente': p1.mi_gusta is none} %}
+    {% set pin = {'tipo': 'votando', 'etiqueta': 'Votando', 'titulo': p1.nombre, 'detalle': ('Te falta votar' if p1.mi_gusta is none else (p1.votos ~ ' de ' ~ p1.miembros ~ ' votaron')), 'mas': n_votacion - 1, 'urgente': p1.mi_gusta is none, 'votos': p1.votos, 'miembros': p1.miembros, 'gustan': p1.gustan, 'accion': 'Votar' if p1.mi_gusta is none else 'Ver'} %}
   {% elif n_horario %}
-    {% set pin = {'tipo': 'horario', 'etiqueta': 'Buscando horario', 'titulo': tablero.esperando_horario[0].nombre, 'detalle': 'Elegí cuándo', 'mas': n_horario - 1, 'urgente': false} %}
+    {% set pin = {'tipo': 'horario', 'etiqueta': 'Buscando horario', 'titulo': tablero.esperando_horario[0].nombre, 'detalle': 'Elegí cuándo', 'mas': n_horario - 1, 'urgente': false, 'accion': 'Elegir'} %}
   {% elif n_enc %}
-    {% set pin = {'tipo': 'votando', 'etiqueta': 'Votación del día', 'titulo': 'Elegí entre las opciones', 'detalle': 'Hay una votación abierta', 'mas': n_enc - 1, 'urgente': true} %}
+    {% set pin = {'tipo': 'votando', 'etiqueta': 'Votación del día', 'titulo': 'Elegí entre las opciones', 'detalle': 'Hay una votación abierta', 'mas': n_enc - 1, 'urgente': true, 'accion': 'Votar'} %}
   {% elif n_puntuar %}
-    {% set pin = {'tipo': 'puntuar', 'etiqueta': 'Puntuar', 'titulo': tablero.para_puntuar[0].nombre, 'detalle': '¿Qué tal estuvo?', 'mas': n_puntuar - 1, 'urgente': false} %}
+    {% set pin = {'tipo': 'puntuar', 'etiqueta': 'Puntuar', 'titulo': tablero.para_puntuar[0].nombre, 'detalle': '¿Qué tal estuvo?', 'mas': n_puntuar - 1, 'urgente': false, 'accion': 'Puntuar'} %}
   {% elif n_conf %}
-    {% set pin = {'tipo': 'confirmado', 'etiqueta': 'Confirmado', 'titulo': tablero.confirmados[0].nombre, 'detalle': (tablero.confirmados[0].fecha.strftime('%d/%m') ~ (' · ' ~ tablero.confirmados[0].hora.strftime('%H:%M') if tablero.confirmados[0].hora else '')) if tablero.confirmados[0].fecha else 'Sin fecha', 'mas': n_conf - 1, 'urgente': false} %}
+    {% set pin = {'tipo': 'confirmado', 'etiqueta': 'Confirmado', 'titulo': tablero.confirmados[0].nombre, 'detalle': (tablero.confirmados[0].fecha.strftime('%d/%m') ~ (' · ' ~ tablero.confirmados[0].hora.strftime('%H:%M') if tablero.confirmados[0].hora else '')) if tablero.confirmados[0].fecha else 'Sin fecha', 'mas': n_conf - 1, 'urgente': false, 'accion': 'Ver'} %}
   {% endif %}
 
   {% if pin %}
@@ -86,9 +85,16 @@
     <span class="chat-fijado__textos">
       <small>{{ pin.etiqueta }}{% if pin.mas > 0 %} · +{{ pin.mas }} más{% endif %}</small>
       <strong>{{ pin.titulo }}</strong>
+      {% if pin.miembros %}
+      <span class="chat-fijado__votos" aria-label="{{ pin.votos }} de {{ pin.miembros }} votaron">
+        <span class="chat-fijado__barra"><i style="width: {{ ((pin.votos or 0) * 100 / pin.miembros) | round | int }}%"></i></span>
+        <em>{{ pin.votos or 0 }} de {{ pin.miembros }} votaron{% if pin.gustan %} · {{ pin.gustan }} {{ 'le gusta' if pin.gustan == 1 else 'les gusta' }}{% endif %}</em>
+      </span>
+      {% else %}
+      <em class="chat-fijado__sub">{{ pin.detalle }}</em>
+      {% endif %}
     </span>
-    <span class="chat-fijado__detalle">{{ pin.detalle }}</span>
-    <svg class="chat-fijado__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    {% if pin.accion %}<span class="chat-fijado__accion{% if pin.urgente %} is-urgente{% endif %}">{{ pin.accion }}</span>{% endif %}
   </button>
   {% else %}
   <button class="chat-fijado chat-fijado--vacio" type="button" data-modal-open="modal-planes" aria-label="Planes del grupo">
@@ -444,14 +450,6 @@ function agregarMensaje(mensaje, anterior, destino = chatMessages) {
         const nombre = document.createElement("span");
 
         nombre.classList.add("chat-message-author");
-
-        if (mensaje.avatar) {
-            const foto = document.createElement("img");
-            foto.className = "chat-message-author__foto";
-            foto.alt = "";
-            foto.src = "/avatar/" + mensaje.user_id + "?v=" + mensaje.avatar;
-            nombre.appendChild(foto);
-        }
 
         nombre.appendChild(document.createTextNode(mensaje.username));
         if (mensaje.premium) nombre.appendChild(window.estrellaPremium());

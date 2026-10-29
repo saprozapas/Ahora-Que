@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import planeta, emblema, racha_chip %}
+{% from '_macros.html' import racha_chip %}
 
 {% block title %}Info de {{ group.get_name() }} — Ahora Qué{% endblock %}
 
@@ -16,9 +16,6 @@
       <a class="back-link" href="{{ url_for('group_auth.chat_grupo', group_id=group.get_id()) }}">← Volver al chat</a>
 
       <header class="info-grupo__cab">
-        <span class="info-grupo__foto{% if racha.marco %} info-grupo__foto--planeta{% endif %}" aria-hidden="true">
-          {% if racha.marco %}{{ planeta(racha.marco, 96) }}{% else %}{{ emblema(group.get_name(), none, 84) }}{% endif %}
-        </span>
         <h1 class="h2">{{ group.get_name() }}</h1>
         {% if group.get_description() %}<p class="lead">{{ group.get_description() }}</p>{% endif %}
         <div class="info-grupo__racha">{{ racha_chip(racha, url_for('group_auth.racha_grupo', group_id=group.get_id())) }}</div>
