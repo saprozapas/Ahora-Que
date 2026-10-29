@@ -1,0 +1,80 @@
+{% from '_macros.html' import estrella %}
+{% from '_grupo_macros.html' import cara_integrante, rol_integrante with context %}
+{# La lista de integrantes con lo que cada rol puede hacer (nombrar admin, pasar el grupo, sacar). La usan el modal y la info del grupo. #}
+<ul class="modal-members">
+  {% for integrante in users %}
+  <li class="modal-member-row">
+    <a
+      class="modal-member modal-member-link"
+      href="{{ url_for('profile.perfil_publico', user_id=integrante.id) }}"
+    >
+      {{ cara_integrante(integrante) }}
+      <span>
+        {{ integrante.user.get_name() }}{{ estrella(integrante.user.es_premium()) }}
+        {{ rol_integrante(integrante) }}
+      </span>
+    </a>
+
+    {% set es_yo = integrante.id | string == session.get('user_id') | string %}
+    {% set es_el_owner = integrante.id | string == owner_id | string %}
+
+    {# Solo el owner puede pasarle el grupo a otra persona (el owner no pierde el rol de admin). #}
+    {% if es_owner and not es_yo %}
+    <form
+      method="post"
+      action="{{ url_for('group_auth.pasar_owner', group_id=group.get_id(), user_id=integrante.id) }}"
+      data-confirmar="¿Pasarle el grupo a {{ integrante.user.get_name() }}? Pasa a ser el owner y vos seguís como admin."
+    >
+      <button
+        class="icon-btn"
+        type="submit"
+        title="Hacer owner"
+        aria-label="Hacer owner a {{ integrante.user.get_name() }}"
+      >
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="m4 8 4.5 4L12 5.5 15.5 12 20 8l-1.6 9.5H5.6L4 8Zm1.8 12h12.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" />
+        </svg>
+      </button>
+    </form>
+    {% endif %}
+
+    {# El rol de admin lo da o quita cualquier admin, pero nadie le toca el suyo al owner. #}
+    {% if es_admin and not es_yo and not es_el_owner %}
+    <form method="post" action="{{ url_for('group_auth.quitar_admin' if integrante.es_admin else 'group_auth.hacer_admin', group_id=group.get_id(), user_id=integrante.id) }}">
+      <button
+        class="icon-btn{% if integrante.es_admin %} icon-btn--activo{% endif %}"
+        type="submit"
+        title="{{ 'Quitar admin' if integrante.es_admin else 'Hacer admin' }}"
+        aria-label="{{ 'Quitar admin a ' if integrante.es_admin else 'Hacer admin a ' }}{{ integrante.user.get_name() }}"
+        aria-pressed="{{ 'true' if integrante.es_admin else 'false' }}"
+      >
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" fill="{{ 'currentColor' if integrante.es_admin else 'none' }}" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </form>
+    {% endif %}
+
+    {# El owner saca a cualquiera; un admin, solo a quienes no son admin. #}
+    {% if not es_yo and (es_owner or (es_admin and not integrante.es_admin)) %}
+    <form
+      method="post"
+      action="{{ url_for('group_auth.sacar_integrante', group_id=group.get_id(), user_id=integrante.id) }}"
+      data-confirmar="¿Sacar a {{ integrante.user.get_name() }} del grupo?"
+    >
+      <button
+        class="icon-btn icon-btn--danger"
+        type="submit"
+        title="Sacar del grupo"
+        aria-label="Sacar a {{ integrante.user.get_name() }} del grupo"
+      >
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+      </button>
+    </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>

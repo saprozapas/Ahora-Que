@@ -23,6 +23,8 @@ from services.avatar_service import AvatarService
 from routes.deudas import deudas_bp
 from routes.suscripcion import suscripcion_bp
 from routes.crear import crear_bp
+from routes.mensajes import mensajes_bp
+from services.chat_service import ChatService
 from services.inicio_service import InicioService
 from services.guia_nueva import es_guia_pendiente
 from services.sugerencia_service import SugerenciaService
@@ -74,6 +76,7 @@ app.register_blueprint(avatar_bp)
 app.register_blueprint(deudas_bp)
 app.register_blueprint(suscripcion_bp)
 app.register_blueprint(crear_bp)
+app.register_blueprint(mensajes_bp)
 app.register_blueprint(social_api)
 app.register_blueprint(push_bp)
 invitation_service = InvitationService()
@@ -148,6 +151,7 @@ def inject_user():
             datos["notificaciones_pendientes"] = 0
         datos["deudas_pendientes"] = _deudas_guardado(session["user_id"])
         datos["es_premium"] = _premium_guardado(session["user_id"])
+        datos["mensajes_sin_leer"] = _sin_leer_guardado(session["user_id"])
     return datos
 
 
@@ -229,6 +233,20 @@ def _deudas_guardado(user_id):
     return cantidad
 
 
+_sin_leer_cache = {}  # user_id -> (grupos con mensajes sin leer, momento)
+_SEGUNDOS_SIN_LEER = 20
+_chat_service = ChatService()
+
+
+def _sin_leer_guardado(user_id):
+    guardado = _sin_leer_cache.get(user_id)
+    if guardado and time.monotonic() - guardado[1] < _SEGUNDOS_SIN_LEER:
+        return guardado[0]
+    cantidad = _chat_service.contar_conversaciones_sin_leer(user_id)
+    _sin_leer_cache[user_id] = (cantidad, time.monotonic())
+    return cantidad
+
+
 _premium_cache = {}  # user_id -> (es premium, momento)
 
 
@@ -255,6 +273,9 @@ def _borrar_inbox_guardado():
         _deudas_cache.pop(session["user_id"], None)
         invalidar_pendientes(session["user_id"])
         _premium_cache.pop(session["user_id"], None)  # pagar o cancelar el plan se ve al instante
+    # Al abrir un chat se lo da por leído: el globo del dock se actualiza al instante.
+    if session.get("user_id") and request.path.startswith("/grupos/") and request.path.endswith("/chat"):
+        _sin_leer_cache.pop(session["user_id"], None)
 
 
 @app.route('/')

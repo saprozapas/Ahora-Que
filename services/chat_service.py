@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 import threading
 import time
@@ -45,6 +46,71 @@ class ChatService:
         except Exception as e:
             conn.rollback()
             print(f"No se pudo anotar la lectura del chat: {e}")
+        finally:
+            release_db_connection(conn)
+
+    def conversaciones(self, user_id):
+        """Los grupos de la persona como una lista de conversaciones (como los mensajes directos): el último mensaje,
+        cuántos no leyó y si hay un plan para votar. Las más recientes primero.
+        [{"grupo_id", "grupo", "no_leidos", "autor", "texto", "momento", "es_mio", "votando"}]"""
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT g."Id_Grupo", g."Nombre",
+                           (SELECT COUNT(*) FROM public."Mensajes" x
+                             WHERE x."Id_Grupo" = g."Id_Grupo" AND x."Id_Usuario" <> %(u)s
+                               AND x."Fecha_Envio" > ug."Chat_Visto_En"),
+                           lm."Contenido", lm."Fecha_Envio", lm."Username", lm."Nombre", lm."Id_Usuario",
+                           EXISTS (SELECT 1 FROM public."Plan" p
+                                    WHERE p."Grupo_id" = g."Id_Grupo" AND p."Estado" IN ('votacion', 'esperando_horario'))
+                    FROM public."Usuario-Grupo" ug
+                    JOIN public."Grupos" g ON g."Id_Grupo" = ug."Id_Grupo"
+                    LEFT JOIN LATERAL (
+                        SELECT m."Contenido", m."Fecha_Envio", u."Username", u."Nombre", m."Id_Usuario"
+                        FROM public."Mensajes" m JOIN public."Usuarios" u ON u."Id_Usuario" = m."Id_Usuario"
+                        WHERE m."Id_Grupo" = g."Id_Grupo"
+                        ORDER BY m."Fecha_Envio" DESC LIMIT 1
+                    ) lm ON true
+                    WHERE ug."Id_Usuario" = %(u)s
+                    """,
+                    {"u": user_id},
+                )
+                lista = []
+                for f in cursor.fetchall():
+                    texto = " ".join(str(f[3] or "").split())
+                    lista.append({
+                        "grupo_id": str(f[0]), "grupo": f[1], "no_leidos": int(f[2] or 0),
+                        "texto": texto if len(texto) <= 120 else texto[:117].rstrip() + "…",
+                        "momento": f[4], "autor": self._nombre_visible(f[5], f[6]) if f[4] else "",
+                        "es_mio": str(f[7]) == str(user_id) if f[4] else False, "votando": bool(f[8]),
+                    })
+        finally:
+            release_db_connection(conn)
+        epoca = datetime.min
+        lista.sort(key=lambda c: (c["momento"] or epoca, c["grupo"] or ""), reverse=True)
+        return lista
+
+    def contar_conversaciones_sin_leer(self, user_id):
+        """Cuántos grupos tienen mensajes que la persona todavía no leyó (el número del globo rojo)."""
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT COUNT(*) FROM public."Usuario-Grupo" ug
+                    WHERE ug."Id_Usuario" = %(u)s
+                      AND EXISTS (SELECT 1 FROM public."Mensajes" m
+                                   WHERE m."Id_Grupo" = ug."Id_Grupo" AND m."Id_Usuario" <> %(u)s
+                                     AND m."Fecha_Envio" > ug."Chat_Visto_En")
+                    """,
+                    {"u": user_id},
+                )
+                return int(cursor.fetchone()[0])
+        except Exception as e:
+            print(f"No se pudieron contar los mensajes sin leer: {e}")
+            return 0
         finally:
             release_db_connection(conn)
 

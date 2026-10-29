@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
+{% from '_macros.html' import planeta, emblema %}
 
-{% block title %}Chat — {{ group.get_name() }} — Ahora Qué{% endblock %}
+{% block title %}{{ group.get_name() }} — Ahora Qué{% endblock %}
+
+{% block body_clase %} chat-pantalla{% endblock %}
 
 {% block content %}
 
@@ -15,18 +18,90 @@
 {% endif %}
 
 
-<section class="container page group-page group-page--fija group-page--chat">
+<section class="group-page group-page--fija group-page--chat chat-completo">
 
-  {% include 'grupo_cabecera.html' %}
+  {# ---- Barra fina: volver, la foto del grupo (su planeta) y el nombre. Tocar el nombre abre la configuración. ---- #}
+  <header class="chat-barra">
+
+    <a class="chat-barra__volver icon-btn" href="/mensajes" aria-label="Volver a los mensajes">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m14.5 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </a>
+
+    <a class="chat-barra__grupo" href="{{ url_for('group_auth.info_grupo', group_id=group.get_id()) }}" aria-label="Configuración del grupo {{ group.get_name() }}">
+      <span class="chat-foto{% if racha.marco %} chat-foto--planeta{% endif %}">{% if racha.marco %}{{ planeta(racha.marco, 46) }}{% else %}{{ emblema(group.get_name(), none, 38) }}{% endif %}</span>
+      <span class="chat-barra__textos">
+        <strong>{{ group.get_name() }}</strong>
+        <small>{{ users | length }} integrante{{ 's' if users | length != 1 }}{% if racha.semanas %} · racha de {{ racha.semanas }}{% endif %}</small>
+      </span>
+    </a>
+
+    <details class="idea-menu chat-barra__mas">
+      <summary class="icon-btn" aria-label="Más opciones" title="Más opciones">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="1.7" fill="currentColor" /><circle cx="12" cy="12" r="1.7" fill="currentColor" /><circle cx="12" cy="19" r="1.7" fill="currentColor" /></svg>
+      </summary>
+      <div class="idea-menu__panel">
+        <a class="idea-menu__item" href="{{ url_for('group_auth.info_grupo', group_id=group.get_id()) }}">
+          <span class="menu-item__icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M12 11v5M12 8v.1" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" /></svg></span>
+          <span><strong>Info del grupo</strong><small>Integrantes y configuración</small></span>
+        </a>
+        <button class="idea-menu__item" type="button" data-modal-open="modal-invitar">
+          <span class="menu-item__icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" /></svg></span>
+          <span><strong>Invitar</strong><small>Sumá a alguien al grupo</small></span>
+        </button>
+        <button class="idea-menu__item" id="chat-limpiar" type="button" data-modal-open="modal-limpiar-chat">
+          <span class="menu-item__icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+          <span><strong>Limpiar conversación</strong><small>Borra mensajes del chat</small></span>
+        </button>
+      </div>
+    </details>
+
+  </header>
+
+  {# ---- Plan fijado: una franja fina con lo que está pasando; al tocarla se abre la hoja con los planes y se sigue chateando al cerrarla. ---- #}
+  {% set n_votacion = tablero.votacion | length %}
+  {% set n_horario = tablero.esperando_horario | length %}
+  {% set n_puntuar = tablero.para_puntuar | length %}
+  {% set n_conf = tablero.confirmados | length %}
+  {% set n_enc = (encuestas | length) if encuestas else 0 %}
+  {% set sin_votar = tablero.votacion | selectattr('mi_gusta', 'none') | list %}
+  {% set pin = none %}
+  {% if n_votacion %}
+    {% set p1 = sin_votar[0] if sin_votar else tablero.votacion[0] %}
+    {% set pin = {'tipo': 'votando', 'etiqueta': 'Votando', 'titulo': p1.nombre, 'detalle': ('Te falta votar' if p1.mi_gusta is none else (p1.votos ~ ' de ' ~ p1.miembros ~ ' votaron')), 'mas': n_votacion - 1, 'urgente': p1.mi_gusta is none} %}
+  {% elif n_horario %}
+    {% set pin = {'tipo': 'horario', 'etiqueta': 'Buscando horario', 'titulo': tablero.esperando_horario[0].nombre, 'detalle': 'Elegí cuándo', 'mas': n_horario - 1, 'urgente': false} %}
+  {% elif n_enc %}
+    {% set pin = {'tipo': 'votando', 'etiqueta': 'Votación del día', 'titulo': 'Elegí entre las opciones', 'detalle': 'Hay una votación abierta', 'mas': n_enc - 1, 'urgente': true} %}
+  {% elif n_puntuar %}
+    {% set pin = {'tipo': 'puntuar', 'etiqueta': 'Puntuar', 'titulo': tablero.para_puntuar[0].nombre, 'detalle': '¿Qué tal estuvo?', 'mas': n_puntuar - 1, 'urgente': false} %}
+  {% elif n_conf %}
+    {% set pin = {'tipo': 'confirmado', 'etiqueta': 'Confirmado', 'titulo': tablero.confirmados[0].nombre, 'detalle': (tablero.confirmados[0].fecha.strftime('%d/%m') ~ (' · ' ~ tablero.confirmados[0].hora.strftime('%H:%M') if tablero.confirmados[0].hora else '')) if tablero.confirmados[0].fecha else 'Sin fecha', 'mas': n_conf - 1, 'urgente': false} %}
+  {% endif %}
+
+  {% if pin %}
+  <button class="chat-fijado chat-fijado--{{ pin.tipo }}{% if pin.urgente %} is-urgente{% endif %}" type="button" data-modal-open="modal-planes" aria-label="Ver los planes del grupo">
+    <span class="chat-fijado__icono" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3.5 14.6 9l5.9.7-4.3 4.1 1.1 5.9L12 16.8 6.7 19.7l1.1-5.900L3.500 9.700 9.400 9 12 3.500Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
+    </span>
+    <span class="chat-fijado__textos">
+      <small>{{ pin.etiqueta }}{% if pin.mas > 0 %} · +{{ pin.mas }} más{% endif %}</small>
+      <strong>{{ pin.titulo }}</strong>
+    </span>
+    <span class="chat-fijado__detalle">{{ pin.detalle }}</span>
+    <svg class="chat-fijado__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </button>
+  {% else %}
+  <button class="chat-fijado chat-fijado--vacio" type="button" data-modal-open="modal-planes" aria-label="Planes del grupo">
+    <span class="chat-fijado__icono" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" /></svg></span>
+    <span class="chat-fijado__textos"><strong>Proponer un plan al grupo</strong></span>
+    <svg class="chat-fijado__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </button>
+  {% endif %}
 
   <div class="group-scroll" data-group-scroll>
 
   <!-- CONTENEDOR COMÚN: mensajes e input comparten el mismo ancho -->
   <div class="chat">
-
-  <div class="chat__toolbar">
-    <button class="btn btn--ghost btn--sm" id="chat-limpiar" type="button" data-modal-open="modal-limpiar-chat">Limpiar conversación</button>
-  </div>
 
   <!-- MENSAJES DEL CHAT -->
   <div
@@ -83,6 +158,23 @@
 
 {% include 'grupo_modales.html' %}
 
+{# Hoja de planes: encuestas y planes del grupo por estado. Se abre sobre el chat desde la franja fijada. #}
+<dialog class="modal modal--hoja" id="modal-planes" aria-labelledby="modal-planes-titulo">
+  <div class="modal-head">
+    <h2 class="modal-title" id="modal-planes-titulo">Planes de {{ group.get_name() }}</h2>
+    <button class="modal-close" type="button" data-cerrar-dialogo aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M6 6 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+  <div class="modal-body hoja-planes">
+    <a class="btn btn--primary hoja-planes__nuevo" href="/crear/{{ group.get_id() }}" data-guia-id="grupo-plan" data-guia-orden="1" data-guia-titulo="Proponé un plan" data-guia-texto="Desde acá le proponés al grupo un plan armado con el asistente, a mano o para que voten el día.">+ Proponer un plan</a>
+    {% include '_grupo_tablero.html' %}
+  </div>
+</dialog>
+
 <dialog class="modal" id="modal-limpiar-chat" aria-labelledby="modal-limpiar-chat-title">
   <div class="modal-head">
     <h2 class="modal-title" id="modal-limpiar-chat-title">Limpiar conversación</h2>
@@ -119,6 +211,31 @@
 
 {% endif %}
 
+
+<script>
+// El menú ⋯ se cierra al elegir una opción (si no, queda abierto detrás del cartel).
+document.querySelectorAll(".chat-barra__mas .idea-menu__item").forEach(function (item) {
+    item.addEventListener("click", function () {
+        var menu = item.closest("details");
+        if (menu) { menu.open = false; }
+    });
+});
+</script>
+
+<script>
+// Al volver de votar o sumarse (la dirección termina en #plan-…, #encuesta-… o #planes-grupo) se reabre la hoja de planes.
+(function () {
+    var hash = window.location.hash || "";
+    if (/^#(plan|encuesta|planes-grupo)/.test(hash)) {
+        window.addEventListener("load", function () {
+            var hoja = document.getElementById("modal-planes");
+            if (hoja && !hoja.open) { hoja.showModal(); }
+            var destino = document.getElementById(hash.slice(1));
+            if (destino) { destino.scrollIntoView({ block: "start" }); }
+        });
+    }
+}());
+</script>
 
 <script>
 
