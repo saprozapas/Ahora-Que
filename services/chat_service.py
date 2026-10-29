@@ -49,6 +49,35 @@ class ChatService:
         finally:
             release_db_connection(conn)
 
+    def leer_y_marcar_visto(self, user_id, group_id):
+        """Al abrir el chat: devuelve hasta cuándo lo había leído la persona (None si nunca se anotó) y lo marca leído
+        ahora, en una sola consulta. Con eso el chat pone la línea de "mensajes nuevos"."""
+        _ultimo_visto[(str(user_id), str(group_id))] = time.monotonic()
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    WITH antes AS (
+                        SELECT "Chat_Visto_En" FROM public."Usuario-Grupo" WHERE "Id_Usuario" = %(u)s AND "Id_Grupo" = %(g)s
+                    )
+                    UPDATE public."Usuario-Grupo"
+                    SET "Chat_Visto_En" = (now() AT TIME ZONE 'America/Montevideo')
+                    WHERE "Id_Usuario" = %(u)s AND "Id_Grupo" = %(g)s
+                    RETURNING (SELECT "Chat_Visto_En" FROM antes)
+                    """,
+                    {"u": user_id, "g": group_id},
+                )
+                fila = cursor.fetchone()
+            conn.commit()
+            return fila[0] if fila else None
+        except Exception as e:
+            conn.rollback()
+            print(f"No se pudo anotar la lectura del chat: {e}")
+            return None
+        finally:
+            release_db_connection(conn)
+
     def conversaciones(self, user_id):
         """Los grupos de la persona como una lista de conversaciones (como los mensajes directos): el último mensaje,
         cuántos no leyó y si hay un plan para votar. Las más recientes primero.

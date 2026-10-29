@@ -56,52 +56,78 @@
 
   </header>
 
-  {# ---- Plan fijado: una franja fina con lo que está pasando; al tocarla se abre la hoja con los planes y se sigue chateando al cerrarla. ---- #}
-  {% set n_votacion = tablero.votacion | length %}
-  {% set n_horario = tablero.esperando_horario | length %}
-  {% set n_puntuar = tablero.para_puntuar | length %}
-  {% set n_conf = tablero.confirmados | length %}
-  {% set n_enc = (encuestas | length) if encuestas else 0 %}
+  {# ---- Planes fijados: una franja fina por plan que pide algo. Con varios se desliza de lado. Si falta votar hay dos botones (Voy / No voy) que votan sin abrir nada. ---- #}
+  {% set pins = [] %}
   {% set sin_votar = tablero.votacion | selectattr('mi_gusta', 'none') | list %}
-  {% set pin = none %}
-  {% if n_votacion %}
-    {% set p1 = sin_votar[0] if sin_votar else tablero.votacion[0] %}
-    {% set pin = {'tipo': 'votando', 'etiqueta': 'Votando', 'titulo': p1.nombre, 'detalle': ('Te falta votar' if p1.mi_gusta is none else (p1.votos ~ ' de ' ~ p1.miembros ~ ' votaron')), 'mas': n_votacion - 1, 'urgente': p1.mi_gusta is none, 'votos': p1.votos, 'miembros': p1.miembros, 'gustan': p1.gustan, 'accion': 'Votar' if p1.mi_gusta is none else 'Ver'} %}
-  {% elif n_horario %}
-    {% set pin = {'tipo': 'horario', 'etiqueta': 'Buscando horario', 'titulo': tablero.esperando_horario[0].nombre, 'detalle': 'Elegí cuándo', 'mas': n_horario - 1, 'urgente': false, 'accion': 'Elegir'} %}
-  {% elif n_enc %}
-    {% set pin = {'tipo': 'votando', 'etiqueta': 'Votación del día', 'titulo': 'Elegí entre las opciones', 'detalle': 'Hay una votación abierta', 'mas': n_enc - 1, 'urgente': true, 'accion': 'Votar'} %}
-  {% elif n_puntuar %}
-    {% set pin = {'tipo': 'puntuar', 'etiqueta': 'Puntuar', 'titulo': tablero.para_puntuar[0].nombre, 'detalle': '¿Qué tal estuvo?', 'mas': n_puntuar - 1, 'urgente': false, 'accion': 'Puntuar'} %}
-  {% elif n_conf %}
-    {% set pin = {'tipo': 'confirmado', 'etiqueta': 'Confirmado', 'titulo': tablero.confirmados[0].nombre, 'detalle': (tablero.confirmados[0].fecha.strftime('%d/%m') ~ (' · ' ~ tablero.confirmados[0].hora.strftime('%H:%M') if tablero.confirmados[0].hora else '')) if tablero.confirmados[0].fecha else 'Sin fecha', 'mas': n_conf - 1, 'urgente': false, 'accion': 'Ver'} %}
+  {% set votados = tablero.votacion | rejectattr('mi_gusta', 'none') | list %}
+  {% for p in (sin_votar + votados) %}
+    {% set _ = pins.append({'tipo': 'votando', 'etiqueta': 'Votando', 'titulo': p.nombre, 'detalle': 'Te falta votar', 'urgente': p.mi_gusta is none, 'votos': p.votos, 'miembros': p.miembros, 'gustan': p.gustan, 'accion': 'Votar' if p.mi_gusta is none else 'Ver', 'rapido': p.mi_gusta is none, 'plan_id': p.id, 'con_fecha': p.fecha is not none}) %}
+  {% endfor %}
+  {% for p in tablero.esperando_horario %}
+    {% set _ = pins.append({'tipo': 'horario', 'etiqueta': 'Buscando horario', 'titulo': p.nombre, 'detalle': 'Elegí cuándo', 'urgente': false, 'accion': 'Elegir'}) %}
+  {% endfor %}
+  {% if encuestas %}
+    {% set _ = pins.append({'tipo': 'votando', 'etiqueta': 'Votación del día' ~ (' · +' ~ (encuestas | length - 1) ~ ' más' if encuestas | length > 1 else ''), 'titulo': 'Elegí entre las opciones', 'detalle': 'Hay una votación abierta', 'urgente': true, 'accion': 'Votar'}) %}
+  {% endif %}
+  {% if not pins and tablero.para_puntuar %}
+    {% set _ = pins.append({'tipo': 'puntuar', 'etiqueta': 'Puntuar' ~ (' · +' ~ (tablero.para_puntuar | length - 1) ~ ' más' if tablero.para_puntuar | length > 1 else ''), 'titulo': tablero.para_puntuar[0].nombre, 'detalle': '¿Qué tal estuvo?', 'urgente': false, 'accion': 'Puntuar'}) %}
+  {% endif %}
+  {% if not pins and tablero.confirmados %}
+    {% set c1 = tablero.confirmados[0] %}
+    {% set _ = pins.append({'tipo': 'confirmado', 'etiqueta': 'Confirmado' ~ (' · +' ~ (tablero.confirmados | length - 1) ~ ' más' if tablero.confirmados | length > 1 else ''), 'titulo': c1.nombre, 'detalle': (c1.fecha.strftime('%d/%m') ~ (' · ' ~ c1.hora.strftime('%H:%M') if c1.hora else '')) if c1.fecha else 'Sin fecha', 'urgente': false, 'accion': 'Ver'}) %}
   {% endif %}
 
-  {% if pin %}
-  <button class="chat-fijado chat-fijado--{{ pin.tipo }}{% if pin.urgente %} is-urgente{% endif %}" type="button" data-modal-open="modal-planes" aria-label="Ver los planes del grupo">
-    <span class="chat-fijado__icono" aria-hidden="true">
-      <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3.5 14.6 9l5.9.7-4.3 4.1 1.1 5.9L12 16.8 6.7 19.7l1.1-5.900L3.500 9.700 9.400 9 12 3.500Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
-    </span>
-    <span class="chat-fijado__textos">
-      <small>{{ pin.etiqueta }}{% if pin.mas > 0 %} · +{{ pin.mas }} más{% endif %}</small>
-      <strong>{{ pin.titulo }}</strong>
-      {% if pin.miembros %}
-      <span class="chat-fijado__votos" aria-label="{{ pin.votos }} de {{ pin.miembros }} votaron">
-        <span class="chat-fijado__barra"><i style="width: {{ ((pin.votos or 0) * 100 / pin.miembros) | round | int }}%"></i></span>
-        <em>{{ pin.votos or 0 }} de {{ pin.miembros }} votaron{% if pin.gustan %} · {{ pin.gustan }} {{ 'le gusta' if pin.gustan == 1 else 'les gusta' }}{% endif %}</em>
-      </span>
-      {% else %}
-      <em class="chat-fijado__sub">{{ pin.detalle }}</em>
-      {% endif %}
-    </span>
-    {% if pin.accion %}<span class="chat-fijado__accion{% if pin.urgente %} is-urgente{% endif %}">{{ pin.accion }}</span>{% endif %}
-  </button>
+  {% if pins %}
+  <div class="chat-fijados" id="chat-fijados">
+    <div class="chat-fijados__pista" id="chat-fijados-pista">
+      {% for pin in pins %}
+      <div class="chat-fijado chat-fijado--{{ pin.tipo }}{% if pin.urgente %} is-urgente{% endif %}" data-pin{% if pin.plan_id %} data-plan="{{ pin.plan_id }}"{% endif %}{% if pin.miembros %} data-votos="{{ pin.votos or 0 }}" data-miembros="{{ pin.miembros }}"{% endif %}>
+        <button class="chat-fijado__principal" type="button" data-modal-open="modal-planes" aria-label="Ver los planes del grupo">
+          <span class="chat-fijado__icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3.5 14.6 9l5.9.7-4.3 4.1 1.1 5.9L12 16.8 6.7 19.7l1.1-5.9L3.5 9.7 9.4 9 12 3.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" /></svg>
+          </span>
+          <span class="chat-fijado__textos">
+            <small>{{ pin.etiqueta }}</small>
+            <strong>{{ pin.titulo }}</strong>
+            {% if pin.miembros %}
+            <span class="chat-fijado__votos">
+              <span class="chat-fijado__barra"><i style="width: {{ ((pin.votos or 0) * 100 / pin.miembros) | round | int }}%"></i></span>
+              <em data-pin-conteo>{{ pin.votos or 0 }} de {{ pin.miembros }} votaron{% if pin.gustan %} · {{ pin.gustan }} {{ 'le gusta' if pin.gustan == 1 else 'les gusta' }}{% endif %}</em>
+            </span>
+            {% else %}
+            <em class="chat-fijado__sub">{{ pin.detalle }}</em>
+            {% endif %}
+          </span>
+        </button>
+        {% if pin.rapido %}
+        <span class="chat-fijado__rapido" data-pin-rapido>
+          {% for valor, texto in (('no', 'No voy'), ('si', 'Voy')) %}
+          <form method="post" action="{{ url_for('grupo_planes.votar', group_id=group.get_id(), plan_id=pin.plan_id) }}" data-voto-rapido>
+            <input type="hidden" name="me_gusta" value="{{ valor }}" />
+            {% if pin.con_fecha %}<input type="hidden" name="puedo" value="{{ valor }}" />{% endif %}
+            <button class="chat-fijado__voto chat-fijado__voto--{{ valor }}" type="submit">{{ texto }}</button>
+          </form>
+          {% endfor %}
+        </span>
+        <button class="chat-fijado__accion" type="button" data-modal-open="modal-planes" data-pin-votado>Ver</button>
+        {% elif pin.accion %}
+        <button class="chat-fijado__accion{% if pin.urgente %} is-urgente{% endif %}" type="button" data-modal-open="modal-planes">{{ pin.accion }}</button>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% if pins | length > 1 %}
+    <div class="chat-fijados__puntos" aria-hidden="true">{% for pin in pins %}<i{% if loop.first %} class="is-activo"{% endif %}></i>{% endfor %}</div>
+    {% endif %}
+  </div>
   {% else %}
-  <button class="chat-fijado chat-fijado--vacio" type="button" data-modal-open="modal-planes" aria-label="Planes del grupo">
-    <span class="chat-fijado__icono" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" /></svg></span>
-    <span class="chat-fijado__textos"><strong>Proponer un plan al grupo</strong></span>
-    <svg class="chat-fijado__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
-  </button>
+  <div class="chat-fijados" id="chat-fijados">
+    <button class="chat-fijado chat-fijado--vacio" type="button" data-modal-open="modal-planes" aria-label="Planes del grupo">
+      <span class="chat-fijado__icono" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" /></svg></span>
+      <span class="chat-fijado__textos"><strong>Proponer un plan al grupo</strong></span>
+      <svg class="chat-fijado__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+    </button>
+  </div>
   {% endif %}
 
   <div class="group-scroll" data-group-scroll>
@@ -229,6 +255,77 @@ document.querySelectorAll(".chat-barra__mas .idea-menu__item").forEach(function 
 </script>
 
 <script>
+// Franja de planes fijados: puntitos al deslizar, voto rápido sin abrir la hoja y menos alto mientras se escribe.
+(function () {
+    var pista = document.getElementById("chat-fijados-pista");
+    var contenedor = document.getElementById("chat-fijados");
+    var hoja = document.getElementById("modal-planes");
+    var entrada = document.getElementById("group-chat-input");
+    var hojaVieja = false;
+
+    // Los puntitos siguen a la franja que se está viendo.
+    if (pista) {
+        var puntos = contenedor.querySelectorAll(".chat-fijados__puntos i");
+        pista.addEventListener("scroll", function () {
+            var i = Math.round(pista.scrollLeft / Math.max(pista.clientWidth, 1));
+            puntos.forEach(function (p, k) { p.classList.toggle("is-activo", k === i); });
+        }, { passive: true });
+    }
+
+    // Voto rápido: "Voy" = me gusta y puedo; "No voy" = ni me gusta ni puedo. El detalle se cambia desde la hoja.
+    document.querySelectorAll("[data-voto-rapido]").forEach(function (formulario) {
+        formulario.addEventListener("submit", function (evento) {
+            evento.preventDefault();
+            var franja = formulario.closest("[data-pin]");
+            var botones = franja.querySelectorAll(".chat-fijado__voto");
+            botones.forEach(function (b) { b.disabled = true; });
+            fetch(formulario.action, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "X-Requested-With": "fetch", "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams(new FormData(formulario)).toString(),
+            }).then(function (respuesta) {
+                return respuesta.json().then(function (datos) { return { ok: respuesta.ok && datos.ok, datos: datos }; });
+            }).then(function (r) {
+                if (!r.ok) { throw new Error(r.datos.mensaje || "No se pudo votar."); }
+                var voy = formulario.querySelector("[name=me_gusta]").value === "si";
+                var votos = parseInt(franja.dataset.votos || "0", 10) + 1;
+                var miembros = parseInt(franja.dataset.miembros || "0", 10);
+                franja.dataset.votos = votos;
+                franja.classList.remove("is-urgente");
+                franja.classList.add("is-votado");
+                var conteo = franja.querySelector("[data-pin-conteo]");
+                if (conteo) { conteo.textContent = (voy ? "Votaste que vas" : "Votaste que no vas") + " · " + votos + " de " + miembros + " votaron"; }
+                var barra = franja.querySelector(".chat-fijado__barra i");
+                if (barra && miembros) { barra.style.width = Math.round(votos * 100 / miembros) + "%"; }
+                hojaVieja = true;
+            }).catch(function (error) {
+                botones.forEach(function (b) { b.disabled = false; });
+                window.alert(error.message);
+            });
+        });
+    });
+
+    // La hoja se armó antes del voto rápido: si se abre después, se recarga con el voto ya guardado.
+    if (hoja) {
+        document.querySelectorAll("[data-modal-open=modal-planes]").forEach(function (b) {
+            b.addEventListener("click", function () {
+                if (hojaVieja) { window.location.hash = "#planes-grupo"; window.location.reload(); }
+            }, true);
+        });
+    }
+
+    // En el celular, con el teclado abierto la franja se esconde para que entren más mensajes.
+    if (entrada && window.matchMedia("(max-width: 900px)").matches) {
+        var pantalla = document.querySelector(".chat-completo");
+        var soltar = null;
+        entrada.addEventListener("focus", function () { clearTimeout(soltar); pantalla.classList.add("chat-escribiendo"); });
+        entrada.addEventListener("blur", function () { soltar = setTimeout(function () { pantalla.classList.remove("chat-escribiendo"); }, 250); });
+    }
+})();
+</script>
+
+<script>
 // Al volver de votar o sumarse (la dirección termina en #plan-…, #encuesta-… o #planes-grupo) se reabre la hoja de planes.
 (function () {
     var hash = window.location.hash || "";
@@ -253,6 +350,8 @@ let borradorVotableActivo = null;
 
 // Id del usuario logueado, para alinear a la derecha sus propios mensajes
 const MI_USER_ID = "{{ session.get('user_id', '') }}";
+// Hasta cuándo leyó este chat la persona (antes de abrirlo ahora): lo que llegó después de otros se marca como nuevo.
+const CHAT_VISTO_EN = {{ (visto_en.isoformat() if visto_en else '') | tojson }};
 
 // Integrantes mencionables. El "handle" es cómo se los identifica en el chat: su username
 // (o su nombre sin espacios si el username es un mail o está vacío).
@@ -339,7 +438,28 @@ async function cargarMensajes() {
         // así el contenedor nunca queda vacío (evita saltos de layout)
         const fragmento = document.createDocumentFragment();
 
+        // Línea de "mensajes nuevos" antes del primero que la persona todavía no leyó (solo de otros).
+        let primerNuevo = -1;
+        let cantidadNuevos = 0;
+        if (CHAT_VISTO_EN) {
+            const visto = new Date(CHAT_VISTO_EN);
+            datos.mensajes.forEach((mensaje, i) => {
+                if (String(mensaje.user_id) !== MI_USER_ID && new Date(mensaje.created_at) > visto) {
+                    if (primerNuevo < 0) primerNuevo = i;
+                    cantidadNuevos += 1;
+                }
+            });
+        }
+
         datos.mensajes.forEach((mensaje, i) => {
+
+            if (i === primerNuevo) {
+                const linea = document.createElement("div");
+                linea.className = "chat-nuevos";
+                linea.id = "chat-nuevos";
+                linea.textContent = cantidadNuevos === 1 ? "1 mensaje nuevo" : cantidadNuevos + " mensajes nuevos";
+                fragmento.appendChild(linea);
+            }
 
             agregarMensaje(mensaje, datos.mensajes[i - 1], fragmento);
 
@@ -367,6 +487,11 @@ async function cargarMensajes() {
         }
         if (estabaAbajo || internoAbajo) {
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        // Al abrir con mensajes sin leer, se arranca en la línea de nuevos y no en el final.
+        const lineaNuevos = document.getElementById("chat-nuevos");
+        if (!chatYaCargado && lineaNuevos) {
+            chatMessages.scrollTop += lineaNuevos.getBoundingClientRect().top - chatMessages.getBoundingClientRect().top - 12;
         }
 
         chatYaCargado = true;

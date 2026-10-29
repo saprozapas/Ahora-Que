@@ -136,11 +136,11 @@ def chat_grupo(group_id):
     plan_service.archivar_vencidos()
     group, racha, owner_id, es_admin, es_owner = _datos_del_grupo(group_id)
     # Lecturas independientes: salen a la vez y la página tarda lo de la más lenta, no la suma.
-    integrantes, tablero, encuestas, _ = correr_en_paralelo(
+    integrantes, tablero, encuestas, visto_en = correr_en_paralelo(
         lambda: getUsersInGroupWithIds(group_id),
         lambda: grupo_plan_service.get_tablero(group_id, user_id),
         lambda: grupo_encuesta_service.get_abiertas(group_id, user_id),
-        lambda: chat_service.marcar_visto(user_id, group_id, siempre=True),
+        lambda: chat_service.leer_y_marcar_visto(user_id, group_id),  # lo que había leído antes, para la línea de nuevos
     )
     # Quiénes se pueden mencionar con @ en el chat: se los nombra por su username (o su nombre sin espacios).
     integrantes_chat = [
@@ -155,7 +155,7 @@ def chat_grupo(group_id):
     return render_template("grupo_chat.html", group=group, groups_page=True,
                            users=integrantes, seccion="chat", racha=racha,
                            es_admin=es_admin, es_owner=es_owner, owner_id=owner_id, integrantes_chat=integrantes_chat,
-                           tablero=tablero, encuestas=encuestas, hoy=date.today().isoformat())
+                           tablero=tablero, encuestas=encuestas, hoy=date.today().isoformat(), visto_en=visto_en)
 
 
 @group_auth.route("/grupos/<group_id>/info")

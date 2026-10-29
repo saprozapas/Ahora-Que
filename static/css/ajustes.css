@@ -2149,3 +2149,33 @@ dialog.modal--hoja { width: min(720px, calc(100% - 32px)); }
 .chat-fijado__flecha { flex: none; width: 16px; height: 16px; color: var(--ink-4); }
 .chat-fijado--vacio { min-height: 52px; }
 .chat-fijado--vacio .chat-fijado__icono { width: 30px; height: 30px; }
+
+/* --- Planes fijados: deslizables, voto rápido (Voy / No voy) y línea de mensajes nuevos --- */
+.chat-fijados { position: relative; flex: none; }
+.chat-fijados__pista { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.chat-fijados__pista::-webkit-scrollbar { display: none; }
+.chat-fijados__pista > .chat-fijado { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; }
+.chat-fijados__puntos { position: absolute; left: 50%; bottom: 4px; display: flex; gap: 4px; transform: translateX(-50%); pointer-events: none; }
+.chat-fijados__puntos i { width: 5px; height: 5px; border-radius: 50%; background: color-mix(in srgb, var(--ink) 22%, transparent); transition: background-color var(--d-fast) var(--ease-out), transform var(--d-fast) var(--ease-out); }
+.chat-fijados__puntos i.is-activo { background: var(--ink); transform: scale(1.25); }
+.chat-fijados:has(.chat-fijados__puntos) .chat-fijado { padding-bottom: 14px; }
+div.chat-fijado { cursor: default; }
+.chat-fijado__principal {
+  display: flex; align-items: center; gap: var(--s-3); flex: 1; min-width: 0; margin: 0; padding: 0;
+  border: 0; background: none; font: inherit; text-align: left; color: inherit; cursor: pointer;
+}
+.chat-fijado__rapido { flex: none; display: flex; gap: 6px; }
+.chat-fijado__rapido form { margin: 0; }
+.chat-fijado__voto { height: 34px; padding: 0 14px; border: 0; border-radius: 999px; font: inherit; font-size: 0.8125rem; font-weight: 600; cursor: pointer; }
+.chat-fijado__voto--si { background: var(--ink); color: var(--on-ink); }
+.chat-fijado__voto--no { background: color-mix(in srgb, var(--ink) 10%, transparent); color: var(--ink); }
+.chat-fijado__voto:disabled { opacity: 0.5; cursor: default; }
+.chat-fijado:has(.chat-fijado__rapido) .chat-fijado__barra { width: 34px; }
+.chat-fijado [data-pin-votado] { display: none; }
+.chat-fijado.is-votado [data-pin-votado] { display: inline-flex; }
+.chat-fijado.is-votado [data-pin-rapido] { display: none; }
+.chat-fijado.is-votado .chat-fijado__accion { background: color-mix(in srgb, var(--ink) 10%, transparent); color: var(--ink); }
+.chat-escribiendo .chat-fijados { display: none; }
+
+.chat-nuevos { align-self: stretch; display: flex; align-items: center; gap: 10px; margin: var(--s-2) 0; color: var(--danger); font-size: 0.75rem; font-weight: 600; }
+.chat-nuevos::before, .chat-nuevos::after { content: ""; flex: 1; height: 1px; background: color-mix(in srgb, var(--danger) 35%, transparent); }

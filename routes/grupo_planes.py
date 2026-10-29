@@ -4,7 +4,7 @@ Todas redirigen de vuelta a la página del grupo con un mensaje."""
 
 from datetime import datetime
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for
 
 from services.grupo_encuesta_service import GrupoEncuestaService, opciones_de_distancia, opciones_de_precio
 from services.grupo_plan_service import GrupoPlanError, GrupoPlanService
@@ -139,15 +139,23 @@ def asistente(group_id):
 # --- Votación del plan ------------------------------------------------------
 
 def _ejecutar(group_id, accion, ok="Listo.", ancla="planes-grupo", mensajes=MENSAJES_RESULTADO):
-    """Corre la acción, muestra el mensaje que corresponda y vuelve al grupo."""
+    """Corre la acción, muestra el mensaje que corresponda y vuelve al grupo.
+    Si viene por fetch (el voto rápido de la franja del chat) contesta en JSON y no recarga nada."""
+    por_fetch = request.headers.get("X-Requested-With") == "fetch"
     try:
         resultado = accion()
     except GrupoPlanError as e:
+        if por_fetch:
+            return jsonify(ok=False, mensaje=str(e)), 400
         flash(str(e))
     except Exception as e:
         print(f"Error en plan de grupo: {e}")
+        if por_fetch:
+            return jsonify(ok=False, mensaje="Algo salió mal. Intentá de nuevo."), 500
         flash("Algo salió mal. Intentá de nuevo.")
     else:
+        if por_fetch:
+            return jsonify(ok=True, mensaje=mensajes.get(resultado, ok))
         flash(mensajes.get(resultado, ok))
     return _volver(group_id, ancla)
 
