@@ -13,6 +13,8 @@ Flujo de un plan de grupo (columna "Plan"."Estado"):
         esperando_horario: cualquiera propone fecha/hora y se vota "puedo /
         no puedo". Mismo criterio de cierre; el primer horario aprobado
         confirma el plan con esa fecha.
+    rechazado / vencido: planes que no prosperaron (no gustó, o nadie los movió en
+        PlanService.DIAS_PARA_VENCER_PLAN_QUIETO días): se ven un tiempo como "Descartados".
     confirmado --12 h después de arrancar--> archivado (ver
         PlanService.archivar_vencidos): se puntúa y se publica en Social.
 
@@ -22,12 +24,19 @@ Los porcentajes se calculan sobre los votos emitidos.
 import psycopg2
 
 from database import get_db_connection, release_db_connection
+from services.notification_service import NotificationService
 from services.plan_service import PlanService
 
 # Mínimo de "me gusta" para que la idea pase (se puede cambiar más adelante).
 UMBRAL_GUSTA = 0.66
 # Mínimo de "puedo" para que una fecha/hora quede confirmada.
 UMBRAL_PUEDEN = 0.66
+# Los planes rechazados o vencidos se siguen viendo en el tablero este tiempo (y no más de tantos).
+DIAS_VISIBLES_DESCARTADOS = 30
+DESCARTADOS_MAXIMOS = 10
+# \"Quién puede\" antes de votar: un integrante cuenta como ocupado si ya tiene un plan
+# confirmado que arranca a menos de tantas horas del momento que se está votando.
+VENTANA_OCUPADO_HORAS = 3
 
 
 class GrupoPlanError(Exception):
@@ -38,6 +47,14 @@ class GrupoPlanService:
 
     def __init__(self):
         self._planes = PlanService()
+        self._avisos = NotificationService()
+
+    def avisar_resultados(self, group_id, actor_id, eventos):
+        """Manda los avisos de votaciones que se resolvieron. `eventos`: [(plan_id, tipo, resultado)].
+        Se llama DESPUÉS del commit (si no, el aviso podría hablar de algo que se deshizo)."""
+        for plan_id, tipo, resultado in eventos:
+            if resultado:
+                self._avisos.notificar_resultado_plan(group_id, actor_id, plan_id, tipo, resultado)
 
     # --- Helpers ------------------------------------------------------------
 
@@ -181,6 +198,62 @@ class GrupoPlanService:
         self._confirmar_usuarios(cursor, plan_id, [f[0] for f in cursor.fetchall()])
         return "aprobado"
 
+    # --- Quién puede (antes de votar) ---------------------------------------
+
+    def _ocupados_por_momento(self, cursor, group_id, momentos):
+        """Cuántos integrantes del grupo ya tienen otro plan confirmado cerca de cada momento.
+
+        momentos: [(clave, fecha, hora o None)]. Devuelve {clave: cantidad} (las claves sin
+        nadie ocupado no aparecen). Se mira el calendario real (planes confirmados, de este
+        grupo o de cualquier otro), así que se sabe ANTES de que nadie vote. Son solo
+        cantidades: no se dice quién está ocupado ni con qué."""
+        if not momentos:
+            return {}
+        cursor.execute(
+            """
+            SELECT t.clave, COUNT(DISTINCT up."Usuario_id")
+            FROM unnest(%(claves)s::text[], %(fechas)s::date[], %(horas)s::time[]) AS t(clave, fecha, hora)
+            JOIN public."Usuario-Grupo" ug ON ug."Id_Grupo" = %(gid)s
+            JOIN public."Usuario-Plan" up ON up."Usuario_id" = ug."Id_Usuario" AND up."Confirmado"
+            JOIN public."Plan" p
+                 ON p."id_Plan" = up."Plan_id" AND p."Estado" = 'confirmado' AND p."Fecha" = t.fecha
+                AND (t.hora IS NULL OR p."Hora" IS NULL
+                     OR ABS(EXTRACT(EPOCH FROM (p."Hora" - t.hora))) < %(ventana)s)
+            GROUP BY t.clave
+            """,
+            {
+                "claves": [m[0] for m in momentos],
+                "fechas": [m[1] for m in momentos],
+                "horas": [m[2] for m in momentos],
+                "gid": group_id,
+                "ventana": VENTANA_OCUPADO_HORAS * 3600,
+            },
+        )
+        return {fila[0]: int(fila[1]) for fila in cursor.fetchall()}
+
+    def _agregar_disponibilidad(self, cursor, group_id, planes_en_votacion, esperando):
+        """Le suma a cada plan en votación con fecha, y a cada horario propuesto, `ocupados` y
+        `libres` (integrantes sin otro plan a esa hora). Si la consulta falla el tablero se muestra
+        igual, solo que sin ese dato."""
+        momentos = [(f"p:{p['id']}", p["fecha"], p["hora"]) for p in planes_en_votacion if p["fecha"]]
+        momentos += [
+            (f"h:{h['id']}", h["fecha"], h["hora"]) for p in esperando.values() for h in p["horarios"]
+        ]
+        try:
+            ocupados = self._ocupados_por_momento(cursor, group_id, momentos)
+        except psycopg2.Error as e:
+            cursor.connection.rollback()
+            print(f"No se pudo calcular quién está libre: {e}")
+            return
+        for p in planes_en_votacion:
+            if p["fecha"]:
+                p["ocupados"] = ocupados.get(f"p:{p['id']}", 0)
+                p["libres"] = max(p["miembros"] - p["ocupados"], 0)
+        for p in esperando.values():
+            for h in p["horarios"]:
+                h["ocupados"] = ocupados.get(f"h:{h['id']}", 0)
+                h["libres"] = max(p["miembros"] - h["ocupados"], 0)
+
     # --- Tablero del grupo --------------------------------------------------
 
     def get_tablero(self, group_id, user_id):
@@ -207,7 +280,8 @@ class GrupoPlanService:
                     LEFT JOIN LATERAL (
                         SELECT COUNT(*) AS votos,
                                COUNT(*) FILTER (WHERE v."Me_Gusta") AS gustan,
-                               COUNT(*) FILTER (WHERE v."Puedo") AS pueden
+                               COUNT(*) FILTER (WHERE v."Puedo") AS pueden,
+                               MAX(v."Fecha") AS ultimo
                         FROM public."Plan_Voto" v WHERE v."Id_Plan" = p."id_Plan"
                     ) cv ON true
                     LEFT JOIN public."Plan_Voto" mv
@@ -216,10 +290,13 @@ class GrupoPlanService:
                            ON mp."Plan_id" = p."id_Plan" AND mp."Usuario_id" = %(uid)s
                     WHERE p."Grupo_id" = %(gid)s
                       AND (p."Estado" IN ('votacion', 'esperando_horario', 'confirmado')
-                           OR (p."Estado" = 'archivado' AND mp."Confirmado" AND mp."Puntaje" IS NULL))
+                           OR (p."Estado" = 'archivado' AND mp."Confirmado" AND mp."Puntaje" IS NULL)
+                           -- Los descartados se muestran un tiempo, para que se sepa qué pasó con el plan.
+                           OR (p."Estado" IN ('rechazado', 'vencido')
+                               AND cv.ultimo >= now() - (%(dias_descartados)s * INTERVAL '1 day')))
                     ORDER BY p."Fecha" NULLS LAST, p."Hora"
                     """,
-                    {"uid": user_id, "gid": group_id},
+                    {"uid": user_id, "gid": group_id, "dias_descartados": DIAS_VISIBLES_DESCARTADOS},
                 )
                 planes = self._planes._armar_planes(
                     cursor,
@@ -265,11 +342,16 @@ class GrupoPlanService:
                             "votos": f[5], "pueden": f[6], "mi_puedo": f[7],
                         })
 
+                self._agregar_disponibilidad(
+                    cursor, group_id, [p for p in planes if p["estado"] == "votacion"], esperando
+                )
+
             return {
                 "votacion": [p for p in planes if p["estado"] == "votacion"],
                 "esperando_horario": list(esperando.values()),
                 "confirmados": [p for p in planes if p["estado"] == "confirmado"],
                 "para_puntuar": [p for p in planes if p["estado"] == "archivado"],
+                "descartados": [p for p in planes if p["estado"] in ("rechazado", "vencido")][-DESCARTADOS_MAXIMOS:],
             }
         except psycopg2.Error:
             raise
@@ -490,12 +572,13 @@ class GrupoPlanService:
                 )
                 resultado = self._resolver_votacion(cursor, plan_id)
             connection.commit()
-            return resultado
         except Exception:
             connection.rollback()
             raise
         finally:
             release_db_connection(connection)
+        self.avisar_resultados(group_id, user_id, [(plan_id, "plan", resultado)])
+        return resultado
 
     def cerrar_votacion(self, group_id, plan_id, user_id):
         """El creador del plan o un admin cierra la votación sin esperar a que voten todos."""
@@ -513,12 +596,13 @@ class GrupoPlanService:
                     # parecía que el botón no funcionaba.
                     raise GrupoPlanError("Todavía nadie votó este plan: votá vos primero para poder cerrarlo.")
             connection.commit()
-            return resultado
         except Exception:
             connection.rollback()
             raise
         finally:
             release_db_connection(connection)
+        self.avisar_resultados(group_id, user_id, [(plan_id, "plan", resultado)])
+        return resultado
 
     # --- Horarios -----------------------------------------------------------------
 
@@ -549,12 +633,13 @@ class GrupoPlanService:
                 )
                 resultado = self._resolver_horario(cursor, horario_id)
             connection.commit()
-            return resultado
         except Exception:
             connection.rollback()
             raise
         finally:
             release_db_connection(connection)
+        self.avisar_resultados(group_id, user_id, [(plan_id, "horario", resultado)])
+        return resultado
 
     def _horario_del_grupo(self, cursor, horario_id, group_id, user_id):
         cursor.execute(
@@ -570,7 +655,7 @@ class GrupoPlanService:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                _, (estado, _, _) = self._horario_del_grupo(cursor, horario_id, group_id, user_id)
+                plan_id, (estado, _, _) = self._horario_del_grupo(cursor, horario_id, group_id, user_id)
                 if estado != "esperando_horario":
                     raise GrupoPlanError("Este plan ya tiene horario.")
                 cursor.execute(
@@ -583,26 +668,28 @@ class GrupoPlanService:
                 )
                 resultado = self._resolver_horario(cursor, horario_id)
             connection.commit()
-            return resultado
         except Exception:
             connection.rollback()
             raise
         finally:
             release_db_connection(connection)
+        self.avisar_resultados(group_id, user_id, [(plan_id, "horario", resultado)])
+        return resultado
 
     def cerrar_horario(self, group_id, horario_id, user_id):
         """El creador del plan o un admin cierra la votación de un horario."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                _, (estado, creado_por, _) = self._horario_del_grupo(cursor, horario_id, group_id, user_id)
+                plan_id, (estado, creado_por, _) = self._horario_del_grupo(cursor, horario_id, group_id, user_id)
                 if str(creado_por) != str(user_id) and not self._es_admin(cursor, group_id, user_id):
                     raise GrupoPlanError("Solo quien propuso el plan o un admin del grupo puede terminar la votación.")
                 resultado = self._resolver_horario(cursor, horario_id, forzar=True)
             connection.commit()
-            return resultado
         except Exception:
             connection.rollback()
             raise
         finally:
             release_db_connection(connection)
+        self.avisar_resultados(group_id, user_id, [(plan_id, "horario", resultado)])
+        return resultado

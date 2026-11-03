@@ -4,8 +4,9 @@ import uuid
 from flask import Blueprint, abort, flash, jsonify, make_response, redirect, render_template, request, session, url_for
 from services.plan_service import PlanService
 from services.plan_ubicacion_service import PlanUbicacionService, UbicacionNoPermitida
-from services.lugar_service import LugarService
+from services.lugar_service import LugarService, distancias_de_cercania
 from services.lugar_filtros import FILTROS_LUGAR
+from services.notification_service import NotificationService
 
 # Los filtros que se ofrecen al crear un plan a mano (algunos existen solo para el chatbot y las encuestas).
 FILTROS_FORMULARIO = [f for f in FILTROS_LUGAR if f.get("en_formulario", True)]
@@ -14,6 +15,7 @@ planes_bp = Blueprint("planes", __name__, url_prefix="/planes")
 plan_service = PlanService()
 ubicacion_service = PlanUbicacionService()
 lugar_service = LugarService()
+notification_service = NotificationService()
 
 
 def _sin_sesion():
@@ -212,6 +214,8 @@ def buscar_lugares():
     limite = request.args.get("limite", default=30, type=int)
     # "lat" y "lon" (opcionales) son la ubicación de quien busca: se usan solo para
     # calcular distancias en esta consulta; no se guardan.
+    # "cercania" (cerca / lejos) es un atajo para max_km / min_km; si viene max_km, manda max_km.
+    min_km, max_km = distancias_de_cercania(request.args.get("cercania", ""))
     resultados = lugar_service.buscar(
         texto=request.args.get("texto", ""),
         tipo_id=request.args.get("tipo", ""),
@@ -219,7 +223,8 @@ def buscar_lugares():
         limite=limite,
         lat=request.args.get("lat"),
         lon=request.args.get("lon"),
-        max_km=request.args.get("max_km"),
+        max_km=request.args.get("max_km") or max_km,
+        min_km=min_km,
     )
     return jsonify(resultados=resultados)
 
@@ -289,13 +294,36 @@ def bajarme(plan_id):
 def eliminar(plan_id):
     if _sin_sesion():
         return redirect(url_for("auth.login"))
-    borrado = plan_service.eliminar_plan(plan_id, session["user_id"])
-    if borrado:
-        flash("Plan eliminado.", "success")
-    else:
+    try:
+        borrado = plan_service.eliminar_plan(plan_id, session["user_id"])
+    except Exception as e:
+        # Si la base rechaza el borrado no se borra nada (es una sola transacción): se avisa
+        # en vez de mostrar un error 500.
+        print(f"Error al eliminar el plan {plan_id}: {e}")
+        flash("No se pudo eliminar el plan. Intentá de nuevo en un rato.", "error")
+        return redirect(url_for("planes.detalle", plan_id=plan_id))
+    if borrado is None:
         flash("Solo quien creó el plan lo puede eliminar.", "error")
         return redirect(url_for("planes.detalle", plan_id=plan_id))
+    _avisar_plan_eliminado(borrado)
+    flash("Plan eliminado.", "success")
     return redirect(url_for("planes.menu"))
+
+
+def _avisar_plan_eliminado(borrado):
+    """Les avisa a los que iban al plan (o ya habían votado) que se eliminó.
+    Un aviso que falla no tiene que deshacer ni romper el borrado, que ya se hizo."""
+    for destinatario in borrado["avisar"]:
+        try:
+            notification_service.notificar_usuario(
+                destinatario, "votos",
+                f"Se eliminó el plan {borrado['nombre']}",
+                f"Se eliminó el plan {borrado['nombre']}.\n\nQuien lo propuso lo borró, así que ya no está en tu calendario.",
+                f"/grupos/{borrado['grupo_id']}" if borrado["grupo_id"] else "/planes",
+                cuerpo_push=f"Se eliminó el plan {borrado['nombre']}.",
+            )
+        except Exception as e:
+            print(f"No se pudo avisar de la eliminación del plan: {e}")
 
 
 @planes_bp.route("/<plan_id>/puntuar", methods=["POST"])

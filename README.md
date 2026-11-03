@@ -45,13 +45,16 @@ La intención es que la app sugiera opciones útiles y realistas, evitando que l
 - Los planes pueden tener distintos criterios de precio, ubicacion y duración
 
 ### 4. Recomendación por IA
-- La aplicación evaluará condiciones del grupo para sugerir la mejor opción posible
-- Se tomarán en cuenta presupuesto, horarios, disponibilidad y tiempo
+- El chatbot, usado desde un grupo, conoce: cantidad de integrantes, presupuesto que marcó el grupo en la última encuesta, días en que hay integrantes con otro plan confirmado, cuántos pueden y cuántos no en las votaciones abiertas, ideas rechazadas hace poco y los planes mejor y peor puntuados
+- Solo recibe cantidades: nunca quién votó qué
 
 ### 5. Filtros
-- Precio: CUSTOM, FREE, LOW, MID, HIGH
-- Distancia: CUSTOM, NEARBY, FAR AWAY
-- Tipo de grupo: SOLO, AMIGOS, FAMILIA, PAREJA, etc.
+Los filtros del buscador de lugares (y los que usa el chatbot) están definidos en `services/lugar_filtros.py`:
+- Precio máximo: gratis, $, $$, $$$, $$$$, $$$$$
+- Ambiente y barrio
+- Distancia (necesita la ubicación de quien busca): cerca (hasta 3 km), lejos (más de 8 km) o un máximo en km
+
+El tipo de grupo (solo, amigos, familia, pareja) todavía no es un filtro: los lugares no guardan ese dato. Hoy el chatbot lo toma de lo que cuenta el usuario.
 
 ### 6. Calificaciones y historial
 - Cada plan puede recibir puntaje con estrellas

@@ -392,8 +392,10 @@ class AuthService:
         try:
             with connection.cursor() as cursor:
                 cursor.execute('SELECT "Id_Grupo" FROM public."Usuario-Grupo" WHERE "Id_Usuario" = %s', (user_id,))
+                avisos = []
                 for (grupo,) in cursor.fetchall():
-                    GroupAuthService.salir_del_grupo(cursor, grupo, user_id)  # sucesión de admin incluida
+                    # sucesión de admin incluida
+                    avisos.append((grupo, GroupAuthService.salir_del_grupo(cursor, grupo, user_id)))
                 cursor.execute(";\n".join(self._BORRAR_CUENTA), {"u": str(user_id)})
             connection.commit()
         except psycopg2.Error:
@@ -401,6 +403,8 @@ class AuthService:
             raise
         finally:
             release_db_connection(connection)
+        for grupo, eventos in avisos:
+            GroupAuthService.avisar_tras_salir(grupo, user_id, eventos)
 
     # --- Olvidé mi contraseña ---------------------------------------------
 

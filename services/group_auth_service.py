@@ -184,7 +184,15 @@ class GroupAuthService:
 
     @staticmethod
     def salir_del_grupo(cursor, group_id, user_id):
-        """Saca al usuario del grupo dentro de la transacción del cursor recibido."""
+        """Saca al usuario del grupo dentro de la transacción del cursor recibido.
+
+        Además de la membresía, limpia todo lo que el usuario tenía en los planes vivos del grupo
+        (votos, asistencia, ubicación compartida) y vuelve a resolver las votaciones que, sin su
+        voto, ya tienen respuesta de todos los que quedan. Si era el último integrante, el grupo
+        se borra entero: sin integrantes no lo ve nadie y quedaría huérfano.
+
+        Devuelve los avisos pendientes [(plan_id, tipo, resultado)] de las votaciones que se
+        resolvieron al irse: quien llama los manda con avisar_tras_salir() DESPUÉS del commit."""
         cursor.execute(
             'SELECT "Creado_Por"::text = %s FROM public."Grupos" WHERE "Id_Grupo" = %s',
             (str(user_id), group_id)
@@ -199,6 +207,16 @@ class GroupAuthService:
             (user_id, group_id)
         )
         fila = cursor.fetchone()
+
+        cursor.execute(
+            'SELECT COUNT(*) FROM public."Usuario-Grupo" WHERE "Id_Grupo" = %s', (group_id,)
+        )
+        if cursor.fetchone()[0] == 0:
+            GroupAuthService._borrar_grupo_vacio(cursor, group_id)
+            return []
+
+        eventos = GroupAuthService._retirar_de_planes_del_grupo(cursor, group_id, user_id)
+
         # Se fue un admin y no quedó ninguno: pasa a admin el más antiguo
         # (si la antigüedad empata, al azar). Va en una sentencia aparte
         # porque en un solo CTE todavía vería al admin que se fue.
@@ -227,6 +245,109 @@ class GroupAuthService:
                 """,
                 {"g": group_id}
             )
+        return eventos
+
+    @staticmethod
+    def avisar_tras_salir(group_id, user_id, eventos):
+        """Avisa al grupo de las votaciones que se resolvieron cuando alguien se fue (ya con el commit hecho)."""
+        if eventos:
+            from services.grupo_plan_service import GrupoPlanService  # acá adentro: evita un import circular
+            GrupoPlanService().avisar_resultados(group_id, user_id, eventos)
+
+    @staticmethod
+    def _retirar_de_planes_del_grupo(cursor, group_id, user_id):
+        """Quita al usuario de los planes vivos del grupo (en votación, esperando horario o
+        confirmados) y re-resuelve las votaciones que su salida deja completas. Los planes
+        archivados no se tocan: su puntaje y su lugar en el historial son del usuario."""
+        params = {"g": group_id, "u": user_id}
+        planes_vivos = (
+            'SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %(g)s '
+            "AND \"Estado\" IN ('votacion', 'esperando_horario', 'confirmado')"
+        )
+        cursor.execute(
+            f'DELETE FROM public."Plan_Voto" WHERE "Id_Usuario" = %(u)s '
+            f'AND "Id_Plan" IN (SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %(g)s AND "Estado" = \'votacion\')',
+            params,
+        )
+        cursor.execute(
+            f'DELETE FROM public."Plan_Horario_Voto" WHERE "Id_Usuario" = %(u)s '
+            f'AND "Id_Horario" IN (SELECT "Id_Horario" FROM public."Plan_Horario" '
+            f"WHERE \"Estado\" = 'votacion' AND \"Id_Plan\" IN ({planes_vivos}))",
+            params,
+        )
+        cursor.execute(
+            f'DELETE FROM public."Plan_Ubicacion" WHERE "Id_Usuario" = %(u)s AND "Id_Plan" IN ({planes_vivos})',
+            params,
+        )
+        # Lo que además tenía guardado se conserva; el resto de la relación con el plan se va.
+        cursor.execute(
+            f'UPDATE public."Usuario-Plan" SET "Confirmado" = false '
+            f'WHERE "Usuario_id" = %(u)s AND "Guardado" AND "Plan_id" IN ({planes_vivos})',
+            params,
+        )
+        cursor.execute(
+            f'DELETE FROM public."Usuario-Plan" '
+            f'WHERE "Usuario_id" = %(u)s AND NOT COALESCE("Guardado", false) AND "Plan_id" IN ({planes_vivos})',
+            params,
+        )
+
+        # Sin su voto, puede que ya hayan respondido todos los que quedan.
+        from services.grupo_plan_service import GrupoPlanService  # acá adentro: evita un import circular
+        resolver = GrupoPlanService()
+        cursor.execute(
+            'SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %s AND "Estado" = \'votacion\'', (group_id,)
+        )
+        eventos = []
+        for (plan_id,) in cursor.fetchall():
+            eventos.append((plan_id, "plan", resolver._resolver_votacion(cursor, plan_id)))
+        cursor.execute(
+            """
+            SELECT h."Id_Horario", h."Id_Plan" FROM public."Plan_Horario" h
+            JOIN public."Plan" p ON p."id_Plan" = h."Id_Plan"
+            WHERE p."Grupo_id" = %s AND p."Estado" = 'esperando_horario' AND h."Estado" = 'votacion'
+            ORDER BY h."Id_Horario"
+            """,
+            (group_id,),
+        )
+        for horario_id, plan_id in cursor.fetchall():
+            eventos.append((plan_id, "horario", resolver._resolver_horario(cursor, horario_id)))
+        return [e for e in eventos if e[2]]
+
+    # Orden pensado para las claves foráneas: primero lo que cuelga de los planes y de las encuestas.
+    _BORRAR_GRUPO = (
+        'DELETE FROM public."Plan_Ubicacion" WHERE "Id_Plan" IN (SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %(g)s)',
+        'DELETE FROM public."Plan_Horario_Voto" WHERE "Id_Horario" IN (SELECT h."Id_Horario" FROM public."Plan_Horario" h JOIN public."Plan" p ON p."id_Plan" = h."Id_Plan" WHERE p."Grupo_id" = %(g)s)',
+        'DELETE FROM public."Plan_Horario" WHERE "Id_Plan" IN (SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %(g)s)',
+        'DELETE FROM public."Plan_Voto" WHERE "Id_Plan" IN (SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %(g)s)',
+        'DELETE FROM public."Usuario-Plan" WHERE "Plan_id" IN (SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %(g)s)',
+        'DELETE FROM public."gasto_detalle" WHERE "gasto_id" IN (SELECT g."id_gasto" FROM public."gasto" g JOIN public."Plan" p ON p."id_Plan" = g."plan_id" WHERE p."Grupo_id" = %(g)s)',
+        'DELETE FROM public."gasto" WHERE "plan_id" IN (SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %(g)s)',
+        'DELETE FROM public."Grupo_Encuesta_Voto" WHERE "Id_Encuesta" IN (SELECT "Id_Encuesta" FROM public."Grupo_Encuesta" WHERE "Id_Grupo" = %(g)s)',
+        'DELETE FROM public."Grupo_Encuesta_Opcion" WHERE "Id_Encuesta" IN (SELECT "Id_Encuesta" FROM public."Grupo_Encuesta" WHERE "Id_Grupo" = %(g)s)',
+        'DELETE FROM public."Grupo_Encuesta_Respuesta" WHERE "Id_Encuesta" IN (SELECT "Id_Encuesta" FROM public."Grupo_Encuesta" WHERE "Id_Grupo" = %(g)s)',
+        'DELETE FROM public."Grupo_Encuesta_Disponibilidad" WHERE "Id_Encuesta" IN (SELECT "Id_Encuesta" FROM public."Grupo_Encuesta" WHERE "Id_Grupo" = %(g)s)',
+        'DELETE FROM public."Grupo_Encuesta" WHERE "Id_Grupo" = %(g)s',
+        'DELETE FROM public."Mensajes" WHERE "Id_Grupo" = %(g)s',
+        'DELETE FROM public."Conversacion" WHERE "Id_Grupo" = %(g)s',
+        'DELETE FROM public."Invitaciones" WHERE "Id_Grupo" = %(g)s',
+        'DELETE FROM public."Plan" WHERE "Grupo_id" = %(g)s',
+        'DELETE FROM public."Grupos" WHERE "Id_Grupo" = %(g)s',
+    )
+
+    @staticmethod
+    def _borrar_grupo_vacio(cursor, group_id):
+        """Borra el grupo que se quedó sin integrantes. Va en un SAVEPOINT: si alguna tabla
+        no se deja borrar (una clave foránea que no conocemos), el grupo queda como estaba y
+        quien se fue igual sale, en vez de fallar toda la salida."""
+        cursor.execute("SAVEPOINT borrar_grupo_vacio")
+        try:
+            for sentencia in GroupAuthService._BORRAR_GRUPO:
+                cursor.execute(sentencia, {"g": group_id})
+        except Exception as e:
+            cursor.execute("ROLLBACK TO SAVEPOINT borrar_grupo_vacio")
+            print(f"No se pudo borrar el grupo vacío {group_id}: {e}")
+        else:
+            cursor.execute("RELEASE SAVEPOINT borrar_grupo_vacio")
 
     def transferir_owner(self, group_id, nuevo_owner_id):
         """El nuevo owner queda también como admin; quien era owner sigue de admin."""
@@ -262,10 +383,11 @@ class GroupAuthService:
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                self.salir_del_grupo(cursor, group_id, user_id)
+                eventos = self.salir_del_grupo(cursor, group_id, user_id)
             conn.commit()
         except Exception:
             conn.rollback()
             raise
         finally:
             release_db_connection(conn)
+        self.avisar_tras_salir(group_id, user_id, eventos)

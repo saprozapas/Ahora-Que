@@ -303,11 +303,89 @@ def _borrador_para_llm(contenido):
         return "[Borrador propuesto al usuario] " + contenido
 
 
+_DIAS_SEMANA = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
+
+
+def _cuando(fecha, hora):
+    """\"sáb 14/11 21:00\" (la hora solo si hay)."""
+    texto = f"{_DIAS_SEMANA[fecha.weekday()]} {fecha.day}/{fecha.month}"
+    return texto + (f" {hora.strftime('%H:%M')}" if hora else "")
+
+
+def _limpio(texto, maximo=60):
+    """Nombres que escribieron los usuarios y van al prompt: una línea, corta y sin las comillas
+    que se usan para delimitarlos, así un nombre de plan no se puede hacer pasar por una instrucción."""
+    texto = " ".join(str(texto or "").split()).replace("«", "").replace("»", "")
+    return texto[:maximo]
+
+
+def _personas(n):
+    return f"{n} persona" + ("" if n == 1 else "s")
+
+
+def texto_contexto_grupo(grupo):
+    """Lo que el grupo ya decidió o dijo (presupuesto, días ocupados, los \"no puedo\" de las
+    votaciones, ideas rechazadas y puntajes), en frases cortas para el prompt. Son solo cantidades:
+    el bot no sabe quién votó qué. Devuelve \"\" si no hay nada para contar."""
+    lineas = []
+
+    nivel = grupo.get("presupuesto_nivel")
+    if nivel in RANGOS_POR_NIVEL:
+        # presupuesto_por_persona se pasa en pesos y el servidor lo convierte en nivel: con el
+        # mínimo del rango se cae justo en este nivel.
+        pesos = RANGOS_POR_NIVEL[nivel][0]
+        lineas.append(
+            f"- Presupuesto del grupo: hasta {etiqueta_de_nivel(nivel)} por persona. Salvo que el usuario "
+            f"diga otra cosa, buscá con presupuesto_por_persona = {pesos}."
+        )
+
+    ocupados = grupo.get("ocupados")
+    if ocupados:
+        detalle = "; ".join(f"{_cuando(f, h)}: {_personas(n)} ya tienen otro plan" for f, h, n in ocupados)
+        lineas.append(f"- Próximos días con integrantes ocupados: {detalle}. Si el usuario habla de una fecha, tenelo en cuenta.")
+
+    votaciones = grupo.get("votaciones")
+    if votaciones:
+        detalle = "; ".join(
+            f"«{_limpio(nombre)}» el {_cuando(f, h)}: {pueden} pueden, {no_pueden} no pueden"
+            for nombre, f, h, pueden, no_pueden, _ in votaciones
+        )
+        lineas.append(f"- Planes que el grupo está votando ahora: {detalle}.")
+
+    horarios = grupo.get("horarios")
+    if horarios:
+        detalle = "; ".join(
+            f"«{_limpio(nombre)}» el {_cuando(f, h)}: {pueden} pueden, {no_pueden} no pueden"
+            for nombre, f, h, pueden, no_pueden in horarios
+        )
+        lineas.append(f"- Horarios propuestos en votación: {detalle}. Evitá sugerir los que muchos no pueden.")
+
+    rechazados = grupo.get("rechazados")
+    if rechazados:
+        lineas.append("- Ideas que el grupo rechazó hace poco (no las repitas): " + "; ".join(f"«{_limpio(n)}»" for n in rechazados) + ".")
+
+    puntajes = grupo.get("puntajes")
+    if puntajes:
+        def planes(lista):
+            return "; ".join(
+                f"«{_limpio(nombre)}» ({promedio:g}/5" + (f", pasaron por {_limpio(lugares, 120)}" if lugares else "") + ")"
+                for nombre, promedio, lugares in lista
+            )
+        if puntajes["mejores"]:
+            lineas.append("- Planes que al grupo le gustaron mucho: " + planes(puntajes["mejores"]) + ". Buscá algo del mismo estilo.")
+        if puntajes["peores"]:
+            lineas.append("- Planes que puntuó mal: " + planes(puntajes["peores"]) + ". No repitas esos lugares ni ese estilo.")
+
+    if not lineas:
+        return ""
+    return "\nLo que el grupo ya dijo (son cantidades, no sabés quién votó qué):\n" + "\n".join(lineas)
+
+
 def historial_para_llm(historial, grupo=None):
     """Convierte el historial guardado al formato del modelo. Los borradores
     se le pasan como texto corto (con los ids), así puede ajustarlos si el
-    usuario pide cambios. `grupo` ({"nombre", "integrantes"}) es el grupo
-    para el que se arma el plan, si el chat se usa desde un grupo.
+    usuario pide cambios. `grupo` (ia_bridge.contexto_grupo: nombre, integrantes y lo que
+    el grupo ya votó o puntuó) es el grupo para el que se arma el plan, si el chat se usa desde un grupo.
 
     Para gastar menos tokens solo se mandan los últimos
     MAX_MENSAJES_HISTORIAL_LLM mensajes. Lo que NO cambia entre usuarios (el
@@ -327,6 +405,7 @@ def historial_para_llm(historial, grupo=None):
             f"{grupo['integrantes']} integrantes. Si el usuario no dice otra cosa, "
             f"asumí que van {grupo['integrantes']} personas."
         )
+        prompt += texto_contexto_grupo(grupo)
     mensajes = [{"role": "system", "content": prompt}]
     for mensaje in historial[-MAX_MENSAJES_HISTORIAL_LLM:]:
         if mensaje["tipo"] == "borrador":

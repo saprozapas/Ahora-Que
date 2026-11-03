@@ -118,9 +118,11 @@
             </button>
 
             <div class="field planner__near-km" id="campo-distancia" hidden>
-              <label for="busqueda-distancia">Hasta</label>
+              <label for="busqueda-distancia">Distancia</label>
               <select class="select" id="busqueda-distancia">
                 <option value="">Cualquier distancia</option>
+                <option value="cerca">Cerca (hasta 3 km)</option>
+                <option value="lejos">Lejos (más de 8 km)</option>
                 <option value="0.5">500 m</option>
                 <option value="1">1 km</option>
                 <option value="2">2 km</option>
@@ -423,8 +425,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (ubicacion) {
       p.set("lat", ubicacion.lat);
       p.set("lon", ubicacion.lon);
-      var maxKm = document.getElementById("busqueda-distancia").value;
-      if (maxKm) { p.set("max_km", maxKm); }
+      var distancia = document.getElementById("busqueda-distancia").value;
+      if (distancia === "cerca" || distancia === "lejos") { p.set("cercania", distancia); }
+      else if (distancia) { p.set("max_km", distancia); }
     }
 
     if (limite) { p.set("limite", limite); }

@@ -330,4 +330,169 @@ def contexto_grupo(user_id, group_id):
         release_db_connection(connection)
     if fila is None:
         return None
-    return {"nombre": fila[0], "integrantes": int(fila[1])}
+    contexto = {"nombre": fila[0], "integrantes": int(fila[1])}
+    contexto.update(_detalles_grupo(group_id))
+    return contexto
+
+
+# Cuánto se le cuenta al modelo de cada cosa (el prompt viaja en cada pedido: se cuida el tamaño).
+_MAX_FECHAS_OCUPADAS = 6
+_MAX_VOTACIONES = 5
+_MAX_PUNTUADOS = 3
+_MAX_RECHAZADOS = 5
+_DIAS_VISTA_CALENDARIO = 14
+
+
+def _detalles_grupo(group_id):
+    """Lo que el grupo ya dijo sin que nadie se lo repita al bot, todo agregado (cantidades, nunca
+    quién): presupuesto, días en que hay integrantes ocupados, los \"no puedo\" de las votaciones
+    abiertas, ideas que el grupo rechazó y los planes mejor y peor puntuados.
+
+    Es contexto de ayuda: si alguna consulta falla se devuelve lo que se pudo armar (o nada),
+    y el chat sigue funcionando como antes."""
+    detalles = {}
+    gid = str(group_id)
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            consultas = (
+                ("presupuesto_nivel", _consulta_presupuesto),
+                ("ocupados", _consulta_ocupados),
+                ("votaciones", _consulta_votaciones),
+                ("horarios", _consulta_horarios),
+                ("rechazados", _consulta_rechazados),
+                ("puntajes", _consulta_puntajes),
+            )
+            for clave, consulta in consultas:
+                try:
+                    valor = consulta(cursor, gid)
+                except psycopg2.Error as e:
+                    # Una consulta rota deja la transacción abortada: se limpia para seguir con las demás.
+                    connection.rollback()
+                    print(f"[ia_bridge] contexto del grupo: falló {clave}: {e}", flush=True)
+                    continue
+                if valor:
+                    detalles[clave] = valor
+    finally:
+        release_db_connection(connection)
+    return detalles
+
+
+def _consulta_presupuesto(cursor, gid):
+    """Nivel de precio máximo de la última encuesta del grupo que lo pidió (el más restrictivo si
+    respondieron varios). None si el grupo nunca marcó uno."""
+    cursor.execute(
+        """
+        WITH ultima AS (
+            SELECT e."Id_Encuesta" FROM public."Grupo_Encuesta" e
+            WHERE e."Id_Grupo" = %s
+              AND EXISTS (SELECT 1 FROM public."Grupo_Encuesta_Respuesta" r
+                          WHERE r."Id_Encuesta" = e."Id_Encuesta" AND r."Nivel_Precio_Max" IS NOT NULL)
+            ORDER BY e."Creada_En" DESC LIMIT 1
+        )
+        SELECT MIN(r."Nivel_Precio_Max")
+        FROM public."Grupo_Encuesta_Respuesta" r JOIN ultima u ON u."Id_Encuesta" = r."Id_Encuesta"
+        """,
+        (gid,),
+    )
+    fila = cursor.fetchone()
+    return int(fila[0]) if fila and fila[0] is not None else None
+
+
+def _consulta_ocupados(cursor, gid):
+    """[(fecha, hora, cuántos integrantes ya tienen un plan confirmado a esa hora)] en los próximos días."""
+    cursor.execute(
+        """
+        SELECT p."Fecha", p."Hora", COUNT(DISTINCT up."Usuario_id")
+        FROM public."Usuario-Grupo" ug
+        JOIN public."Usuario-Plan" up ON up."Usuario_id" = ug."Id_Usuario" AND up."Confirmado"
+        JOIN public."Plan" p ON p."id_Plan" = up."Plan_id" AND p."Estado" = 'confirmado'
+        WHERE ug."Id_Grupo" = %s
+          AND p."Fecha" BETWEEN CURRENT_DATE AND CURRENT_DATE + %s
+        GROUP BY p."Fecha", p."Hora"
+        ORDER BY p."Fecha", p."Hora"
+        LIMIT %s
+        """,
+        (gid, _DIAS_VISTA_CALENDARIO, _MAX_FECHAS_OCUPADAS),
+    )
+    return [(f[0], f[1], int(f[2])) for f in cursor.fetchall()]
+
+
+def _consulta_votaciones(cursor, gid):
+    """Planes en votación con fecha: [(nombre, fecha, hora, pueden, no_pueden, no_les_gusta)]."""
+    cursor.execute(
+        """
+        SELECT p."Nombre", p."Fecha", p."Hora",
+               COUNT(*) FILTER (WHERE v."Puedo"),
+               COUNT(*) FILTER (WHERE NOT v."Puedo"),
+               COUNT(*) FILTER (WHERE NOT v."Me_Gusta")
+        FROM public."Plan" p JOIN public."Plan_Voto" v ON v."Id_Plan" = p."id_Plan"
+        WHERE p."Grupo_id" = %s AND p."Estado" = 'votacion' AND p."Fecha" IS NOT NULL
+        GROUP BY p."id_Plan", p."Nombre", p."Fecha", p."Hora"
+        ORDER BY p."Fecha", p."Hora"
+        LIMIT %s
+        """,
+        (gid, _MAX_VOTACIONES),
+    )
+    return [(f[0], f[1], f[2], int(f[3]), int(f[4]), int(f[5])) for f in cursor.fetchall()]
+
+
+def _consulta_horarios(cursor, gid):
+    """Horarios propuestos que se están votando: [(nombre del plan, fecha, hora, pueden, no_pueden)]."""
+    cursor.execute(
+        """
+        SELECT p."Nombre", h."Fecha", h."Hora",
+               COUNT(hv."Id_Usuario") FILTER (WHERE hv."Puedo"),
+               COUNT(hv."Id_Usuario") FILTER (WHERE NOT hv."Puedo")
+        FROM public."Plan_Horario" h
+        JOIN public."Plan" p ON p."id_Plan" = h."Id_Plan"
+        LEFT JOIN public."Plan_Horario_Voto" hv ON hv."Id_Horario" = h."Id_Horario"
+        WHERE p."Grupo_id" = %s AND h."Estado" = 'votacion'
+        GROUP BY h."Id_Horario", p."Nombre", h."Fecha", h."Hora"
+        ORDER BY h."Fecha", h."Hora"
+        LIMIT %s
+        """,
+        (gid, _MAX_VOTACIONES),
+    )
+    return [(f[0], f[1], f[2], int(f[3]), int(f[4])) for f in cursor.fetchall()]
+
+
+def _consulta_rechazados(cursor, gid):
+    """Nombres de los planes que el grupo rechazó en el último mes (para no volver a proponerlos)."""
+    cursor.execute(
+        """
+        SELECT p."Nombre" FROM public."Plan" p
+        WHERE p."Grupo_id" = %s AND p."Estado" = 'rechazado'
+          AND EXISTS (SELECT 1 FROM public."Plan_Voto" v
+                      WHERE v."Id_Plan" = p."id_Plan" AND v."Fecha" >= now() - INTERVAL '30 days')
+        ORDER BY (SELECT MAX(v."Fecha") FROM public."Plan_Voto" v WHERE v."Id_Plan" = p."id_Plan") DESC
+        LIMIT %s
+        """,
+        (gid, _MAX_RECHAZADOS),
+    )
+    return [f[0] for f in cursor.fetchall()]
+
+
+def _consulta_puntajes(cursor, gid):
+    """Historial de puntajes del grupo: {"mejores": [...], "peores": [...]}, cada uno
+    (nombre del plan, promedio, lugares). Mejores: promedio 4 o más; peores: 2 o menos."""
+    cursor.execute(
+        """
+        SELECT p."Nombre", ROUND(AVG(up."Puntaje")::numeric, 1),
+               (SELECT string_agg(pl."Nombre", ', ' ORDER BY pl."Orden")
+                  FROM public."Plan_Lugar" pl WHERE pl."Id_Plan" = p."id_Plan")
+        FROM public."Plan" p
+        JOIN public."Usuario-Plan" up ON up."Plan_id" = p."id_Plan" AND up."Puntaje" IS NOT NULL
+        WHERE p."Grupo_id" = %s AND p."Estado" = 'archivado'
+        GROUP BY p."id_Plan", p."Nombre", p."Fecha"
+        ORDER BY p."Fecha" DESC NULLS LAST
+        LIMIT 20
+        """,
+        (gid,),
+    )
+    planes = [(f[0], float(f[1]), f[2] or "") for f in cursor.fetchall()]
+    mejores = sorted((p for p in planes if p[1] >= 4), key=lambda p: -p[1])[:_MAX_PUNTUADOS]
+    peores = sorted((p for p in planes if p[1] <= 2), key=lambda p: p[1])[:_MAX_PUNTUADOS]
+    if not mejores and not peores:
+        return None
+    return {"mejores": mejores, "peores": peores}

@@ -19,6 +19,20 @@ _HAVERSINE_KM = (
 )
 
 
+# Atajos "cerca" y "lejos" del buscador (necesitan la ubicación de quien busca).
+DISTANCIA_CERCA_KM = 3
+DISTANCIA_LEJOS_KM = 8
+
+
+def distancias_de_cercania(cercania):
+    """\"cerca\" -> (None, 3); \"lejos\" -> (8, None); otro valor -> (None, None): (min_km, max_km)."""
+    if cercania == "cerca":
+        return None, DISTANCIA_CERCA_KM
+    if cercania == "lejos":
+        return DISTANCIA_LEJOS_KM, None
+    return None, None
+
+
 def url_mapa(lat, lon):
     """Enlace a un mapa (Google Maps abre la app o el navegador en cualquier teléfono) con el punto exacto
     del lugar. None si el lugar no tiene coordenadas."""
@@ -187,7 +201,7 @@ class LugarService:
             release_db_connection(connection)
 
     def buscar(self, texto="", tipo_id="", filtros=None, limite=30, aleatorio=False,
-               lat=None, lon=None, max_km=None, barrios=None, cerca_de=None):
+               lat=None, lon=None, max_km=None, barrios=None, cerca_de=None, min_km=None):
         """Busca lugares por nombre o por tipo, aplicando los filtros.
 
         barrios: lista de nombres; solo lugares de alguno de ellos.
@@ -249,14 +263,22 @@ class LugarService:
             columna_distancia = 'NULL::float8 AS distancia_km'
             parametros_distancia = []
 
+        # max_km deja los lugares a ese tope o más cerca; min_km, los que están a esa distancia o más lejos.
         filtro_distancia, parametros_max = "", []
-        if coordenadas and max_km not in (None, ""):
-            try:
-                tope = float(max_km)
-            except (TypeError, ValueError):
-                tope = None
-            if tope is not None and 0 < tope <= 500:
-                filtro_distancia, parametros_max = "WHERE u.distancia_km <= %s", [tope]
+        if coordenadas:
+            condiciones_distancia = []
+            for valor, operador in ((min_km, ">="), (max_km, "<=")):
+                if valor in (None, ""):
+                    continue
+                try:
+                    km = float(valor)
+                except (TypeError, ValueError):
+                    continue
+                if 0 < km <= 500:
+                    condiciones_distancia.append(f"u.distancia_km {operador} %s")
+                    parametros_max.append(km)
+            if condiciones_distancia:
+                filtro_distancia = "WHERE " + " AND ".join(condiciones_distancia)
 
         if aleatorio:
             orden, parametros_orden = "random()", []

@@ -61,7 +61,7 @@
 
   <div class="board" id="planes-grupo">
 
-    {% set hay_planes = tablero.para_puntuar or tablero.votacion or tablero.esperando_horario or tablero.confirmados %}
+    {% set hay_planes = tablero.para_puntuar or tablero.votacion or tablero.esperando_horario or tablero.confirmados or tablero.descartados %}
 
     {% if not hay_planes %}
     <div class="empty-state">
@@ -142,6 +142,16 @@
           {{ plan.votos }} de {{ plan.miembros }} votaron · {{ plan.gustan }} les gusta{% if plan.fecha %} · {{ plan.pueden }} pueden{% endif %}
         </p>
         {% if not plan.fecha %}<p class="meta">Si le gusta al grupo, después se elige el horario.</p>{% endif %}
+        {# Quién puede, ANTES de votar: según los calendarios (planes ya confirmados), no según los votos. #}
+        {% if plan.fecha and plan.ocupados is defined %}
+        <p class="meta board-plan__libres">
+          {% if plan.ocupados == 0 %}
+          Según los calendarios, nadie tiene otro plan: los {{ plan.miembros }} están libres.
+          {% else %}
+          Según los calendarios, {{ plan.libres }} de {{ plan.miembros }} están libres ({{ plan.ocupados }} ya {{ 'tiene' if plan.ocupados == 1 else 'tienen' }} otro plan a esa hora).
+          {% endif %}
+        </p>
+        {% endif %}
 
         <form class="board-plan__form" method="post"
               action="{{ url_for('grupo_planes.votar', group_id=group.get_id(), plan_id=plan.id) }}">
@@ -206,6 +216,9 @@
             <div class="board-slots__info">
               <strong>{{ h.fecha | cuando(h.hora) }}</strong>
               <span class="meta">Propuesto por {{ h.propuesto_por }} · {{ h.pueden }} de {{ plan.miembros }} pueden ({{ h.votos }} votaron)</span>
+              {% if h.ocupados is defined %}
+              <span class="meta">Según los calendarios, {{ h.libres }} de {{ plan.miembros }} están libres{% if h.ocupados %} ({{ h.ocupados }} ya {{ 'tiene' if h.ocupados == 1 else 'tienen' }} otro plan){% endif %}.</span>
+              {% endif %}
             </div>
 
             <form method="post"
@@ -287,6 +300,30 @@
       </article>
       {% endfor %}
       </div>
+    </section>
+    {% endif %}
+
+
+    {# ------------------------------ DESCARTADOS ------------------------------ #}
+    {# Los que no prosperaron (no juntaron "me gusta" o nadie los movió): se ven un tiempo para saber qué pasó. #}
+    {% if tablero.descartados %}
+    <section class="board__section" aria-labelledby="tablero-descartados">
+
+      <div class="board__head">
+        <h2 class="h3" id="tablero-descartados">Descartados</h2>
+        <span class="meta">{{ tablero.descartados | length }} plan{{ 'es' if tablero.descartados | length != 1 }}</span>
+      </div>
+
+      <ul class="cuenta__lista">
+        {% for plan in tablero.descartados %}
+        <li id="plan-{{ plan.id }}">
+          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a>
+          <span class="meta">
+            {% if plan.estado == 'rechazado' %}· No juntó suficientes "me gusta"{% else %}· Venció sin que se decidiera{% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
     </section>
     {% endif %}
 

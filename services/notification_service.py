@@ -103,14 +103,14 @@ class NotificationService:
         return enviado
 
     def notificar_grupo(self, group_id, actor_id, subject, cuerpo, url=None):
-        """Notifica a los demás integrantes del grupo según su preferencia de votos."""
+        """Notifica a los demás integrantes del grupo según su preferencia de votos (actor_id None: a todos)."""
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
                     '''SELECT ug."Id_Usuario"
                        FROM public."Usuario-Grupo" ug
-                       WHERE ug."Id_Grupo" = %s AND ug."Id_Usuario" <> %s''',
+                       WHERE ug."Id_Grupo" = %s AND ug."Id_Usuario" IS DISTINCT FROM %s::uuid''',
                     (group_id, actor_id),
                 )
                 destinatarios = cursor.fetchall()
@@ -127,6 +127,58 @@ class NotificationService:
             except Exception:
                 _registrar_error()
         return enviados
+
+    def notificar_resultado_plan(self, group_id, actor_id, plan_id, tipo, resultado):
+        """Avisa al grupo (menos a quien disparó el resultado, que ya lo ve en pantalla) cómo terminó
+        una votación.
+
+        tipo "plan":    resultado "confirmado", "rechazado" o "esperando_horario" (votación del plan).
+        tipo "horario": resultado "aprobado" o "rechazado" (votación de un horario propuesto).
+        tipo "vencido": el plan se dio por vencido sin que nadie lo moviera (resultado se ignora).
+        Nunca levanta error: un aviso que falla no tiene que romper el voto que ya se guardó."""
+        try:
+            from services.fechas import cuando
+
+            conn = get_db_connection()
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        '''SELECT p."Nombre", p."Fecha", p."Hora", g."Nombre"
+                           FROM public."Plan" p JOIN public."Grupos" g ON g."Id_Grupo" = p."Grupo_id"
+                           WHERE p."id_Plan" = %s''',
+                        (plan_id,),
+                    )
+                    fila = cursor.fetchone()
+            finally:
+                release_db_connection(conn)
+            if not fila:
+                return 0
+            nombre, fecha, hora, grupo = fila
+            cuando_texto = cuando(fecha, hora)
+
+            if (tipo, resultado) in (("plan", "confirmado"), ("horario", "aprobado")):
+                asunto = f"Plan confirmado: {nombre} — {grupo}"
+                detalle = f"{nombre} quedó confirmado" + (f" para {cuando_texto}" if cuando_texto else "") + "."
+                cuerpo = f"{detalle}\n\nEntrá a la app para ver quiénes van."
+            elif (tipo, resultado) == ("plan", "rechazado"):
+                asunto = f"Plan descartado: {nombre} — {grupo}"
+                cuerpo = f"{nombre} no juntó suficientes \"me gusta\" y se descartó.\n\nPueden proponer otro plan en el grupo."
+            elif (tipo, resultado) == ("plan", "esperando_horario"):
+                asunto = f"Falta definir el horario: {nombre} — {grupo}"
+                cuerpo = (f"A la mayoría le gustó {nombre}, pero no alcanzan a ir en esa fecha.\n\n"
+                          "Propongan otro horario desde el grupo.")
+            elif (tipo, resultado) == ("horario", "rechazado"):
+                asunto = f"Horario descartado: {nombre} — {grupo}"
+                cuerpo = f"El horario propuesto para {nombre} no juntó suficientes \"puedo\".\n\nPropongan otro desde el grupo."
+            elif tipo == "vencido":
+                asunto = f"Plan vencido: {nombre} — {grupo}"
+                cuerpo = f"{nombre} venció sin que el grupo lo decidiera.\n\nSi todavía les interesa, propónganlo de nuevo."
+            else:
+                return 0
+            return self.notificar_grupo(group_id, actor_id, asunto, cuerpo, f"/grupos/{group_id}#plan-{plan_id}")
+        except Exception:
+            _registrar_error()
+            return 0
 
     def notificar_asistentes(self, plan_id, subject, cuerpo):
         """Notifica a quienes confirmaron asistencia a un plan recién realizado."""

@@ -12,7 +12,7 @@ Bugs o cosas para cambiar
 
 8- al momento de crear un grupo te deja en la pagina de creacion
 
-11- si salgo de un grupo me mantengo en un plan
+11- si salgo de un grupo me mantengo en un plan (ARREGLADO: ahora te saca de los planes vivos del grupo)
 
 14- los planes no pasan de confirmados a archivados y se mantiene en confirmados(PASAN SI, ahora a las 11.30 voy a probar eso, ya puse unplan confirmado a las 9.30 a ver si se archiva. Se deberia archivar cuando entras al grupo) 
 

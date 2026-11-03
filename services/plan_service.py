@@ -25,6 +25,9 @@ ESTADOS_PLAN = {
 # (en toda la app, no por usuario): es un UPDATE barato pero es un viaje
 # más a la base.
 _SEGUNDOS_MANTENIMIENTO = 60
+
+# Un plan de grupo sin movimiento (nadie votó ni propuso horario) este tiempo se da por vencido.
+DIAS_PARA_VENCER_PLAN_QUIETO = 10
 _ultimo_mantenimiento = 0.0
 _lock_mantenimiento = threading.Lock()
 
@@ -210,7 +213,10 @@ class PlanService:
         """Pasa a "archivado" los planes de grupo confirmados que arrancaron
         hace 12 horas o más (ahí aparece la votación de puntaje y se
         publican en Social). También da por vencidas las votaciones y los
-        horarios propuestos cuya fecha ya pasó.
+        horarios propuestos cuya fecha ya pasó, y los planes de grupo que
+        quedaron sin salida: sin fecha en votación, o esperando horario sin
+        ningún horario en votación, y sin movimiento por
+        DIAS_PARA_VENCER_PLAN_QUIETO días.
 
         Las fechas del plan están en hora de Montevideo; la base corre en
         UTC, por eso se compara contra now() convertido."""
@@ -222,6 +228,7 @@ class PlanService:
 
         connection = get_db_connection()
         planes_para_puntuar = []
+        quietos_vencidos = []
         mantenimiento_ok = False
         try:
             with connection.cursor() as cursor:
@@ -236,13 +243,16 @@ class PlanService:
                 )
                 planes_para_puntuar = cursor.fetchall()
                 cursor.execute(
+                    '''UPDATE public."Plan"
+                       SET "Estado" = 'vencido'
+                       WHERE "Estado" = 'votacion'
+                         AND "Fecha" + COALESCE("Hora", '00:00'::time)
+                             < (now() AT TIME ZONE 'America/Montevideo')
+                       RETURNING "id_Plan", "Grupo_id"'''
+                )
+                quietos_vencidos = cursor.fetchall()
+                cursor.execute(
                     """
-                    UPDATE public."Plan"
-                    SET "Estado" = 'vencido'
-                    WHERE "Estado" = 'votacion'
-                      AND "Fecha" + COALESCE("Hora", '00:00'::time)
-                          < (now() AT TIME ZONE 'America/Montevideo');
-
                     UPDATE public."Plan_Horario"
                     SET "Estado" = 'rechazado'
                     WHERE "Estado" = 'votacion'
@@ -252,8 +262,27 @@ class PlanService:
                     DELETE FROM public."Plan_Ubicacion" pu
                     USING public."Plan" p
                     WHERE p."id_Plan" = pu."Id_Plan" AND p."Estado" <> 'confirmado';
-                    """
+                    """,
                 )
+                cursor.execute(
+                    """
+                    -- Planes que se quedaron esperando algo que nadie va a hacer. La actividad es el
+                    -- voto o el horario propuesto mas reciente (sin ninguno, no vencen).
+                    UPDATE public."Plan" p
+                    SET "Estado" = 'vencido'
+                    WHERE p."Grupo_id" IS NOT NULL
+                      AND (p."Estado" = 'esperando_horario' OR (p."Estado" = 'votacion' AND p."Fecha" IS NULL))
+                      AND NOT EXISTS (SELECT 1 FROM public."Plan_Horario" h
+                                       WHERE h."Id_Plan" = p."id_Plan" AND h."Estado" = 'votacion')
+                      AND GREATEST(
+                              (SELECT MAX(v."Fecha") FROM public."Plan_Voto" v WHERE v."Id_Plan" = p."id_Plan"),
+                              (SELECT MAX(h2."Creado") FROM public."Plan_Horario" h2 WHERE h2."Id_Plan" = p."id_Plan")
+                          ) < now() - (%(dias)s * INTERVAL '1 day')
+                    RETURNING p."id_Plan", p."Grupo_id"
+                    """,
+                    {"dias": DIAS_PARA_VENCER_PLAN_QUIETO},
+                )
+                quietos_vencidos += cursor.fetchall()
             connection.commit()
             mantenimiento_ok = True
         except psycopg2.Error as e:
@@ -270,6 +299,11 @@ class PlanService:
                     f"¿Cómo estuvo {nombre}? Ya podés puntuarlo en Ahora Qué.\n\n"
                     "Entrá a la app para dejar tu opinión.",
                 )
+        # Los planes que vencieron (fecha pasada o quietos): se avisa a todo el grupo (no hay quien lo haya disparado).
+        if mantenimiento_ok:
+            for plan_id, group_id in quietos_vencidos:
+                if group_id:
+                    NotificationService().notificar_resultado_plan(group_id, None, plan_id, "vencido", None)
 
     # --- Listados -------------------------------------------------------
 
@@ -599,6 +633,12 @@ class PlanService:
                     {"uid": user_id, "pid": plan_id},
                 )
                 ok = cursor.rowcount > 0
+                if ok:
+                    # Si había votado y se había bajado, su voto vuelve a ser "puedo".
+                    cursor.execute(
+                        'UPDATE public."Plan_Voto" SET "Puedo" = true WHERE "Id_Plan" = %s AND "Id_Usuario" = %s',
+                        (plan_id, user_id),
+                    )
             connection.commit()
             return ok
         except psycopg2.Error:
@@ -610,7 +650,11 @@ class PlanService:
 
     def bajarse_de_plan(self, plan_id, user_id):
         """Saca al usuario de un plan (deja de estar confirmado). No
-        borra el plan en sí, solo la relación de este usuario con él."""
+        borra el plan en sí, solo la relación de este usuario con él.
+
+        En un plan de grupo, además, su voto \"puedo\" pasa a no: si no, el plan
+        seguiría contando con él aunque ya no vaya. Si después vuelve con
+        \"Me sumo\" (sumarse_a_plan), el voto vuelve a ser \"puedo\"."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -619,6 +663,10 @@ class PlanService:
                     DELETE FROM public."Usuario-Plan"
                     WHERE "Plan_id" = %s AND "Usuario_id" = %s
                     """,
+                    (plan_id, user_id),
+                )
+                cursor.execute(
+                    'UPDATE public."Plan_Voto" SET "Puedo" = false WHERE "Id_Plan" = %s AND "Id_Usuario" = %s',
                     (plan_id, user_id),
                 )
                 # Si se baja del plan, deja de compartir su ubicación en el mapa.
@@ -633,36 +681,62 @@ class PlanService:
         finally:
             release_db_connection(connection)
 
+    # Lo que cuelga de un plan y no tiene ON DELETE CASCADE (o no se puede asegurar que lo tenga).
+    # Se borra a mano y en este orden, de lo más dependiente a lo menos: así eliminar_plan
+    # no depende de cómo esté armada cada clave foránea en la base. Mismo criterio que
+    # GroupAuthService._BORRAR_GRUPO.
+    _BORRAR_DEPENDIENTES_DE_PLAN = (
+        'DELETE FROM public."Plan_Ubicacion" WHERE "Id_Plan" = %(p)s',
+        'DELETE FROM public."Plan_Horario_Voto" WHERE "Id_Horario" IN '
+        '(SELECT "Id_Horario" FROM public."Plan_Horario" WHERE "Id_Plan" = %(p)s)',
+        'DELETE FROM public."Plan_Horario" WHERE "Id_Plan" = %(p)s',
+        'DELETE FROM public."Plan_Voto" WHERE "Id_Plan" = %(p)s',
+        'DELETE FROM public."gasto_detalle" WHERE "gasto_id" IN '
+        '(SELECT "id_gasto" FROM public."gasto" WHERE "plan_id" = %(p)s)',
+        'DELETE FROM public."gasto" WHERE "plan_id" = %(p)s',
+        'DELETE FROM public."Usuario-Plan" WHERE "Plan_id" = %(p)s',
+    )
+
     def eliminar_plan(self, plan_id, user_id):
         """Borra el plan entero. Solo puede hacerlo quien lo creó.
 
-        Devuelve True si lo borró, False si el usuario no es el creador
-        (o el plan no existe)."""
+        Devuelve None si el usuario no es el creador (o el plan no existe).
+        Si lo borró, devuelve un dict con lo que hace falta para avisar a
+        los demás: {"nombre", "grupo_id", "avisar": [ids de quienes estaban en el plan o votaron]}.
+        Todo ocurre en una sola transacción: si algo falla, no se borra nada."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    'SELECT "Creado_Por" FROM public."Plan" WHERE "id_Plan" = %s',
+                    'SELECT "Creado_Por", "Nombre", "Grupo_id" FROM public."Plan" WHERE "id_Plan" = %s',
                     (plan_id,),
                 )
                 fila = cursor.fetchone()
                 if fila is None or str(fila[0]) != str(user_id):
-                    return False
+                    return None
+                nombre, grupo_id = fila[1], fila[2]
 
-                # "Plan_Lugar" tiene ON DELETE CASCADE, pero
-                # "Usuario-Plan" no, así que esa hay que borrarla a mano
-                # antes de poder borrar el Plan.
+                # A quiénes avisar: los que iban y los que ya habían votado (menos quien lo borra).
                 cursor.execute(
-                    'DELETE FROM public."Usuario-Plan" WHERE "Plan_id" = %s',
-                    (plan_id,),
+                    """
+                    SELECT DISTINCT x.uid FROM (
+                        SELECT "Usuario_id" AS uid FROM public."Usuario-Plan"
+                         WHERE "Plan_id" = %(p)s AND "Confirmado"
+                        UNION
+                        SELECT "Id_Usuario" FROM public."Plan_Voto" WHERE "Id_Plan" = %(p)s
+                    ) x WHERE x.uid <> %(u)s
+                    """,
+                    {"p": plan_id, "u": user_id},
                 )
-                cursor.execute(
-                    'DELETE FROM public."Plan" WHERE "id_Plan" = %s',
-                    (plan_id,),
-                )
+                avisar = [str(f[0]) for f in cursor.fetchall()]
+
+                for sentencia in self._BORRAR_DEPENDIENTES_DE_PLAN:
+                    cursor.execute(sentencia, {"p": plan_id})
+                # "Plan_Lugar" y las publicaciones de Social sí tienen ON DELETE CASCADE.
+                cursor.execute('DELETE FROM public."Plan" WHERE "id_Plan" = %s', (plan_id,))
 
             connection.commit()
-            return True
+            return {"nombre": nombre, "grupo_id": grupo_id, "avisar": avisar}
         except psycopg2.Error:
             connection.rollback()
             raise
