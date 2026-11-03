@@ -9,6 +9,7 @@ from models import user
 from models.user import User
 from services.auth_service import AuthService
 from services.password_policy import validar_contrasena
+from services.validaciones import validar_nombre, validar_username, validar_email
 from services.notification_service import NotificationService
 from werkzeug.security import check_password_hash,generate_password_hash
 
@@ -136,6 +137,10 @@ def register():
         username = form_data.get("username", "").strip()
         email = form_data.get("email", "").strip()
         password = form_data.get("password", "")
+
+        error_datos = validar_nombre(name) or validar_username(username) or validar_email(email)
+        if error_datos:
+            return render_template("register.html", error=error_datos, form_data=form_data), 400
 
         error_contrasena = validar_contrasena(password)
         if error_contrasena:

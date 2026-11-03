@@ -7,6 +7,7 @@ import psycopg2
 from database import get_db_connection, release_db_connection
 from models.user import User
 from services.group_auth_service import GroupAuthService
+from services.validaciones import validar_nombre, validar_username
 
 
 class AuthService:
@@ -69,7 +70,7 @@ class AuthService:
                 )
                 cursor.execute(
                     '''SELECT 1 FROM public."Usuarios"
-                       WHERE "Mail" = %s OR "Username" = %s LIMIT 1''',
+                       WHERE lower("Mail") = lower(%s) OR lower("Username") = lower(%s) LIMIT 1''',
                     (user.get_email(), user.get_username()),
                 )
                 if cursor.fetchone():
@@ -268,6 +269,9 @@ class AuthService:
             release_db_connection(connection)
 
     def update_name(self, user_id, name):
+        error = validar_nombre(name)
+        if error:
+            return False, error
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -284,11 +288,14 @@ class AuthService:
             release_db_connection(connection)
 
     def update_username(self, user_id, username):
+        error = validar_username(username)
+        if error:
+            return False, error
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    'SELECT "Id_Usuario" FROM public."Usuarios" WHERE "Username" = %s AND "Id_Usuario" != %s',
+                    'SELECT "Id_Usuario" FROM public."Usuarios" WHERE lower("Username") = lower(%s) AND "Id_Usuario" != %s',
                     (username, user_id),
                 )
                 if cursor.fetchone():
