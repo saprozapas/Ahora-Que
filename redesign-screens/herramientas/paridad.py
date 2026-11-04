@@ -68,7 +68,7 @@ with sync_playwright() as p:
     resumen = []
     for ruta in todas:
         publica = ruta in ("/", "/login", "/register", "/explorar", "/contacto", "/plan/caminata-atardecer", "/terminos")
-        ra = ca if True else None
+        ra = ca
         sa, ha = bajar(ca, ruta); sb, hb = bajar(cb, ruta)
         ea, eb = Extractor(), Extractor()
         ea.feed(ha); eb.feed(hb)

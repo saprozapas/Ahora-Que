@@ -1,0 +1,8 @@
+# Las plantillas son Jinja (Prettier no lo entiende y rompe los {% %}); Python no lo soporta Prettier.
+templates/
+docs/
+redesign-screens/
+.kilo/
+.claude/
+node_modules/
+__pycache__/

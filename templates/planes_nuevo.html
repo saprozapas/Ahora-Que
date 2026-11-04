@@ -25,7 +25,6 @@
 
       <div class="planner">
 
-        <!-- ===================== LA IDEA (lo que se guarda) ===================== -->
 
         <form class="card planner__idea" method="post" action="/planes/nueva-idea" id="form-plan">
 
@@ -49,8 +48,8 @@
             </div>
           </details>
 
-          <!-- Los lugares elegidos van acá. El precio se estima solo, a
-               partir del nivel de precio de cada lugar. -->
+          {# Los lugares elegidos van acá. El precio se estima solo, a
+               partir del nivel de precio de cada lugar. #}
           <div class="planner__stops-head">
             <h2 class="planner__title">Lugares del plan</h2>
             <span class="meta" id="contador-lugares">0 elegidos</span>
@@ -69,10 +68,10 @@
         </form>
 
 
-        <!-- ===================== BUSCADOR DE LUGARES =====================
+        {# ===================== BUSCADOR DE LUGARES =====================
              Al escribir en un campo de texto aparece, debajo, una lista con los
              lugares que coinciden (static/sereno-ui.js). Tocar uno lo agrega a la
-             idea. "Ver todos los resultados" arma la lista completa. -->
+             idea. "Ver todos los resultados" arma la lista completa. #}
 
         <div class="planner__search">
 
@@ -108,9 +107,9 @@
           <details class="mas-opciones mas-opciones--filtros">
             <summary>Más filtros <span class="meta">cerca de mí, precio, barrio y más</span></summary>
 
-          <!-- Cerca de mí: con la ubicación del navegador, cada lugar muestra a cuánto
+          {# Cerca de mí: con la ubicación del navegador, cada lugar muestra a cuánto
                queda y la lista va del más cercano al más lejano. La ubicación solo viaja
-               en la búsqueda (para calcular distancias): no se guarda. -->
+               en la búsqueda (para calcular distancias): no se guarda. #}
           <div class="planner__near" id="bloque-ubicacion" hidden>
 
             <button class="btn btn--secondary" type="button" id="boton-ubicacion" aria-pressed="false">
@@ -136,9 +135,9 @@
           </div>
 
 
-          <!-- Los filtros se generan solos desde services/lugar_filtros.py:
+          {# Los filtros se generan solos desde services/lugar_filtros.py:
                las casillas van como chips, los select de pocas opciones como
-               segmented (radios reales) y el resto como campo. -->
+               segmented (radios reales) y el resto como campo. #}
           <div class="planner__filters">
 
             {% set casillas = filtros | selectattr('tipo', 'equalto', 'checkbox') | list %}

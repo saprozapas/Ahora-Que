@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, app, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from services.invitation_service import InvitationService
 from services.friend_service import FriendService
 from services.social_service import SocialService

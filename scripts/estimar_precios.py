@@ -29,7 +29,6 @@ gratis (0) que ya estaban.
 
 import argparse
 import csv
-import html
 import json
 import os
 import re

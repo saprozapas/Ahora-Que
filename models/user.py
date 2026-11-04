@@ -23,12 +23,3 @@ class User:
         return self.__descripcion
     def es_premium(self):
         return self.__premium
-
-    def set_name(self, name):
-        self.__name = name
-    def set_birth_date(self, birth_date):
-        self.__birth_date = birth_date
-    def set_username(self, username):
-        self.__username = username
-    def set_descripcion(self, descripcion):
-        self.__descripcion = descripcion

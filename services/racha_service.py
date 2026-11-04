@@ -57,7 +57,7 @@ class RachaService:
                 filas = cursor.fetchall()
 
             resumenes = {}
-            for group_id, semanas_guardadas, ultima, _activa_guardada, marco_guardado, titulo_guardado, hitos in filas:
+            for group_id, semanas_guardadas, ultima, _activa_guardada, marco_guardado, _titulo_guardado, hitos in filas:
                 semanas = semanas_guardadas or 0
                 dias_desde_ultima = (hoy - ultima).days if ultima else None
                 if dias_desde_ultima is None or dias_desde_ultima >= 14:
@@ -66,7 +66,6 @@ class RachaService:
 
                 hitos = set(hitos or [])
                 marcos = sorted(hitos.intersection(_MARCOS))
-                titulos = sorted(hitos.intersection(_COLORES_TITULO))
                 marco = marco_guardado if marco_guardado in marcos else (max(marcos) if marcos else None)
                 # El rango es uno solo: el título del chip siempre es el mismo planeta que el marco.
                 # (El "Titulo_Semanas" viejo de la base puede quedar en otro rango y se ignora.)
@@ -95,7 +94,7 @@ class RachaService:
         conn = get_db_connection()
         try:
             with conn.cursor() as cursor:
-                # Todo lo que no depende de lo calculado se lee en un solo viaje a la base (antes eran cuatro).
+                # Todo lo que no depende de lo calculado se lee en un solo viaje a la base.
                 cursor.execute(
                     '''
                     SELECT r."Activa", r."Semanas", r."Ultima_Reunion",
@@ -194,7 +193,7 @@ class RachaService:
                 else:
                     activa = semanas > 0 and (hoy - ultima_reunion).days < 7
 
-                # Solo se escribe si algo cambió: antes cada visita al grupo hacía dos escrituras (2 viajes a la base).
+                # Solo se escribe si algo cambió.
                 nuevo_estado = (activa, semanas, ultima_reunion, ultimo_procesado, planes_hechos)
                 if not estado_guardado or tuple(estado_guardado) != nuevo_estado:
                     cursor.execute(

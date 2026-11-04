@@ -265,8 +265,8 @@ class GroupAuthService:
             "AND \"Estado\" IN ('votacion', 'esperando_horario', 'confirmado')"
         )
         cursor.execute(
-            f'DELETE FROM public."Plan_Voto" WHERE "Id_Usuario" = %(u)s '
-            f'AND "Id_Plan" IN (SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %(g)s AND "Estado" = \'votacion\')',
+            'DELETE FROM public."Plan_Voto" WHERE "Id_Usuario" = %(u)s '
+            'AND "Id_Plan" IN (SELECT "id_Plan" FROM public."Plan" WHERE "Grupo_id" = %(g)s AND "Estado" = \'votacion\')',
             params,
         )
         cursor.execute(

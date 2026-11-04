@@ -34,20 +34,15 @@
 (() => {
   "use strict";
 
-
   /* ========================================================================
      01. UTILIDADES
      ======================================================================== */
 
   const $ = (selector, scope = document) => scope.querySelector(selector);
 
-  const $$ = (selector, scope = document) =>
-    Array.from(scope.querySelectorAll(selector));
+  const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
 
-  const prefiereMenosMovimiento = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
-
+  const prefiereMenosMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* ========================================================================
      03. MODO NOCHE
@@ -60,7 +55,6 @@
   const CLAVE_TEMA = "ahoraque-theme";
 
   const iniciarModoNoche = () => {
-
     const boton = $("[data-theme-toggle]");
 
     if (!boton) {
@@ -78,21 +72,16 @@
      * clics seguidos podrían calcular el mismo destino, porque el primero
      * todavía no escribió el atributo.
      */
-    let temaActual =
-      document.documentElement.dataset.theme === "night" ? "night" : "light";
+    let temaActual = document.documentElement.dataset.theme === "night" ? "night" : "light";
 
     const aplicarTema = (tema) => {
-
       const esNoche = tema === "night";
 
       document.documentElement.dataset.theme = esNoche ? "night" : "light";
 
       boton.setAttribute("aria-pressed", String(esNoche));
 
-      boton.setAttribute(
-        "aria-label",
-        esNoche ? "Activar modo claro" : "Activar modo noche"
-      );
+      boton.setAttribute("aria-label", esNoche ? "Activar modo claro" : "Activar modo noche");
 
       if (etiqueta) {
         etiqueta.textContent = esNoche ? "Modo claro" : "Modo noche";
@@ -101,15 +90,12 @@
       // El ícono (luna / sol) lo intercambia el CSS según data-theme.
 
       if (favicon) {
-        favicon.href = esNoche
-          ? "/static/favicon-night.svg"
-          : "/static/favicon.svg";
+        favicon.href = esNoche ? "/static/favicon-night.svg" : "/static/favicon.svg";
       }
 
       // Los logos que aparecen dentro de la página también cambian.
 
       $$('img[src*="favicon"]').forEach((imagen) => {
-
         imagen.src = esNoche
           ? imagen.src.replace("favicon.svg", "favicon-night.svg")
           : imagen.src.replace("favicon-night.svg", "favicon.svg");
@@ -129,7 +115,6 @@
      * movimiento, el tema cambia igual, solo que de golpe.
      */
     const animarOnda = (cambiar) => {
-
       if (!document.startViewTransition || prefiereMenosMovimiento) {
         cambiar();
         return;
@@ -158,37 +143,34 @@
 
       const transicion = document.startViewTransition(cambiar);
 
-      transicion.ready.then(() => {
+      transicion.ready
+        .then(() => {
+          document.documentElement.animate(
+            {
+              clipPath: [
+                "circle(0px at " + x + "px " + y + "px)",
+                "circle(" + radio + "px at " + x + "px " + y + "px)",
+              ],
+            },
+            {
+              duration: 640,
 
-        document.documentElement.animate(
-          {
-            clipPath: [
-              "circle(0px at " + x + "px " + y + "px)",
-              "circle(" + radio + "px at " + x + "px " + y + "px)"
-            ]
-          },
-          {
-            duration: 640,
+              // Arranque suave y sin frenada brusca al final.
+              easing: "cubic-bezier(0.45, 0.05, 0.4, 1)",
 
-            // Curva de arranque suave pero sin frenada brusca al final.
-            // La de salida fuerte que había antes llegaba al 96% del radio
-            // a mitad de camino y después se arrastraba.
-            easing: "cubic-bezier(0.45, 0.05, 0.4, 1)",
-
-            pseudoElement: "::view-transition-new(root)"
-          }
-        );
-
-      }).catch(() => {
-        // Si la transición se interrumpe (por ejemplo, dos clics
-        // seguidos), el tema ya quedó aplicado igual.
-      });
+              pseudoElement: "::view-transition-new(root)",
+            }
+          );
+        })
+        .catch(() => {
+          // Si la transición se interrumpe (por ejemplo, dos clics
+          // seguidos), el tema ya quedó aplicado igual.
+        });
     };
 
     aplicarTema(temaActual);
 
     boton.addEventListener("click", () => {
-
       const siguiente = temaActual === "night" ? "light" : "night";
 
       // Se actualiza ya, sin esperar a que corra la transición.
@@ -205,7 +187,6 @@
     });
   };
 
-
   /* ========================================================================
      04. MENÚ DE NAVEGACIÓN EN CELULAR
 
@@ -215,7 +196,6 @@
      ======================================================================== */
 
   const iniciarMenuMovil = () => {
-
     const header = $("[data-header]");
     const boton = $("[data-menu-toggle]");
 
@@ -236,7 +216,6 @@
     };
 
     boton.addEventListener("click", () => {
-
       const estaAbierto = header.getAttribute("data-menu") === "abierto";
 
       if (estaAbierto) {
@@ -249,7 +228,6 @@
     // Cerrar con Escape.
 
     document.addEventListener("keydown", (evento) => {
-
       if (evento.key === "Escape") {
         cerrar();
       }
@@ -258,7 +236,6 @@
     // Cerrar al tocar fuera del header.
 
     document.addEventListener("click", (evento) => {
-
       if (!header.contains(evento.target)) {
         cerrar();
       }
@@ -270,7 +247,6 @@
     window.matchMedia("(min-width: 901px)").addEventListener("change", cerrar);
   };
 
-
   /* ========================================================================
      06. BARRA LATERAL DEL DASHBOARD
 
@@ -279,9 +255,7 @@
      ======================================================================== */
 
   const iniciarBarraLateral = () => {
-
     $$(".dashboard-layout").forEach((layout) => {
-
       const boton = $(".dashboard-sidebar-toggle", layout);
 
       if (!boton) {
@@ -289,22 +263,17 @@
       }
 
       boton.addEventListener("click", () => {
-
         const contraida = layout.classList.toggle("is-collapsed");
 
         boton.setAttribute("aria-expanded", String(!contraida));
 
-        boton.setAttribute(
-          "aria-label",
-          contraida ? "Expandir navegación" : "Contraer navegación"
-        );
+        boton.setAttribute("aria-label", contraida ? "Expandir navegación" : "Contraer navegación");
 
         // La flecha no cambia de carácter: el CSS la rota 180°, que se
         // lee mucho más suave que un salto de "←" a "→".
       });
     });
   };
-
 
   /* ========================================================================
      07. MÁSCARA DE FECHA DE NACIMIENTO
@@ -314,7 +283,6 @@
      ======================================================================== */
 
   const iniciarFechaDeNacimiento = () => {
-
     const campo = $("#birth_date");
 
     if (!campo) {
@@ -322,20 +290,16 @@
     }
 
     campo.addEventListener("input", () => {
-
       const digitos = campo.value.replace(/\D/g, "").slice(0, 8);
 
-      const partes = [
-        digitos.slice(0, 2),
-        digitos.slice(2, 4),
-        digitos.slice(4, 8)
-      ].filter(Boolean);
+      const partes = [digitos.slice(0, 2), digitos.slice(2, 4), digitos.slice(4, 8)].filter(
+        Boolean
+      );
 
       campo.value = partes.join("/");
     });
 
     campo.addEventListener("blur", () => {
-
       const valor = campo.value;
 
       if (valor === "") {
@@ -344,10 +308,7 @@
       }
 
       if (!/^\d{2}\/\d{2}\/\d{4}$/.test(valor)) {
-
-        campo.setCustomValidity(
-          "Usá una fecha válida con el formato dd/mm/aaaa."
-        );
+        campo.setCustomValidity("Usá una fecha válida con el formato dd/mm/aaaa.");
 
         return;
       }
@@ -371,7 +332,6 @@
     });
   };
 
-
   /* ========================================================================
      08. ESTADO "ENVIANDO" EN LOS FORMULARIOS
 
@@ -380,11 +340,8 @@
      ======================================================================== */
 
   const iniciarEstadoDeEnvio = () => {
-
     $$("form").forEach((formulario) => {
-
       formulario.addEventListener("submit", () => {
-
         if (!formulario.checkValidity()) {
           return;
         }
@@ -398,7 +355,6 @@
     });
   };
 
-
   /* ========================================================================
      09. FILTROS DE LA PÁGINA EXPLORAR
 
@@ -407,7 +363,6 @@
      ======================================================================== */
 
   const iniciarFiltrosDePlanes = () => {
-
     const barra = $("[data-filtros]");
     const grilla = $("[data-planes]");
 
@@ -424,11 +379,9 @@
     }
 
     const aplicarFiltro = (filtro) => {
-
       let visibles = 0;
 
       tarjetas.forEach((tarjeta) => {
-
         const coincide = filtro === "todos" || tarjeta.dataset.tipo === filtro;
 
         tarjeta.hidden = !coincide;
@@ -444,9 +397,7 @@
     };
 
     botones.forEach((boton) => {
-
       boton.addEventListener("click", () => {
-
         botones.forEach((otro) => {
           otro.setAttribute("aria-pressed", String(otro === boton));
         });
@@ -455,7 +406,6 @@
       });
     });
   };
-
 
   /* ========================================================================
      10a. NOTIFICACIONES DEL INICIO (votaciones, horarios y menciones)
@@ -466,7 +416,6 @@
      ======================================================================== */
 
   const iniciarPendientes = () => {
-
     const cuerpo = $("[data-pend]");
 
     if (!cuerpo) {
@@ -491,7 +440,6 @@
     };
 
     const actualizarContador = (total) => {
-
       if (!contador) {
         return;
       }
@@ -501,7 +449,6 @@
     };
 
     const actualizarNavegacion = () => {
-
       const fila = pista();
 
       if (!nav) {
@@ -520,11 +467,11 @@
 
       etiquetaPagina.textContent = actual + " de " + paginas;
       $("[data-pend-prev]", nav).disabled = fila.scrollLeft <= 2;
-      $("[data-pend-next]", nav).disabled = fila.scrollLeft + fila.clientWidth >= fila.scrollWidth - 2;
+      $("[data-pend-next]", nav).disabled =
+        fila.scrollLeft + fila.clientWidth >= fila.scrollWidth - 2;
     };
 
     const refrescar = async () => {
-
       if (pidiendo || document.hidden) {
         return;
       }
@@ -532,8 +479,11 @@
       pidiendo = true;
 
       try {
-
-        const respuesta = await fetch(url, { cache: "no-store", credentials: "same-origin", headers: { "X-Requested-With": "fetch" } });
+        const respuesta = await fetch(url, {
+          cache: "no-store",
+          credentials: "same-origin",
+          headers: { "X-Requested-With": "fetch" },
+        });
 
         if (respuesta.status === 401) {
           window.location.href = "/login";
@@ -551,7 +501,9 @@
           return;
         }
 
-        const antes = new Set($$("[data-pend-clave]", cuerpo).map((item) => item.dataset.pendClave));
+        const antes = new Set(
+          $$("[data-pend-clave]", cuerpo).map((item) => item.dataset.pendClave)
+        );
         const desplazado = pista() ? pista().scrollLeft : 0;
 
         cuerpo.innerHTML = html;
@@ -573,7 +525,6 @@
         if (window.AQDistancia) {
           window.AQDistancia.actualizar();
         }
-
       } catch (error) {
         // Sin conexión por un rato: se reintenta en el próximo ciclo.
       } finally {
@@ -585,8 +536,14 @@
     const siguiente = nav && $("[data-pend-next]", nav);
 
     if (anterior && siguiente) {
-      anterior.addEventListener("click", () => pista() && pista().scrollBy({ left: -paso(), behavior: "smooth" }));
-      siguiente.addEventListener("click", () => pista() && pista().scrollBy({ left: paso(), behavior: "smooth" }));
+      anterior.addEventListener(
+        "click",
+        () => pista() && pista().scrollBy({ left: -paso(), behavior: "smooth" })
+      );
+      siguiente.addEventListener(
+        "click",
+        () => pista() && pista().scrollBy({ left: paso(), behavior: "smooth" })
+      );
     }
 
     // "scroll" no burbujea: se escucha en la fase de captura para enterarse del de la fila.
@@ -605,13 +562,11 @@
     window.addEventListener("online", refrescar);
   };
 
-
   /* ========================================================================
      10c. CUENTA REGRESIVA AL PRÓXIMO PLAN Y SUGERENCIAS DE LA SEMANA (Inicio)
      ======================================================================== */
 
   const iniciarCuentaRegresiva = () => {
-
     const cuenta = $("[data-cuenta]");
 
     if (!cuenta) {
@@ -628,7 +583,6 @@
     // Las tres unidades más grandes que quedan, cada una con su número y su etiqueta:
     //   más de un día: días · horas · minutos   |   menos de un día: horas · minutos · segundos   |   menos de una hora: minutos · segundos
     const unidades = () => {
-
       const falta = momento - Date.now();
 
       if (falta <= 0) {
@@ -642,18 +596,28 @@
       const seg = segundos % 60;
 
       if (dias >= 1) {
-        return [[dias, dias === 1 ? "día" : "días"], [horas, "horas"], [minutos, "min"]];
+        return [
+          [dias, dias === 1 ? "día" : "días"],
+          [horas, "horas"],
+          [minutos, "min"],
+        ];
       }
 
       if (horas >= 1) {
-        return [[horas, "horas"], [minutos, "min"], [seg, "seg"]];
+        return [
+          [horas, "horas"],
+          [minutos, "min"],
+          [seg, "seg"],
+        ];
       }
 
-      return [[minutos, "min"], [seg, "seg"]];
+      return [
+        [minutos, "min"],
+        [seg, "seg"],
+      ];
     };
 
     const pintar = () => {
-
       const lista = unidades();
 
       valor.textContent = "";
@@ -680,16 +644,17 @@
         valor.appendChild(caja);
       });
 
-      cuenta.setAttribute("aria-label", "Faltan " + lista.map((par) => par[0] + " " + par[1]).join(", "));
+      cuenta.setAttribute(
+        "aria-label",
+        "Faltan " + lista.map((par) => par[0] + " " + par[1]).join(", ")
+      );
     };
 
     pintar();
     setInterval(pintar, 1000);
   };
 
-
   const iniciarSugerencias = () => {
-
     const cuerpo = $("[data-sug]");
 
     // Si ya vinieron armadas con la página, no hay nada que pedir.
@@ -698,7 +663,9 @@
     }
 
     fetch(cuerpo.dataset.url, { credentials: "same-origin", cache: "no-store" })
-      .then((respuesta) => respuesta.ok ? respuesta.text() : Promise.reject(new Error("sin sugerencias")))
+      .then((respuesta) =>
+        respuesta.ok ? respuesta.text() : Promise.reject(new Error("sin sugerencias"))
+      )
       .then((html) => {
         cuerpo.innerHTML = html;
         cuerpo.setAttribute("data-listo", "");
@@ -707,10 +674,10 @@
         }
       })
       .catch(() => {
-        cuerpo.innerHTML = '<div class="pend-vacio"><p class="voice"><strong>No pudimos armar tus sugerencias ahora.</strong> Probá de nuevo en un rato.</p></div>';
+        cuerpo.innerHTML =
+          '<div class="pend-vacio"><p class="voice"><strong>No pudimos armar tus sugerencias ahora.</strong> Probá de nuevo en un rato.</p></div>';
       });
   };
-
 
   /* ========================================================================
      10b. PISTAS DE PLANES DEL GRUPO
@@ -722,9 +689,7 @@
      ======================================================================== */
 
   const iniciarPistasDePlanes = () => {
-
     $$("[data-carrusel]").forEach((seccion) => {
-
       const pista = $("[data-pista]", seccion);
       const nav = $("[data-pista-nav]", seccion);
       const anterior = $("[data-pista-prev]", seccion);
@@ -738,7 +703,6 @@
       const paso = () => pista.clientWidth + parseFloat(getComputedStyle(pista).columnGap || 0);
 
       const actualizar = () => {
-
         const desborda = pista.scrollWidth > pista.clientWidth + 2;
         nav.hidden = !desborda;
 
@@ -753,8 +717,12 @@
         siguiente.disabled = pista.scrollLeft + pista.clientWidth >= pista.scrollWidth - 2;
       };
 
-      anterior.addEventListener("click", () => pista.scrollBy({ left: -paso(), behavior: "smooth" }));
-      siguiente.addEventListener("click", () => pista.scrollBy({ left: paso(), behavior: "smooth" }));
+      anterior.addEventListener("click", () =>
+        pista.scrollBy({ left: -paso(), behavior: "smooth" })
+      );
+      siguiente.addEventListener("click", () =>
+        pista.scrollBy({ left: paso(), behavior: "smooth" })
+      );
 
       pista.addEventListener("scroll", actualizar, { passive: true });
       window.addEventListener("resize", actualizar);
@@ -762,7 +730,6 @@
       actualizar();
     });
   };
-
 
   /* ========================================================================
      10. CARRUSEL DE GRUPOS
@@ -774,7 +741,6 @@
      ======================================================================== */
 
   const iniciarCarruselDeGrupos = () => {
-
     const grilla = $("#groupsGrid");
 
     if (!grilla) {
@@ -796,7 +762,6 @@
 
     // Los mismos cortes que .groups-list en el CSS: 1 / 2 / 3 columnas.
     const tarjetasPorPagina = () => {
-
       // Las tarjetas son compactas en celular: caben tres por página.
       if (window.innerWidth <= 650) {
         return 3;
@@ -812,7 +777,6 @@
     const conDosDigitos = (numero) => String(numero).padStart(2, "0");
 
     const renderizar = () => {
-
       const porPagina = tarjetasPorPagina();
       const paginas = Math.max(1, Math.ceil(tarjetas.length / porPagina));
 
@@ -839,7 +803,6 @@
     };
 
     anterior.addEventListener("click", () => {
-
       if (pagina > 0) {
         pagina -= 1;
         renderizar();
@@ -847,7 +810,6 @@
     });
 
     siguiente.addEventListener("click", () => {
-
       const porPagina = tarjetasPorPagina();
       const paginas = Math.ceil(tarjetas.length / porPagina);
 
@@ -866,8 +828,7 @@
     renderizar();
   };
 
-
-    /* ========================================================================
+  /* ========================================================================
      11. COPIAR EL ENLACE DEL GRUPO
 
      Copia la dirección de la página al portapapeles y confirma en el
@@ -876,7 +837,6 @@
      ======================================================================== */
 
   const iniciarCopiarEnlace = () => {
-
     const boton = $("[data-copiar-enlace]");
 
     if (!boton) {
@@ -888,7 +848,6 @@
     let volverATexto = null;
 
     const confirmar = (mensaje) => {
-
       etiqueta.textContent = mensaje;
 
       clearTimeout(volverATexto);
@@ -898,7 +857,6 @@
     };
 
     const copiar = async (texto) => {
-
       try {
         await navigator.clipboard.writeText(texto);
         return true;
@@ -926,7 +884,6 @@
     };
 
     boton.addEventListener("click", async () => {
-
       const copiado = await copiar(window.location.href);
 
       confirmar(copiado ? "Enlace copiado" : "No se pudo copiar");
@@ -951,12 +908,10 @@
      ======================================================================== */
 
   const iniciarModales = () => {
-
     // Un mismo <dialog> puede tener varios disparadores (por ejemplo "Invitar a
     // un grupo" en cada fila de amigos): se guarda cuál lo abrió, para devolverle
     // el foco a ESE al cerrar.
     const abrir = (dialogo, disparador) => {
-
       dialogo._disparador = disparador;
       dialogo.showModal();
 
@@ -972,7 +927,6 @@
     };
 
     $$("[data-modal-open]").forEach((disparador) => {
-
       const dialogo = document.getElementById(disparador.dataset.modalOpen);
 
       if (!dialogo) {
@@ -982,7 +936,6 @@
       disparador.addEventListener("click", () => abrir(dialogo, disparador));
 
       if (!dialogo.dataset.cierreListo) {
-
         dialogo.dataset.cierreListo = "1";
 
         dialogo.addEventListener("close", () => {
@@ -1005,9 +958,7 @@
     });
 
     $$("dialog.modal").forEach((dialogo) => {
-
       dialogo.addEventListener("click", (evento) => {
-
         if (evento.target === dialogo) {
           dialogo.close();
         }
@@ -1019,46 +970,51 @@
      preguntar(msg) -> Promise<boolean>; preguntar(msg, false) es un aviso
      con solo "Aceptar". Escape o tocar afuera cuentan como cancelar.      */
 
-  const preguntar = (mensaje, conCancelar = true) => new Promise((resolver) => {
-
-    const dialogo = document.createElement("dialog");
-    dialogo.className = "modal";
-    dialogo.setAttribute("role", "alertdialog");
-    dialogo.setAttribute("aria-labelledby", "preguntar-texto");
-    dialogo.innerHTML = `
+  const preguntar = (mensaje, conCancelar = true) =>
+    new Promise((resolver) => {
+      const dialogo = document.createElement("dialog");
+      dialogo.className = "modal";
+      dialogo.setAttribute("role", "alertdialog");
+      dialogo.setAttribute("aria-labelledby", "preguntar-texto");
+      dialogo.innerHTML = `
       <form method="dialog">
         <div class="modal-body"><p id="preguntar-texto"></p></div>
         <div class="modal-actions">
-          ${conCancelar
-            ? '<button class="btn btn--secondary" value="no" autofocus>Cancelar</button>'
-            : ""}
+          ${
+            conCancelar
+              ? '<button class="btn btn--secondary" value="no" autofocus>Cancelar</button>'
+              : ""
+          }
           <button class="btn btn--primary" value="si"${conCancelar ? "" : " autofocus"}>Aceptar</button>
         </div>
       </form>`;
-    $("p", dialogo).textContent = mensaje;
+      $("p", dialogo).textContent = mensaje;
 
-    dialogo.addEventListener("click", (evento) => {
-      if (evento.target === dialogo) { dialogo.close(); }
-    });
-    dialogo.addEventListener("close", () => {
-      dialogo.remove();
-      resolver(dialogo.returnValue === "si" || !conCancelar);
-    });
+      dialogo.addEventListener("click", (evento) => {
+        if (evento.target === dialogo) {
+          dialogo.close();
+        }
+      });
+      dialogo.addEventListener("close", () => {
+        dialogo.remove();
+        resolver(dialogo.returnValue === "si" || !conCancelar);
+      });
 
-    document.body.append(dialogo);
-    dialogo.showModal();
-  });
+      document.body.append(dialogo);
+      dialogo.showModal();
+    });
 
   window.preguntar = preguntar;
 
   /* Cartel del límite semanal de la IA (plan gratis): lleva a la página de Premium.
      Devuelve una promesa que se resuelve al cerrarlo. */
-  window.avisoLimiteIA = () => new Promise((resolver) => {
-    const dialogo = document.createElement("dialog");
-    dialogo.className = "modal";
-    dialogo.setAttribute("role", "alertdialog");
-    dialogo.setAttribute("aria-labelledby", "limite-ia-titulo");
-    dialogo.innerHTML = `
+  window.avisoLimiteIA = () =>
+    new Promise((resolver) => {
+      const dialogo = document.createElement("dialog");
+      dialogo.className = "modal";
+      dialogo.setAttribute("role", "alertdialog");
+      dialogo.setAttribute("aria-labelledby", "limite-ia-titulo");
+      dialogo.innerHTML = `
       <form method="dialog">
         <div class="modal-head"><h2 class="modal-title" id="limite-ia-titulo">Llegaste a tu límite semanal</h2></div>
         <div class="modal-body"><p>Con el plan gratis podés armar 1 plan por semana con la IA. El límite se recarga los lunes. Si querés seguir, actualizá al plan Premium.</p></div>
@@ -1067,13 +1023,18 @@
           <a class="btn btn--primary" href="/premium">Actualizar a Premium</a>
         </div>
       </form>`;
-    dialogo.addEventListener("click", (evento) => {
-      if (evento.target === dialogo) { dialogo.close(); }
+      dialogo.addEventListener("click", (evento) => {
+        if (evento.target === dialogo) {
+          dialogo.close();
+        }
+      });
+      dialogo.addEventListener("close", () => {
+        dialogo.remove();
+        resolver();
+      });
+      document.body.append(dialogo);
+      dialogo.showModal();
     });
-    dialogo.addEventListener("close", () => { dialogo.remove(); resolver(); });
-    document.body.append(dialogo);
-    dialogo.showModal();
-  });
 
   /* La estrella del plan Premium, para los nombres que se arman desde JS. */
   window.estrellaPremium = () => {
@@ -1085,13 +1046,11 @@
     return estrella;
   };
 
-
-      /* ========================================================================
+  /* ========================================================================
      13. CAMPOS EDITABLES DEL PERFIL
      ======================================================================== */
 
   const iniciarCamposEditables = () => {
-
     const mostrarError = (formulario, mensaje) => {
       const parrafo = formulario.querySelector('[data-role="error"]');
       if (!parrafo) return;
@@ -1125,7 +1084,6 @@
 
     // Nombre, username y descripción: alternan entre vista y edición.
     document.querySelectorAll(".field-editable").forEach((formulario) => {
-
       const vista = formulario.querySelector(".field-view");
       const edicion = formulario.querySelector(".field-edit");
       const botonEditar = formulario.querySelector(".field-edit-btn");
@@ -1156,7 +1114,6 @@
     });
   };
 
-
   /* ========================================================================
      14. BUSCADOR DE AMIGOS
 
@@ -1167,7 +1124,6 @@
      ======================================================================== */
 
   const iniciarBuscarAmigos = () => {
-
     const contenedor = $("[data-friend-search]");
     if (!contenedor) return;
 
@@ -1180,7 +1136,6 @@
     let controlador = null;
 
     const etiquetaEstado = (usuario) => {
-
       if (usuario.ya_amigos) {
         return { texto: "Ya son amigos", deshabilitado: true };
       }
@@ -1197,7 +1152,6 @@
     };
 
     const renderizarResultados = (usuarios) => {
-
       resultados.innerHTML = "";
 
       if (usuarios.length === 0) {
@@ -1210,7 +1164,6 @@
       }
 
       usuarios.forEach((usuario) => {
-
         const fila = document.createElement("div");
         fila.className = "friend-result";
 
@@ -1260,7 +1213,6 @@
 
         if (!estado.deshabilitado) {
           boton.addEventListener("click", async () => {
-
             boton.disabled = true;
             boton.textContent = "Enviando…";
 
@@ -1277,7 +1229,8 @@
               const datos = await respuesta.json();
 
               if (datos.ok) {
-                boton.textContent = datos.estado === "amigos" ? "Ya son amigos" : "Solicitud enviada";
+                boton.textContent =
+                  datos.estado === "amigos" ? "Ya son amigos" : "Solicitud enviada";
               } else {
                 boton.disabled = false;
                 boton.textContent = datos.error || "Reintentar";
@@ -1298,7 +1251,6 @@
     };
 
     const buscar = async (consulta) => {
-
       if (controlador) controlador.abort();
       controlador = new AbortController();
 
@@ -1315,7 +1267,6 @@
     };
 
     input.addEventListener("input", () => {
-
       const consulta = input.value.trim();
 
       clearTimeout(temporizador);
@@ -1336,7 +1287,6 @@
     });
   };
 
-
   /* ========================================================================
      15. INVITAR A UN AMIGO A UN GRUPO
 
@@ -1346,12 +1296,10 @@
      ======================================================================== */
 
   const iniciarInvitarAmigoAGrupo = () => {
-
     const form = $("#modal-invitar-grupo-form");
     const nombreSpan = $("#modal-invitar-grupo-nombre");
 
     $$("[data-invite-url]").forEach((boton) => {
-
       boton.addEventListener("click", () => {
         if (form) form.action = boton.dataset.inviteUrl;
         if (nombreSpan) nombreSpan.textContent = boton.dataset.friendName || "tu amigo";
@@ -1365,12 +1313,10 @@
     if (!buscador || lista.length === 0) return;
 
     buscador.addEventListener("input", () => {
-
       const consulta = buscador.value.trim().toLowerCase();
       let visibles = 0;
 
       lista.forEach((item) => {
-
         const coincide = item.dataset.nombreGrupo.includes(consulta);
         item.closest("li").hidden = !coincide;
 
@@ -1381,7 +1327,6 @@
     });
   };
 
-
   /* ========================================================================
      16. ELIMINAR AMIGO
 
@@ -1390,11 +1335,8 @@
      ======================================================================== */
 
   const iniciarConfirmaciones = () => {
-
     $$("form[data-confirmar]").forEach((formulario) => {
-
       formulario.addEventListener("submit", async (evento) => {
-
         if (formulario.dataset.ok) {
           return;
         }
@@ -1412,7 +1354,6 @@
     });
   };
 
-
   /* ========================================================================
      MENÚS DESPLEGABLES (<details class="idea-menu">)
 
@@ -1420,7 +1361,6 @@
      ======================================================================== */
 
   const iniciarMenusDesplegables = () => {
-
     const menus = $$("details.idea-menu");
     if (!menus.length) return;
 
@@ -1440,7 +1380,6 @@
     });
   };
 
-
   /* ========================================================================
      AVISOS (flash)
 
@@ -1449,23 +1388,23 @@
      ======================================================================== */
 
   const iniciarAvisos = () => {
-
     const pila = $(".flash-stack");
     if (!pila) return;
 
     const cerrar = (aviso) => {
-
       if (aviso.classList.contains("is-leaving")) return;
       aviso.classList.add("is-leaving");
 
-      setTimeout(() => {
-        aviso.remove();
-        if (!pila.children.length) pila.remove();
-      }, prefiereMenosMovimiento ? 0 : 420);
+      setTimeout(
+        () => {
+          aviso.remove();
+          if (!pila.children.length) pila.remove();
+        },
+        prefiereMenosMovimiento ? 0 : 420
+      );
     };
 
     $$(".flash-message", pila).forEach((aviso, indice) => {
-
       const boton = document.createElement("button");
       boton.type = "button";
       boton.className = "flash-message-cerrar";
@@ -1483,7 +1422,6 @@
     });
   };
 
-
   /* ========================================================================
      ACTUALIZACIÓN AUTOMÁTICA (pantalla de un grupo)
 
@@ -1498,7 +1436,6 @@
      ======================================================================== */
 
   const iniciarActualizacionAutomatica = () => {
-
     const zona = $("[data-autorecarga]");
     if (!zona) return;
 
@@ -1574,7 +1511,6 @@
       if (!document.hidden) revisar();
     });
   };
-
 
   /* ========================================================================
      ARRANQUE

@@ -12,17 +12,16 @@
    ========================================================================== */
 
 (function () {
-
   "use strict";
 
-  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return;
+  }
 
-  var PASO = 22;            // el mismo paso que la grilla de puntos del CSS
-  var DENSIDAD = 0.03;      // fracción de los puntos que brillan
-
+  var PASO = 22; // el mismo paso que la grilla de puntos del CSS
+  var DENSIDAD = 0.03; // fracción de los puntos que brillan
 
   function montar(host, selectorDesde) {
-
     var capa = document.createElement("div");
     capa.className = "fondo-brillos";
     capa.setAttribute("aria-hidden", "true");
@@ -32,13 +31,14 @@
     var ultimoAlto = -1;
 
     function pintar() {
-
       var desde = selectorDesde ? host.querySelector(selectorDesde) : null;
       var arriba = desde ? desde.getBoundingClientRect().top - host.getBoundingClientRect().top : 0;
       var ancho = host.clientWidth;
       var alto = host.clientHeight - arriba;
 
-      if (alto < PASO * 2 || ancho < PASO * 2) { return; }
+      if (alto < PASO * 2 || ancho < PASO * 2) {
+        return;
+      }
 
       ultimoAncho = host.clientWidth;
       ultimoAlto = host.clientHeight;
@@ -56,7 +56,9 @@
       for (var n = 0; n < cantidad; n++) {
         var c = Math.floor(Math.random() * columnas);
         var f = Math.floor(Math.random() * filas);
-        if (usados[c + "," + f]) { continue; }
+        if (usados[c + "," + f]) {
+          continue;
+        }
         usados[c + "," + f] = true;
         var punto = document.createElement("i");
         punto.style.left = c * PASO + "px";
@@ -76,7 +78,12 @@
     function revisar() {
       window.clearTimeout(pendiente);
       pendiente = window.setTimeout(function () {
-        if (Math.abs(host.clientWidth - ultimoAncho) > 8 || Math.abs(host.clientHeight - ultimoAlto) > 120) { pintar(); }
+        if (
+          Math.abs(host.clientWidth - ultimoAncho) > 8 ||
+          Math.abs(host.clientHeight - ultimoAlto) > 120
+        ) {
+          pintar();
+        }
       }, 300);
     }
 
@@ -87,15 +94,18 @@
     }
   }
 
-
   function iniciar() {
-
-    Array.prototype.forEach.call(document.querySelectorAll("[data-fondo-brillos]"), function (host) {
-      montar(host, host.getAttribute("data-fondo-brillos") || "");
-    });
+    Array.prototype.forEach.call(
+      document.querySelectorAll("[data-fondo-brillos]"),
+      function (host) {
+        montar(host, host.getAttribute("data-fondo-brillos") || "");
+      }
+    );
 
     var principal = document.querySelector(".dashboard-main");
-    if (principal && !principal.hasAttribute("data-fondo-brillos")) { montar(principal, ""); }
+    if (principal && !principal.hasAttribute("data-fondo-brillos")) {
+      montar(principal, "");
+    }
   }
 
   if (document.readyState === "loading") {
@@ -103,5 +113,4 @@
   } else {
     iniciar();
   }
-
-}());
+})();

@@ -7,7 +7,6 @@
    ========================================================================== */
 
 (function () {
-
   "use strict";
 
   var CLAVE = "aq-ubicacion";
@@ -22,26 +21,31 @@
       if (guardada && Date.now() - guardada.t < VIGENCIA_MS) {
         return guardada;
       }
-    } catch (error) { /* sin sessionStorage: se pide cada vez */ }
+    } catch (error) {
+      /* sin sessionStorage: se pide cada vez */
+    }
     return null;
   }
 
   function guardar() {
     try {
       sessionStorage.setItem(CLAVE, JSON.stringify(posicion));
-    } catch (error) { /* no pasa nada */ }
+    } catch (error) {
+      /* no pasa nada */
+    }
   }
 
   function kilometros(lat1, lon1, lat2, lon2) {
     var radio = Math.PI / 180;
-    var a = Math.sin((lat2 - lat1) * radio / 2) ** 2
-      + Math.cos(lat1 * radio) * Math.cos(lat2 * radio) * Math.sin((lon2 - lon1) * radio / 2) ** 2;
+    var a =
+      Math.sin(((lat2 - lat1) * radio) / 2) ** 2 +
+      Math.cos(lat1 * radio) * Math.cos(lat2 * radio) * Math.sin(((lon2 - lon1) * radio) / 2) ** 2;
     return 6371 * 2 * Math.asin(Math.sqrt(a));
   }
 
   function formatear(km) {
     if (km < 1) {
-      return "a " + (Math.max(1, Math.round(km * 100)) * 10) + " m";
+      return "a " + Math.max(1, Math.round(km * 100)) * 10 + " m";
     }
     if (km < 10) {
       return "a " + km.toFixed(1).replace(".", ",") + " km";
@@ -50,7 +54,6 @@
   }
 
   function pintar(elemento) {
-
     var lat = parseFloat(elemento.dataset.lat);
     var lon = parseFloat(elemento.dataset.lon);
 
@@ -88,7 +91,6 @@
   }
 
   function pedir() {
-
     if (pidiendo || !navigator.geolocation) {
       negada = !navigator.geolocation;
       actualizar();
@@ -98,16 +100,24 @@
     pidiendo = true;
     actualizar();
 
-    navigator.geolocation.getCurrentPosition(function (resultado) {
-      posicion = { lat: resultado.coords.latitude, lon: resultado.coords.longitude, t: Date.now() };
-      pidiendo = false;
-      guardar();
-      actualizar();
-    }, function () {
-      pidiendo = false;
-      negada = true;
-      actualizar();
-    }, { enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 10000 });
+    navigator.geolocation.getCurrentPosition(
+      function (resultado) {
+        posicion = {
+          lat: resultado.coords.latitude,
+          lon: resultado.coords.longitude,
+          t: Date.now(),
+        };
+        pidiendo = false;
+        guardar();
+        actualizar();
+      },
+      function () {
+        pidiendo = false;
+        negada = true;
+        actualizar();
+      },
+      { enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 10000 }
+    );
   }
 
   document.addEventListener("click", function (evento) {
@@ -120,19 +130,23 @@
   window.AQDistancia = { actualizar: actualizar };
 
   function iniciar() {
-
     actualizar();
 
     // Si ya dio el permiso en otra pantalla, no hace falta volver a preguntar.
     if (!posicion && navigator.permissions && document.querySelector("[data-dist]")) {
-      navigator.permissions.query({ name: "geolocation" }).then(function (permiso) {
-        if (permiso.state === "granted") {
-          pedir();
-        } else if (permiso.state === "denied") {
-          negada = true;
-          actualizar();
-        }
-      }).catch(function () { /* navegadores sin Permissions API: queda el botón */ });
+      navigator.permissions
+        .query({ name: "geolocation" })
+        .then(function (permiso) {
+          if (permiso.state === "granted") {
+            pedir();
+          } else if (permiso.state === "denied") {
+            negada = true;
+            actualizar();
+          }
+        })
+        .catch(function () {
+          /* navegadores sin Permissions API: queda el botón */
+        });
     }
   }
 
@@ -141,5 +155,4 @@
   } else {
     iniciar();
   }
-
-}());
+})();

@@ -12,7 +12,6 @@
    ========================================================================== */
 
 (function () {
-
   "use strict";
 
   var raiz = document.querySelector("[data-mapa-plan]");
@@ -31,9 +30,17 @@
   var CADA_MS = 20000;
   var RECARGA_MS = 15000;
   // De la base solo se dejan estas capas de datos: agua, calles y los nombres de calles, barrios y agua.
-  var CAPAS_QUE_QUEDAN = ["water", "waterway", "transportation", "transportation_name", "place", "water_name"];
+  var CAPAS_QUE_QUEDAN = [
+    "water",
+    "waterway",
+    "transportation",
+    "transportation_name",
+    "place",
+    "water_name",
+  ];
   // Y de esas, sin vías de tren, escudos de ruta ni fronteras.
-  var CAPAS_QUE_SE_VAN = /^(railway|highway-shield|road_shield|airport|boundary|label_country|label_state)/;
+  var CAPAS_QUE_SE_VAN =
+    /^(railway|highway-shield|road_shield|airport|boundary|label_country|label_state)/;
 
   var mapa = new maplibregl.Map({
     container: lienzo,
@@ -45,22 +52,30 @@
     pitchWithRotate: false,
     touchPitch: false,
     scrollZoom: false,
-    maxPitch: 0
+    maxPitch: 0,
   });
 
   mapa.touchZoomRotate.disableRotation();
-  mapa.addControl(new maplibregl.NavigationControl({ showCompass: false, visualizePitch: false }), "top-right");
+  mapa.addControl(
+    new maplibregl.NavigationControl({ showCompass: false, visualizePitch: false }),
+    "top-right"
+  );
   mapa.addControl(new maplibregl.AttributionControl({ compact: false }), "bottom-right");
 
   // Al cargar el estilo se sacan las capas que cargan el mapa (edificios, parques, comercios).
   mapa.on("style.load", function () {
-    mapa.getStyle().layers.slice().forEach(function (capa) {
-      if (capa.type === "background") { return; }
-      var fuente = capa["source-layer"];
-      if (!fuente || CAPAS_QUE_QUEDAN.indexOf(fuente) === -1 || CAPAS_QUE_SE_VAN.test(capa.id)) {
-        mapa.removeLayer(capa.id);
-      }
-    });
+    mapa
+      .getStyle()
+      .layers.slice()
+      .forEach(function (capa) {
+        if (capa.type === "background") {
+          return;
+        }
+        var fuente = capa["source-layer"];
+        if (!fuente || CAPAS_QUE_QUEDAN.indexOf(fuente) === -1 || CAPAS_QUE_SE_VAN.test(capa.id)) {
+          mapa.removeLayer(capa.id);
+        }
+      });
   });
 
   // Líneas punteadas de cada persona al primer lugar del plan, con la distancia encima.
@@ -75,19 +90,29 @@
       source: "lineas",
       layout: { "line-cap": "round" },
       // Gris oscuro: en modo noche el CSS invierte el mapa y la línea queda clara.
-      paint: { "line-color": "#4a4f57", "line-width": 1.6, "line-dasharray": [1.5, 2.5], "line-opacity": 0.85 }
+      paint: {
+        "line-color": "#4a4f57",
+        "line-width": 1.6,
+        "line-dasharray": [1.5, 2.5],
+        "line-opacity": 0.85,
+      },
     });
   });
 
   function textoKm(km) {
-    if (km < 1) { return (Math.max(1, Math.round(km * 100)) * 10) + " m"; }
-    if (km < 10) { return km.toFixed(1).replace(".", ",") + " km"; }
+    if (km < 1) {
+      return Math.max(1, Math.round(km * 100)) * 10 + " m";
+    }
+    if (km < 10) {
+      return km.toFixed(1).replace(".", ",") + " km";
+    }
     return Math.round(km) + " km";
   }
 
   function pintarLineas(datos) {
-
-    etiquetasKm.forEach(function (m) { m.remove(); });
+    etiquetasKm.forEach(function (m) {
+      m.remove();
+    });
     etiquetasKm = [];
 
     var destino = datos.lugares[0];
@@ -95,22 +120,38 @@
 
     if (destino) {
       datos.personas.forEach(function (persona) {
-        if (!persona.comparte) { return; }
-        rasgos.push({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [[persona.lon, persona.lat], [destino.lon, destino.lat]] } });
+        if (!persona.comparte) {
+          return;
+        }
+        rasgos.push({
+          type: "Feature",
+          properties: {},
+          geometry: {
+            type: "LineString",
+            coordinates: [
+              [persona.lon, persona.lat],
+              [destino.lon, destino.lat],
+            ],
+          },
+        });
         if (persona.km != null) {
           var etiqueta = document.createElement("div");
           etiqueta.className = "mapa-km";
           etiqueta.textContent = textoKm(persona.km);
-          etiquetasKm.push(new maplibregl.Marker({ element: etiqueta, anchor: "bottom", offset: [0, -3] })
-            .setLngLat([(persona.lon + destino.lon) / 2, (persona.lat + destino.lat) / 2])
-            .addTo(mapa));
+          etiquetasKm.push(
+            new maplibregl.Marker({ element: etiqueta, anchor: "bottom", offset: [0, -3] })
+              .setLngLat([(persona.lon + destino.lon) / 2, (persona.lat + destino.lat) / 2])
+              .addTo(mapa)
+          );
         }
       });
     }
 
     lineas = { type: "FeatureCollection", features: rasgos };
     var fuente = mapa.getSource("lineas");
-    if (fuente) { fuente.setData(lineas); }
+    if (fuente) {
+      fuente.setData(lineas);
+    }
   }
 
   var ultimosPuntos = [];
@@ -122,16 +163,26 @@
   var ultimoEnvio = 0;
 
   function kilometros(km) {
-    if (km == null) { return ""; }
-    if (km < 1) { return "a " + (Math.max(1, Math.round(km * 100)) * 10) + " m del lugar"; }
-    if (km < 10) { return "a " + km.toFixed(1).replace(".", ",") + " km del lugar"; }
+    if (km == null) {
+      return "";
+    }
+    if (km < 1) {
+      return "a " + Math.max(1, Math.round(km * 100)) * 10 + " m del lugar";
+    }
+    if (km < 10) {
+      return "a " + km.toFixed(1).replace(".", ",") + " km del lugar";
+    }
     return "a " + Math.round(km) + " km del lugar";
   }
 
   function hace(segundos) {
-    if (segundos < 90) { return "ahora"; }
+    if (segundos < 90) {
+      return "ahora";
+    }
     var minutos = Math.round(segundos / 60);
-    if (minutos < 60) { return "hace " + minutos + " min"; }
+    if (minutos < 60) {
+      return "hace " + minutos + " min";
+    }
     return "hace " + Math.round(minutos / 60) + " h";
   }
 
@@ -148,7 +199,8 @@
 
   function elementoPersona(persona) {
     var el = document.createElement("div");
-    el.className = "mapa-persona" + (persona.yo ? " is-yo" : "") + (persona.vieja ? " is-vieja" : "");
+    el.className =
+      "mapa-persona" + (persona.yo ? " is-yo" : "") + (persona.vieja ? " is-vieja" : "");
     el.title = persona.yo ? "Vos" : persona.nombre;
     var inicial = document.createElement("span");
     if (persona.avatar) {
@@ -164,13 +216,15 @@
   }
 
   function limpiarHijos(nodo) {
-    while (nodo.firstChild) { nodo.removeChild(nodo.firstChild); }
+    while (nodo.firstChild) {
+      nodo.removeChild(nodo.firstChild);
+    }
   }
 
   function crearCara(persona) {
-
     var item = document.createElement("li");
-    item.className = "mapa-cara" + (persona.comparte ? " is-comparte" : "") + (persona.yo ? " is-yo" : "");
+    item.className =
+      "mapa-cara" + (persona.comparte ? " is-comparte" : "") + (persona.yo ? " is-yo" : "");
     item.tabIndex = 0;
 
     var detalle = persona.comparte
@@ -199,12 +253,15 @@
 
   function pintarLista(personas) {
     limpiarHijos(lista);
-    personas.forEach(function (persona) { lista.appendChild(crearCara(persona)); });
+    personas.forEach(function (persona) {
+      lista.appendChild(crearCara(persona));
+    });
   }
 
   function pintarMapa(datos) {
-
-    marcadoresLugares.forEach(function (m) { m.remove(); });
+    marcadoresLugares.forEach(function (m) {
+      m.remove();
+    });
     marcadoresLugares = datos.lugares.map(function (lugar) {
       return new maplibregl.Marker({ element: elementoLugar(lugar), anchor: "center" })
         .setLngLat([lugar.lon, lugar.lat])
@@ -214,8 +271,9 @@
     var vigentes = {};
 
     datos.personas.forEach(function (persona) {
-
-      if (!persona.comparte) { return; }
+      if (!persona.comparte) {
+        return;
+      }
 
       vigentes[persona.id] = true;
 
@@ -223,7 +281,10 @@
         marcadoresPersonas[persona.id].remove();
       }
 
-      marcadoresPersonas[persona.id] = new maplibregl.Marker({ element: elementoPersona(persona), anchor: "center" })
+      marcadoresPersonas[persona.id] = new maplibregl.Marker({
+        element: elementoPersona(persona),
+        anchor: "center",
+      })
         .setLngLat([persona.lon, persona.lat])
         .addTo(mapa);
     });
@@ -236,7 +297,11 @@
     });
 
     // Se encuadra todo cuando aparece o desaparece alguien (no en cada actualización, para no mover el mapa mientras lo mirás).
-    var puntos = marcadoresLugares.concat(Object.keys(marcadoresPersonas).map(function (id) { return marcadoresPersonas[id]; }));
+    var puntos = marcadoresLugares.concat(
+      Object.keys(marcadoresPersonas).map(function (id) {
+        return marcadoresPersonas[id];
+      })
+    );
 
     ultimosPuntos = puntos;
 
@@ -251,7 +316,9 @@
       mapa.jumpTo({ center: ultimosPuntos[0].getLngLat(), zoom: 15 });
     } else if (ultimosPuntos.length > 1) {
       var limites = new maplibregl.LngLatBounds();
-      ultimosPuntos.forEach(function (m) { limites.extend(m.getLngLat()); });
+      ultimosPuntos.forEach(function (m) {
+        limites.extend(m.getLngLat());
+      });
       mapa.fitBounds(limites, { padding: 64, maxZoom: 16, duration: 0 });
     }
   }
@@ -271,7 +338,6 @@
   }
 
   function cargar() {
-
     return fetch("/planes/" + planId + "/mapa", { credentials: "same-origin", cache: "no-store" })
       .then(function (respuesta) {
         if (respuesta.status === 403 || respuesta.status === 404) {
@@ -281,8 +347,9 @@
         return respuesta.ok ? respuesta.json() : null;
       })
       .then(function (datos) {
-
-        if (!datos || !datos.ok) { return; }
+        if (!datos || !datos.ok) {
+          return;
+        }
 
         pintarMapa(datos);
         pintarLineas(datos);
@@ -292,17 +359,22 @@
           comparte = datos.yo_comparto;
           textoBoton();
           // Si ya estaba compartiendo (otra vez que abrió la página), se retoma sola cuando el navegador ya tiene el permiso.
-          if (comparte && !vigilando) { retomar(); }
+          if (comparte && !vigilando) {
+            retomar();
+          }
         }
       })
-      .catch(function () { /* sin conexión por un rato: se reintenta */ });
+      .catch(function () {
+        /* sin conexión por un rato: se reintenta */
+      });
   }
 
   function enviar(posicion) {
-
     var ahora = Date.now();
 
-    if (ahora - ultimoEnvio < CADA_MS) { return; }
+    if (ahora - ultimoEnvio < CADA_MS) {
+      return;
+    }
 
     ultimoEnvio = ahora;
 
@@ -310,9 +382,13 @@
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lat: posicion.coords.latitude, lon: posicion.coords.longitude })
+      body: JSON.stringify({ lat: posicion.coords.latitude, lon: posicion.coords.longitude }),
     })
-      .then(function (respuesta) { return respuesta.json().catch(function () { return {}; }); })
+      .then(function (respuesta) {
+        return respuesta.json().catch(function () {
+          return {};
+        });
+      })
       .then(function (datos) {
         if (datos && datos.ok) {
           avisar("");
@@ -321,11 +397,12 @@
           avisar((datos && datos.error) || "No se pudo guardar tu ubicación.");
         }
       })
-      .catch(function () { avisar("No se pudo guardar tu ubicación."); });
+      .catch(function () {
+        avisar("No se pudo guardar tu ubicación.");
+      });
   }
 
   function empezar() {
-
     if (!navigator.geolocation) {
       avisar("Tu navegador no permite compartir la ubicación.");
       return;
@@ -333,32 +410,45 @@
 
     avisar("");
 
-    vigilando = navigator.geolocation.watchPosition(enviar, function (error) {
-      vigilando = null;
-      comparte = false;
-      textoBoton();
-      avisar(error && error.code === 1 ? "No diste permiso de ubicación en el navegador." : "No pudimos ubicarte ahora.");
-    }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
+    vigilando = navigator.geolocation.watchPosition(
+      enviar,
+      function (error) {
+        vigilando = null;
+        comparte = false;
+        textoBoton();
+        avisar(
+          error && error.code === 1
+            ? "No diste permiso de ubicación en el navegador."
+            : "No pudimos ubicarte ahora."
+        );
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
+    );
 
     comparte = true;
     textoBoton();
   }
 
   function retomar() {
+    if (!navigator.permissions) {
+      return;
+    }
 
-    if (!navigator.permissions) { return; }
-
-    navigator.permissions.query({ name: "geolocation" }).then(function (permiso) {
-      if (permiso.state === "granted") {
-        empezar();
-      } else {
-        avisar("");  // en pausa: los botones "Retomar" y "Dejar de compartir" ya lo dicen
-      }
-    }).catch(function () { /* queda el botón Retomar */ });
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then(function (permiso) {
+        if (permiso.state === "granted") {
+          empezar();
+        } else {
+          avisar(""); // en pausa: los botones "Retomar" y "Dejar de compartir" ya lo dicen
+        }
+      })
+      .catch(function () {
+        /* queda el botón Retomar */
+      });
   }
 
   function detener() {
-
     if (vigilando !== null) {
       navigator.geolocation.clearWatch(vigilando);
       vigilando = null;
@@ -368,9 +458,14 @@
     textoBoton();
     avisar("");
 
-    fetch("/planes/" + planId + "/ubicacion/detener", { method: "POST", credentials: "same-origin" })
+    fetch("/planes/" + planId + "/ubicacion/detener", {
+      method: "POST",
+      credentials: "same-origin",
+    })
       .then(cargar)
-      .catch(function () { /* se borra igual cuando el plan termina */ });
+      .catch(function () {
+        /* se borra igual cuando el plan termina */
+      });
   }
 
   boton.addEventListener("click", empezar);
@@ -378,7 +473,11 @@
 
   textoBoton();
   cargar();
-  setInterval(function () { if (!document.hidden) { cargar(); } }, RECARGA_MS);
+  setInterval(function () {
+    if (!document.hidden) {
+      cargar();
+    }
+  }, RECARGA_MS);
 
   // Si cambia el tamaño del contenedor (pantalla estática, girar el celular), el mapa se reacomoda.
   if (window.ResizeObserver) {
@@ -386,8 +485,10 @@
     new ResizeObserver(function () {
       mapa.resize();
       // Con el tamaño ya definitivo se vuelve a encuadrar una vez, para que el zoom no quede de más.
-      if (primera) { primera = false; encuadrar(); }
+      if (primera) {
+        primera = false;
+        encuadrar();
+      }
     }).observe(lienzo);
   }
-
-}());
+})();

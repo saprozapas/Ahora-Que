@@ -5,7 +5,6 @@ import secrets
 import psycopg2
 from services.guia_nueva import COOKIE as COOKIE_GUIA, VIGENCIA_SEGUNDOS as VIGENCIA_GUIA, token as token_guia
 from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
-from models import user
 from models.user import User
 from services.auth_service import AuthService
 from services.password_policy import validar_contrasena
@@ -116,15 +115,6 @@ def restablecer_contrasena(codigo):
         else:
             return render_template("restablecer_contrasena.html", invalido=True), 400
     return render_template("restablecer_contrasena.html", invalido=False, error=error)
-
-
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
-
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
 
 
 @auth.route("/register", methods=["GET", "POST"])

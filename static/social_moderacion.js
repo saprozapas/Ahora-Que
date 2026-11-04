@@ -9,9 +9,10 @@
   const error = raiz.querySelector("[data-mod-error]");
 
   const resolver = async (item, accion) => {
-    const pregunta = accion === "eliminar"
-      ? "¿Eliminar este contenido? Deja de verse para todos."
-      : "¿Descartar el reporte? El contenido queda como está.";
+    const pregunta =
+      accion === "eliminar"
+        ? "¿Eliminar este contenido? Deja de verse para todos."
+        : "¿Descartar el reporte? El contenido queda como está.";
     if (!(await window.preguntar(pregunta))) return;
 
     error.hidden = true;

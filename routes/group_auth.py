@@ -5,19 +5,16 @@ import psycopg2
 from models.group import Group
 from services.invitation_service import InvitationService
 from services.group_auth_service import GroupAuthService
-from werkzeug.security import generate_password_hash
 from services.auth_service import AuthService
 from services.grupo_plan_service import GrupoPlanService
 from services.plan_service import PlanService
 from services.chat_service import ChatService
 from services.racha_service import RachaService
-from services.grupo_encuesta_service import (
-    GrupoEncuestaService, MAX_FRANJAS, opciones_de_distancia, opciones_de_precio,
-)
+from services.grupo_encuesta_service import GrupoEncuestaService
 from services.lugar_service import LugarService
 from services.paralelo_service import correr_en_paralelo
 from services.notification_service import NotificationService
-from database_bridge.database_bridge import getUser, getGroupsForUser, getUsersInGroup, getUsersInGroupWithIds, isUserInGroup, getGroupById, buscarUsuariosInvitables
+from database_bridge.database_bridge import getUser, getUsersInGroupWithIds, isUserInGroup, getGroupById, buscarUsuariosInvitables
 
 
 group_auth = Blueprint("group_auth", __name__)
@@ -67,17 +64,12 @@ def nuevo_grupo():
         name = form_data["name"]
         description = form_data["description"]
         try:
-            user = getUser(user_id)
-        except Exception as e:
-            return render_template("crear_grupos.html", error="Error al crear grupo. Intenta loguearte nuevamente.", form_data=form_data)
-
-        try:
             if name.strip() == "":
                 raise psycopg2.errors.NotNullViolation("El nombre del grupo no puede estar vacío.")
-            group_id = group_auth_service.register(Group(user, name, description), user_id)
-        except psycopg2.errors.NotNullViolation as e:
+            group_id = group_auth_service.register(Group(name, description), user_id)
+        except psycopg2.errors.NotNullViolation:
             return render_template("crear_grupos.html", error="Debes ingresar el nombre del grupo.", form_data=form_data)
-        except Exception as e:
+        except Exception:
             return render_template("crear_grupos.html", error="Error al crear el grupo.", form_data=form_data)
 
         flash("Grupo creado. Invitá a tus amigos para empezar a armar planes.")
@@ -105,17 +97,12 @@ def _datos_del_grupo(group_id):
     """Lo que comparten el chat y la info del grupo. Son lecturas independientes: salen a la vez."""
     user_id = session.get("user_id")
 
-    def datos_del_grupo():
-        group = getGroupById(group_id)
-        group.set_user(getUser(user_id))
-        return group
-
     def owner_y_rol():
         owner_id = group_auth_service.get_owner_id(group_id)  # antes que el rol: si el grupo no tenía owner, lo asigna
         return owner_id, group_auth_service.get_rol(user_id, group_id)
 
     group, racha, (owner_id, (es_admin, es_owner)) = correr_en_paralelo(
-        datos_del_grupo,
+        lambda: getGroupById(group_id),
         lambda: racha_service.actualizar_racha(group_id),
         owner_y_rol,
     )
@@ -134,6 +121,7 @@ def chat_grupo(group_id):
 
     user_id = session.get("user_id")
     plan_service.archivar_vencidos()
+    chat_service.eliminar_mensajes_viejos()
     group, racha, owner_id, es_admin, es_owner = _datos_del_grupo(group_id)
     # Lecturas independientes: salen a la vez y la página tarda lo de la más lenta, no la suma.
     integrantes, tablero, encuestas, visto_en = correr_en_paralelo(
@@ -391,7 +379,6 @@ def racha_grupo(group_id):
         return redirect(url_for("mensajes.mensajes"))
 
     group = getGroupById(group_id)
-    group.set_user(getUser(session.get("user_id")))
     racha = racha_service.actualizar_racha(group_id)
     return render_template("racha.html", group=group, groups_page=True,
                            users=getUsersInGroupWithIds(group_id), racha=racha)

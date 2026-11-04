@@ -880,8 +880,7 @@ class PlanService:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                # Plan + relación del usuario + pertenencia al grupo, todo
-                # en una sola consulta (antes eran 3 viajes a la base).
+                # Plan + relación del usuario + pertenencia al grupo, todo en una sola consulta.
                 cursor.execute(
                     f"""
                     SELECT

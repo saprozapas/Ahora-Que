@@ -5,7 +5,7 @@ from services.friend_service import FriendService
 from services.invitation_service import InvitationService
 from services.group_auth_service import GroupAuthService
 from services.avatar_service import AvatarService
-from database_bridge.database_bridge import getFriendsForUser, getGroupsForUser, buscarUsuarios, getUser
+from database_bridge.database_bridge import getFriendsForUser, getGroupsForUser, buscarUsuarios, getUser, getGroupById
 from services.notification_service import NotificationService
 
 

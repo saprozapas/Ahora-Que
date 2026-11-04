@@ -23,14 +23,19 @@
   }
 
   function esAppIOSAgregada() {
-    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent)
-      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    return !ios || navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+    const ios =
+      /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    return (
+      !ios ||
+      navigator.standalone === true ||
+      window.matchMedia("(display-mode: standalone)").matches
+    );
   }
 
   async function quitarSuscripcionLocalYServidor() {
     const registro = await navigator.serviceWorker.getRegistration("/");
-    const suscripcion = registro && await registro.pushManager.getSubscription();
+    const suscripcion = registro && (await registro.pushManager.getSubscription());
     if (!suscripcion) return;
     try {
       await fetch(endpoint, {
@@ -46,20 +51,25 @@
 
   async function activarDispositivo(form) {
     const clavePublica = form.dataset.vapidPublicKey;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    if (
+      !("serviceWorker" in navigator) ||
+      !("PushManager" in window) ||
+      !("Notification" in window)
+    ) {
       throw new Error("Este navegador no admite notificaciones push.");
     }
     if (!esAppIOSAgregada()) {
-      throw new Error("En iPhone o iPad, primero agregá Ahora Qué a Inicio y abrila desde su ícono.");
+      throw new Error(
+        "En iPhone o iPad, primero agregá Ahora Qué a Inicio y abrila desde su ícono."
+      );
     }
     if (!clavePublica) {
       throw new Error("Falta configurar la clave pública VAPID en el servidor.");
     }
 
     // El permiso se solicita directamente como consecuencia de la elección de la persona.
-    const permiso = Notification.permission === "granted"
-      ? "granted"
-      : await Notification.requestPermission();
+    const permiso =
+      Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
     if (permiso !== "granted") {
       throw new Error("No se habilitó el permiso para mostrar notificaciones.");
     }
@@ -92,7 +102,9 @@
       try {
         await activarDispositivo(form);
       } catch (error) {
-        window.alert(error.message || "No se pudieron activar las notificaciones en este dispositivo.");
+        window.alert(
+          error.message || "No se pudieron activar las notificaciones en este dispositivo."
+        );
         restaurarModo(form);
         return;
       }

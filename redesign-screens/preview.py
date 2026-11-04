@@ -102,12 +102,12 @@ yo = User("Valentina Sosa", "2001-03-02", "valen", "valen@ejemplo.com", "x", "Me
 diego = User("Diego Pereira", "2000-05-11", "diegop", "diego@ejemplo.com", "x", "Siempre armo el asado.")
 carla = User("Carla Méndez", "2001-01-01", "carlam", "carla@ejemplo.com", "x")
 
-grupo = Group(yo, "Amigos de la facu", "Los de siempre: cine, feria y alguna escapada.", id="g1")
+grupo = Group("Amigos de la facu", "Los de siempre: cine, feria y alguna escapada.", id="g1")
 lista_de_grupos = [
     grupo,
-    Group(yo, "Familia Sosa", "Almuerzos de domingo y cumpleaños.", id="g2"),
-    Group(yo, "FIUM", "Amigos de la facultad y Maxi.", id="g3"),
-    Group(yo, "Pareja", "", id="g4"),
+    Group("Familia Sosa", "Almuerzos de domingo y cumpleaños.", id="g2"),
+    Group("FIUM", "Amigos de la facultad y Maxi.", id="g3"),
+    Group("Pareja", "", id="g4"),
 ]
 
 invitaciones = [

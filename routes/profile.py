@@ -98,7 +98,6 @@ def perfil():
             if es_ajax:
                 return jsonify(ok=ok, error=error, value=descripcion)
 
-    # Los tres contadores de abajo (antes llegaban listas vacías y siempre decían 0).
     try:
         resumen = plan_service.contar_resumen_perfil(session["user_id"])
     except Exception as error:

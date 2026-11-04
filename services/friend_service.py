@@ -69,7 +69,7 @@ class FriendService:
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT s."Id_Solicitante", u."Nombre", u."Username", s."Fecha"
+                    SELECT s."Id_Solicitante", u."Nombre", u."Username"
                     FROM public."Solicitudes_Amistad" s
                     JOIN public."Usuarios" u ON u."Id_Usuario" = s."Id_Solicitante"
                     WHERE s."Id_Destinatario" = %s
@@ -78,7 +78,7 @@ class FriendService:
                     (user_id,)
                 )
                 return [
-                    SolicitudAmistad(row[0], row[1], row[2], row[3])
+                    SolicitudAmistad(row[0], row[1], row[2])
                     for row in cursor.fetchall()
                 ]
         finally:

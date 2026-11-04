@@ -1,4 +1,4 @@
-import ast, sys, glob, re
+import ast, glob, re
 files = ['app.py'] + sorted(glob.glob('routes/*.py'))
 for f in files:
     src = open(f, encoding='utf-8-sig').read()

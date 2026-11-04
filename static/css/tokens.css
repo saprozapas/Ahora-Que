@@ -11,115 +11,137 @@
 
 :root {
   /* ---------- 1. VARIABLES DE MARCA ---------- */
-  --brand-accent: #55646E;        /* gris-azul niebla con contraste AA: texto e íconos */
-  --brand-accent-soft: #9AA6AE;   /* el gris-azul original: solo líneas decorativas */
-  --brand-paper-hue: 214;         /* papel neutro frío, en armonía con el gris-azul */
+  --brand-accent: #55646e; /* gris-azul niebla con contraste AA: texto e íconos */
+  --brand-accent-soft: #9aa6ae; /* el gris-azul original: solo líneas decorativas */
+  --brand-paper-hue: 214; /* papel neutro frío, en armonía con el gris-azul */
   --brand-headline: var(--font-sans);
 
   /* ---------- 2. COLOR ---------- */
   /* Tres planos: el fondo (--paper) es un gris frío un poco más profundo, las bandas (--paper-deep) se hunden
      un escalón y las superficies (--surface) son blancas y "flotan" sobre ellos con las sombras de abajo. */
-  --paper:        hsl(var(--brand-paper-hue) 16% 93.6%);  /* fondo de página */
-  --paper-deep:   hsl(var(--brand-paper-hue) 14% 89.8%);  /* bandas, chips inactivos */
-  --surface:      #FFFFFF;                                /* cards, ventanas, inputs */
-  --surface-2:    hsl(var(--brand-paper-hue) 26% 97.6%);  /* hover de fila, fondo de input */
+  --paper: hsl(var(--brand-paper-hue) 16% 93.6%); /* fondo de página */
+  --paper-deep: hsl(var(--brand-paper-hue) 14% 89.8%); /* bandas, chips inactivos */
+  --surface: #ffffff; /* cards, ventanas, inputs */
+  --surface-2: hsl(var(--brand-paper-hue) 26% 97.6%); /* hover de fila, fondo de input */
 
-  --ink:          #151515;  /* titulares, texto principal, botón primario */
-  --ink-2:        #454542;  /* texto de cuerpo fuerte */
-  --ink-3:        #66655F;  /* texto secundario y metadatos (AA 4,5:1 sobre papel, bandas y tarjetas) */
-  --ink-4:        #A3A29D;  /* SOLO elementos no textuales: íconos decorativos, separadores. Nunca texto (2,3:1). */
-  --on-ink:       #FFFFFF;  /* texto sobre botón negro */
+  --ink: #151515; /* titulares, texto principal, botón primario */
+  --ink-2: #454542; /* texto de cuerpo fuerte */
+  --ink-3: #66655f; /* texto secundario y metadatos (AA 4,5:1 sobre papel, bandas y tarjetas) */
+  --ink-4: #a3a29d; /* SOLO elementos no textuales: íconos decorativos, separadores. Nunca texto (2,3:1). */
+  --on-ink: #ffffff; /* texto sobre botón negro */
 
-  --line:         rgb(16 24 40 / 0.075);  /* bordes de cards (casi invisibles) */
-  --line-strong:  rgb(16 24 40 / 0.14);  /* divisores que importan */
-  --line-control: rgb(21 21 21 / 0.55);  /* borde de inputs y controles: 3:1 contra papel y superficie (WCAG 1.4.11) */
-  --dot:          rgb(21 21 21 / 0.13);
+  --line: rgb(16 24 40 / 0.075); /* bordes de cards (casi invisibles) */
+  --line-strong: rgb(16 24 40 / 0.14); /* divisores que importan */
+  --line-control: rgb(
+    21 21 21 / 0.55
+  ); /* borde de inputs y controles: 3:1 contra papel y superficie (WCAG 1.4.11) */
+  --dot: rgb(21 21 21 / 0.13);
 
-  --accent:       var(--brand-accent);
-  --alert:       #BC342B;  /* solo para urgencia real ("hace 3 días") */
-  --focus:        color-mix(in srgb, var(--brand-accent) 55%, transparent);
+  --accent: var(--brand-accent);
+  --alert: #bc342b; /* solo para urgencia real ("hace 3 días") */
+  --focus: color-mix(in srgb, var(--brand-accent) 55%, transparent);
 
   /* ---------- 3. TIPOGRAFÍA ---------- */
-  --font-sans:  "Figtree", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Figtree", ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
   --font-serif: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
 
-  --t-display: clamp(2.75rem, 1.55rem + 4.4vw, 5.5rem);  /* un solo uso por página */
-  --t-h2:      clamp(2rem, 1.45rem + 2vw, 3.25rem);
-  --t-h3:      1.375rem;
-  --t-voice:   clamp(1.4rem, 1.15rem + 0.8vw, 1.9rem);   /* serif "voz humana" */
-  --t-lead:    clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
-  --t-body:    1rem;
-  --t-ui:      0.9375rem;  /* botones, nav, chips */
-  --t-meta:    0.8125rem;  /* horas, contadores, notas */
+  --t-display: clamp(2.75rem, 1.55rem + 4.4vw, 5.5rem); /* un solo uso por página */
+  --t-h2: clamp(2rem, 1.45rem + 2vw, 3.25rem);
+  --t-h3: 1.375rem;
+  --t-voice: clamp(1.4rem, 1.15rem + 0.8vw, 1.9rem); /* serif "voz humana" */
+  --t-lead: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
+  --t-body: 1rem;
+  --t-ui: 0.9375rem; /* botones, nav, chips */
+  --t-meta: 0.8125rem; /* horas, contadores, notas */
 
   --track-display: -0.045em;
-  --track-h2:      -0.035em;
-  --track-h3:      -0.02em;
-  --track-ui:      -0.011em;
+  --track-h2: -0.035em;
+  --track-h3: -0.02em;
+  --track-ui: -0.011em;
 
   /* ---------- 4. ESPACIADO (base 4px) ---------- */
-  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
-  --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px; --s-20: 80px; --s-24: 96px; --s-32: 128px;
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+  --s-24: 96px;
+  --s-32: 128px;
   --section-y: clamp(80px, 6vw + 48px, 144px);
   --container: 1200px;
   --gutter: clamp(20px, 4vw, 48px);
 
   /* ---------- 5. RADIOS (cuanto más grande el objeto, más radio) ---------- */
-  --r-xs: 6px;    /* kbd, badges */
-  --r-sm: 9px;    /* chips, segmented */
-  --r-md: 11px;   /* botones, inputs */
-  --r-lg: 16px;   /* cards */
-  --r-xl: 20px;   /* ventanas, paneles grandes */
+  --r-xs: 6px; /* kbd, badges */
+  --r-sm: 9px; /* chips, segmented */
+  --r-md: 11px; /* botones, inputs */
+  --r-lg: 16px; /* cards */
+  --r-xl: 20px; /* ventanas, paneles grandes */
   --r-full: 999px;
 
   /* ---------- 6. SOMBRAS (siempre en capas) ----------
      Cuatro alturas: hair (solo un filete), card (reposo), lift (al pasar el mouse) y float (lo que más sobresale:
      la tarjeta principal, los menús y las ventanas). Cada una suma un filete, un brillo fino arriba que marca el
      borde, una sombra de contacto y una difusa y larga, de tono azulado en vez de negro. */
-  --sh-hair:  0 0 0 1px var(--line);
-  --sh-card:  0 0 0 1px rgb(16 24 40 / 0.05), 0 1px 1px rgb(16 24 40 / 0.04), 0 3px 6px -2px rgb(16 24 40 / 0.05), 0 14px 24px -14px rgb(16 24 40 / 0.14);
-  --sh-lift:  0 0 0 1px rgb(16 24 40 / 0.06), 0 2px 4px rgb(16 24 40 / 0.05), 0 8px 14px -4px rgb(16 24 40 / 0.08), 0 24px 36px -16px rgb(16 24 40 / 0.22);
-  --sh-float: 0 0 0 1px rgb(16 24 40 / 0.06), 0 2px 4px rgb(16 24 40 / 0.05), 0 12px 24px -8px rgb(16 24 40 / 0.12), 0 32px 56px -24px rgb(16 24 40 / 0.28);
-  --sh-btn:    0 0 0 0 transparent;
+  --sh-hair: 0 0 0 1px var(--line);
+  --sh-card: 0 0 0 1px rgb(16 24 40 / 0.05), 0 1px 1px rgb(16 24 40 / 0.04),
+    0 3px 6px -2px rgb(16 24 40 / 0.05), 0 14px 24px -14px rgb(16 24 40 / 0.14);
+  --sh-lift: 0 0 0 1px rgb(16 24 40 / 0.06), 0 2px 4px rgb(16 24 40 / 0.05),
+    0 8px 14px -4px rgb(16 24 40 / 0.08), 0 24px 36px -16px rgb(16 24 40 / 0.22);
+  --sh-float: 0 0 0 1px rgb(16 24 40 / 0.06), 0 2px 4px rgb(16 24 40 / 0.05),
+    0 12px 24px -8px rgb(16 24 40 / 0.12), 0 32px 56px -24px rgb(16 24 40 / 0.28);
+  --sh-btn: 0 0 0 0 transparent;
 
   /* ---------- 7. MOVIMIENTO ---------- */
-  --ease-out:    cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
-  --d-fast: 140ms;  /* hover, press */
-  --d-base: 220ms;  /* abrir, cambiar estado */
-  --d-slow: 700ms;  /* el único momento orquestado de la página */
+  --d-fast: 140ms; /* hover, press */
+  --d-base: 220ms; /* abrir, cambiar estado */
+  --d-slow: 700ms; /* el único momento orquestado de la página */
 
   /* ---------- 8. ESTADOS (decisión: --ok y --danger apagados, siempre con texto o ícono) ---------- */
-  --ok:           #2E6B4A;   /* confirmado, guardado, aceptar */
-  --llama:           #C9742B;   /* la llama de una racha activa que todavía no tiene rango */
+  --ok: #2e6b4a; /* confirmado, guardado, aceptar */
+  --llama: #c9742b; /* la llama de una racha activa que todavía no tiene rango */
   /* Rangos y marcos de grupo (rachas): los planetas, un color sobrio por cada uno. */
-  --marco-mercurio:  #7A7F86;   /* gris piedra */
-  --marco-venus:     #D6A357;   /* ámbar pálido */
-  --marco-tierra:    #3F78B6;   /* azul océano */
-  --marco-marte:     #B4533C;   /* terracota */
-  --marco-jupiter:   #BC7F4B;   /* ocre cobrizo */
-  --marco-saturno:   #C7B681;   /* dorado pálido */
-  --info:         #2B5C8E;   /* en curso / respondiendo (AA sobre claro) */
-  --info-soft:    color-mix(in srgb, var(--info) 11%, var(--surface));
-  --ok-soft:      color-mix(in srgb, var(--ok) 11%, var(--surface));
-  --on-danger:    #FFFFFF;
-  --danger:       #B03128;   /* abandonar, eliminar, errores de formulario */
-  --danger-soft:  color-mix(in srgb, var(--danger) 9%, var(--surface));
-  --accent-wash:  color-mix(in srgb, var(--accent) 12%, var(--surface));
+  --marco-mercurio: #7a7f86; /* gris piedra */
+  --marco-venus: #d6a357; /* ámbar pálido */
+  --marco-tierra: #3f78b6; /* azul océano */
+  --marco-marte: #b4533c; /* terracota */
+  --marco-jupiter: #bc7f4b; /* ocre cobrizo */
+  --marco-saturno: #c7b681; /* dorado pálido */
+  --info: #2b5c8e; /* en curso / respondiendo (AA sobre claro) */
+  --info-soft: color-mix(in srgb, var(--info) 11%, var(--surface));
+  --ok-soft: color-mix(in srgb, var(--ok) 11%, var(--surface));
+  --on-danger: #ffffff;
+  --danger: #b03128; /* abandonar, eliminar, errores de formulario */
+  --danger-soft: color-mix(in srgb, var(--danger) 9%, var(--surface));
+  --accent-wash: color-mix(in srgb, var(--accent) 12%, var(--surface));
 
   /* ---------- 9. TAMAÑO DE CONTROLES ----------
      44 / 48 / 52 en celular y tablet (y con dedo); 40 / 44 / 48 solo con mouse en pantallas grandes. */
-  --control-h:    44px;
+  --control-h: 44px;
   --control-h-lg: 48px;
   --control-h-xl: 52px;
-  --ctl-icon:     44px;
-  --hit:          44px;
+  --ctl-icon: 44px;
+  --hit: 44px;
 
   color-scheme: light;
 }
 
 @media (pointer: fine) and (min-width: 901px) {
-  :root { --control-h: 40px; --control-h-lg: 44px; --control-h-xl: 48px; --ctl-icon: 40px; }
+  :root {
+    --control-h: 40px;
+    --control-h-lg: 44px;
+    --control-h-xl: 48px;
+    --ctl-icon: 40px;
+  }
 }
 
 /* ---------- MODO NOCHE ---------- */
@@ -130,29 +152,39 @@
   --paper-deep: hsl(var(--brand-paper-hue) 13% 8%);
   --surface: hsl(var(--brand-paper-hue) 11% 10.6%);
   --surface-2: hsl(var(--brand-paper-hue) 10% 13.6%);
-  --ink: #F2F1EE; --ink-2: #CFCEC9; --ink-3: #A9A8A3; --ink-4: #6E6D69; --on-ink: #121314;
-  --line: rgb(255 255 255 / 0.075); --line-strong: rgb(255 255 255 / 0.15); --line-control: rgb(255 255 255 / 0.5); --dot: rgb(255 255 255 / 0.09);
-  --sh-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 2px 4px rgb(0 0 0 / 0.35), 0 14px 26px -14px rgb(0 0 0 / 0.75);
-  --sh-lift: 0 0 0 1px rgb(255 255 255 / 0.09), 0 4px 8px rgb(0 0 0 / 0.4), 0 22px 36px -16px rgb(0 0 0 / 0.85);
-  --sh-float: 0 0 0 1px rgb(255 255 255 / 0.09), 0 6px 14px rgb(0 0 0 / 0.4), 0 28px 56px -22px rgb(0 0 0 / 0.9);
-  --sh-btn:  0 0 0 0 transparent;
+  --ink: #f2f1ee;
+  --ink-2: #cfcec9;
+  --ink-3: #a9a8a3;
+  --ink-4: #6e6d69;
+  --on-ink: #121314;
+  --line: rgb(255 255 255 / 0.075);
+  --line-strong: rgb(255 255 255 / 0.15);
+  --line-control: rgb(255 255 255 / 0.5);
+  --dot: rgb(255 255 255 / 0.09);
+  --sh-card: 0 0 0 1px rgb(255 255 255 / 0.06), 0 2px 4px rgb(0 0 0 / 0.35),
+    0 14px 26px -14px rgb(0 0 0 / 0.75);
+  --sh-lift: 0 0 0 1px rgb(255 255 255 / 0.09), 0 4px 8px rgb(0 0 0 / 0.4),
+    0 22px 36px -16px rgb(0 0 0 / 0.85);
+  --sh-float: 0 0 0 1px rgb(255 255 255 / 0.09), 0 6px 14px rgb(0 0 0 / 0.4),
+    0 28px 56px -22px rgb(0 0 0 / 0.9);
+  --sh-btn: 0 0 0 0 transparent;
   /* Sereno usa un naranja en oscuro; acá sigue siendo el gris-azul, más
      claro para que tenga contraste AA sobre el papel oscuro (7,4:1). */
-  --brand-accent: #9AA6AE;
-  --brand-accent-soft: #B7C2C9;
+  --brand-accent: #9aa6ae;
+  --brand-accent-soft: #b7c2c9;
   /* El rojo de Sereno queda en 3,6:1 sobre la superficie oscura; este
      llega a AA (5,3:1). */
-  --alert: #E8695F;
-  --ok: #7CC79A;
-  --info: #8DB6E2;
-  --llama:           #EE9A5D;
-  --marco-mercurio:  #A3A8AF;
-  --marco-venus:     #E3B672;
-  --marco-tierra:    #6FA3DB;
-  --marco-marte:     #DB7C65;
-  --marco-jupiter:   #D49B69;
-  --marco-saturno:   #E0D1A1;
-  --danger: #EE8C83;
+  --alert: #e8695f;
+  --ok: #7cc79a;
+  --info: #8db6e2;
+  --llama: #ee9a5d;
+  --marco-mercurio: #a3a8af;
+  --marco-venus: #e3b672;
+  --marco-tierra: #6fa3db;
+  --marco-marte: #db7c65;
+  --marco-jupiter: #d49b69;
+  --marco-saturno: #e0d1a1;
+  --danger: #ee8c83;
   --on-danger: #151515;
 
   color-scheme: dark;
@@ -161,8 +193,15 @@
 /* ==========================================================================
    BASE
    ========================================================================== */
-*, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 body {
   margin: 0;
   background: var(--paper);
@@ -180,17 +219,40 @@ body {
    ganaba a cualquier display:none de style.css, que va en capas, y por
    ejemplo mostraba la luna y el sol del toggle de tema a la vez. */
 @layer reset {
-  img, svg, video { display: block; max-width: 100%; }
+  img,
+  svg,
+  video {
+    display: block;
+    max-width: 100%;
+  }
 }
-:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: var(--r-xs); }
-::selection { background: color-mix(in srgb, var(--brand-accent) 22%, transparent); }
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+::selection {
+  background: color-mix(in srgb, var(--brand-accent) 22%, transparent);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
 }
-
 
 /* Sin barras de scroll visibles en ningún lugar de la app (la rueda, el dedo y el
    teclado siguen scrolleando igual). */
-* { scrollbar-width: none !important; -ms-overflow-style: none; }
-*::-webkit-scrollbar { display: none !important; width: 0; height: 0; }
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0;
+  height: 0;
+}

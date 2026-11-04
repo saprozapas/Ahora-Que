@@ -1,6 +1,6 @@
 """Resume las mediciones de sesion-main: una fila por ruta (375 y 1440) y los
 fallos de contraste, objetivos tactiles y texto chico mas repetidos."""
-import collections, glob, json, os, re, sys
+import collections, json, os, re, sys
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "redesign-screens/audit/sesion-main"
 

@@ -7,12 +7,13 @@
    ========================================================================== */
 
 (function () {
-
   "use strict";
 
   var modal = document.querySelector("[data-avatar-modal]");
 
-  if (!modal) { return; }
+  if (!modal) {
+    return;
+  }
 
   var url = modal.dataset.url;
   var archivo = modal.querySelector("[data-foto-archivo]");
@@ -29,11 +30,12 @@
 
   function ocupado(si) {
     modal.classList.toggle("is-ocupado", si);
-    Array.prototype.forEach.call(modal.querySelectorAll("button, input"), function (el) { el.disabled = si; });
+    Array.prototype.forEach.call(modal.querySelectorAll("button, input"), function (el) {
+      el.disabled = si;
+    });
   }
 
   function enviar(cuerpo) {
-
     ocupado(true);
     avisar("Guardando…");
 
@@ -41,13 +43,21 @@
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpo)
+      body: JSON.stringify(cuerpo),
     })
-      .then(function (respuesta) { return respuesta.json().catch(function () { return {}; }); })
+      .then(function (respuesta) {
+        return respuesta.json().catch(function () {
+          return {};
+        });
+      })
       .then(function (datos) {
-        if (!datos.ok) { throw new Error(datos.error || "No se pudo guardar la foto."); }
+        if (!datos.ok) {
+          throw new Error(datos.error || "No se pudo guardar la foto.");
+        }
         avisar("Listo.");
-        window.setTimeout(function () { window.location.reload(); }, 250);
+        window.setTimeout(function () {
+          window.location.reload();
+        }, 250);
       })
       .catch(function (error) {
         ocupado(false);
@@ -64,12 +74,13 @@
 
   // ---- Quitar
   if (quitar) {
-    quitar.addEventListener("click", function () { enviar({ tipo: "quitar" }); });
+    quitar.addEventListener("click", function () {
+      enviar({ tipo: "quitar" });
+    });
   }
 
   // ---- Foto del dispositivo: recorte cuadrado centrado, JPEG chico
   function recortar(imagen) {
-
     var lienzo = document.createElement("canvas");
     lienzo.width = LADO;
     lienzo.height = LADO;
@@ -96,10 +107,11 @@
 
   if (archivo) {
     archivo.addEventListener("change", function () {
-
       var elegido = archivo.files && archivo.files[0];
 
-      if (!elegido) { return; }
+      if (!elegido) {
+        return;
+      }
 
       if (elegido.type.indexOf("image/") !== 0) {
         avisar("Elegí una imagen (JPG, PNG o WebP).", true);
@@ -125,5 +137,4 @@
       archivo.value = "";
     });
   }
-
-}());
+})();

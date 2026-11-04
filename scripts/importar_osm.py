@@ -506,9 +506,6 @@ def chequear_precondicion(cur):
     return problemas
 
 
-MODOS_DIAS = ("lunes0", "domingo0", "iso")
-
-
 def numero_dia(dia, modo):
     """dia: 0=lunes ... 6=domingo (como lo parsea parsear_horario)."""
     return {"lunes0": dia, "domingo0": (dia + 1) % 7, "iso": dia + 1}[modo]

@@ -7,7 +7,12 @@ self.addEventListener("push", (event) => {
   } catch (_) {
     const xml = event.data ? event.data.text() : "";
     const textos = [...xml.matchAll(/<text[^>]*>([\s\S]*?)<\/text>/gi)].map((match) =>
-      match[1].replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&")
+      match[1]
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&amp;/g, "&")
     );
     payload = xml.includes("<toast")
       ? { title: textos[0] || "Ahora Qué", body: textos[1] || "Tenés una novedad pendiente." }
@@ -29,7 +34,10 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const destino = new URL(event.notification.data?.url || "/dashboard", self.location.origin);
-  const ruta = destino.origin === self.location.origin ? destino.href : new URL("/dashboard", self.location.origin).href;
+  const ruta =
+    destino.origin === self.location.origin
+      ? destino.href
+      : new URL("/dashboard", self.location.origin).href;
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientes) => {
       for (const cliente of clientes) {

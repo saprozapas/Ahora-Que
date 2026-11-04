@@ -16,7 +16,7 @@ import json
 import re
 import threading
 from collections import Counter
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 import psycopg2
 from psycopg2.extras import Json
