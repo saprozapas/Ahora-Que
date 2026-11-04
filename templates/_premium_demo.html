@@ -1,0 +1,7 @@
+{# Cartel de DEMO. Se muestra solo mientras la demostración está encendida (premium_demo viene de routes/suscripcion.py). #}
+{% if premium_demo %}
+<div class="demo-aviso" role="note">
+  <strong>DEMO</strong>
+  <span>Esto es una simulación académica: no se cobra nada y no se guardan datos de pago. Los precios son de ejemplo. <b>No ingreses datos reales de tu tarjeta ni de tu cuenta.</b></span>
+</div>
+{% endif %}

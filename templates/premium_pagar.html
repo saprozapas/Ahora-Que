@@ -4,6 +4,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261107-premium2') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/legal_demo.css', v='20261103-legal1') }}" />
 {% endblock %}
 
 {% block content %}
@@ -35,6 +36,8 @@
     <section class="container page pago" data-pago data-precios='{{ precios | tojson }}' data-ciclo="{{ ciclo }}">
 
       <a class="back-link" href="/premium">← Planes</a>
+
+      {% include '_premium_demo.html' %}
 
       <header class="premium-cab premium-cab--chico">
         <h1 class="premium-cab__titulo prem-aparece" style="--n: 0">Activá Premium.</h1>
@@ -133,6 +136,14 @@
 
           </div>
 
+          {# Esta casilla NO tiene "name": no viaja sola. El JS copia su estado al campo oculto "acepta" del formulario de abajo,
+             y el servidor vuelve a exigirlo (routes/suscripcion.py). #}
+          <label class="legal-acepta" for="acepta-premium">
+            <input type="checkbox" id="acepta-premium" />
+            <span>Leí y acepto las <a href="{{ url_for('auth.terminos_y_condiciones') }}#premium" target="_blank" rel="noopener">condiciones de Premium</a> (renovación automática, cancelación y arrepentimiento) y la <a href="{{ url_for('auth.politica_privacidad') }}" target="_blank" rel="noopener">política de privacidad</a>. Confirmo que tengo 18 años o más.</span>
+          </label>
+          <p class="legal-error" data-error-acepta role="alert" hidden>Para continuar tenés que aceptar las condiciones.</p>
+
           <button class="btn btn--primary pago__confirmar" type="button" data-confirmar>
             <span class="pago__texto"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="#i-candado" /></svg><span data-confirmar-texto>Activar Premium</span></span>
             <span class="pago__giro" aria-hidden="true"></span>
@@ -171,11 +182,14 @@
 
       </div>
 
-      {# Esta es la única forma que viaja al servidor, y solo lleva el método y la frecuencia: nunca datos de la tarjeta. #}
+      {% include '_premium_legal.html' %}
+
+      {# Esta es la única forma que viaja al servidor, y solo lleva el método, la frecuencia y la aceptación de condiciones: nunca datos de la tarjeta. #}
       <form id="pago-enviar" method="post" action="/premium/pagar" hidden>
         <input type="hidden" name="metodo" value="tarjeta" />
         <input type="hidden" name="ciclo" value="{{ ciclo }}" />
         <input type="hidden" name="confirmado" value="1" />
+        <input type="hidden" name="acepta" value="" />
       </form>
 
     </section>
@@ -193,6 +207,6 @@
   </div>
 </div>
 
-<script defer src="{{ url_for('static', filename='premium.js', v='20261107-premium2') }}"></script>
+<script defer src="{{ url_for('static', filename='premium.js', v='20261103-legal1') }}"></script>
 
 {% endblock %}

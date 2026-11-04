@@ -4,6 +4,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261107-premium2') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/legal_demo.css', v='20261103-legal1') }}" />
 {% endblock %}
 
 {% block content %}
@@ -23,6 +24,8 @@
     <section class="container page premium-page" data-premium-planes data-precios='{{ precios | tojson }}'>
 
       <a class="back-link" href="/dashboard">← Inicio</a>
+
+      {% include '_premium_demo.html' %}
 
       <header class="premium-cab">
         <span class="premium-cab__marca prem-aparece" style="--n: 0"><span class="prem-estrella prem-estrella--brilla"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-estrella" /></svg></span> Premium</span>
@@ -81,7 +84,11 @@
             {% if es_premium %}
             <a class="btn btn--primary" href="/suscripcion">Administrar suscripción</a>
             {% else %}
+            {% if premium_demo %}
             <a class="btn btn--primary" href="/premium/pagar?ciclo=mensual" data-cta-premium>Actualizar a Premium</a>
+            {% else %}
+            <span class="btn btn--secondary" aria-disabled="true">Próximamente</span>
+            {% endif %}
             {% endif %}
           </div>
         </article>
@@ -106,7 +113,11 @@
         </li>
       </ul>
 
+      {% if premium_demo %}
       <p class="premium-pie">Los precios son de ejemplo: todavía no hay cobros reales.</p>
+      {% endif %}
+
+      {% include '_premium_legal.html' %}
 
     </section>
 
@@ -114,6 +125,6 @@
 
 </div>
 
-<script defer src="{{ url_for('static', filename='premium.js', v='20261107-premium2') }}"></script>
+<script defer src="{{ url_for('static', filename='premium.js', v='20261103-legal1') }}"></script>
 
 {% endblock %}

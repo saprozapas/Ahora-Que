@@ -4,6 +4,7 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261107-premium2') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/legal_demo.css', v='20261103-legal1') }}" />
 {% endblock %}
 
 {% block content %}
@@ -23,6 +24,8 @@
     <section class="container page susc">
 
       <a class="back-link" href="/dashboard">← Inicio</a>
+
+      {% include '_premium_demo.html' %}
 
       <header class="premium-cab premium-cab--chico">
         <h1 class="premium-cab__titulo prem-aparece" style="--n: 0">Tu suscripción.</h1>
@@ -46,7 +49,7 @@
             {{ punto('Una estrella junto a tu nombre') }}
             {{ punto('Todo lo del plan gratis') }}
           </ul>
-          <p class="susc__nota">Es una demostración: no hay ningún cobro asociado a tu suscripción.</p>
+          {% if premium_demo %}<p class="susc__nota">Es una demostración: no hay ningún cobro asociado a tu suscripción.</p>{% endif %}
           <div class="susc__acciones">
             <form method="post" action="/suscripcion/cancelar"
                   data-confirmar="¿Cancelar tu suscripción Premium? Volvés al plan gratis (1 plan por semana con la IA) y perdés la estrella.">
@@ -98,6 +101,8 @@
         </article>
 
       </div>
+
+      {% if es_premium %}{% include '_premium_legal.html' %}{% endif %}
 
     </section>
 

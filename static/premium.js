@@ -525,6 +525,23 @@
   // ---- Confirmar
   var enCurso = false;
 
+  // Casilla de condiciones: sin tildarla no se puede pagar (el servidor también lo exige).
+  var cajaAcepta = document.getElementById("acepta-premium");
+  var errorAcepta = $("[data-error-acepta]", pago);
+
+  function aceptoCondiciones() {
+    var ok = !cajaAcepta || cajaAcepta.checked;
+    if (errorAcepta) { errorAcepta.hidden = ok; }
+    if (!ok && cajaAcepta) { cajaAcepta.focus(); }
+    return ok;
+  }
+
+  if (cajaAcepta) {
+    cajaAcepta.addEventListener("change", function () {
+      if (errorAcepta) { errorAcepta.hidden = cajaAcepta.checked; }
+    });
+  }
+
   function revisarMetodo() {
     var primero = null;
     CAMPOS[metodo].forEach(function (par) {
@@ -539,6 +556,7 @@
     var formulario = document.getElementById("pago-enviar");
     $("input[name='metodo']", formulario).value = metodo;
     $("input[name='ciclo']", formulario).value = ciclo;
+    $("input[name='acepta']", formulario).value = (cajaAcepta && cajaAcepta.checked) ? "1" : "";
     formulario.submit();
   }
 
@@ -568,11 +586,12 @@
       primero.focus();
       return;
     }
+    if (!aceptoCondiciones()) { return; }
     pagar(confirmar);
   });
 
   var botonApple = $("[data-applepay]", pago);
-  if (botonApple) { botonApple.addEventListener("click", function () { pagar(botonApple); }); }
+  if (botonApple) { botonApple.addEventListener("click", function () { if (aceptoCondiciones()) { pagar(botonApple); } }); }
 
   // Enter en cualquier campo confirma
   $$(".pago-campo input", pago).forEach(function (input) {

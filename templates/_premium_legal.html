@@ -1,0 +1,21 @@
+{# Información que hay que mostrar ANTES de pagar (Ley 17.250 y Decreto 167/2021). Los datos del proveedor salen de services/legal_info.py. #}
+<section class="legal-premium" aria-labelledby="legal-premium-titulo">
+  <h2 id="legal-premium-titulo">Condiciones de Premium</h2>
+  <dl>
+    <dt>Quién vende</dt>
+    <dd>{{ proveedor.razon_social }} · RUT {{ proveedor.rut }} · {{ proveedor.domicilio }}</dd>
+    <dt>Contacto</dt>
+    <dd><a href="mailto:{{ proveedor.email }}">{{ proveedor.email }}</a></dd>
+    <dt>Precio</dt>
+    <dd>En pesos uruguayos (UYU), IVA incluido. Es el precio final: no hay cargos ocultos.</dd>
+    <dt>Renovación</dt>
+    <dd>Se renueva solo, cada mes o cada año según la frecuencia que elijas, hasta que cancelés.</dd>
+    <dt>Cancelación</dt>
+    <dd>Cuando quieras, desde Tu suscripción y con un solo clic. Volvés al plan gratis.</dd>
+    <dt>Arrepentimiento</dt>
+    <dd>Podés arrepentirte dentro del plazo legal (art. 16 de la Ley N.º 17.250) y pedir que te devolvamos lo pagado escribiendo al contacto.</dd>
+    <dt>Quién puede contratar</dt>
+    <dd>Solo personas mayores de 18 años.</dd>
+  </dl>
+  <p>Te enviamos un comprobante por correo. El detalle completo está en los <a href="{{ url_for('auth.terminos_y_condiciones') }}#premium">términos y condiciones</a> y en la <a href="{{ url_for('auth.politica_privacidad') }}">política de privacidad</a>.</p>
+</section>

@@ -4,10 +4,11 @@ Gratis: 1 plan por semana armado con la IA (la semana arranca el lunes a las 00:
 hora de Montevideo). Premium: sin límite y con una estrella en el nombre.
 Un plan "con IA" cuenta cuando se guarda o se postula (/chatbot/confirmar_plan).
 """
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from database import get_db_connection, release_db_connection
+from services.legal_info import EDAD_MINIMA_PREMIUM
 
 PLANES_IA_GRATIS_POR_SEMANA = 1
 MENSAJE_LIMITE_IA = (
@@ -18,9 +19,11 @@ _MONTEVIDEO = ZoneInfo("America/Montevideo")
 
 # Precios de EJEMPLO (todavía no hay cobros): se cambian acá y se ven en las pantallas de Premium.
 # "por_mes" es lo que se muestra grande; "total" es lo que se cobraría de una vez.
+# Moneda: pesos uruguayos, IVA incluido (así se aclara en _premium_legal.html).
+# Las notas aclaran que la suscripción se renueva sola: es información obligatoria antes de pagar.
 PRECIOS = {
-    "mensual": {"por_mes": 199, "total": 199, "nota": "Se cobra cada mes", "descuento": 0},
-    "anual": {"por_mes": 159, "total": 1908, "nota": "$ 1.908 por año · ahorrás $ 480", "descuento": 20},
+    "mensual": {"por_mes": 199, "total": 199, "nota": "Se renueva cada mes hasta que canceles · IVA incluido", "descuento": 0},
+    "anual": {"por_mes": 159, "total": 1908, "nota": "$ 1.908 por año (ahorrás $ 480) · se renueva cada año hasta que canceles · IVA incluido", "descuento": 20},
 }
 
 
@@ -89,8 +92,27 @@ class SuscripcionService:
         finally:
             release_db_connection(connection)
 
-    def cambiar_plan(self, user_id, premium):
-        """Activa (True) o cancela (False) el Premium. Todavía no hay cobro real: lo llama la maqueta de pago."""
+    def es_mayor_de_edad(self, user_id):
+        """True si la persona tiene EDAD_MINIMA_PREMIUM años o más (un menor no puede contratar por su cuenta)."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute('SELECT "Fecha_Nac" FROM public."Usuarios" WHERE "Id_Usuario" = %s', (str(user_id),))
+                fila = cursor.fetchone()
+        finally:
+            release_db_connection(connection)
+        if not fila or not fila[0]:
+            return False  # sin fecha de nacimiento no podemos asegurar que sea mayor: no se deja contratar
+        nacimiento = fila[0]
+        if isinstance(nacimiento, str):
+            nacimiento = date.fromisoformat(nacimiento[:10])
+        hoy = datetime.now(_MONTEVIDEO).date()
+        edad = hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day))
+        return edad >= EDAD_MINIMA_PREMIUM
+
+    def _cambiar_plan(self, user_id, premium, accion, ciclo, version):
+        """Cambia el plan y anota el evento en Premium_Historial, las dos cosas en una sola transacción:
+        o quedan las dos o no queda ninguna (nunca un Premium sin su constancia de aceptación)."""
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -98,9 +120,22 @@ class SuscripcionService:
                     'UPDATE public."Usuarios" SET "Premium" = %s WHERE "Id_Usuario" = %s',
                     (bool(premium), str(user_id)),
                 )
+                cursor.execute(
+                    'INSERT INTO public."Premium_Historial" ("Id_Usuario", "Accion", "Ciclo", "Version_Condiciones") '
+                    'VALUES (%s, %s, %s, %s)',
+                    (str(user_id), accion, ciclo, version),
+                )
             connection.commit()
         except Exception:
             connection.rollback()
             raise
         finally:
             release_db_connection(connection)
+
+    def activar_premium(self, user_id, ciclo, version_condiciones):
+        """Alta de Premium (hoy, de demostración). Guarda la frecuencia y la versión de las condiciones aceptadas."""
+        self._cambiar_plan(user_id, True, "alta", ciclo, version_condiciones)
+
+    def cancelar_premium(self, user_id):
+        """Baja de Premium: vuelve al plan gratis."""
+        self._cambiar_plan(user_id, False, "baja", None, None)

@@ -9,7 +9,7 @@
 
   <header class="page-head">
     <h1 class="h2">Términos y condiciones.</h1>
-    <p class="lead">Última actualización: 29 de octubre de 2026 · Versión 1.1</p>
+    <p class="lead">Última actualización: 3 de noviembre de 2026 · Versión 1.2</p>
   </header>
 
   <article class="prose">
@@ -19,7 +19,7 @@
 
     <h2 class="h3">2. Tu cuenta y la edad mínima</h2>
     <p>Debés proporcionar información correcta, mantener segura tu contraseña y usar la aplicación de forma responsable. Sos responsable de la actividad realizada desde tu cuenta.</p>
-    <p>Para crear una cuenta hace falta tener <strong>13 años o más</strong>. Si tenés menos de 18 años, necesitás la autorización de tu madre, padre o tutor, y al registrarte declarás que la tenés.</p>
+    <p>Para crear una cuenta hace falta tener <strong>13 años o más</strong>. Si tenés menos de 18 años, necesitás la autorización de tu madre, padre o tutor, y al registrarte declarás que la tenés. Contratar Premium está reservado a personas de <strong>18 años o más</strong>.</p>
 
     <h2 class="h3">3. Uso aceptable</h2>
     <p>No uses la aplicación para acosar, suplantar a otras personas, publicar contenido ilegal o interferir con su funcionamiento. Tratá con respeto a las demás personas y grupos. No publiques datos personales o sensibles de otras personas (por ejemplo salud, religión, ideas políticas u orientación sexual) sin su consentimiento.</p>
@@ -27,17 +27,49 @@
     <h2 class="h3">4. Planes y contenido</h2>
     <p>La aplicación facilita la coordinación de actividades. Cada participante decide si asiste y debe verificar por su cuenta la información, disponibilidad, costos y seguridad del lugar o actividad.</p>
 
-    <h2 class="h3">5. Asistente de inteligencia artificial</h2>
+    <h2 class="h3">5. Contenido que publicás y moderación</h2>
+    <p>Sos responsable de lo que escribís y publicás en los chats, los planes y Social. Seguís siendo la persona titular de ese contenido; nos das permiso para guardarlo y mostrarlo a quienes elijas (tu grupo, tus amistades o todo Social, según dónde lo publiques) solo para que la aplicación funcione. No publiques contenido que no te pertenezca o que infrinja derechos de otras personas.</p>
+    <p>Podés reportar contenido desde la propia aplicación. Podemos ocultar o eliminar contenido que incumpla estas condiciones y, en casos graves o repetidos, cerrar la cuenta.</p>
+
+    <h2 class="h3">6. Asistente de inteligencia artificial</h2>
     <p>El asistente que sugiere planes es una inteligencia artificial de un proveedor externo. Sus respuestas son orientativas y pueden contener errores: verificá siempre lugares, horarios y precios. Lo que le escribas se envía a ese proveedor para generar la respuesta, por eso no incluyas datos personales ni sensibles.</p>
 
-    <h2 class="h3">6. Datos personales y privacidad</h2>
+    <h2 class="h3">7. Deudas entre integrantes</h2>
+    <p>La aplicación permite anotar quién le debe dinero a quién dentro de un grupo. Es <strong>solo un registro</strong>: Ahora Qué no procesa pagos ni transferencias entre personas, no verifica que una deuda exista ni que se haya pagado, y no interviene en reclamos entre integrantes. Cargar tu cuenta bancaria es opcional y solo la ve la persona que tiene que transferirte.</p>
+
+    <h2 class="h3" id="premium">8. Premium y pagos</h2>
+    {% if premium_demo %}
+    <p><strong>Estado actual:</strong> Premium funciona hoy en <strong>modo demostración</strong> (proyecto académico). No se realiza ningún cobro, los precios son de ejemplo y no se guardan datos de pago. Aun así, las condiciones de abajo describen cómo funcionaría la contratación real.</p>
+    {% else %}
+    <p><strong>Estado actual:</strong> Premium todavía no está disponible para contratar. Las condiciones de abajo describen cómo funcionará cuando se habilite.</p>
+    {% endif %}
+    <ul>
+      <li><strong>Quién vende:</strong> {{ proveedor.razon_social }} · RUT {{ proveedor.rut }} · {{ proveedor.domicilio }} · <a href="mailto:{{ proveedor.email }}">{{ proveedor.email }}</a>.</li>
+      <li><strong>Qué incluye:</strong> planes con la IA sin el límite semanal del plan gratis y una estrella junto a tu nombre. Todo lo del plan gratis sigue incluido.</li>
+      <li><strong>Precio:</strong> se muestra antes de pagar, en pesos uruguayos (UYU) y con IVA incluido. Es el precio final. Si cambia, te avisamos con anticipación y el cambio no afecta el período que ya pagaste.</li>
+      <li><strong>Renovación automática:</strong> la suscripción se renueva sola, cada mes o cada año según la frecuencia que elijas, hasta que la canceles. Al contratar aceptás expresamente esta renovación.</li>
+      <li><strong>Cancelación:</strong> podés cancelar cuando quieras desde <em>Tu suscripción</em>, con un solo clic y sin permanencia mínima. Al cancelar volvés al plan gratis y dejan de hacerse nuevos cobros.</li>
+      <li><strong>Arrepentimiento:</strong> como contratás a distancia, podés arrepentirte dentro del plazo que fija el artículo 16 de la Ley N.º 17.250 de Relaciones de Consumo y pedir que te devolvamos lo pagado, escribiendo al contacto de arriba.</li>
+      <li><strong>Pagos:</strong> los procesa un proveedor de pagos habilitado. Ahora Qué no recibe ni guarda el número de tu tarjeta ni el código de seguridad.</li>
+      <li><strong>Cobro fallido:</strong> si un cobro no se puede realizar, Premium se suspende y volvés al plan gratis hasta que se regularice.</li>
+      <li><strong>Comprobante:</strong> te enviamos un comprobante por correo al contratar.</li>
+      <li><strong>Constancia:</strong> guardamos la fecha, la frecuencia y la versión de estas condiciones que aceptaste (versión {{ version_condiciones }}), para poder demostrar tu aceptación.</li>
+    </ul>
+
+    <h2 class="h3">9. Datos personales y privacidad</h2>
     <p>Tratamos tus datos conforme a la Ley N.º 18.331 de Protección de Datos Personales de Uruguay. En la <a href="{{ url_for('auth.politica_privacidad') }}">política de privacidad</a> explicamos qué datos usamos, para qué, con quién los compartimos y cómo ejercer tus derechos de acceso, rectificación, actualización y supresión. Los datos bancarios son opcionales.</p>
 
-    <h2 class="h3">7. Disponibilidad y cambios</h2>
-    <p>Como proyecto académico, la aplicación puede cambiar, interrumpirse o dejar de estar disponible. Podemos actualizar estas condiciones; si un cambio requiere aceptación, te lo solicitaremos antes de continuar usando la cuenta.</p>
+    <h2 class="h3">10. Responsabilidad</h2>
+    <p>La aplicación se ofrece tal como está. En la medida que la ley lo permite, no somos responsables por lo que ocurra en las actividades que organizan las personas entre sí, por los errores de la inteligencia artificial ni por los acuerdos o deudas entre usuarios. Nada de esto limita los derechos que la Ley N.º 17.250 te reconoce como consumidor.</p>
 
-    <h2 class="h3">8. Contacto</h2>
-    <p>Para consultas sobre estas condiciones o tus datos, escribinos a <a href="mailto:ahora.que.app@gmail.com">ahora.que.app@gmail.com</a> o desde la página de <a href="{{ url_for('contacto') }}">contacto</a>.</p>
+    <h2 class="h3">11. Disponibilidad y cambios</h2>
+    <p>Como proyecto académico, la aplicación puede cambiar, interrumpirse o dejar de estar disponible. Podemos actualizar estas condiciones; si un cambio requiere aceptación, te lo solicitaremos antes de continuar usando la cuenta, y si afecta a Premium te avisaremos con anticipación.</p>
+
+    <h2 class="h3">12. Ley aplicable y reclamos</h2>
+    <p>Estas condiciones se rigen por las leyes de la República Oriental del Uruguay. Si tenés un reclamo, escribinos primero y buscaremos resolverlo; también podés acudir al Área Defensa del Consumidor del Ministerio de Economía y Finanzas. Los conflictos que no se resuelvan se plantearán ante los tribunales competentes de Uruguay.</p>
+
+    <h2 class="h3">13. Contacto</h2>
+    <p>Para consultas sobre estas condiciones o tus datos, escribinos a <a href="mailto:{{ proveedor.email }}">{{ proveedor.email }}</a> o desde la página de <a href="{{ url_for('contacto') }}">contacto</a>.</p>
 
   </article>
 
