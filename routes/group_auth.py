@@ -14,6 +14,8 @@ from services.grupo_encuesta_service import GrupoEncuestaService
 from services.lugar_service import LugarService
 from services.paralelo_service import correr_en_paralelo
 from services.notification_service import NotificationService
+from services.seguridad import base_publica
+from services.validaciones import validar_grupo
 from database_bridge.database_bridge import getUser, getUsersInGroupWithIds, isUserInGroup, getGroupById, buscarUsuariosInvitables
 
 
@@ -63,9 +65,10 @@ def nuevo_grupo():
         user_id = session.get("user_id")
         name = form_data["name"]
         description = form_data["description"]
+        error_grupo = validar_grupo(name, description)
+        if error_grupo:
+            return render_template("crear_grupos.html", error=error_grupo, form_data=form_data)
         try:
-            if name.strip() == "":
-                raise psycopg2.errors.NotNullViolation("El nombre del grupo no puede estar vacío.")
             group_id = group_auth_service.register(Group(name, description), user_id)
         except psycopg2.errors.NotNullViolation:
             return render_template("crear_grupos.html", error="Debes ingresar el nombre del grupo.", form_data=form_data)
@@ -226,7 +229,7 @@ def invitar_usuario(group_id):
         notification_service.notificar_usuario(
             user_id, "grupo", "Nueva invitación a un grupo — Ahora Qué",
             f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.\n\n"
-            f"Revisá la invitación en {request.url_root.rstrip('/')}/inbox",
+            f"Revisá la invitación en {base_publica()}/inbox",
             "/inbox",
             f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.",
         )
@@ -248,8 +251,9 @@ def editar_grupo(group_id):
     nombre = (request.form.get("nombre") or "").strip()
     descripcion = request.form.get("descripcion")
 
-    if not nombre:
-        flash("El nombre del grupo no puede estar vacío.")
+    error_grupo = validar_grupo(nombre, descripcion)
+    if error_grupo:
+        flash(error_grupo)
         return redirect(url_for("group_auth.detalle_grupo", group_id=group_id))
 
     try:

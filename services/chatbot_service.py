@@ -401,7 +401,7 @@ def historial_para_llm(historial, grupo=None):
         )
     if grupo:
         prompt += (
-            f"\n\nContexto: este plan es para el grupo «{grupo['nombre']}», que tiene "
+            f"\n\nContexto: este plan es para el grupo «{_limpio(grupo['nombre'])}», que tiene "
             f"{grupo['integrantes']} integrantes. Si el usuario no dice otra cosa, "
             f"asumí que van {grupo['integrantes']} personas."
         )

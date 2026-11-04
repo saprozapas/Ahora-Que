@@ -6,6 +6,8 @@ NOMBRE_MAX = 80
 USERNAME_MIN = 3
 USERNAME_MAX = 50
 EMAIL_MAX = 254
+GRUPO_NOMBRE_MAX = 60
+GRUPO_DESCRIPCION_MAX = 300
 
 # Letras, números y . _ - @ + (algunas cuentas viejas usan su mail como usuario). Sin espacios ni signos de HTML.
 _USERNAME = re.compile(r"^[\w.@+\-]+$")
@@ -39,4 +41,19 @@ def validar_email(email):
     email = (email or "").strip()
     if len(email) > EMAIL_MAX or not _EMAIL.match(email):
         return "Ingresá un correo electrónico válido."
+    return None
+
+
+def validar_grupo(nombre, descripcion):
+    """Mensaje de error, o None si el nombre y la descripción del grupo sirven. Cualquier integrante los puede
+    editar y llegan a mails, notificaciones y al asistente, así que tienen un largo máximo."""
+    nombre = (nombre or "").strip()
+    if not nombre:
+        return "El nombre del grupo no puede estar vacío."
+    if len(nombre) > GRUPO_NOMBRE_MAX:
+        return f"El nombre del grupo puede tener hasta {GRUPO_NOMBRE_MAX} caracteres."
+    if re.search(r"[\x00-\x1f\x7f]", nombre):
+        return "El nombre del grupo tiene caracteres que no se pueden usar."
+    if len((descripcion or "").strip()) > GRUPO_DESCRIPCION_MAX:
+        return f"La descripción puede tener hasta {GRUPO_DESCRIPCION_MAX} caracteres."
     return None

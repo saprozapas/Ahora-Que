@@ -8,6 +8,7 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from models.user import User
 from services.auth_service import AuthService
 from services.password_policy import validar_contrasena
+from services.seguridad import url_publica
 from services.validaciones import validar_nombre, validar_username, validar_email
 from services.notification_service import NotificationService
 from werkzeug.security import check_password_hash,generate_password_hash
@@ -81,7 +82,7 @@ def olvide_contrasena():
             codigo = secrets.token_urlsafe(32)
             try:
                 auth_service.crear_codigo_recuperacion(user_id, hashlib.sha256(codigo.encode("utf-8")).hexdigest())
-                link = url_for("auth.restablecer_contrasena", codigo=codigo, _external=True)
+                link = url_publica("auth.restablecer_contrasena", codigo=codigo)
                 NotificationService().enviar(
                     usuario.get_email(),
                     "Cambiá tu contraseña — Ahora Qué",
@@ -190,9 +191,7 @@ def register():
             pending_user_id = auth_service.create_pending_registration(
                 User(name, birth_date, username, email, password_hash), codigo_hash
             )
-            link_confirmacion = url_for(
-                "auth.confirmar_email", codigo=codigo, _external=True
-            )
+            link_confirmacion = url_publica("auth.confirmar_email", codigo=codigo)
             cuerpo = (
                 f"Hola {name},\n\n"
                 "Para confirmar tu correo y terminar de crear tu cuenta en Ahora Qué, "
