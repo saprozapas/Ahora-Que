@@ -12,11 +12,12 @@
    ========================================================================== */
 
 (function () {
-
   "use strict";
 
   // La guía vive en el Inicio: en otras pantallas no hace nada.
-  if (window.location.pathname.replace(/\/$/, "") !== "/dashboard") { return; }
+  if (window.location.pathname.replace(/\/$/, "") !== "/dashboard") {
+    return;
+  }
 
   var pasos = document.querySelector("[data-primeros]");
   var globo = null;
@@ -28,41 +29,64 @@
   if (pasos) {
     pasos.hidden = false;
     var cerrar = pasos.querySelector("[data-primeros-cerrar]");
-    if (cerrar) { cerrar.addEventListener("click", terminar); }
+    if (cerrar) {
+      cerrar.addEventListener("click", terminar);
+    }
   }
 
   function terminar() {
-
-    if (terminada) { return; }
+    if (terminada) {
+      return;
+    }
     terminada = true;
 
     cerrarGlobo();
-    if (pasos) { pasos.hidden = true; }
+    if (pasos) {
+      pasos.hidden = true;
+    }
 
     try {
       fetch("/guia/terminada", { method: "POST", credentials: "same-origin" });
-    } catch (e) { /* si no llega, se vuelve a ofrecer en la próxima visita */ }
+    } catch (e) {
+      /* si no llega, se vuelve a ofrecer en la próxima visita */
+    }
   }
 
   function visible(el) {
     var caja = el.getBoundingClientRect();
-    return el.offsetParent !== null && caja.width > 0 && caja.height > 0 && !el.closest("[hidden]") && !el.closest("dialog:not([open])");
+    return (
+      el.offsetParent !== null &&
+      caja.width > 0 &&
+      caja.height > 0 &&
+      !el.closest("[hidden]") &&
+      !el.closest("dialog:not([open])")
+    );
   }
 
   function armarCola() {
-    cola = Array.prototype.slice.call(document.querySelectorAll("[data-guia-id]"))
+    cola = Array.prototype.slice
+      .call(document.querySelectorAll("[data-guia-id]"))
       .filter(visible)
-      .sort(function (a, b) { return (Number(a.dataset.guiaOrden) || 99) - (Number(b.dataset.guiaOrden) || 99); });
+      .sort(function (a, b) {
+        return (Number(a.dataset.guiaOrden) || 99) - (Number(b.dataset.guiaOrden) || 99);
+      });
   }
 
   function cerrarGlobo() {
-    if (activo) { activo.classList.remove("guia-resaltado"); activo = null; }
-    if (globo) { globo.remove(); globo = null; }
+    if (activo) {
+      activo.classList.remove("guia-resaltado");
+      activo = null;
+    }
+    if (globo) {
+      globo.remove();
+      globo = null;
+    }
   }
 
   function colocar() {
-
-    if (!globo || !activo) { return; }
+    if (!globo || !activo) {
+      return;
+    }
 
     var objetivo = activo.getBoundingClientRect();
     var ancho = globo.offsetWidth;
@@ -87,10 +111,12 @@
   }
 
   function mostrar() {
-
     cerrarGlobo();
 
-    if (indice >= cola.length) { terminar(); return; }
+    if (indice >= cola.length) {
+      terminar();
+      return;
+    }
 
     activo = cola[indice];
     activo.classList.add("guia-resaltado");
@@ -111,7 +137,7 @@
     pie.className = "guia-globo__pie";
 
     var contador = document.createElement("span");
-    contador.textContent = cola.length > 1 ? (indice + 1) + " de " + cola.length : "";
+    contador.textContent = cola.length > 1 ? indice + 1 + " de " + cola.length : "";
 
     var omitir = document.createElement("button");
     omitir.type = "button";
@@ -137,20 +163,23 @@
     document.body.appendChild(globo);
 
     colocar();
-    setTimeout(colocar, 350);  // después del scroll suave
+    setTimeout(colocar, 350); // después del scroll suave
     siguiente.focus({ preventScroll: true });
   }
 
   window.addEventListener("resize", colocar);
   window.addEventListener("scroll", colocar, true);
   document.addEventListener("keydown", function (evento) {
-    if (evento.key === "Escape" && globo) { terminar(); }
+    if (evento.key === "Escape" && globo) {
+      terminar();
+    }
   });
 
   // Un momento después de cargar, para que la página termine de acomodarse y de traer lo que pide por su cuenta.
   setTimeout(function () {
     armarCola();
-    if (cola.length && !document.querySelector("dialog[open]")) { mostrar(); }
+    if (cola.length && !document.querySelector("dialog[open]")) {
+      mostrar();
+    }
   }, 1100);
-
-}());
+})();

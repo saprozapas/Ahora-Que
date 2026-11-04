@@ -17,8 +17,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     {% block extra_head %}{% endblock %}
 
-    <!-- Aplica el tema guardado ANTES de pintar, para que no haya un
-         parpadeo en claro antes de pasar a modo noche. -->
+    {# Aplica el tema guardado ANTES de pintar, para que no haya un
+         parpadeo en claro antes de pasar a modo noche. #}
     <script>
       (() => {
         document.documentElement.classList.add("js");
@@ -35,18 +35,18 @@
 
     {# Fuentes alojadas en el propio sitio, así no se le manda la IP de cada visita a Google.
        El archivo se genera con scripts/descargar_fuentes.py (ver LEEME_CAMBIOS.md). #}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fuentes.css', v='20261029-local') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fuentes.css', v='20261104-limpieza') }}" />
 
-    <!-- Sereno: tokens → componentes → marca → pantallas → grupos, social y asistente. -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261028-avatar2') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261026-barra-original') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261107-premium') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261026-barra-original') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261026-barra-original') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261026-barra-original') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261026-barra-original') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261113-mensajes5') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261023-sereno-ui-v3') }}" />
+    {# Sereno: tokens → componentes → marca → pantallas → grupos, social y asistente. #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261104-limpieza') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261104-limpieza') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261104-limpieza') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261104-limpieza') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261104-limpieza') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261104-limpieza') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261104-limpieza') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261104-limpieza') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261104-limpieza') }}" />
 
     <link
       rel="icon"
@@ -55,7 +55,7 @@
       href="{{ url_for('static', filename='favicon.svg') }}"
     />
 
-    <!-- Ícono de la pantalla de inicio del iPhone (Compartir → «Agregar a pantalla de inicio») -->
+    {# Ícono de la pantalla de inicio del iPhone (Compartir → «Agregar a pantalla de inicio») #}
     <link
       rel="apple-touch-icon"
       sizes="180x180"
@@ -65,35 +65,35 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20261113-mensajes5') }}"
+      src="{{ url_for('static', filename='app.js', v='20261104-limpieza') }}"
     ></script>
 
-    <script defer src="{{ url_for('static', filename='push-notifications.js', v='20261103-push1') }}"></script>
+    <script defer src="{{ url_for('static', filename='push-notifications.js', v='20261104-limpieza') }}"></script>
 
     <script
       defer
-      src="{{ url_for('static', filename='sereno-ui.js', v='20261023-sereno-ui-v3') }}"
-    ></script>
-
-    <script
-      defer
-      src="{{ url_for('static', filename='distancia.js', v='20261024-distancia') }}"
+      src="{{ url_for('static', filename='sereno-ui.js', v='20261104-limpieza') }}"
     ></script>
 
     <script
       defer
-      src="{{ url_for('static', filename='fondo_puntos.js', v='20261031-fondo') }}"
+      src="{{ url_for('static', filename='distancia.js', v='20261104-limpieza') }}"
     ></script>
 
     <script
       defer
-      src="{{ url_for('static', filename='markdown_ligero.js', v='20261101-md1') }}"
+      src="{{ url_for('static', filename='fondo_puntos.js', v='20261104-limpieza') }}"
+    ></script>
+
+    <script
+      defer
+      src="{{ url_for('static', filename='markdown_ligero.js', v='20261104-limpieza') }}"
     ></script>
 
     {% if logueado and guia_nueva %}
     <script
       defer
-      src="{{ url_for('static', filename='guia.js', v='20261026-barra-original') }}"
+      src="{{ url_for('static', filename='guia.js', v='20261104-limpieza') }}"
     ></script>
     {% endif %}
 
@@ -111,7 +111,7 @@
     <a class="skip-link btn btn--primary" href="#contenido">Ir al contenido</a>
 
 
-    <!-- =====================================================================
+    {# =====================================================================
          HEADER
 
            logo · navegación y cuenta (en celular, panel desplegable) ·
@@ -119,7 +119,7 @@
 
          El JS lo engancha por data-header, data-menu-toggle y
          data-theme-toggle, no por clases.
-         ===================================================================== -->
+         ===================================================================== #}
 
     <header class="nav app-header{% if logueado %} app-header--app{% endif %}" data-header>
 

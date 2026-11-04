@@ -86,11 +86,9 @@
         </div>
 
         <div class="inbox-item__actions">
-          <!-- ACEPTAR INVITACIÓN -->
           <form action="/invitaciones/{{ invitacion.get_group_id() }}/aceptar" method="POST">
             <button class="btn btn--primary btn--sm" type="submit" aria-label="Aceptar invitación a {{ invitacion.get_nombre_grupo() }}">Aceptar</button>
           </form>
-          <!-- RECHAZAR INVITACIÓN -->
           <form action="/invitaciones/{{ invitacion.get_group_id() }}/rechazar" method="POST">
             <button class="btn btn--ghost btn--sm" type="submit" aria-label="Rechazar invitación a {{ invitacion.get_nombre_grupo() }}">Rechazar</button>
           </form>
@@ -128,11 +126,9 @@
         </div>
 
         <div class="inbox-item__actions">
-          <!-- ACEPTAR SOLICITUD -->
           <form action="{{ url_for('friends.aceptar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}" method="POST">
             <button class="btn btn--primary btn--sm" type="submit" aria-label="Aceptar solicitud de {{ solicitud.get_nombre_solicitante() }}">Aceptar</button>
           </form>
-          <!-- RECHAZAR SOLICITUD -->
           <form action="{{ url_for('friends.rechazar_solicitud', solicitante_id=solicitud.get_id_solicitante()) }}" method="POST">
             <button class="btn btn--ghost btn--sm" type="submit" aria-label="Rechazar solicitud de {{ solicitud.get_nombre_solicitante() }}">Rechazar</button>
           </form>

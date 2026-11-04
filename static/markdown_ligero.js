@@ -12,27 +12,29 @@
    ========================================================================== */
 
 (function () {
-
   "use strict";
 
   var URL_SEGURA = /^https?:\/\//i;
 
   // Texto con formato en línea → nodos dentro de `padre`.
   function inline(padre, texto, enCurso) {
-
-    var patron = /(\*\*|__)(.+?)(?:\1|$)|(`)([^`]+)(?:`|$)|\*([^*\s][^*]*?)(?:\*|$)|\[([^\]]+)\]\(([^)\s]+)\)/g;
+    var patron =
+      /(\*\*|__)(.+?)(?:\1|$)|(`)([^`]+)(?:`|$)|\*([^*\s][^*]*?)(?:\*|$)|\[([^\]]+)\]\(([^)\s]+)\)/g;
     var desde = 0;
     var coincidencia;
 
     while ((coincidencia = patron.exec(texto)) !== null) {
-
       var cierra = /(\*\*|__|`|\*)$/.test(coincidencia[0]) || coincidencia[0].charAt(0) === "[";
       var llegoAlFinal = coincidencia.index + coincidencia[0].length >= texto.length;
 
       // Un marcador que nunca se cierra solo vale mientras se está escribiendo la respuesta.
-      if (!cierra && !(enCurso && llegoAlFinal)) { continue; }
+      if (!cierra && !(enCurso && llegoAlFinal)) {
+        continue;
+      }
 
-      if (coincidencia.index > desde) { padre.appendChild(document.createTextNode(texto.slice(desde, coincidencia.index))); }
+      if (coincidencia.index > desde) {
+        padre.appendChild(document.createTextNode(texto.slice(desde, coincidencia.index)));
+      }
 
       var nodo;
 
@@ -59,29 +61,37 @@
       desde = coincidencia.index + coincidencia[0].length;
     }
 
-    if (desde < texto.length) { padre.appendChild(document.createTextNode(texto.slice(desde))); }
+    if (desde < texto.length) {
+      padre.appendChild(document.createTextNode(texto.slice(desde)));
+    }
   }
 
-
   function renderMarkdownLigero(destino, texto, enCurso) {
-
     destino.textContent = "";
     destino.classList.add("md");
 
-    var lineas = String(texto || "").replace(/\r\n?/g, "\n").split("\n");
-    var parrafo = null;   // <p> abierto
-    var lista = null;     // <ul>/<ol> abierta
+    var lineas = String(texto || "")
+      .replace(/\r\n?/g, "\n")
+      .split("\n");
+    var parrafo = null; // <p> abierto
+    var lista = null; // <ul>/<ol> abierta
     var tipoLista = "";
 
-    function cerrar() { parrafo = null; lista = null; tipoLista = ""; }
+    function cerrar() {
+      parrafo = null;
+      lista = null;
+      tipoLista = "";
+    }
 
     for (var i = 0; i < lineas.length; i++) {
-
       var linea = lineas[i];
       var enUltima = i === lineas.length - 1;
       var coincide;
 
-      if (/^\s*$/.test(linea)) { cerrar(); continue; }
+      if (/^\s*$/.test(linea)) {
+        cerrar();
+        continue;
+      }
 
       // Títulos: "# …", "## …", "### …" → una línea en negrita.
       if ((coincide = linea.match(/^\s{0,3}#{1,4}\s+(.*)$/))) {
@@ -125,5 +135,4 @@
   }
 
   window.renderMarkdownLigero = renderMarkdownLigero;
-
-}());
+})();

@@ -11,12 +11,13 @@ Qué hace:
      página, así que no es un ataque CSRF y se deja pasar.
   3. Cabeceras de seguridad en todas las respuestas.
   4. Detrás del proxy de Render, ProxyFix hace que Flask sepa que la conexión original fue HTTPS
-     (así request.is_secure y url_for(_external=True) dan https).
+     (así request.is_secure da True).
+  5. Los links de los mails (base_publica / url_publica) salen de PUBLIC_BASE_URL y no del Host de la petición.
 """
 import os
 from urllib.parse import urlparse
 
-from flask import render_template, request
+from flask import render_template, request, url_for
 
 _METODOS_SEGUROS = {"GET", "HEAD", "OPTIONS"}
 
@@ -26,7 +27,21 @@ def en_produccion():
     return bool(os.environ.get("RENDER")) or os.environ.get("COOKIE_SECURE") == "1"
 
 
+def base_publica():
+    """La dirección pública de la app para los links de los mails. Sale de PUBLIC_BASE_URL (así un Host o
+    X-Forwarded-Host falsificado no cambia a dónde apunta un link con un token); si falta, se usa la de la petición."""
+    configurada = (os.environ.get("PUBLIC_BASE_URL") or "").strip().rstrip("/")
+    return configurada or request.url_root.rstrip("/")
+
+
+def url_publica(endpoint, **valores):
+    """Como url_for(..., _external=True), pero con la dirección de base_publica()."""
+    return base_publica() + url_for(endpoint, **valores)
+
+
 def instalar(app):
+    if os.environ.get("RENDER") and not os.environ.get("PUBLIC_BASE_URL"):
+        print("AVISO: falta PUBLIC_BASE_URL; los links de los mails se arman con el host de la petición.")
     if os.environ.get("RENDER"):
         from werkzeug.middleware.proxy_fix import ProxyFix
 

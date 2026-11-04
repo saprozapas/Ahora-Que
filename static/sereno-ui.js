@@ -88,7 +88,9 @@
     envoltura.append(boton, lista);
 
     // El nombre accesible sale de la <label> asociada (o del aria-label del select).
-    const etiqueta = select.id ? document.querySelector(`label[for="${CSS.escape(select.id)}"]`) : null;
+    const etiqueta = select.id
+      ? document.querySelector(`label[for="${CSS.escape(select.id)}"]`)
+      : null;
     if (etiqueta) {
       if (!etiqueta.id) etiqueta.id = `ss-etiqueta-${n}`;
       boton.setAttribute("aria-labelledby", `${etiqueta.id} ${boton.id}`);
@@ -100,7 +102,7 @@
       boton.setAttribute("aria-label", select.getAttribute("aria-label"));
     }
 
-    let opciones = [];   // [{ valor, texto, deshabilitada, el }]
+    let opciones = []; // [{ valor, texto, deshabilitada, el }]
     let activa = -1;
     let buscado = "";
     let temporizador = null;
@@ -218,7 +220,7 @@
       } else if (tecla === "Escape") {
         if (abierto()) {
           evento.preventDefault();
-          evento.stopPropagation();   // que no cierre también un diálogo que lo contenga
+          evento.stopPropagation(); // que no cierre también un diálogo que lo contenga
           cerrar(true);
         }
       } else if (tecla === "Tab") {
@@ -230,7 +232,9 @@
         temporizador = setTimeout(() => (buscado = ""), 600);
         const desde = Math.max(activa, 0) + (buscado.length === 1 ? 1 : 0);
         const orden = [...opciones.keys()].map((_, k) => (k + desde) % opciones.length);
-        const hallada = orden.find((i) => !opciones[i].deshabilitada && sinTildes(opciones[i].texto).startsWith(buscado));
+        const hallada = orden.find(
+          (i) => !opciones[i].deshabilitada && sinTildes(opciones[i].texto).startsWith(buscado)
+        );
         if (hallada !== undefined) {
           if (!abierto()) abrir();
           marcarActiva(hallada);
@@ -238,14 +242,18 @@
       }
     });
 
-    lista.addEventListener("pointerdown", (evento) => evento.preventDefault());   // no quita el foco del botón
+    lista.addEventListener("pointerdown", (evento) => evento.preventDefault()); // no quita el foco del botón
     lista.addEventListener("click", (evento) => {
       const el = evento.target.closest(".ss-opcion");
       if (el) elegir(opciones.findIndex((o) => o.el === el));
     });
     lista.addEventListener("pointermove", (evento) => {
       const el = evento.target.closest(".ss-opcion");
-      if (el) marcarActiva(opciones.findIndex((o) => o.el === el), false);
+      if (el)
+        marcarActiva(
+          opciones.findIndex((o) => o.el === el),
+          false
+        );
     });
 
     // Cambios hechos desde afuera: el código que cambia el select, reset del formulario, disabled.
@@ -255,7 +263,10 @@
       refrescar();
     });
     if (select.form) select.form.addEventListener("reset", () => setTimeout(refrescar, 0));
-    new MutationObserver(refrescar).observe(select, { attributes: true, attributeFilter: ["disabled"] });
+    new MutationObserver(refrescar).observe(select, {
+      attributes: true,
+      attributeFilter: ["disabled"],
+    });
 
     construir();
     refrescar();
@@ -319,7 +330,9 @@
 
     const marcar = (i, desplazar = true) => {
       activa = i;
-      [...lista.querySelectorAll(".ac-opcion")].forEach((el, k) => el.toggleAttribute("data-activa", k === i));
+      [...lista.querySelectorAll(".ac-opcion")].forEach((el, k) =>
+        el.toggleAttribute("data-activa", k === i)
+      );
       const el = lista.querySelectorAll(".ac-opcion")[i];
       if (el) {
         campo.setAttribute("aria-activedescendant", el.id);
@@ -466,7 +479,7 @@
       }
     });
 
-    lista.addEventListener("pointerdown", (evento) => evento.preventDefault());   // el campo no pierde el foco
+    lista.addEventListener("pointerdown", (evento) => evento.preventDefault()); // el campo no pierde el foco
     lista.addEventListener("click", (evento) => {
       const el = evento.target.closest(".ac-opcion");
       if (el) elegir([...lista.querySelectorAll(".ac-opcion")].indexOf(el));
@@ -487,8 +500,34 @@
         "20:30"), min, max y required, y se le dispara "change" al elegir.
      ====================================================================== */
 
-  const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
-  const MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  const MESES = [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
+  ];
+  const MESES_CORTOS = [
+    "ene",
+    "feb",
+    "mar",
+    "abr",
+    "may",
+    "jun",
+    "jul",
+    "ago",
+    "sep",
+    "oct",
+    "nov",
+    "dic",
+  ];
   const DIAS_SEMANA = ["L", "M", "M", "J", "V", "S", "D"];
   const DIAS_CORTOS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
   const ICONO_CALENDARIO =
@@ -532,7 +571,9 @@
     panel.hidden = true;
     envoltura.append(boton, panel);
 
-    const etiqueta = input.id ? document.querySelector(`label[for="${CSS.escape(input.id)}"]`) : null;
+    const etiqueta = input.id
+      ? document.querySelector(`label[for="${CSS.escape(input.id)}"]`)
+      : null;
     if (etiqueta) {
       if (!etiqueta.id) etiqueta.id = `ss-etiqueta-${n}`;
       boton.setAttribute("aria-labelledby", `${etiqueta.id} ${boton.id}`);
@@ -628,7 +669,7 @@
     envoltura.addEventListener("keydown", (evento) => {
       if (evento.key === "Escape" && abierto()) {
         evento.preventDefault();
-        evento.stopPropagation();   // que no cierre también un diálogo que lo contenga
+        evento.stopPropagation(); // que no cierre también un diálogo que lo contenga
         cerrar(true);
       } else if (evento.key === "Tab" && abierto()) {
         // Tab saca el foco del panel: se cierra (el foco sigue su camino natural).
@@ -652,7 +693,10 @@
     });
     input.addEventListener("change", refrescar);
     if (input.form) input.form.addEventListener("reset", () => setTimeout(refrescar, 0));
-    new MutationObserver(refrescar).observe(input, { attributes: true, attributeFilter: ["disabled"] });
+    new MutationObserver(refrescar).observe(input, {
+      attributes: true,
+      attributeFilter: ["disabled"],
+    });
 
     refrescar();
   };
@@ -660,7 +704,7 @@
   /* --- Fecha: calendario del mes con atajos (Hoy, Mañana, el próximo sábado y domingo) --- */
 
   const mejorarFecha = (input) => {
-    let vista = null;   // primer día del mes que se está mirando
+    let vista = null; // primer día del mes que se está mirando
 
     const limites = () => ({ min: deIso(input.min), max: deIso(input.max) });
     const permitido = (d) => {
@@ -691,7 +735,12 @@
       // Atajos: el sábado y el domingo que vienen son los días más pedidos.
       const rapidos = crear("div", "sd-rapidos");
       const proximo = (diaSemana) => sumarDias(hoy, (diaSemana - hoy.getDay() + 7) % 7 || 7);
-      [["Hoy", hoy], ["Mañana", sumarDias(hoy, 1)], ["Sáb", proximo(6)], ["Dom", proximo(0)]].forEach(([nombre, fecha]) => {
+      [
+        ["Hoy", hoy],
+        ["Mañana", sumarDias(hoy, 1)],
+        ["Sáb", proximo(6)],
+        ["Dom", proximo(0)],
+      ].forEach(([nombre, fecha]) => {
         const b = crear("button", "sd-rapido", { type: "button" });
         b.textContent = nombre;
         b.disabled = !permitido(fecha);
@@ -700,10 +749,18 @@
       });
 
       const cabecera = crear("div", "sd-cabecera");
-      const anterior = crear("button", "sd-flecha", { type: "button", "aria-label": "Mes anterior" });
-      anterior.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>';
-      const siguiente = crear("button", "sd-flecha", { type: "button", "aria-label": "Mes siguiente" });
-      siguiente.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>';
+      const anterior = crear("button", "sd-flecha", {
+        type: "button",
+        "aria-label": "Mes anterior",
+      });
+      anterior.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>';
+      const siguiente = crear("button", "sd-flecha", {
+        type: "button",
+        "aria-label": "Mes siguiente",
+      });
+      siguiente.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg>';
       const titulo = crear("strong", "sd-titulo", { "aria-live": "polite" });
       titulo.textContent = `${MESES[vista.getMonth()]} ${vista.getFullYear()}`;
       cabecera.append(anterior, titulo, siguiente);
@@ -728,14 +785,18 @@
         c.textContent = letra;
         grilla.appendChild(c);
       });
-      const primero = (vista.getDay() + 6) % 7;   // la semana arranca el lunes
-      for (let i = 0; i < primero; i++) grilla.appendChild(crear("span", "sd-hueco", { "aria-hidden": "true" }));
+      const primero = (vista.getDay() + 6) % 7; // la semana arranca el lunes
+      for (let i = 0; i < primero; i++)
+        grilla.appendChild(crear("span", "sd-hueco", { "aria-hidden": "true" }));
       const total = new Date(vista.getFullYear(), vista.getMonth() + 1, 0).getDate();
       for (let dia = 1; dia <= total; dia++) {
         const fecha = new Date(vista.getFullYear(), vista.getMonth(), dia);
         const b = crear("button", "sd-dia", { type: "button", "data-fecha": aIso(fecha) });
         b.textContent = String(dia);
-        b.setAttribute("aria-label", `${DIAS_CORTOS[fecha.getDay()]} ${dia} de ${MESES[fecha.getMonth()]}`);
+        b.setAttribute(
+          "aria-label",
+          `${DIAS_CORTOS[fecha.getDay()]} ${dia} de ${MESES[fecha.getMonth()]}`
+        );
         if (aIso(fecha) === aIso(hoy)) b.classList.add("es-hoy");
         if (elegida && aIso(fecha) === aIso(elegida)) b.setAttribute("aria-pressed", "true");
         b.disabled = !permitido(fecha);
@@ -749,14 +810,22 @@
         if (!actual) return;
         const pasos = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
         let destino = null;
-        if (evento.key in pasos) destino = sumarDias(deIso(actual.dataset.fecha), pasos[evento.key]);
+        if (evento.key in pasos)
+          destino = sumarDias(deIso(actual.dataset.fecha), pasos[evento.key]);
         else if (evento.key === "PageDown" || evento.key === "PageUp") {
           const d = deIso(actual.dataset.fecha);
-          destino = new Date(d.getFullYear(), d.getMonth() + (evento.key === "PageDown" ? 1 : -1), d.getDate());
+          destino = new Date(
+            d.getFullYear(),
+            d.getMonth() + (evento.key === "PageDown" ? 1 : -1),
+            d.getDate()
+          );
         }
         if (!destino || !permitido(destino)) return;
         evento.preventDefault();
-        if (destino.getMonth() !== vista.getMonth() || destino.getFullYear() !== vista.getFullYear()) {
+        if (
+          destino.getMonth() !== vista.getMonth() ||
+          destino.getFullYear() !== vista.getFullYear()
+        ) {
           vista = new Date(destino.getFullYear(), destino.getMonth(), 1);
           construir(api);
         }
@@ -784,9 +853,11 @@
         construir(api);
       },
       alAbrir: (api) => {
-        (api.panel.querySelector('.sd-dia[aria-pressed="true"]:not(:disabled)')
-          || api.panel.querySelector(".sd-dia.es-hoy:not(:disabled)")
-          || api.panel.querySelector(".sd-dia:not(:disabled)"))?.focus();
+        (
+          api.panel.querySelector('.sd-dia[aria-pressed="true"]:not(:disabled)') ||
+          api.panel.querySelector(".sd-dia.es-hoy:not(:disabled)") ||
+          api.panel.querySelector(".sd-dia:not(:disabled)")
+        )?.focus();
       },
     });
   };
@@ -794,7 +865,8 @@
   /* --- Hora: primero la hora (24 botones), después los minutos (de 5 en 5) --- */
 
   const mejorarHora = (input) => {
-    const texto = (valor) => (/^\d{1,2}:\d{2}/.test(valor || "") ? valor.slice(0, 5).replace(/^(\d):/, "0$1:") : "");
+    const texto = (valor) =>
+      /^\d{1,2}:\d{2}/.test(valor || "") ? valor.slice(0, 5).replace(/^(\d):/, "0$1:") : "";
 
     const rejilla = (panel, items, columnas, clase, alElegir, elegido) => {
       const grilla = crear("div", `sh-grilla ${clase}`, { role: "group" });
@@ -831,7 +903,14 @@
       titulo.textContent = "Hora";
       panel.appendChild(titulo);
       const horas = Array.from({ length: 24 }, (_, h) => dos(h));
-      const grilla = rejilla(panel, horas, 6, "sh-horas", (hora) => mostrarMinutos(api, hora), actual.slice(0, 2));
+      const grilla = rejilla(
+        panel,
+        horas,
+        6,
+        "sh-horas",
+        (hora) => mostrarMinutos(api, hora),
+        actual.slice(0, 2)
+      );
       if (!input.required) agregarBorrar(api);
       api.alturaCambio();
       return grilla;
@@ -841,16 +920,29 @@
       const { panel } = api;
       panel.replaceChildren();
       const cabecera = crear("div", "sh-cabecera");
-      const volver = crear("button", "sd-flecha", { type: "button", "aria-label": "Cambiar la hora" });
-      volver.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>';
-      volver.addEventListener("click", () => mostrarHoras(api).querySelector(".sh-opcion")?.focus());
+      const volver = crear("button", "sd-flecha", {
+        type: "button",
+        "aria-label": "Cambiar la hora",
+      });
+      volver.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>';
+      volver.addEventListener("click", () =>
+        mostrarHoras(api).querySelector(".sh-opcion")?.focus()
+      );
       const titulo = crear("strong", "sd-titulo");
       titulo.textContent = `${hora}:__ — elegí los minutos`;
       cabecera.append(volver, titulo);
       panel.appendChild(cabecera);
       const minutos = Array.from({ length: 12 }, (_, i) => dos(i * 5));
       const actual = texto(input.value);
-      const grilla = rejilla(panel, minutos, 4, "sh-minutos", (m) => api.elegir(`${hora}:${m}`), actual.startsWith(hora) ? actual.slice(3) : "");
+      const grilla = rejilla(
+        panel,
+        minutos,
+        4,
+        "sh-minutos",
+        (m) => api.elegir(`${hora}:${m}`),
+        actual.startsWith(hora) ? actual.slice(3) : ""
+      );
       api.alturaCambio();
       (grilla.querySelector('[aria-pressed="true"]') || grilla.firstElementChild)?.focus();
     };
@@ -870,7 +962,10 @@
       texto,
       construir: (api) => mostrarHoras(api),
       alAbrir: (api) => {
-        (api.panel.querySelector('.sh-opcion[aria-pressed="true"]') || api.panel.querySelector(".sh-opcion"))?.focus();
+        (
+          api.panel.querySelector('.sh-opcion[aria-pressed="true"]') ||
+          api.panel.querySelector(".sh-opcion")
+        )?.focus();
       },
     });
   };

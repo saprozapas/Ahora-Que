@@ -5,8 +5,9 @@ from services.friend_service import FriendService
 from services.invitation_service import InvitationService
 from services.group_auth_service import GroupAuthService
 from services.avatar_service import AvatarService
-from database_bridge.database_bridge import getFriendsForUser, getGroupsForUser, buscarUsuarios, getUser
+from database_bridge.database_bridge import getFriendsForUser, getGroupsForUser, buscarUsuarios, getUser, getGroupById
 from services.notification_service import NotificationService
+from services.seguridad import base_publica
 
 
 friends_bp = Blueprint("friends", __name__)
@@ -68,7 +69,7 @@ def solicitar_amistad():
             notification_service.notificar_usuario(
                 destinatario_id, "amistad", "Nueva solicitud de amistad — Ahora Qué",
                 f"{solicitante.get_name()} te mandó una solicitud de amistad.\n\n"
-                f"Revisala en {request.url_root.rstrip('/')}/inbox",
+                f"Revisala en {base_publica()}/inbox",
                 "/inbox",
                 f"{solicitante.get_name()} te mandó una solicitud de amistad.",
             )
@@ -124,7 +125,7 @@ def invitar_amigo_a_grupo(friend_id):
             notification_service.notificar_usuario(
                 friend_id, "grupo", "Nueva invitación a un grupo — Ahora Qué",
                 f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.\n\n"
-                f"Revisá la invitación en {request.url_root.rstrip('/')}/inbox",
+                f"Revisá la invitación en {base_publica()}/inbox",
                 "/inbox",
                 f"{nombre_invitante} te invitó al grupo {grupo.get_name()}.",
             )

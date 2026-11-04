@@ -10,12 +10,12 @@
 
 {% if dashboard and logueado %}
 
-<!-- =========================================================================
+{# =========================================================================
      DASHBOARD — bienvenida del usuario logueado
 
      El resumen se arma SOLO con lo que ya llega al template: el nombre
      (current_user), las notificaciones pendientes y las invitaciones.
-     ========================================================================= -->
+     ========================================================================= #}
 
 {% set nombre = current_user.name | default(current_user.username | default('', true), true) %}
 {% set pendientes = notificaciones_pendientes | default(0, true) %}
@@ -178,16 +178,15 @@
 
 {% else %}
 
-<!-- =========================================================================
+{# =========================================================================
      HOME PÚBLICA
 
      Sereno: mostrar, no prometer. El hero muestra planes concretos (pila)
      y debajo el planificador armando uno (ventana). Todo es markup
      estático de demostración: no hay lógica ni datos del usuario.
-     ========================================================================= -->
+     ========================================================================= #}
 
 
-<!-- HERO ------------------------------------------------------------------ -->
 
 <div class="landing-fondo" data-fondo-brillos=".landing-demo">
 
@@ -285,8 +284,8 @@
     </div>
 
 
-    <!-- Cada tarjeta en una línea de título y una de datos, como las .item
-         de showcase.html: así las cinco entran en la pantalla. -->
+    {# Cada tarjeta en una línea de título y una de datos, como las .item
+         de showcase.html: así las cinco entran en la pantalla. #}
     <ul class="pile landing-pile" aria-label="Planes de ejemplo">
 
       <li class="card item">
@@ -351,7 +350,6 @@
 </section>
 
 
-<!-- EL PLANIFICADOR EN ACCIÓN --------------------------------------------- -->
 
 <section class="container landing-demo" aria-labelledby="demo-titulo">
 
@@ -431,7 +429,6 @@
 </section>
 
 
-<!-- CÓMO FUNCIONA --------------------------------------------------------- -->
 
 <section class="section landing-steps" id="como-funciona">
 
@@ -471,7 +468,6 @@
 </section>
 
 
-<!-- PREGUNTAS FRECUENTES --------------------------------------------------- -->
 
 <section class="section landing-faq" id="preguntas">
 
@@ -504,7 +500,7 @@
 
 </div>
 
-<script defer src="{{ url_for('static', filename='landing.js', v='20261101-tipeo4') }}"></script>
+<script defer src="{{ url_for('static', filename='landing.js', v='20261104-limpieza') }}"></script>
 
 {% endif %}
 

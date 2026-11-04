@@ -4,12 +4,10 @@ Flujo (columna "Grupo_Encuesta"."Estado"):
 
     abierta
         Cada integrante responde SUS filtros (precio máximo, tipos de lugar y
-        zona: barrio y distancia) y cuándo puede (hasta 3 franjas con día y horas).
-        Se pasa a "eligiendo" cuando respondieron todos, o antes si quien
-        creó la encuesta la cierra. En ese momento:
-          - se calcula el horario donde puede más gente (elegir_horario);
-          - se arman OPCIONES_POR_RONDA planes distintos con los filtros
-            combinados (combinar_respuestas).
+        zona: barrio y distancia). Se pasa a "eligiendo" cuando respondieron
+        todos, o antes si quien creó la encuesta la cierra. En ese momento se
+        arman OPCIONES_POR_RONDA planes distintos con los filtros combinados
+        (combinar_respuestas).
     eligiendo
         Cada integrante vota UNA opción o "ninguna me convence". Se resuelve
         cuando votaron todos, o antes si el creador cierra la elección:
@@ -27,7 +25,7 @@ Para ajustar cómo se combinan los filtros, tocar combinar_respuestas().
 
 import random
 from collections import Counter
-from datetime import date, datetime
+from datetime import datetime
 
 import psycopg2
 from psycopg2.extras import Json
@@ -47,9 +45,6 @@ PARADAS_SIN_TIPOS = 2
 # encontrarlos (los lugares se sortean, a veces salen repetidos).
 OPCIONES_POR_RONDA = 3
 MAX_INTENTOS = 10
-# Franjas de disponibilidad que puede cargar cada integrante.
-MAX_FRANJAS = 3
-
 # Distancias entre las que se puede elegir "hasta qué distancia" de su barrio (km).
 DISTANCIAS_KM = (1, 2, 5, 10)
 
@@ -111,23 +106,6 @@ def combinar_respuestas(respuestas):
     votos_por_tipo = Counter(t for r in respuestas for t in r.get("tipos", []))
     tipos = [tipo for tipo, _ in votos_por_tipo.most_common()]
     return filtros, tipos
-
-
-def elegir_horario(disponibilidades):
-    """El (fecha, hora, usuarios) donde puede más gente.
-
-    disponibilidades: [{"user", "fecha", "desde", "hasta"}]. Los horarios
-    candidatos son los "desde" de cada franja; en un empate gana el más
-    temprano. Devuelve None si no hay franjas."""
-    mejor = None
-    for fecha, hora in sorted({(d["fecha"], d["desde"]) for d in disponibilidades}):
-        pueden = {
-            d["user"] for d in disponibilidades
-            if d["fecha"] == fecha and d["desde"] <= hora < d["hasta"]
-        }
-        if mejor is None or len(pueden) > len(mejor[2]):
-            mejor = (fecha, hora, pueden)
-    return mejor
 
 
 def elegir_lugares(buscar, roles_por_lugar, filtros, tipos, excluir=()):
@@ -250,13 +228,6 @@ class GrupoEncuestaService:
              "barrio": f[2], "distancia_km": f[3]}
             for f in cursor.fetchall()
         ]
-
-    def _disponibilidades(self, cursor, encuesta_id):
-        cursor.execute(
-            'SELECT "Id_Usuario", "Fecha", "Desde", "Hasta" FROM public."Grupo_Encuesta_Disponibilidad" WHERE "Id_Encuesta" = %s',
-            (encuesta_id,),
-        )
-        return [{"user": str(f[0]), "fecha": f[1], "desde": f[2], "hasta": f[3]} for f in cursor.fetchall()]
 
     def _roles(self, candidatos):
         tipos = tipos_por_lugar([c["id"] for c in candidatos])

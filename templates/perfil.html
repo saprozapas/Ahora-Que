@@ -44,8 +44,8 @@
   </header>
 
 
-  <!-- Cada dato editable es un form propio: app.js alterna entre la vista
-       (.field-view) y la edición (.field-edit) y guarda por fetch. -->
+  {# Cada dato editable es un form propio: app.js alterna entre la vista
+       (.field-view) y la edición (.field-edit) y guarda por fetch. #}
   <div class="card profile__card">
 
     <form method="post" action="/perfil" class="field-editable profile-row">
@@ -300,6 +300,6 @@
 </div>
 {% endif %}
 
-<script defer src="{{ url_for('static', filename='avatar.js', v='20261028-avatar1') }}"></script>
+<script defer src="{{ url_for('static', filename='avatar.js', v='20261104-limpieza') }}"></script>
 
 {% endblock %}

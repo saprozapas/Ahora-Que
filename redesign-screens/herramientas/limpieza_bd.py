@@ -89,7 +89,7 @@ try:
                 cur.execute(f'DELETE FROM public."{t}" WHERE "{c}"::text = ANY(%s)', ([str(i) for i in ids],))
                 if cur.rowcount:
                     print(f"   pasada {pasada}: {t}.{c} -> {cur.rowcount} filas")
-            except Exception as ex:
+            except Exception:
                 cur.execute("ROLLBACK TO SAVEPOINT s")
                 siguientes.append((t, c, ids))
         pendientes = siguientes

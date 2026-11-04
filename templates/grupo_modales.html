@@ -1,8 +1,5 @@
 {% from '_macros.html' import nombre_rango, estrella %}
 {% from '_grupo_macros.html' import cara_integrante, rol_integrante with context %}
-<!-- =========================================================================
-     MODAL — INVITAR
-     ========================================================================== -->
 
 <dialog
   class="modal"
@@ -243,9 +240,6 @@
 </script>
 
 
-<!-- =========================================================================
-     MODAL — EDITAR GRUPO
-     ========================================================================== -->
 
 <dialog
   class="modal"
@@ -440,9 +434,6 @@
 </script>
 
 
-<!-- =========================================================================
-     MODAL — ABANDONAR GRUPO
-     ========================================================================== -->
 
 <dialog
   class="modal"
@@ -519,7 +510,6 @@
 
     <div class="modal-actions">
 
-      <!-- NO: simplemente cierra la tarjeta -->
       <button
         class="btn btn--secondary"
         type="button"
@@ -529,7 +519,7 @@
       </button>
 
 
-      <!-- SÍ: recién acá se hace el POST a Flask -->
+      {# SÍ: recién acá se hace el POST a Flask #}
       <button
         class="btn btn--danger-solid"
         type="submit"
@@ -544,9 +534,6 @@
 </dialog>
 
 
-<!-- =========================================================================
-     MODAL — INTEGRANTES
-     ========================================================================== -->
 
 <dialog
   class="modal"

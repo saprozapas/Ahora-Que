@@ -6,29 +6,35 @@
   "use strict";
 
   var panel = document.getElementById("chatbot");
-  if (!panel) { return; }
+  if (!panel) {
+    return;
+  }
 
-  var caja      = document.getElementById("chatbot-mensajes");
-  var vacio     = document.getElementById("chatbot-vacio");
-  var form      = document.getElementById("chatbot-form");
-  var input     = document.getElementById("chatbot-input");
-  var enviar    = document.getElementById("chatbot-enviar");
+  var caja = document.getElementById("chatbot-mensajes");
+  var vacio = document.getElementById("chatbot-vacio");
+  var form = document.getElementById("chatbot-form");
+  var input = document.getElementById("chatbot-input");
+  var enviar = document.getElementById("chatbot-enviar");
   var botonNueva = document.getElementById("chatbot-nueva");
-  var ocupado   = false;
+  var ocupado = false;
   // Si el chat está dentro de un grupo, el servidor sabe cuántos son y al
   // guardar ofrece postular la idea en ese grupo.
-  var grupoId   = panel.getAttribute("data-grupo-id") || "";
+  var grupoId = panel.getAttribute("data-grupo-id") || "";
 
   // La caja no tiene scroll propio: se lleva a la vista el último mensaje scrolleando la pantalla.
   function bajarAlFinal() {
     var ultimo = caja.lastElementChild;
-    if (ultimo && ultimo.scrollIntoView) { ultimo.scrollIntoView({ block: "nearest" }); }
+    if (ultimo && ultimo.scrollIntoView) {
+      ultimo.scrollIntoView({ block: "nearest" });
+    }
   }
 
   // Durante el streaming solo se baja solo si la persona ya estaba abajo: si
   // subió a leer algo, no se la arrastra de vuelta con cada fragmento.
   function bajarSiEstaAbajo() {
-    if (caja.getBoundingClientRect().bottom - window.innerHeight < 80) { bajarAlFinal(); }
+    if (caja.getBoundingClientRect().bottom - window.innerHeight < 80) {
+      bajarAlFinal();
+    }
   }
 
   function mostrarVacio() {
@@ -39,8 +45,11 @@
     var div = document.createElement("div");
     div.className = "chatbot-mensaje chatbot-mensaje-" + rol;
     // Las respuestas del asistente vienen con markdown (**negrita**, listas…): se muestran formateadas.
-    if (rol === "assistant" && window.renderMarkdownLigero) { window.renderMarkdownLigero(div, texto, false); }
-    else { div.textContent = texto; }
+    if (rol === "assistant" && window.renderMarkdownLigero) {
+      window.renderMarkdownLigero(div, texto, false);
+    } else {
+      div.textContent = texto;
+    }
     caja.appendChild(div);
     mostrarVacio();
     bajarAlFinal();
@@ -48,21 +57,28 @@
   }
 
   function precio(nivel) {
-    if (nivel === null || nivel === undefined || nivel === "") { return ""; }
+    if (nivel === null || nivel === undefined || nivel === "") {
+      return "";
+    }
     nivel = parseInt(nivel, 10);
     return nivel > 0 ? new Array(nivel + 1).join("$") : "Gratis";
   }
 
   function pedirJSON(url, opciones) {
     return fetch(url, opciones).then(function (respuesta) {
-      return respuesta.json().catch(function () { return {}; }).then(function (datos) {
-        if (!respuesta.ok) {
-          var error = new Error(datos.error || "Algo salió mal. Probá de nuevo.");
-          error.limiteIA = !!datos.limite_ia;
-          throw error;
-        }
-        return datos;
-      });
+      return respuesta
+        .json()
+        .catch(function () {
+          return {};
+        })
+        .then(function (datos) {
+          if (!respuesta.ok) {
+            var error = new Error(datos.error || "Algo salió mal. Probá de nuevo.");
+            error.limiteIA = !!datos.limite_ia;
+            throw error;
+          }
+          return datos;
+        });
     });
   }
 
@@ -70,7 +86,7 @@
     return pedirJSON(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpo || {})
+      body: JSON.stringify(cuerpo || {}),
     });
   }
 
@@ -108,9 +124,15 @@
       item.appendChild(nombreLugar);
 
       var detalle = [];
-      if (lugar.hora) { detalle.push(lugar.hora); }
-      if (lugar.direccion) { detalle.push(lugar.direccion); }
-      if (precio(lugar.nivel_precio)) { detalle.push(precio(lugar.nivel_precio)); }
+      if (lugar.hora) {
+        detalle.push(lugar.hora);
+      }
+      if (lugar.direccion) {
+        detalle.push(lugar.direccion);
+      }
+      if (precio(lugar.nivel_precio)) {
+        detalle.push(precio(lugar.nivel_precio));
+      }
       if (detalle.length) {
         var sub = document.createElement("small");
         sub.textContent = detalle.join(" · ");
@@ -162,13 +184,17 @@
             link.textContent = "Ver el plan →";
           }
           estado.appendChild(link);
-          if (datos.limite_ia) { window.avisoLimiteIA(); }
+          if (datos.limite_ia) {
+            window.avisoLimiteIA();
+          }
         })
         .catch(function (error) {
           guardar.disabled = false;
           guardar.textContent = "Guardar para después";
           estado.textContent = error.message;
-          if (error.limiteIA) { window.avisoLimiteIA(); }
+          if (error.limiteIA) {
+            window.avisoLimiteIA();
+          }
         });
     });
 
@@ -206,23 +232,33 @@
     function procesarBloque(bloque) {
       var datos = "";
       bloque.split("\n").forEach(function (linea) {
-        if (linea.indexOf("data: ") === 0) { datos += linea.slice(6); }
+        if (linea.indexOf("data: ") === 0) {
+          datos += linea.slice(6);
+        }
       });
-      if (!datos) { return; }
+      if (!datos) {
+        return;
+      }
       var evento;
-      try { evento = JSON.parse(datos); } catch (e) { return; }
+      try {
+        evento = JSON.parse(datos);
+      } catch (e) {
+        return;
+      }
       alEvento(evento);
     }
 
     function leer() {
       return lector.read().then(function (lectura) {
         if (lectura.done) {
-          if (pendiente.trim()) { procesarBloque(pendiente); }
+          if (pendiente.trim()) {
+            procesarBloque(pendiente);
+          }
           return;
         }
         pendiente += decoder.decode(lectura.value, { stream: true });
         var bloques = pendiente.split("\n\n");
-        pendiente = bloques.pop();  // lo último puede estar incompleto
+        pendiente = bloques.pop(); // lo último puede estar incompleto
         bloques.forEach(procesarBloque);
         return leer();
       });
@@ -236,12 +272,20 @@
   //   pensar:  el razonamiento del modelo, que se va escribiendo en vivo
   // La burbuja de la respuesta recién se crea cuando llega el primer texto.
   function crearVista() {
-    var pensamiento = null, lineaEstado = null, lineaTexto = null, nodoPensar = null;
-    var burbuja = null, textoBot = "";
-    var colaPensar = "", colaTexto = "", programado = false;
+    var pensamiento = null,
+      lineaEstado = null,
+      lineaTexto = null,
+      nodoPensar = null;
+    var burbuja = null,
+      textoBot = "";
+    var colaPensar = "",
+      colaTexto = "",
+      programado = false;
 
     function mostrarPensamiento() {
-      if (pensamiento) { return; }
+      if (pensamiento) {
+        return;
+      }
       pensamiento = document.createElement("div");
       pensamiento.className = "chatbot-pensamiento";
       pensamiento.setAttribute("aria-hidden", "true");
@@ -259,13 +303,17 @@
     }
 
     function ocultarPensamiento() {
-      if (pensamiento) { pensamiento.remove(); }
+      if (pensamiento) {
+        pensamiento.remove();
+      }
       pensamiento = lineaEstado = lineaTexto = nodoPensar = null;
       colaPensar = "";
     }
 
     function crearBurbuja() {
-      if (burbuja) { return; }
+      if (burbuja) {
+        return;
+      }
       ocultarPensamiento();
       burbuja = agregarMensaje("assistant", "");
       textoBot = "";
@@ -278,23 +326,33 @@
       programado = false;
       if (colaPensar && nodoPensar) {
         nodoPensar.appendData(colaPensar);
-        lineaTexto.scrollTop = lineaTexto.scrollHeight;  // se ve siempre lo último
+        lineaTexto.scrollTop = lineaTexto.scrollHeight; // se ve siempre lo último
       }
       colaPensar = "";
-      if (colaTexto && burbuja) { textoBot += colaTexto; pintarBot(true); }
+      if (colaTexto && burbuja) {
+        textoBot += colaTexto;
+        pintarBot(true);
+      }
       colaTexto = "";
       bajarSiEstaAbajo();
     }
 
     // La respuesta se vuelve a dibujar completa con el texto acumulado: así el markdown queda bien aunque llegue de a pedazos.
     function pintarBot(enCurso) {
-      if (!burbuja) { return; }
-      if (window.renderMarkdownLigero) { window.renderMarkdownLigero(burbuja, textoBot, enCurso); }
-      else { burbuja.textContent = textoBot; }
+      if (!burbuja) {
+        return;
+      }
+      if (window.renderMarkdownLigero) {
+        window.renderMarkdownLigero(burbuja, textoBot, enCurso);
+      } else {
+        burbuja.textContent = textoBot;
+      }
     }
 
     function programar() {
-      if (programado) { return; }
+      if (programado) {
+        return;
+      }
       programado = true;
       window.requestAnimationFrame(volcar);
     }
@@ -303,14 +361,18 @@
       // Qué está haciendo el bot. Empieza una "vuelta" nueva: se borra el
       // razonamiento anterior para que el bloque no crezca sin parar.
       estado: function (texto) {
-        if (burbuja) { return; }
+        if (burbuja) {
+          return;
+        }
         mostrarPensamiento();
         lineaEstado.textContent = texto;
         nodoPensar.data = "";
         colaPensar = "";
       },
       pensar: function (fragmento) {
-        if (burbuja) { return; }
+        if (burbuja) {
+          return;
+        }
         mostrarPensamiento();
         colaPensar += fragmento;
         programar();
@@ -323,8 +385,11 @@
       // El servidor descartó lo escrito (por ejemplo, el modelo iba a llamar a
       // una herramienta): se vuelve al estado de "trabajando".
       reiniciar: function () {
-        if (burbuja) { burbuja.remove(); }
-        burbuja = null; textoBot = "";
+        if (burbuja) {
+          burbuja.remove();
+        }
+        burbuja = null;
+        textoBot = "";
         colaTexto = "";
         mostrarPensamiento();
       },
@@ -340,11 +405,14 @@
       },
       cancelar: function () {
         ocultarPensamiento();
-        if (burbuja) { burbuja.remove(); }
-        burbuja = null; textoBot = "";
+        if (burbuja) {
+          burbuja.remove();
+        }
+        burbuja = null;
+        textoBot = "";
         colaTexto = "";
       },
-      arrancar: mostrarPensamiento
+      arrancar: mostrarPensamiento,
     };
   }
 
@@ -374,28 +442,41 @@
     return fetch("/chatbot/mensaje_stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mensaje: texto, grupo_id: grupoId })
-    }).then(function (respuesta) {
-      if (!respuesta.ok) {
-        // Errores de validación o de sesión: llegan como JSON normal.
-        return respuesta.json().catch(function () { return {}; }).then(function (datos) {
-          var error = new Error(datos.error || "Algo salió mal. Probá de nuevo.");
-          error.limiteIA = !!datos.limite_ia;
-          throw error;
-        });
-      }
-      return leerEventos(respuesta, alEvento);
-    }).then(function () {
-      if (errorServidor) { throw new Error(errorServidor); }
-      if (!fin) { throw new Error("Se cortó la conexión con el asistente. Probá de nuevo."); }
-      return { respuesta: fin.respuesta, borrador: fin.borrador };
-    });
+      body: JSON.stringify({ mensaje: texto, grupo_id: grupoId }),
+    })
+      .then(function (respuesta) {
+        if (!respuesta.ok) {
+          // Errores de validación o de sesión: llegan como JSON normal.
+          return respuesta
+            .json()
+            .catch(function () {
+              return {};
+            })
+            .then(function (datos) {
+              var error = new Error(datos.error || "Algo salió mal. Probá de nuevo.");
+              error.limiteIA = !!datos.limite_ia;
+              throw error;
+            });
+        }
+        return leerEventos(respuesta, alEvento);
+      })
+      .then(function () {
+        if (errorServidor) {
+          throw new Error(errorServidor);
+        }
+        if (!fin) {
+          throw new Error("Se cortó la conexión con el asistente. Probá de nuevo.");
+        }
+        return { respuesta: fin.respuesta, borrador: fin.borrador };
+      });
   }
 
   function enviarMensaje(evento) {
     evento.preventDefault();
     var texto = input.value.trim();
-    if (!texto || ocupado) { return; }
+    if (!texto || ocupado) {
+      return;
+    }
 
     agregarMensaje("user", texto);
     input.value = "";
@@ -420,15 +501,19 @@
           vista.cancelar();
           agregarBorrador(datos.borrador);
         } else {
-          vista.terminar(datos.respuesta);  // el texto definitivo que guardó el servidor
+          vista.terminar(datos.respuesta); // el texto definitivo que guardó el servidor
         }
       })
       .catch(function (error) {
         vista.cancelar();
         agregarMensaje("error", error.message);
-        if (error.limiteIA) { window.avisoLimiteIA(); }
+        if (error.limiteIA) {
+          window.avisoLimiteIA();
+        }
         // Se devuelve el texto al campo para poder reintentar.
-        if (!input.value) { input.value = texto; }
+        if (!input.value) {
+          input.value = texto;
+        }
       })
       .then(function () {
         caja.setAttribute("aria-busy", "false");
@@ -439,18 +524,28 @@
   }
 
   function nuevaConversacion() {
-    if (ocupado) { return; }
+    if (ocupado) {
+      return;
+    }
     preguntar("¿Borrar esta conversación y empezar de cero?").then(function (si) {
-      if (!si) { return; }
+      if (!si) {
+        return;
+      }
       bloquear(true);
       postJSON("/chatbot/nueva")
         .then(function () {
           var viejos = caja.querySelectorAll(".chatbot-mensaje, .chatbot-borrador");
-          for (var i = 0; i < viejos.length; i++) { viejos[i].remove(); }
+          for (var i = 0; i < viejos.length; i++) {
+            viejos[i].remove();
+          }
           mostrarVacio();
         })
-        .catch(function (error) { agregarMensaje("error", error.message); })
-        .then(function () { bloquear(false); });
+        .catch(function (error) {
+          agregarMensaje("error", error.message);
+        })
+        .then(function () {
+          bloquear(false);
+        });
     });
   }
 
@@ -461,14 +556,20 @@
         mensajes.forEach(function (mensaje, i) {
           if (mensaje.tipo === "borrador") {
             agregarBorrador(mensaje.borrador);
-          } else if (mensaje.role === "assistant" && mensajes[i + 1] && mensajes[i + 1].tipo === "borrador") {
+          } else if (
+            mensaje.role === "assistant" &&
+            mensajes[i + 1] &&
+            mensajes[i + 1].tipo === "borrador"
+          ) {
             // El texto que viene justo antes de una propuesta no se muestra: queda la tarjeta.
           } else {
             agregarMensaje(mensaje.role, mensaje.content);
           }
         });
       })
-      .catch(function (error) { agregarMensaje("error", error.message); });
+      .catch(function (error) {
+        agregarMensaje("error", error.message);
+      });
   }
 
   form.addEventListener("submit", enviarMensaje);

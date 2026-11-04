@@ -27,15 +27,16 @@
   --ss-r-menu: var(--r-lg, 14px);
   --ss-r-opcion: var(--r-sm, 9px);
   --ss-hover: color-mix(in srgb, var(--ink) 6%, transparent);
-  --ss-sombra: var(--sh-float,
+  --ss-sombra: var(
+    --sh-float,
     0 0 0 1px var(--line),
     0 2px 4px rgb(21 21 21 / 0.04),
     0 16px 32px -12px rgb(21 21 21 / 0.18),
-    0 32px 64px -32px rgb(21 21 21 / 0.16));
+    0 32px 64px -32px rgb(21 21 21 / 0.16)
+  );
   --ss-dur: var(--d-fast, 140ms);
   --ss-ease: var(--ease-out, cubic-bezier(0.2, 0.7, 0.2, 1));
 }
-
 
 /* --- Menú desplegable ------------------------------------------------------- */
 
@@ -136,7 +137,6 @@
   transform: rotate(180deg);
 }
 
-
 /* --- Listas flotantes (las usan el menú y las sugerencias) ---------------------- */
 
 .ss-lista,
@@ -222,7 +222,6 @@
   visibility: visible;
 }
 
-
 /* --- Sugerencias al escribir ------------------------------------------------------ */
 
 .ac-opcion {
@@ -279,7 +278,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .ss-lista,
   .ac-lista {
     animation: none;
@@ -290,7 +288,6 @@
     transition: none;
   }
 }
-
 
 /* --- Selector de fecha y de hora ------------------------------------------------------ */
 
@@ -507,7 +504,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ss-lista { animation: none; }
+  .ss-lista {
+    animation: none;
+  }
 }
 
-.sh-cabecera .sd-titulo { text-transform: none; font-size: var(--text-sm, 0.9375rem); }
+.sh-cabecera .sd-titulo {
+  text-transform: none;
+  font-size: var(--text-sm, 0.9375rem);
+}

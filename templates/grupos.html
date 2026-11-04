@@ -42,9 +42,6 @@
 
 {% if groups_page %}
 
-<!-- =========================================================================
-     VISTA DEL USUARIO LOGUEADO
-     ========================================================================= -->
 
 <section class="container page">
 
@@ -63,8 +60,8 @@
 
   {% if groups %}
 
-  <!-- Carrusel: la paginación la maneja app.js (de a 3 en escritorio, 2 en
-       tablet, 1 en celular) con data-grupo y los ids de los controles. -->
+  {# Carrusel: la paginación la maneja app.js (de a 3 en escritorio, 2 en
+       tablet, 1 en celular) con data-grupo y los ids de los controles. #}
   <div class="groups-carousel">
 
     <ul class="groups-list" id="groupsGrid">
@@ -128,12 +125,12 @@
 
 {% else %}
 
-<!-- =========================================================================
+{# =========================================================================
      VISTA PÚBLICA
 
      Nota: hoy esta rama no se llega a renderizar, porque la ruta /grupos
      exige sesión iniciada y redirige a /login.
-     ========================================================================= -->
+     ========================================================================= #}
 
 <section class="container page page--public">
 

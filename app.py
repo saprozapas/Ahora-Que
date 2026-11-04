@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from dotenv import load_dotenv
 load_dotenv()
-from flask import Flask, g, render_template, request, redirect, send_from_directory, session
+from flask import Flask, g, jsonify, render_template, request, redirect, send_from_directory, session
 from routes.auth import auth
 from routes.group_auth import group_auth
 from routes.profile import profile
@@ -54,6 +54,8 @@ app.config.update(
     ),
 )
 app.permanent_session_lifetime = timedelta(days=5)
+# Tope del cuerpo de cualquier pedido: las subidas (fotos en base64) ya tienen su límite propio, más chico.
+app.config["MAX_CONTENT_LENGTH"] = 1_500_000
 
 # Seguridad general: cookies, cabeceras y verificación de origen (ver services/seguridad.py).
 seguridad.instalar(app)
@@ -104,6 +106,14 @@ PLANS = [
 def pagina_no_encontrada(error):
     return render_template("error.html", codigo=404, titulo="No encontramos esa página.",
                            detalle="Puede que el enlace esté viejo o que la dirección tenga un error."), 404
+
+
+@app.errorhandler(413)
+def cuerpo_demasiado_grande(error):
+    if request.is_json or request.accept_mimetypes.best == "application/json":
+        return jsonify(error="El archivo es demasiado grande."), 413
+    return render_template("error.html", codigo=413, titulo="El archivo es demasiado grande.",
+                           detalle="Probá con uno más liviano."), 413
 
 
 @app.errorhandler(500)

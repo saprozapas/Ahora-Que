@@ -71,7 +71,7 @@ def getGroupsForUser(uid):
 
             groups = []
             for result in results:
-                groups.append(Group(None, result[1], result[2], result[0]))
+                groups.append(Group(result[1], result[2], result[0]))
             return groups
 
     except psycopg2.Error:
@@ -102,40 +102,7 @@ def getGroupById(group_id):
             if result is None:
                 return None
 
-            return Group(
-                None,      # lo que corresponda al primer atributo
-                result[1], # Nombre
-                result[2], # Descripcion
-                result[0]  # Id_Grupo
-            )
-
-    except psycopg2.Error:
-        raise
-
-    finally:
-        release_db_connection(connection)
-
-def getUsersInGroup(group_id):
-    connection = get_db_connection()
-
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT u."Id_Usuario", u."Nombre", u."Fecha_Nac", u."Username", u."Mail", u."Password_Hash"
-                FROM public."Usuarios" u
-                JOIN public."Usuario-Grupo" ug ON u."Id_Usuario" = ug."Id_Usuario"
-                WHERE ug."Id_Grupo" = %s
-                """,
-                (group_id,)
-            )
-
-            results = cursor.fetchall()
-
-            users = []
-            for result in results:
-                users.append(User(result[1], result[2], result[3], result[4], result[5]))
-            return users
+            return Group(result[1], result[2], result[0])
 
     except psycopg2.Error:
         raise
@@ -144,8 +111,7 @@ def getUsersInGroup(group_id):
         release_db_connection(connection)
 
 def getUsersInGroupWithIds(group_id):
-    """Como getUsersInGroup, pero devuelve también el Id_Usuario de cada
-    integrante (necesario para linkear a su perfil), su Descripcion y si es admin."""
+    """Los integrantes del grupo con su Id_Usuario (para linkear a su perfil), su Descripcion y si es admin."""
     connection = get_db_connection()
 
     try:

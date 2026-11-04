@@ -32,9 +32,9 @@
   const plantillaTarjeta = document.getElementById("soc-tpl-tarjeta");
   const plantillaComentario = document.getElementById("soc-tpl-comentario");
   const plantillaMiniatura = document.getElementById("soc-tpl-miniatura");
-  const plantillaPublicable = document.getElementById("soc-tpl-publicable");   // solo en /social
+  const plantillaPublicable = document.getElementById("soc-tpl-publicable"); // solo en /social
 
-  const modalPublicar = document.getElementById("soc-modal-publicar");         // solo en /social
+  const modalPublicar = document.getElementById("soc-modal-publicar"); // solo en /social
   const modalReportar = document.getElementById("soc-modal-reportar");
   const modalGrupo = document.getElementById("soc-modal-grupo");
   const modalPost = document.getElementById("soc-modal-post");
@@ -61,16 +61,15 @@
   let siguiente = null;
   let ocupado = false;
 
-  let totalPublicaciones = null;     // solo en los perfiles ("Planes publicados (N)")
-  const publicaciones = new Map();   // id -> publicación (para abrirla desde la grilla)
-  const tarjetas = new Map();        // id -> tarjeta ya armada (grilla)
-  const miniaturas = new Map();      // id -> celda de la grilla
+  let totalPublicaciones = null; // solo en los perfiles ("Planes publicados (N)")
+  const publicaciones = new Map(); // id -> publicación (para abrirla desde la grilla)
+  const tarjetas = new Map(); // id -> tarjeta ya armada (grilla)
+  const miniaturas = new Map(); // id -> celda de la grilla
 
   if (modoGrilla) {
     lista.classList.remove("soc-lista");
     lista.classList.add("soc-grilla");
   }
-
 
   /* --- Pedidos al servidor ------------------------------------------------ */
 
@@ -119,7 +118,6 @@
     elemento.hidden = true;
   };
 
-
   /* --- Formatos ------------------------------------------------------------ */
 
   const dosDigitos = (n) => String(n).padStart(2, "0");
@@ -157,7 +155,6 @@
 
   // Tres colores de portada, según el id (siempre el mismo para una publicación).
   const varianteDe = (publicacion) => parseInt(publicacion.id.slice(0, 2), 16) % 3;
-
 
   /* --- Tarjeta ------------------------------------------------------------- */
 
@@ -204,10 +201,7 @@
 
     // El detalle del plan solo se puede abrir si es tuyo o lo guardaste: si
     // no, el nombre queda como texto, sin enlace.
-    const enlaces = [
-      $("[data-soc-plan-nombre]", tarjeta),
-      $("[data-soc-portada-nombre]", tarjeta),
-    ];
+    const enlaces = [$("[data-soc-plan-nombre]", tarjeta), $("[data-soc-portada-nombre]", tarjeta)];
     for (const enlace of enlaces) {
       if (publicacion.es_mio || publicacion.guardado) {
         enlace.href = urls.detalle.replace("__ID__", publicacion.plan.id);
@@ -230,7 +224,7 @@
         const linea = document.createElement("p");
         const autor = document.createElement("strong");
         autor.textContent = comentario.autor;
-        linea.append(autor, " ", comentario.texto);   // strings: entran como texto, no como HTML
+        linea.append(autor, " ", comentario.texto); // strings: entran como texto, no como HTML
         return linea;
       })
     );
@@ -307,10 +301,14 @@
           return punto;
         })
       );
-      contenedor.addEventListener("scroll", () => {
-        const actual = Math.round(contenedor.scrollLeft / contenedor.clientWidth);
-        [...puntos.children].forEach((p, i) => p.classList.toggle("is-activo", i === actual));
-      }, { passive: true });
+      contenedor.addEventListener(
+        "scroll",
+        () => {
+          const actual = Math.round(contenedor.scrollLeft / contenedor.clientWidth);
+          [...puntos.children].forEach((p, i) => p.classList.toggle("is-activo", i === actual));
+        },
+        { passive: true }
+      );
     }
   };
 
@@ -332,7 +330,9 @@
       caraAutor.textContent = (publicacion.autor.nombre || "?").trim().charAt(0).toUpperCase();
     }
     $("[data-soc-autor]", tarjeta).textContent = autor;
-    if (publicacion.autor.premium) { $("[data-soc-autor]", tarjeta).append(window.estrellaPremium()); }
+    if (publicacion.autor.premium) {
+      $("[data-soc-autor]", tarjeta).append(window.estrellaPremium());
+    }
     $("[data-soc-autor-enlace]", tarjeta).href = publicacion.es_mio
       ? urls.miPerfil
       : urls.perfil.replace("__ID__", publicacion.autor.id);
@@ -377,7 +377,6 @@
     return tarjeta;
   };
 
-
   /* --- Comentarios --------------------------------------------------------- */
 
   const crearComentario = (comentario) => {
@@ -385,7 +384,9 @@
 
     fila.dataset.comentarioId = comentario.id;
     $("[data-soc-comentario-autor]", fila).textContent = comentario.autor.nombre;
-    if (comentario.autor.premium) { $("[data-soc-comentario-autor]", fila).append(window.estrellaPremium()); }
+    if (comentario.autor.premium) {
+      $("[data-soc-comentario-autor]", fila).append(window.estrellaPremium());
+    }
     $("[data-soc-comentario-fecha]", fila).textContent = hace(comentario.creado_en);
     $("[data-soc-comentario-texto]", fila).textContent = comentario.texto;
     $("[data-soc-comentario-eliminar]", fila).hidden = !comentario.puedo_borrar;
@@ -415,7 +416,6 @@
     zona.hidden = false;
   };
 
-
   /* --- Acciones sobre una tarjeta ------------------------------------------ */
 
   const alternarComentarios = async (tarjeta, boton) => {
@@ -432,7 +432,7 @@
     }
 
     await cargarComentarios(tarjeta);
-    pintarPrevia(tarjeta, tarjeta._publicacion);   // con el hilo abierto, la vista previa se oculta
+    pintarPrevia(tarjeta, tarjeta._publicacion); // con el hilo abierto, la vista previa se oculta
     $("[data-soc-comentario-input]", tarjeta).focus();
   };
 
@@ -447,10 +447,9 @@
     pintarLikes(tarjeta, publicacion);
 
     try {
-      const datos = await pedir(
-        `${urls.raiz}/publicaciones/${publicacion.id}/like`,
-        { me_gusta: quiere }
-      );
+      const datos = await pedir(`${urls.raiz}/publicaciones/${publicacion.id}/like`, {
+        me_gusta: quiere,
+      });
       publicacion.yo_di_like = datos.yo_di_like;
       publicacion.likes = datos.likes;
     } catch (e) {
@@ -466,10 +465,9 @@
     const quiere = !publicacion.guardado;
 
     try {
-      const datos = await pedir(
-        `${urls.raiz}/publicaciones/${publicacion.id}/guardar`,
-        { guardar: quiere }
-      );
+      const datos = await pedir(`${urls.raiz}/publicaciones/${publicacion.id}/guardar`, {
+        guardar: quiere,
+      });
       publicacion.guardado = datos.guardado;
       limpiarError(avisoGeneral);
     } catch (e) {
@@ -488,7 +486,7 @@
     const corazon = $("[data-soc-pop]", tarjeta);
     if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       corazon.classList.remove("is-pop");
-      void corazon.offsetWidth;   // reinicia la animación si se toca otra vez
+      void corazon.offsetWidth; // reinicia la animación si se toca otra vez
       corazon.classList.add("is-pop");
     }
     if (!tarjeta._publicacion.yo_di_like) darLike(tarjeta);
@@ -531,10 +529,7 @@
     if (!confirmado) return;
 
     try {
-      await pedir(
-        `${urls.raiz}/publicaciones/${tarjeta.dataset.publicacionId}/eliminar`,
-        {}
-      );
+      await pedir(`${urls.raiz}/publicaciones/${tarjeta.dataset.publicacionId}/eliminar`, {});
       quitarDeVista(tarjeta);
     } catch (e) {
       mostrarError(avisoGeneral, e.message);
@@ -583,7 +578,6 @@
     }
   };
 
-
   /* --- Reportar ------------------------------------------------------------ */
 
   let reporte = null;
@@ -615,7 +609,6 @@
       mostrarError(error, e.message);
     }
   });
-
 
   /* --- Clics dentro del feed (una sola escucha para todas las tarjetas) ----- */
 
@@ -670,7 +663,6 @@
     zona.addEventListener("submit", alEnviar);
   }
 
-
   /* --- Proponer el plan a un grupo ------------------------------------------------
      Se elige un grupo y se sigue a la pantalla de "Postular idea" de ese grupo con
      el plan ya elegido. Postular exige tener el plan en Guardados, así que si todavía
@@ -689,15 +681,13 @@
 
     try {
       if (!publicacion.guardado) {
-        const datos = await pedir(
-          `${urls.raiz}/publicaciones/${publicacion.id}/guardar`,
-          { guardar: true }
-        );
+        const datos = await pedir(`${urls.raiz}/publicaciones/${publicacion.id}/guardar`, {
+          guardar: true,
+        });
         publicacion.guardado = datos.guardado;
         pintarGuardado(tarjetaAProponer, publicacion);
       }
-      window.location.href =
-        `${urls.postular.replace("__GID__", grupo.id)}?idea_id=${encodeURIComponent(publicacion.plan.id)}`;
+      window.location.href = `${urls.postular.replace("__GID__", grupo.id)}?idea_id=${encodeURIComponent(publicacion.plan.id)}`;
     } catch (e) {
       mostrarError(grupoError, e.message);
       boton.disabled = false;
@@ -737,7 +727,6 @@
     }
     pintarGrupos(gruposCargados);
   };
-
 
   /* --- Grilla: miniaturas que abren la publicación en un diálogo ------------- */
 
@@ -783,7 +772,6 @@
   modalPost.addEventListener("close", () => {
     if (!modalPost.open) contenedorPost.replaceChildren();
   });
-
 
   /* --- Cargar el feed ------------------------------------------------------ */
 
@@ -838,210 +826,212 @@
     cargando.hidden = true;
   };
 
-
   /* --- Compartir un plan (solo en /social) ------------------------------------ */
 
   const iniciarPublicar = () => {
+    const formularioPublicar = $("[data-soc-form-publicar]", modalPublicar);
+    const contenedorPublicables = $("[data-soc-publicables]", modalPublicar);
+    const avisoPublicablesVacio = $("[data-soc-publicables-vacio]", modalPublicar);
+    const errorPublicar = $("[data-soc-publicar-error]", modalPublicar);
+    const campoTexto = $("[data-soc-texto-input]", modalPublicar);
+    const cuentaTexto = $("[data-soc-texto-cuenta]", modalPublicar);
+    const botonPublicar = $("[data-soc-publicar-enviar]", modalPublicar);
 
-  const formularioPublicar = $("[data-soc-form-publicar]", modalPublicar);
-  const contenedorPublicables = $("[data-soc-publicables]", modalPublicar);
-  const avisoPublicablesVacio = $("[data-soc-publicables-vacio]", modalPublicar);
-  const errorPublicar = $("[data-soc-publicar-error]", modalPublicar);
-  const campoTexto = $("[data-soc-texto-input]", modalPublicar);
-  const cuentaTexto = $("[data-soc-texto-cuenta]", modalPublicar);
-  const botonPublicar = $("[data-soc-publicar-enviar]", modalPublicar);
+    const crearPublicable = (plan) => {
+      const opcion = plantillaPublicable.content.firstElementChild.cloneNode(true);
+      const partes = [plan.estado_texto, cuando(plan), plan.resumen_lugares].filter(Boolean);
 
-  const crearPublicable = (plan) => {
-    const opcion = plantillaPublicable.content.firstElementChild.cloneNode(true);
-    const partes = [plan.estado_texto, cuando(plan), plan.resumen_lugares].filter(Boolean);
+      $("input", opcion).value = plan.id;
+      $("[data-soc-publicable-nombre]", opcion).textContent = plan.nombre;
+      $("[data-soc-publicable-detalle]", opcion).textContent = partes.join(" · ");
 
-    $("input", opcion).value = plan.id;
-    $("[data-soc-publicable-nombre]", opcion).textContent = plan.nombre;
-    $("[data-soc-publicable-detalle]", opcion).textContent = partes.join(" · ");
+      return opcion;
+    };
 
-    return opcion;
-  };
+    const cargarPublicables = async () => {
+      contenedorPublicables.replaceChildren();
+      avisoPublicablesVacio.hidden = true;
+      botonPublicar.disabled = true;
+      limpiarError(errorPublicar);
 
-  const cargarPublicables = async () => {
-    contenedorPublicables.replaceChildren();
-    avisoPublicablesVacio.hidden = true;
-    botonPublicar.disabled = true;
-    limpiarError(errorPublicar);
+      try {
+        const datos = await pedir(urls.publicables);
 
-    try {
-      const datos = await pedir(urls.publicables);
+        contenedorPublicables.append(...datos.planes.map(crearPublicable));
+        avisoPublicablesVacio.hidden = datos.planes.length > 0;
+        botonPublicar.disabled = datos.planes.length === 0;
+      } catch (e) {
+        mostrarError(errorPublicar, e.message);
+      }
+    };
 
-      contenedorPublicables.append(...datos.planes.map(crearPublicable));
-      avisoPublicablesVacio.hidden = datos.planes.length > 0;
-      botonPublicar.disabled = datos.planes.length === 0;
-    } catch (e) {
-      mostrarError(errorPublicar, e.message);
-    }
-  };
+    $("[data-soc-abrir-publicar]", raiz).addEventListener("click", () => {
+      formularioPublicar.reset();
+      reiniciarFotos();
+      cuentaTexto.textContent = "0";
+      cargarPublicables();
+    });
 
-  $("[data-soc-abrir-publicar]", raiz).addEventListener("click", () => {
-    formularioPublicar.reset();
-    reiniciarFotos();
-    cuentaTexto.textContent = "0";
-    cargarPublicables();
-  });
+    campoTexto.addEventListener("input", () => {
+      cuentaTexto.textContent = campoTexto.value.length;
+    });
 
-  campoTexto.addEventListener("input", () => {
-    cuentaTexto.textContent = campoTexto.value.length;
-  });
+    formularioPublicar.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
 
-  formularioPublicar.addEventListener("submit", async (evento) => {
-    evento.preventDefault();
+      const datos = new FormData(formularioPublicar);
+      limpiarError(errorPublicar);
+      botonPublicar.disabled = true;
 
-    const datos = new FormData(formularioPublicar);
-    limpiarError(errorPublicar);
-    botonPublicar.disabled = true;
+      try {
+        const respuesta = await pedir(urls.publicar, {
+          plan_id: datos.get("plan_id"),
+          texto: datos.get("texto"),
+          visibilidad: datos.get("visibilidad"),
+          fotos: fotosElegidas.map((foto) => foto.dataUrl),
+          aspecto: datos.get("aspecto"),
+        });
 
-    try {
-      const respuesta = await pedir(urls.publicar, {
-        plan_id: datos.get("plan_id"),
-        texto: datos.get("texto"),
-        visibilidad: datos.get("visibilidad"),
-        fotos: fotosElegidas.map((foto) => foto.dataUrl),
-        aspecto: datos.get("aspecto"),
+        modalPublicar.close();
+
+        // Lo propio siempre figura en la pestaña Amigos: ahí aparece arriba de
+        // todo al instante. En Descubrir (grilla) solo se avisa dónde encontrarlo.
+        if (!modoGrilla) {
+          lista.prepend(crearTarjeta(respuesta.publicacion));
+          vacio.hidden = true;
+        } else {
+          await window.preguntar(
+            "Listo, compartiste tu plan. Lo vas a ver en la pestaña Amigos.",
+            false
+          );
+        }
+      } catch (e) {
+        mostrarError(errorPublicar, e.message);
+        botonPublicar.disabled = false;
+      }
+    });
+
+    /* --- Fotos del modal ------------------------------------------------------ */
+
+    const MAX_FOTOS = 2;
+    const MAX_BYTES = 380 * 1024; // el servidor acepta hasta 400 KB
+    const LADO_MAXIMO = 1080;
+
+    const previas = $("[data-soc-previas]", modalPublicar);
+    const botonSubir = $("[data-soc-subir]", modalPublicar);
+    const entradaArchivos = $("[data-soc-archivos]", modalPublicar);
+    const ayudaFotos = $("[data-soc-fotos-ayuda]", modalPublicar);
+    const plantillaPrevia = document.getElementById("soc-tpl-previa");
+
+    let fotosElegidas = []; // [{ dataUrl }]
+
+    // Achica la imagen a un JPEG de hasta LADO_MAXIMO px y MAX_BYTES: baja la
+    // calidad primero y, si hace falta, el tamaño.
+    const comprimir = (archivo) =>
+      new Promise((resolver, rechazar) => {
+        const origen = URL.createObjectURL(archivo);
+        const imagen = new Image();
+
+        imagen.onerror = () => {
+          URL.revokeObjectURL(origen);
+          rechazar(new Error("No pudimos leer una de las imágenes."));
+        };
+
+        imagen.onload = () => {
+          URL.revokeObjectURL(origen);
+
+          let escala = Math.min(1, LADO_MAXIMO / Math.max(imagen.width, imagen.height));
+          let calidad = 0.85;
+          const lienzo = document.createElement("canvas");
+
+          const intentar = () => {
+            lienzo.width = Math.max(1, Math.round(imagen.width * escala));
+            lienzo.height = Math.max(1, Math.round(imagen.height * escala));
+
+            const contexto = lienzo.getContext("2d");
+            contexto.fillStyle = "#fff"; // el JPEG no tiene transparencia
+            contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+            contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+
+            lienzo.toBlob(
+              (blob) => {
+                if (!blob) {
+                  rechazar(new Error("No pudimos procesar una de las imágenes."));
+                } else if (blob.size <= MAX_BYTES) {
+                  const lector = new FileReader();
+                  lector.onload = () => resolver(lector.result);
+                  lector.onerror = () =>
+                    rechazar(new Error("No pudimos leer una de las imágenes."));
+                  lector.readAsDataURL(blob);
+                } else if (calidad > 0.5) {
+                  calidad -= 0.1;
+                  intentar();
+                } else if (escala > 0.3) {
+                  escala *= 0.8;
+                  intentar();
+                } else {
+                  rechazar(new Error("Una de las imágenes es demasiado pesada."));
+                }
+              },
+              "image/jpeg",
+              calidad
+            );
+          };
+
+          intentar();
+        };
+
+        imagen.src = origen;
       });
 
-      modalPublicar.close();
-
-      // Lo propio siempre figura en la pestaña Amigos: ahí aparece arriba de
-      // todo al instante. En Descubrir (grilla) solo se avisa dónde encontrarlo.
-      if (!modoGrilla) {
-        lista.prepend(crearTarjeta(respuesta.publicacion));
-        vacio.hidden = true;
-      } else {
-        await window.preguntar("Listo, compartiste tu plan. Lo vas a ver en la pestaña Amigos.", false);
-      }
-    } catch (e) {
-      mostrarError(errorPublicar, e.message);
-      botonPublicar.disabled = false;
-    }
-  });
-
-
-  /* --- Fotos del modal ------------------------------------------------------ */
-
-  const MAX_FOTOS = 2;
-  const MAX_BYTES = 380 * 1024;   // el servidor acepta hasta 400 KB
-  const LADO_MAXIMO = 1080;
-
-  const previas = $("[data-soc-previas]", modalPublicar);
-  const botonSubir = $("[data-soc-subir]", modalPublicar);
-  const entradaArchivos = $("[data-soc-archivos]", modalPublicar);
-  const ayudaFotos = $("[data-soc-fotos-ayuda]", modalPublicar);
-  const plantillaPrevia = document.getElementById("soc-tpl-previa");
-
-  let fotosElegidas = [];   // [{ dataUrl }]
-
-  // Achica la imagen a un JPEG de hasta LADO_MAXIMO px y MAX_BYTES: baja la
-  // calidad primero y, si hace falta, el tamaño.
-  const comprimir = (archivo) => new Promise((resolver, rechazar) => {
-    const origen = URL.createObjectURL(archivo);
-    const imagen = new Image();
-
-    imagen.onerror = () => {
-      URL.revokeObjectURL(origen);
-      rechazar(new Error("No pudimos leer una de las imágenes."));
+    const pintarPrevias = () => {
+      previas.replaceChildren(
+        ...fotosElegidas.map((foto, i) => {
+          const previa = plantillaPrevia.content.firstElementChild.cloneNode(true);
+          $("img", previa).src = foto.dataUrl;
+          $("button", previa).addEventListener("click", () => {
+            fotosElegidas.splice(i, 1);
+            pintarPrevias();
+          });
+          return previa;
+        })
+      );
+      botonSubir.hidden = fotosElegidas.length >= MAX_FOTOS;
     };
 
-    imagen.onload = () => {
-      URL.revokeObjectURL(origen);
-
-      let escala = Math.min(1, LADO_MAXIMO / Math.max(imagen.width, imagen.height));
-      let calidad = 0.85;
-      const lienzo = document.createElement("canvas");
-
-      const intentar = () => {
-        lienzo.width = Math.max(1, Math.round(imagen.width * escala));
-        lienzo.height = Math.max(1, Math.round(imagen.height * escala));
-
-        const contexto = lienzo.getContext("2d");
-        contexto.fillStyle = "#fff";   // el JPEG no tiene transparencia
-        contexto.fillRect(0, 0, lienzo.width, lienzo.height);
-        contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
-
-        lienzo.toBlob((blob) => {
-          if (!blob) {
-            rechazar(new Error("No pudimos procesar una de las imágenes."));
-          } else if (blob.size <= MAX_BYTES) {
-            const lector = new FileReader();
-            lector.onload = () => resolver(lector.result);
-            lector.onerror = () => rechazar(new Error("No pudimos leer una de las imágenes."));
-            lector.readAsDataURL(blob);
-          } else if (calidad > 0.5) {
-            calidad -= 0.1;
-            intentar();
-          } else if (escala > 0.3) {
-            escala *= 0.8;
-            intentar();
-          } else {
-            rechazar(new Error("Una de las imágenes es demasiado pesada."));
-          }
-        }, "image/jpeg", calidad);
-      };
-
-      intentar();
+    const reiniciarFotos = () => {
+      fotosElegidas = [];
+      entradaArchivos.value = "";
+      ayudaFotos.hidden = true;
+      pintarPrevias();
     };
 
-    imagen.src = origen;
-  });
+    entradaArchivos.addEventListener("change", async () => {
+      const archivos = [...entradaArchivos.files].slice(0, MAX_FOTOS - fotosElegidas.length);
+      entradaArchivos.value = "";
+      ayudaFotos.hidden = true;
 
-  const pintarPrevias = () => {
-    previas.replaceChildren(
-      ...fotosElegidas.map((foto, i) => {
-        const previa = plantillaPrevia.content.firstElementChild.cloneNode(true);
-        $("img", previa).src = foto.dataUrl;
-        $("button", previa).addEventListener("click", () => {
-          fotosElegidas.splice(i, 1);
-          pintarPrevias();
-        });
-        return previa;
-      })
-    );
-    botonSubir.hidden = fotosElegidas.length >= MAX_FOTOS;
-  };
-
-  const reiniciarFotos = () => {
-    fotosElegidas = [];
-    entradaArchivos.value = "";
-    ayudaFotos.hidden = true;
-    pintarPrevias();
-  };
-
-  entradaArchivos.addEventListener("change", async () => {
-    const archivos = [...entradaArchivos.files].slice(0, MAX_FOTOS - fotosElegidas.length);
-    entradaArchivos.value = "";
-    ayudaFotos.hidden = true;
-
-    botonSubir.setAttribute("aria-busy", "true");
-    for (const archivo of archivos) {
-      try {
-        fotosElegidas.push({ dataUrl: await comprimir(archivo) });
-      } catch (e) {
-        ayudaFotos.textContent = e.message;
-        ayudaFotos.hidden = false;
+      botonSubir.setAttribute("aria-busy", "true");
+      for (const archivo of archivos) {
+        try {
+          fotosElegidas.push({ dataUrl: await comprimir(archivo) });
+        } catch (e) {
+          ayudaFotos.textContent = e.message;
+          ayudaFotos.hidden = false;
+        }
       }
-    }
-    botonSubir.removeAttribute("aria-busy");
-    pintarPrevias();
-  });
-
-
+      botonSubir.removeAttribute("aria-busy");
+      pintarPrevias();
+    });
   };
 
   if (modalPublicar) iniciarPublicar();
-
 
   /* --- Cerrar modales con los botones "Cancelar" y la cruz ------------------ */
 
   document.querySelectorAll("dialog.modal [data-soc-cerrar]").forEach((boton) => {
     boton.addEventListener("click", () => boton.closest("dialog").close());
   });
-
 
   if (modoUnica) cargarUnica();
   else cargarPagina();

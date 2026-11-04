@@ -91,7 +91,6 @@
   color: var(--ink-3);
 }
 
-
 /* --- Íconos ---------------------------------------------------------------- */
 
 .soc-ico {
@@ -146,7 +145,6 @@
   width: 16px;
   height: 16px;
 }
-
 
 /* --- Tarjeta --------------------------------------------------------------- */
 
@@ -221,7 +219,6 @@
 .soc-visibilidad [hidden] {
   display: none;
 }
-
 
 /* --- Foto o portada ---------------------------------------------------------- */
 
@@ -331,7 +328,6 @@
   color: var(--ink);
 }
 
-
 /* --- Acciones ---------------------------------------------------------------- */
 
 .soc-acciones {
@@ -382,7 +378,6 @@
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
-
 
 /* --- Descripción ------------------------------------------------------------- */
 
@@ -462,7 +457,6 @@
   white-space: pre-line;
 }
 
-
 /* --- Comentarios ----------------------------------------------------------- */
 
 .soc-comentarios {
@@ -541,7 +535,6 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
   outline: none;
 }
-
 
 /* --- Modal de compartir ----------------------------------------------------- */
 
@@ -702,9 +695,7 @@
   opacity: 0.6;
 }
 
-
 @media (max-width: 480px) {
-
   .soc-feed {
     padding-inline: 0;
   }
@@ -719,7 +710,6 @@
     border-radius: 0;
   }
 }
-
 
 /* ==========================================================================
    Estilo red de fotos, segunda parte: autor con enlace, "me gusta" con
@@ -744,7 +734,6 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-
 
 /* --- Doble toque sobre la foto: el corazón aparece un instante -------------- */
 
@@ -780,20 +769,32 @@
 }
 
 @keyframes soc-latido {
-  0%   { opacity: 0; transform: scale(0.4); }
-  20%  { opacity: 1; transform: scale(1.15); }
-  40%  { transform: scale(0.95); }
-  60%  { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1.1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  40% {
+    transform: scale(0.95);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.1);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .soc-corazon-pop.is-pop {
     animation: none;
   }
 }
-
 
 /* --- "Les gusta a Ana, Beto y 3 más" ---------------------------------------- */
 
@@ -808,7 +809,6 @@
 .soc-likes[hidden] {
   display: none;
 }
-
 
 /* --- Vista previa de comentarios ---------------------------------------------- */
 
@@ -853,7 +853,6 @@
 .soc-ver-comentarios:focus-visible {
   color: var(--ink);
 }
-
 
 /* --- Grilla de miniaturas (Descubrir y perfiles) ------------------------------ */
 
@@ -947,7 +946,6 @@
   height: 20px;
 }
 
-
 /* --- Diálogo con la publicación abierta ----------------------------------------- */
 
 .soc-modal-post {
@@ -974,7 +972,6 @@
   border-radius: 0;
 }
 
-
 /* --- "Planes publicados" en los perfiles ------------------------------------------ */
 
 .soc-perfil {
@@ -992,7 +989,6 @@
 }
 
 @media (max-width: 480px) {
-
   .soc-perfil {
     padding-inline: 0;
   }
@@ -1005,7 +1001,6 @@
     width: calc(100% - 12px);
   }
 }
-
 
 /* --- Proponer el plan a un grupo ---------------------------------------------- */
 
@@ -1041,16 +1036,9 @@
   cursor: progress;
 }
 
-
 /* ==========================================================================
    Inbox > Publicaciones (avisos de me gusta y comentarios) y retoques
    ========================================================================== */
-
-.inbox-tabs {
-  justify-content: flex-start;
-  margin-top: 0;
-  margin-bottom: clamp(16px, 3vw, 28px);
-}
 
 .avisos {
   display: flex;
@@ -1137,13 +1125,11 @@
   background: var(--accent);
 }
 
-
 /* --- Foto vertical (4:5) ---------------------------------------------------------- */
 
 .soc-fotos[data-aspecto="vertical"] {
   aspect-ratio: 4 / 5;
 }
-
 
 /* --- Grilla: me gusta y comentarios al pasar el mouse ------------------------------- */
 
@@ -1187,23 +1173,16 @@
 
 /* En pantallas táctiles no hay "pasar el mouse": no se muestran. */
 @media (hover: none) {
-
   .soc-mini-datos {
     display: none;
   }
 }
-
 
 /* --- Moderación: reportes pendientes ------------------------------------------------ */
 
 .mod {
   max-width: 760px;
   padding-bottom: clamp(48px, 7vw, 80px);
-}
-
-.mod-bajada {
-  margin: 0 0 20px;
-  color: var(--ink-3);
 }
 
 .mod-lista {
@@ -1280,82 +1259,244 @@
   gap: 8px;
 }
 
-
 /* ==========================================================================
    Sereno: superficies, pestañas, avisos y la pestaña Actividad
    (van al final para ganarle a las reglas de arriba sin tocar su lógica)
    ========================================================================== */
 
-.soc-tabs { margin-bottom: var(--s-6); }
-.soc-barra { margin: var(--s-6) auto var(--s-5); padding-bottom: var(--s-4); }
-.soc-barra__titulo { margin: 0; }
+.soc-tabs {
+  margin-bottom: var(--s-6);
+}
+.soc-barra {
+  margin: var(--s-6) auto var(--s-5);
+  padding-bottom: var(--s-4);
+}
+.soc-barra__titulo {
+  margin: 0;
+}
 
-.soc-tarjeta { border: 0; background: var(--surface); box-shadow: var(--sh-card); }
-.soc-avatar { background: var(--paper-deep); color: var(--ink-2); }
+.soc-tarjeta {
+  border: 0;
+  background: var(--surface);
+  box-shadow: var(--sh-card);
+}
+.soc-avatar {
+  background: var(--paper-deep);
+  color: var(--ink-2);
+}
 
 /* Datos del plan: chips sin interacción, un tono sobre la tarjeta. */
-.soc-datos li { padding: 4px 10px; border: 0; background: var(--paper-deep); color: var(--ink-2); font-weight: 550; }
-.soc-datos li.plan-estado { background: var(--ink); color: var(--on-ink); }
+.soc-datos li {
+  padding: 4px 10px;
+  border: 0;
+  background: var(--paper-deep);
+  color: var(--ink-2);
+  font-weight: 550;
+}
+.soc-datos li.plan-estado {
+  background: var(--ink);
+  color: var(--on-ink);
+}
 
-.soc-vacio { padding: var(--s-8) var(--s-6); background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--sh-card); }
-.soc-vacio .h3 { margin: 0 0 var(--s-2); }
+.soc-vacio {
+  padding: var(--s-8) var(--s-6);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+}
+.soc-vacio .h3 {
+  margin: 0 0 var(--s-2);
+}
 
 /* --- Avisos del Inbox (me gusta y comentarios de lo que publicaste) --- */
-.avisos { gap: var(--s-3); max-width: 720px; margin-top: var(--s-6); }
-.aviso { border: 0; box-shadow: var(--sh-card); transition: box-shadow var(--d-base) var(--ease-out); }
-.aviso:hover, .aviso:focus-visible { border: 0; box-shadow: var(--sh-float); }
-.aviso-nuevo { border: 0; background: var(--surface); box-shadow: 0 0 0 1.5px var(--ink), var(--sh-card); }
-.aviso-miniatura { background: var(--paper-deep); color: var(--ink-2); }
-.aviso-punto { background: var(--ink); }
+.avisos {
+  gap: var(--s-3);
+  max-width: 720px;
+  margin-top: var(--s-6);
+}
+.aviso {
+  border: 0;
+  box-shadow: var(--sh-card);
+  transition: box-shadow var(--d-base) var(--ease-out);
+}
+.aviso:hover,
+.aviso:focus-visible {
+  border: 0;
+  box-shadow: var(--sh-float);
+}
+.aviso-nuevo {
+  border: 0;
+  background: var(--surface);
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    var(--sh-card);
+}
+.aviso-miniatura {
+  background: var(--paper-deep);
+  color: var(--ink-2);
+}
+.aviso-punto {
+  background: var(--ink);
+}
 
 /* --- Pestaña Actividad: lo que hicieron los amigos --- */
-.social-feed { display: grid; gap: var(--s-6); }
-.social-feed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--s-4); }
-.social-post { display: grid; align-content: start; gap: var(--s-3); }
-.social-post-author { display: flex; align-items: center; gap: var(--s-3); }
-.social-post-author strong { display: block; font-size: var(--t-ui); font-weight: 600; }
-.social-post-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2); margin-top: auto; }
-.social-ver-mas { display: flex; justify-content: center; margin-top: var(--s-6); }
-.rating-stars { display: inline-flex; gap: 1px; color: var(--ink-4); letter-spacing: 0; }
-.rating-stars .is-on { color: var(--ink); }
-.soc-feed .social-ver-mas { margin-top: var(--s-5); }
+.social-feed {
+  display: grid;
+  gap: var(--s-6);
+}
+.social-feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--s-4);
+}
+.social-post {
+  display: grid;
+  align-content: start;
+  gap: var(--s-3);
+}
+.social-post-author {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.social-post-author strong {
+  display: block;
+  font-size: var(--t-ui);
+  font-weight: 600;
+}
+.social-post-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  margin-top: auto;
+}
+.social-ver-mas {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--s-6);
+}
+.rating-stars {
+  display: inline-flex;
+  gap: 1px;
+  color: var(--ink-4);
+  letter-spacing: 0;
+}
+.rating-stars .is-on {
+  color: var(--ink);
+}
+.soc-feed .social-ver-mas {
+  margin-top: var(--s-5);
+}
 
 /* Enlaces y botones de texto del feed: objetivo táctil de 44 px sin cambiar el aspecto. */
-.soc-plan-nombre a { display: inline-block; padding-block: 8px; }
-.soc-ver-comentarios { min-height: var(--control-h); }
-
+.soc-plan-nombre a {
+  display: inline-block;
+  padding-block: 8px;
+}
+.soc-ver-comentarios {
+  min-height: var(--control-h);
+}
 
 /* Objetivos táctiles: el nombre del plan en cada tarjeta. */
-.soc-plan-nombre a { display: inline-flex; align-items: center; min-height: var(--hit); }
-
+.soc-plan-nombre a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit);
+}
 
 /* ---------- Social (Amigos y Descubrir): la página no scrollea, solo las publicaciones ----------
    El título, el subtítulo, las pestañas y la barra "Compartir un plan" quedan siempre a la vista. */
 
-.soc-scroll { flex: 1; min-height: 0; padding-bottom: var(--s-10); }
-
-@media (min-width: 901px) {
-  .dashboard-layout--fija { height: calc(100svh - var(--header-h)); min-height: 0; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
-  .dashboard-layout--fija .dashboard-main { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-  .social-page--fija { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; }
-  .social-page--fija .page-head { margin: var(--s-2) 0 var(--s-4); }
-  .social-page--fija .soc-tabs { margin-bottom: var(--s-4); flex: none; }
-  .social-page--fija > .soc-feed { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 0; }
-  .social-page--fija .soc-barra { flex: none; width: 100%; margin-bottom: var(--s-3); }
-  .social-page--fija .soc-aviso { flex: none; }
-  .soc-scroll { overflow-y: auto; overscroll-behavior: contain; }
+.soc-scroll {
+  flex: 1;
+  min-height: 0;
+  padding-bottom: var(--s-10);
 }
 
+@media (min-width: 901px) {
+  .dashboard-layout--fija {
+    height: calc(100svh - var(--header-h));
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+  }
+  .dashboard-layout--fija .dashboard-main {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .social-page--fija {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding-bottom: 0;
+  }
+  .social-page--fija .page-head {
+    margin: var(--s-2) 0 var(--s-4);
+  }
+  .social-page--fija .soc-tabs {
+    margin-bottom: var(--s-4);
+    flex: none;
+  }
+  .social-page--fija > .soc-feed {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding-bottom: 0;
+  }
+  .social-page--fija .soc-barra {
+    flex: none;
+    width: 100%;
+    margin-bottom: var(--s-3);
+  }
+  .social-page--fija .soc-aviso {
+    flex: none;
+  }
+  .soc-scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
 
 /* ---------- Social fijo (escritorio): encabezado en una fila y publicaciones que se ven enteras ---------- */
 @media (min-width: 901px) {
-  .social-page--fija { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr); column-gap: var(--s-5); align-content: start; }
-  .social-page--fija > .back-link { display: none; }
-  .social-page--fija > .page-head { grid-column: 1; grid-row: 1; margin: var(--s-2) 0 var(--s-3); }
-  .social-page--fija > .page-head .h2 { font-size: clamp(1.75rem, 1.3rem + 1.1vw, 2.5rem); }
-  .social-page--fija > .page-head .lead { margin: 0; font-size: 1.0625rem; }
-  .social-page--fija > .soc-tabs { grid-column: 2; grid-row: 1; align-self: end; margin-bottom: var(--s-3); }
-  .social-page--fija > .soc-feed { grid-column: 1 / -1; grid-row: 2; }
+  .social-page--fija {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: var(--s-5);
+    align-content: start;
+  }
+  .social-page--fija > .back-link {
+    display: none;
+  }
+  .social-page--fija > .page-head {
+    grid-column: 1;
+    grid-row: 1;
+    margin: var(--s-2) 0 var(--s-3);
+  }
+  .social-page--fija > .page-head .h2 {
+    font-size: clamp(1.75rem, 1.3rem + 1.1vw, 2.5rem);
+  }
+  .social-page--fija > .page-head .lead {
+    margin: 0;
+    font-size: 1.0625rem;
+  }
+  .social-page--fija > .soc-tabs {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+    margin-bottom: var(--s-3);
+  }
+  .social-page--fija > .soc-feed {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
 
   /* Una columna algo más ancha y la barra de "Compartir" en una línea. */
   .social-page--fija .soc-barra,
@@ -1363,17 +1504,25 @@
   .social-page--fija .soc-vacio,
   .social-page--fija .soc-cargando,
   .social-page--fija .soc-feed > .soc-aviso,
-  .social-page--fija .soc-feed .social-ver-mas { max-width: 640px; }
-  .social-page--fija .soc-barra { margin-bottom: var(--s-3); padding-bottom: var(--s-3); }
+  .social-page--fija .soc-feed .social-ver-mas {
+    max-width: 640px;
+  }
+  .social-page--fija .soc-barra {
+    margin-bottom: var(--s-3);
+    padding-bottom: var(--s-3);
+  }
 
   /* La foto toma el alto que queda: la publicación entera cabe en la pantalla, sin recortes raros. */
   .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-fotos,
   .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-fotos[data-aspecto="vertical"] {
-    aspect-ratio: auto; height: clamp(300px, calc(100svh - 430px), 640px);
+    aspect-ratio: auto;
+    height: clamp(300px, calc(100svh - 430px), 640px);
   }
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-portada { aspect-ratio: auto; height: clamp(240px, calc(100svh - 430px), 520px); }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-portada {
+    aspect-ratio: auto;
+    height: clamp(240px, calc(100svh - 430px), 520px);
+  }
 }
-
 
 /* ---------- Social (escritorio ≥ 1000 px): la publicación es una tarjeta horizontal que entra entera ----------
    A la izquierda la foto, cuadrada y con el alto que queda en pantalla; a la derecha, autor, nombre del plan,
@@ -1388,31 +1537,78 @@
   .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-vacio,
   .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-cargando,
   .social-page--fija .soc-feed:not([data-modo="grilla"]) > .soc-aviso,
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .social-ver-mas { max-width: calc(var(--alto-tarjeta) + 420px); }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .social-ver-mas {
+    max-width: calc(var(--alto-tarjeta) + 420px);
+  }
 
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-scroll { scroll-snap-type: y proximity; }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-scroll {
+    scroll-snap-type: y proximity;
+  }
 
   .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-tarjeta {
-    display: grid; grid-template-columns: var(--alto-tarjeta) minmax(0, 1fr);
+    display: grid;
+    grid-template-columns: var(--alto-tarjeta) minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto auto;
-    height: var(--alto-tarjeta); overflow: hidden; scroll-snap-align: start;
+    height: var(--alto-tarjeta);
+    overflow: hidden;
+    scroll-snap-align: start;
   }
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-media { grid-column: 1; grid-row: 1 / -1; min-height: 0; }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-media {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    min-height: 0;
+  }
   .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-fotos,
   .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-fotos[data-aspecto="vertical"],
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-portada { height: 100%; aspect-ratio: auto; }
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-autor   { grid-column: 2; grid-row: 1; }
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-cuerpo  { display: block; grid-column: 2; grid-row: 2; min-height: 0; overflow-y: auto; overscroll-behavior: contain; border-top: 1px solid var(--line); }
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-acciones { grid-column: 2; grid-row: 3; border-top: 1px solid var(--line); }
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-likes   { grid-column: 2; grid-row: 4; }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-portada {
+    height: 100%;
+    aspect-ratio: auto;
+  }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-autor {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-cuerpo {
+    display: block;
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top: 1px solid var(--line);
+  }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-acciones {
+    grid-column: 2;
+    grid-row: 3;
+    border-top: 1px solid var(--line);
+  }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-likes {
+    grid-column: 2;
+    grid-row: 4;
+  }
 
   /* Datos del plan en una sola línea que se parte; texto y descripción acotados. */
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-datos { display: flex; flex-wrap: wrap; gap: 2px var(--s-3); }
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-datos li:empty { display: none; }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-datos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px var(--s-3);
+  }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-datos li:empty {
+    display: none;
+  }
   .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-plan-descripcion,
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-texto { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-texto {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
-.soc-cuerpo { display: contents; }
+.soc-cuerpo {
+  display: contents;
+}
 @media (min-width: 1000px) {
-  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-likes { padding-bottom: var(--s-3); }
+  .social-page--fija .soc-feed:not([data-modo="grilla"]) .soc-likes {
+    padding-bottom: var(--s-3);
+  }
 }

@@ -8,14 +8,14 @@
    ========================================================================== */
 
 (function () {
-
   "use strict";
 
   var reducir = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var hayObservador = "IntersectionObserver" in window;
 
-  if (reducir || !hayObservador) { return; }
-
+  if (reducir || !hayObservador) {
+    return;
+  }
 
   // ---- 1. Aparición al scrollear ------------------------------------------------------------------------------
 
@@ -29,16 +29,21 @@
     [".landing-steps .landing-split > div:first-child", 0],
     [".landing-steps__list > li", 200],
     [".landing-faq h2", 0],
-    [".faq__item", 120]
+    [".faq__item", 120],
   ];
 
-  var observador = new IntersectionObserver(function (entradas) {
-    entradas.forEach(function (entrada) {
-      if (!entrada.isIntersecting) { return; }
-      entrada.target.classList.add("is-visible");
-      observador.unobserve(entrada.target);
-    });
-  }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
+  var observador = new IntersectionObserver(
+    function (entradas) {
+      entradas.forEach(function (entrada) {
+        if (!entrada.isIntersecting) {
+          return;
+        }
+        entrada.target.classList.add("is-visible");
+        observador.unobserve(entrada.target);
+      });
+    },
+    { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
+  );
 
   BLOQUES.forEach(function (bloque) {
     Array.prototype.forEach.call(document.querySelectorAll(bloque[0]), function (el, i) {
@@ -50,13 +55,14 @@
 
   document.documentElement.classList.add("reveal-on");
 
-
   // ---- 2. Tipeo de la respuesta del asistente -----------------------------------------------------------------
 
   var voz = document.querySelector(".landing-demo__brief .voice");
   var boton = document.querySelector(".landing-demo__brief .btn");
 
-  if (!voz) { return; }
+  if (!voz) {
+    return;
+  }
 
   var fuerte = voz.querySelector("strong");
   var textoFuerte = fuerte ? fuerte.textContent.trim() : "";
@@ -85,22 +91,31 @@
   voz.appendChild(tramoResto);
   voz.appendChild(pensando);
 
-  if (boton) { boton.classList.add("tipeo-pendiente"); }
+  if (boton) {
+    boton.classList.add("tipeo-pendiente");
+  }
 
   function pausaPara(caracter) {
-    if (".!?".indexOf(caracter) !== -1) { return 150; }
-    if (",;:".indexOf(caracter) !== -1) { return 70; }
+    if (".!?".indexOf(caracter) !== -1) {
+      return 150;
+    }
+    if (",;:".indexOf(caracter) !== -1) {
+      return 70;
+    }
     return 0;
   }
 
   function escribir(texto, destino, alTerminar) {
     var i = 0;
     (function siguiente() {
-      if (i >= texto.length) { alTerminar(); return; }
+      if (i >= texto.length) {
+        alTerminar();
+        return;
+      }
       var c = texto.charAt(i++);
       destino.textContent += c;
       window.setTimeout(siguiente, 9 + Math.random() * 13 + pausaPara(c));
-    }());
+    })();
   }
 
   function empezar() {
@@ -112,20 +127,32 @@
         window.setTimeout(function () {
           tramoResto.textContent = " ";
           escribir(textoResto, tramoResto, function () {
-            if (boton) { boton.classList.remove("tipeo-pendiente"); }
-            window.setTimeout(function () { cursor.classList.add("is-apagado"); }, 2600);
+            if (boton) {
+              boton.classList.remove("tipeo-pendiente");
+            }
+            window.setTimeout(function () {
+              cursor.classList.add("is-apagado");
+            }, 2600);
           });
         }, 220);
       });
     }, 650);
   }
 
-  var arranque = new IntersectionObserver(function (entradas) {
-    if (!entradas.some(function (e) { return e.isIntersecting; })) { return; }
-    arranque.disconnect();
-    empezar();
-  }, { threshold: 0.4 });
+  var arranque = new IntersectionObserver(
+    function (entradas) {
+      if (
+        !entradas.some(function (e) {
+          return e.isIntersecting;
+        })
+      ) {
+        return;
+      }
+      arranque.disconnect();
+      empezar();
+    },
+    { threshold: 0.4 }
+  );
 
   arranque.observe(voz);
-
-}());
+})();
