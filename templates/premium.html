@@ -3,8 +3,8 @@
 {% block title %}Plan Premium — Ahora Qué{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261105-premium') }}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/legal_demo.css', v='20261105-premium') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261105-premium2') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/legal_demo.css', v='20261105-premium2') }}" />
 {% endblock %}
 
 {% block content %}
@@ -15,7 +15,7 @@
 
 {% include '_premium_iconos.html' %}
 
-<div class="dashboard-layout dashboard-layout-page">
+<div class="dashboard-layout dashboard-layout-page dashboard-layout--fija-grupo">
 
   {% include '_dashboard_sidebar.html' %}
 
@@ -29,7 +29,7 @@
 
       <header class="premium-cab">
         <span class="premium-cab__marca prem-aparece" style="--n: 0"><span class="prem-estrella prem-estrella--brilla"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-estrella" /></svg></span> Premium</span>
-        <h1 class="premium-cab__titulo prem-aparece" style="--n: 1">Planes sin límite,<br>con la IA de tu lado.</h1>
+        <h1 class="premium-cab__titulo prem-aparece" style="--n: 1">Planes sin límite, <br class="prem-br">con la IA de tu lado.</h1>
         <p class="premium-cab__texto prem-aparece" style="--n: 2">Elegí cómo querés armar tus planes. Cambiás o cancelás cuando quieras.</p>
 
         <div class="prem-ciclo prem-aparece" style="--n: 3" role="radiogroup" aria-label="Frecuencia de pago" data-ciclo="mensual" data-ciclo-selector>
@@ -97,28 +97,6 @@
 
       </div>
 
-      <ul class="premium-garantias">
-        <li class="prem-aparece" style="--n: 6">
-          <span class="premium-garantias__icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-reloj" /></svg></span>
-          <strong>Cancelás cuando quieras</strong>
-          <span>Sin permanencia: volvés al plan gratis en un toque.</span>
-        </li>
-        <li class="prem-aparece" style="--n: 7">
-          <span class="premium-garantias__icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-escudo" /></svg></span>
-          <strong>Sin cargos ocultos</strong>
-          <span>Pagás lo que ves acá, nada más.</span>
-        </li>
-        <li class="prem-aparece" style="--n: 8">
-          <span class="premium-garantias__icono"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-corazon" /></svg></span>
-          <strong>Tus planes son tuyos</strong>
-          <span>Si cancelás, tus grupos y planes se quedan como están.</span>
-        </li>
-      </ul>
-
-      {% if premium_demo %}
-      <p class="premium-pie">Los precios son de ejemplo: todavía no hay cobros reales.</p>
-      {% endif %}
-
       {% include '_premium_legal.html' %}
 
     </section>
@@ -127,6 +105,6 @@
 
 </div>
 
-<script defer src="{{ url_for('static', filename='premium.js', v='20261105-premium') }}"></script>
+<script defer src="{{ url_for('static', filename='premium.js', v='20261105-premium2') }}"></script>
 
 {% endblock %}

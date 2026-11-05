@@ -35,18 +35,18 @@
 
     {# Fuentes alojadas en el propio sitio, así no se le manda la IP de cada visita a Google.
        El archivo se genera con scripts/descargar_fuentes.py (ver LEEME_CAMBIOS.md). #}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/fuentes.css', v='20261105-premium') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fuentes.css', v='20261105-premium2') }}" />
 
     {# Sereno: tokens → componentes → marca → pantallas → grupos, social y asistente. #}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261105-premium') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261105-premium') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261105-premium') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261105-premium') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261105-premium') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261105-premium') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261105-premium') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261105-premium') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261105-premium') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261105-premium2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261105-premium2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261105-premium2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261105-premium2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261105-premium2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261105-premium2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261105-premium2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261105-premium2') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261105-premium2') }}" />
 
     <link
       rel="icon"
@@ -65,35 +65,35 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20261105-premium') }}"
+      src="{{ url_for('static', filename='app.js', v='20261105-premium2') }}"
     ></script>
 
-    <script defer src="{{ url_for('static', filename='push-notifications.js', v='20261105-premium') }}"></script>
+    <script defer src="{{ url_for('static', filename='push-notifications.js', v='20261105-premium2') }}"></script>
 
     <script
       defer
-      src="{{ url_for('static', filename='sereno-ui.js', v='20261105-premium') }}"
-    ></script>
-
-    <script
-      defer
-      src="{{ url_for('static', filename='distancia.js', v='20261105-premium') }}"
+      src="{{ url_for('static', filename='sereno-ui.js', v='20261105-premium2') }}"
     ></script>
 
     <script
       defer
-      src="{{ url_for('static', filename='fondo_puntos.js', v='20261105-premium') }}"
+      src="{{ url_for('static', filename='distancia.js', v='20261105-premium2') }}"
     ></script>
 
     <script
       defer
-      src="{{ url_for('static', filename='markdown_ligero.js', v='20261105-premium') }}"
+      src="{{ url_for('static', filename='fondo_puntos.js', v='20261105-premium2') }}"
+    ></script>
+
+    <script
+      defer
+      src="{{ url_for('static', filename='markdown_ligero.js', v='20261105-premium2') }}"
     ></script>
 
     {% if logueado and guia_nueva %}
     <script
       defer
-      src="{{ url_for('static', filename='guia.js', v='20261105-premium') }}"
+      src="{{ url_for('static', filename='guia.js', v='20261105-premium2') }}"
     ></script>
     {% endif %}
 
