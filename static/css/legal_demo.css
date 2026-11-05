@@ -1,34 +1,122 @@
 /* Aviso de DEMO y bloque de condiciones de Premium. Usa los colores del sitio con valores de respaldo. */
 
 .demo-aviso {
-  display: flex; align-items: flex-start; gap: 12px;
-  margin: 0 0 var(--s-5, 24px); padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 var(--s-5, 24px);
+  padding: 12px 16px;
   border: 1px solid color-mix(in srgb, #d99a00 55%, transparent);
   border-radius: var(--r-md, 12px);
   background: color-mix(in srgb, #ffc933 22%, transparent);
-  color: var(--ink, #1a1a1a); font-size: 0.9375rem; line-height: 1.45;
+  color: var(--ink, #1a1a1a);
+  font-size: 0.9375rem;
+  line-height: 1.45;
 }
 .demo-aviso strong {
-  flex: none; padding: 2px 10px; border-radius: 999px;
-  background: #1a1a1a; color: #ffc933; font-size: 0.75rem; letter-spacing: 0.08em;
+  flex: none;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #1a1a1a;
+  color: #ffc933;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
 }
 
+.legal-acepta {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 14px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+.legal-acepta input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+.legal-error {
+  margin: -6px 0 12px;
+  color: #c0392b;
+  font-size: 0.8125rem;
+}
+.legal-error[hidden] {
+  display: none;
+}
+
+:root[data-theme="night"] .demo-aviso {
+  background: color-mix(in srgb, #ffc933 16%, transparent);
+}
+:root[data-theme="night"] .legal-error {
+  color: #ff8a7a;
+}
+
+/* Condiciones de Premium: ficha Sereno (superficie con sombra, etiquetas chicas en mayúscula y valores en tinta suave). */
 .legal-premium {
-  max-width: 62ch; margin: var(--s-6, 32px) auto 0; padding: 20px 22px;
-  border: 1px solid color-mix(in srgb, var(--ink, #1a1a1a) 14%, transparent);
-  border-radius: var(--r-md, 12px);
-  color: var(--ink-2, #3a3a3a); font-size: 0.875rem; line-height: 1.55;
+  margin: var(--s-3) 0 0;
+  padding: 12px 18px 14px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--sh-card);
+  color: var(--ink-2);
 }
-.legal-premium h2 { margin: 0 0 10px; font-size: 1rem; color: var(--ink, #1a1a1a); }
-.legal-premium dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; }
-.legal-premium dt { font-weight: 650; color: var(--ink, #1a1a1a); }
-.legal-premium dd { margin: 0; }
-.legal-premium p { margin: 12px 0 0; }
-
-.legal-acepta { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; font-size: 0.875rem; line-height: 1.45; cursor: pointer; }
-.legal-acepta input { flex: none; width: 18px; height: 18px; margin-top: 2px; }
-.legal-error { margin: -6px 0 12px; color: #c0392b; font-size: 0.8125rem; }
-.legal-error[hidden] { display: none; }
-
-:root[data-theme="night"] .demo-aviso { background: color-mix(in srgb, #ffc933 16%, transparent); }
-:root[data-theme="night"] .legal-error { color: #ff8a7a; }
+.legal-premium__cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px var(--s-4);
+  margin-bottom: var(--s-2);
+}
+.legal-premium h2 {
+  margin: 0;
+  color: var(--ink-3);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.legal-premium__enlaces {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+.legal-premium a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent);
+  text-underline-offset: 2px;
+}
+.legal-premium a:hover {
+  text-decoration-color: currentColor;
+}
+.legal-premium__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 6px 24px;
+  margin: 0;
+}
+.legal-premium__lista > div {
+  min-width: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.legal-premium dt {
+  display: inline;
+  margin-right: 6px;
+  color: var(--ink);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.legal-premium dd {
+  display: inline;
+  margin: 0;
+  overflow-wrap: anywhere;
+}

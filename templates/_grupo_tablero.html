@@ -317,10 +317,13 @@
       <ul class="cuenta__lista">
         {% for plan in tablero.descartados %}
         <li id="plan-{{ plan.id }}">
-          <a href="{{ url_for('planes.detalle', plan_id=plan.id) }}">{{ plan.nombre }}</a>
-          <span class="meta">
-            {% if plan.estado == 'rechazado' %}· No juntó suficientes "me gusta"{% else %}· Venció sin que se decidiera{% endif %}
-          </span>
+          <a class="cuenta__fila" href="{{ url_for('planes.detalle', plan_id=plan.id) }}">
+            <span class="cuenta__texto">
+              <strong>{{ plan.nombre }}</strong>
+              <small>{% if plan.estado == 'rechazado' %}No juntó suficientes "me gusta"{% else %}Venció sin que se decidiera{% endif %}</small>
+            </span>
+            <svg class="cuenta__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.5 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
         </li>
         {% endfor %}
       </ul>
