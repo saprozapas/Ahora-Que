@@ -122,6 +122,35 @@
       </aside>
       {% endif %}
 
+      {% if es_premium %}
+      <section class="resumen-sem" aria-labelledby="resumen-sem-titulo">
+        <header class="resumen-sem__cab">
+          <h2 class="h3" id="resumen-sem-titulo">Tu resumen de la semana</h2>
+          <span class="resumen-sem__tag">Premium</span>
+        </header>
+        <ul class="resumen-sem__datos">
+          <li>
+            <span class="resumen-sem__valor">{% if proximo_plan %}{{ proximo_plan.fecha | cuando(proximo_plan.hora) }}{% else %}—{% endif %}</span>
+            <span class="resumen-sem__etiqueta">{% if proximo_plan %}{{ proximo_plan.nombre }}{% else %}Todavía sin plan confirmado{% endif %}</span>
+          </li>
+          <li>
+            <span class="resumen-sem__valor">{{ pendientes_datos.total if pendientes_datos else 0 }}</span>
+            <span class="resumen-sem__etiqueta">por votar o responder</span>
+          </li>
+          <li>
+            <span class="resumen-sem__valor">{{ invitaciones | length if invitaciones else 0 }}</span>
+            <span class="resumen-sem__etiqueta">invitaciones nuevas</span>
+          </li>
+        </ul>
+      </section>
+      {% else %}
+      <a class="resumen-sem resumen-sem--bloqueado" href="/premium">
+        <span class="resumen-sem__tag">Premium</span>
+        <strong>Tu resumen semanal en el Inicio</strong>
+        <small>Tus planes, lo que falta votar y tus invitaciones, en un vistazo.</small>
+      </a>
+      {% endif %}
+
       <div class="dash-section dash-pend">
 
         <div class="dash-pend__cab">
@@ -500,7 +529,7 @@
 
 </div>
 
-<script defer src="{{ url_for('static', filename='landing.js', v='20261104-limpieza') }}"></script>
+<script defer src="{{ url_for('static', filename='landing.js', v='20261105-premium') }}"></script>
 
 {% endif %}
 

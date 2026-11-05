@@ -3,8 +3,8 @@
 {% block title %}Suscripción — Ahora Qué{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261104-limpieza') }}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/legal_demo.css', v='20261103-legal1') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261105-premium') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/legal_demo.css', v='20261105-premium') }}" />
 {% endblock %}
 
 {% block content %}
@@ -46,13 +46,16 @@
           {% if es_premium %}
           <ul class="susc__lista">
             {{ punto('Planes con la IA sin límite semanal') }}
-            {{ punto('Una estrella junto a tu nombre') }}
+            {{ punto('La IA recuerda tus gustos y los usa en cada plan') }}
+            {{ punto('Modos de plan: sorpresa, presupuesto máximo, lluvia y cumpleaños') }}
+            {{ punto('Plan B automático si llueve o un lugar no puede') }}
+            {{ punto('Tu resumen semanal en el Inicio') }}
             {{ punto('Todo lo del plan gratis') }}
           </ul>
           {% if premium_demo %}<p class="susc__nota">Es una demostración: no hay ningún cobro asociado a tu suscripción.</p>{% endif %}
           <div class="susc__acciones">
             <form method="post" action="/suscripcion/cancelar"
-                  data-confirmar="¿Cancelar tu suscripción Premium? Volvés al plan gratis (1 plan por semana con la IA) y perdés la estrella.">
+                  data-confirmar="¿Cancelar tu suscripción Premium? Volvés al plan gratis (1 plan por semana con la IA) y perdés las ventajas de Premium.">
               <button class="btn btn--secondary" type="submit">Cancelar suscripción</button>
             </form>
           </div>
@@ -81,7 +84,7 @@
             {{ punto('Grupos, votaciones, chat y deudas sin límite') }}
             {{ punto('Tus planes y grupos se quedan como están') }}
           </ul>
-          <p class="susc__nota">Perdés la estrella junto a tu nombre y el límite semanal de planes con la IA vuelve.</p>
+          <p class="susc__nota">Perdés las ventajas de Premium y el límite semanal de planes con la IA vuelve.</p>
           <div class="susc__acciones"><a class="btn btn--secondary" href="/premium">Comparar planes</a></div>
           {% else %}
           <div class="susc__cab">
@@ -90,8 +93,10 @@
           </div>
           <ul class="susc__lista">
             {{ punto('Planes con la IA sin límite semanal') }}
-            {{ punto('Sin esperar a los lunes para volver a armar') }}
-            {{ punto('Una estrella junto a tu nombre') }}
+            {{ punto('La IA recuerda tus gustos y los usa en cada plan') }}
+            {{ punto('Modos de plan: sorpresa, presupuesto máximo, lluvia y cumpleaños') }}
+            {{ punto('Plan B automático si llueve o un lugar no puede') }}
+            {{ punto('Tu resumen semanal en el Inicio') }}
           </ul>
           <div class="susc__acciones">
             <a class="btn btn--primary" href="/premium/pagar" style="background: var(--prem-tinta); color: #14151a">Actualizar a Premium</a>

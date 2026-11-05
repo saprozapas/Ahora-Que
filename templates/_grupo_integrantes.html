@@ -1,4 +1,3 @@
-{% from '_macros.html' import estrella %}
 {% from '_grupo_macros.html' import cara_integrante, rol_integrante with context %}
 {# La lista de integrantes con lo que cada rol puede hacer (nombrar admin, pasar el grupo, sacar). La usan el modal y la info del grupo. #}
 <ul class="modal-members">
@@ -10,7 +9,7 @@
     >
       {{ cara_integrante(integrante) }}
       <span>
-        {{ integrante.user.get_name() }}{{ estrella(integrante.user.es_premium()) }}
+        {{ integrante.user.get_name() }}
         {{ rol_integrante(integrante) }}
       </span>
     </a>

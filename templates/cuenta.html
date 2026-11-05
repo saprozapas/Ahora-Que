@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import cara, estrella %}
+{% from '_macros.html' import cara %}
 
 {% block title %}Perfil — Ahora Qué{% endblock %}
 
@@ -27,7 +27,7 @@
       <a class="perfil-cab" href="/perfil" aria-label="Ver y editar tu perfil">
         {{ cara(current_user.id, current_user.name, 64) }}
         <span class="perfil-cab__datos">
-          <strong>{{ current_user.name }}{{ estrella(es_premium) }}</strong>
+          <strong>{{ current_user.name }}</strong>
           {% if current_user.username %}<small>@{{ current_user.username }}</small>{% endif %}
         </span>
         <span class="perfil-cab__editar">Editar</span>

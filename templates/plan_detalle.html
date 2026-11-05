@@ -111,6 +111,22 @@
 
 
         {# Mapa: solo para quienes van a un plan confirmado, hasta que termina. La ubicación de cada uno es opcional. #}
+        {% if plan.estado == 'confirmado' and plan.lugares %}
+        <section class="plan-detail__block plan-b{% if not es_premium %} plan-b--bloqueado{% endif %}" aria-labelledby="plan-b-titulo">
+          <header class="plan-b__cab">
+            <h2 class="h3" id="plan-b-titulo">Plan B</h2>
+            {% if not es_premium %}<span class="plan-b__tag">Premium</span>{% endif %}
+          </header>
+          {% if es_premium %}
+          <p class="plan-b__texto">Si llueve o {{ plan.lugares[0].nombre }} no puede, la IA te deja listo un reemplazo parecido{% if barrios %} en {{ barrios[0] }}{% endif %}, con el mismo horario y presupuesto.</p>
+          <a class="btn btn--secondary btn--sm" href="/planes/nueva-idea/asistente">Armar el plan B</a>
+          {% else %}
+          <p class="plan-b__texto">Si llueve o un lugar no puede, tené un reemplazo listo con la IA.</p>
+          <a class="btn btn--secondary btn--sm" href="/premium">Ver Premium</a>
+          {% endif %}
+        </section>
+        {% endif %}
+
         {% if plan.estado == 'confirmado' and plan.confirmado %}
         <section class="plan-detail__block mapa-plan" id="mapa" aria-labelledby="mapa-titulo" data-guia-id="plan-mapa" data-guia-orden="1" data-guia-titulo="El mapa de la salida" data-guia-texto="Ves el lugar y, si cada uno quiere, dónde está cada persona. Compartir tu ubicación es opcional." data-mapa-plan data-plan-id="{{ plan.id }}">
 
@@ -133,7 +149,7 @@
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.css" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.js"></script>
-        <script defer src="{{ url_for('static', filename='mapa_plan.js', v='20261104-limpieza') }}"></script>
+        <script defer src="{{ url_for('static', filename='mapa_plan.js', v='20261105-premium') }}"></script>
         {% endif %}
 
 

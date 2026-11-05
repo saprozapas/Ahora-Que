@@ -27,6 +27,26 @@
     </p>
   </div>
 
+  {% set modos = [
+    ('Plan sorpresa', 'Armame un plan sorpresa: no me cuentes a dónde vamos hasta el final.'),
+    ('Presupuesto máximo', 'Armame un plan que no pase de $ por persona: '),
+    ('Plan lluvioso', 'Armame un plan para un día de lluvia, todo bajo techo.'),
+    ('Cumpleaños', 'Armame un plan para festejar un cumpleaños en grupo.'),
+  ] %}
+  <div class="chatbot-modos" role="group" aria-label="Modos de plan">
+    <span class="chatbot-modos__titulo">Modos</span>
+    {% for nombre, texto in modos %}
+    {% if es_premium %}
+    <button class="chatbot-modo" type="button" data-modo-texto="{{ texto }}">{{ nombre }}</button>
+    {% else %}
+    <a class="chatbot-modo chatbot-modo--bloqueado" href="/premium" title="Disponible con Premium">{{ nombre }} <span class="chatbot-modo__tag">Premium</span></a>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% if es_premium %}
+  <p class="meta chatbot-memoria">Memoria activa: el asistente usa los gustos de tu <a href="/perfil">descripción de perfil</a> para elegir.</p>
+  {% endif %}
+
   <form class="chatbot-entrada" id="chatbot-form" autocomplete="off">
     <label class="chatbot-oculto" for="chatbot-input">Mensaje para el asistente</label>
     <input class="input" type="text" id="chatbot-input" maxlength="1000"
@@ -42,4 +62,16 @@
 
 </section>
 
-<script defer src="{{ url_for('static', filename='chatbot.js', v='20261104-limpieza') }}"></script>
+<script>
+// Los modos de plan (Premium) escriben el pedido en el campo y dejan el cursor listo para completarlo.
+document.querySelectorAll("[data-modo-texto]").forEach(function (boton) {
+  boton.addEventListener("click", function () {
+    var campo = document.getElementById("chatbot-input");
+    if (!campo) { return; }
+    campo.value = boton.dataset.modoTexto;
+    campo.focus();
+    campo.setSelectionRange(campo.value.length, campo.value.length);
+  });
+});
+</script>
+<script defer src="{{ url_for('static', filename='chatbot.js', v='20261105-premium') }}"></script>

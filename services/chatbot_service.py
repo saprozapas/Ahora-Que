@@ -381,11 +381,12 @@ def texto_contexto_grupo(grupo):
     return "\nLo que el grupo ya dijo (son cantidades, no sabés quién votó qué):\n" + "\n".join(lineas)
 
 
-def historial_para_llm(historial, grupo=None):
+def historial_para_llm(historial, grupo=None, gustos=None):
     """Convierte el historial guardado al formato del modelo. Los borradores
     se le pasan como texto corto (con los ids), así puede ajustarlos si el
     usuario pide cambios. `grupo` (ia_bridge.contexto_grupo: nombre, integrantes y lo que
     el grupo ya votó o puntuó) es el grupo para el que se arma el plan, si el chat se usa desde un grupo.
+    `gustos` es la descripción del perfil de quien tiene Premium: la memoria del asistente.
 
     Para gastar menos tokens solo se mandan los últimos
     MAX_MENSAJES_HISTORIAL_LLM mensajes. Lo que NO cambia entre usuarios (el
@@ -406,6 +407,8 @@ def historial_para_llm(historial, grupo=None):
             f"asumí que van {grupo['integrantes']} personas."
         )
         prompt += texto_contexto_grupo(grupo)
+    if gustos:
+        prompt += "\n\nGustos que la persona escribió en su perfil (tenelos en cuenta al elegir): «" + _limpio(gustos, 300) + "»."
     mensajes = [{"role": "system", "content": prompt}]
     for mensaje in historial[-MAX_MENSAJES_HISTORIAL_LLM:]:
         if mensaje["tipo"] == "borrador":

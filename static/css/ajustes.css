@@ -6539,3 +6539,125 @@ div.chat-fijado {
   height: 1px;
   background: color-mix(in srgb, var(--danger) 35%, transparent);
 }
+
+
+/* ==========================================================================
+   Ventajas de Premium: modos de plan, memoria, Plan B y resumen semanal
+   ========================================================================== */
+.chatbot-modos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  margin-block: var(--s-3) var(--s-2);
+}
+.chatbot-modos__titulo {
+  color: var(--ink-3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.chatbot-modo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 var(--s-3);
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+.chatbot-modo:hover {
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+}
+.chatbot-modo--bloqueado {
+  color: var(--ink-3);
+}
+.chatbot-modo__tag,
+.plan-b__tag,
+.resumen-sem__tag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+.chatbot-memoria {
+  margin: 0 0 var(--s-2);
+}
+
+.plan-b__cab,
+.resumen-sem__cab {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.plan-b__cab .h3,
+.resumen-sem__cab .h3 {
+  margin: 0;
+}
+.plan-b__texto {
+  margin: var(--s-2) 0 var(--s-3);
+  color: var(--ink-2);
+}
+.plan-b--bloqueado {
+  opacity: 0.85;
+}
+
+.resumen-sem {
+  display: grid;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+  padding: var(--s-4);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--sh-card);
+}
+.resumen-sem__datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.resumen-sem__datos li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.resumen-sem__valor {
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.resumen-sem__etiqueta {
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.resumen-sem--bloqueado {
+  justify-items: start;
+  gap: 4px;
+  color: inherit;
+  text-decoration: none;
+}
+.resumen-sem--bloqueado small {
+  color: var(--ink-3);
+}
+@media (max-width: 520px) {
+  .resumen-sem__datos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

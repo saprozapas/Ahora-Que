@@ -18,6 +18,7 @@ from cryptography.exceptions import InvalidTag
 from flask import Blueprint, Response, jsonify, request, session, stream_with_context, url_for
 
 import ia_bridge
+from database_bridge.database_bridge import getUser
 from services.chatbot_service import historial_para_llm, procesar_mensaje_bot, procesar_mensaje_bot_stream
 from services.crypto_service import ClaveMaestraFaltante
 from services.llm_service import LLMNoConfigurado
@@ -94,6 +95,16 @@ def historial():
     return jsonify(mensajes=[_mensaje_para_cliente(m) for m in mensajes])
 
 
+def _gustos_premium(user_id):
+    """La memoria del asistente: con Premium se usa la descripción del perfil como gustos de la persona."""
+    try:
+        if suscripcion_service.es_premium(user_id):
+            return (getUser(user_id).get_descripcion() or "").strip() or None
+    except Exception as e:
+        print(f"No se pudieron leer los gustos del perfil: {e}")
+    return None
+
+
 def _preparar_turno(user_id, datos):
     """Valida el pedido y arma lo que el bot necesita (lo comparten /mensaje
     y /mensaje_stream). Devuelve (turno, None), o (None, respuesta_de_error)."""
@@ -117,7 +128,8 @@ def _preparar_turno(user_id, datos):
 
     conv_id, dek = ia_bridge.obtener_o_crear_conversacion_bot(user_id)
     historial_guardado = ia_bridge.obtener_historial_desencriptado(conv_id, dek, limite=LIMITE_HISTORIAL)
-    mensajes_llm = historial_para_llm(historial_guardado, grupo)
+    gustos = _gustos_premium(user_id)
+    mensajes_llm = historial_para_llm(historial_guardado, grupo, gustos)
     mensajes_llm.append({"role": "user", "content": texto_usuario})
 
     # Mientras no haya un borrador en la conversación, un mensaje con algo de

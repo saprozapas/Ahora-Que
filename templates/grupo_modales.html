@@ -1,4 +1,4 @@
-{% from '_macros.html' import nombre_rango, estrella %}
+{% from '_macros.html' import nombre_rango %}
 {% from '_grupo_macros.html' import cara_integrante, rol_integrante with context %}
 
 <dialog
@@ -375,7 +375,7 @@
               {{ cara_integrante(integrante) }}
 
               <span>
-                {{ integrante.user.get_name() }}{{ estrella(integrante.user.es_premium()) }}
+                {{ integrante.user.get_name() }}
                 {{ rol_integrante(integrante) }}
               </span>
 

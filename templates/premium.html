@@ -3,8 +3,8 @@
 {% block title %}Plan Premium — Ahora Qué{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261104-limpieza') }}" />
-<link rel="stylesheet" href="{{ url_for('static', filename='css/legal_demo.css', v='20261103-legal1') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css', v='20261105-premium') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/legal_demo.css', v='20261105-premium') }}" />
 {% endblock %}
 
 {% block content %}
@@ -76,8 +76,10 @@
           </p>
           <ul class="premium-card__lista">
             {{ punto('Planes con la IA sin límite semanal') }}
-            {{ punto('Sin esperar a los lunes para volver a armar') }}
-            {{ punto('Una estrella junto a tu nombre') }}
+            {{ punto('La IA recuerda tus gustos y los usa en cada plan') }}
+            {{ punto('Modos de plan: sorpresa, presupuesto máximo, lluvia y cumpleaños') }}
+            {{ punto('Plan B automático si llueve o un lugar no puede') }}
+            {{ punto('Tu resumen semanal en el Inicio') }}
             {{ punto('Todo lo del plan gratis') }}
           </ul>
           <div class="premium-card__accion">
@@ -125,6 +127,6 @@
 
 </div>
 
-<script defer src="{{ url_for('static', filename='premium.js', v='20261107-premium2') }}"></script>
+<script defer src="{{ url_for('static', filename='premium.js', v='20261105-premium') }}"></script>
 
 {% endblock %}
