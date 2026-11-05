@@ -37,6 +37,10 @@ from services.suscripcion_service import PLANES_IA_GRATIS_POR_SEMANA, PRECIOS, S
 from services.plan_service import PlanService
 from services.social_service import SocialService
 from services import seguridad
+from services.legal_info import es_menor
+from services.mantenimiento import programar_limpieza
+from services.seguridad import huella_contrasena
+from database_bridge.database_bridge import getUser
 from services.contacto_service import ContactoInvalido, ContactoLimitado, ContactoService
 
 
@@ -287,6 +291,56 @@ def _premium_guardado(user_id):
     return premium
 
 
+_huella_cache = {}
+_HUELLA_SEGUNDOS = 30
+_SIN_DATOS = object()
+
+
+def _huella_vigente(user_id):
+    """La huella de la contraseña actual de la cuenta (se guarda 30 s). None si la cuenta ya no existe;
+    _SIN_DATOS si la base no respondió (en ese caso no se saca a nadie)."""
+    guardada = _huella_cache.get(user_id)
+    if guardada and time.monotonic() - guardada[0] < _HUELLA_SEGUNDOS:
+        return guardada[1]
+    from database import get_db_connection, release_db_connection
+    try:
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute('SELECT "Password_Hash" FROM public."Usuarios" WHERE "Id_Usuario" = %s', (user_id,))
+                fila = cur.fetchone()
+        finally:
+            release_db_connection(conn)
+    except Exception as e:
+        print(f"No se pudo comprobar la sesión: {e}")
+        return _SIN_DATOS
+    huella = huella_contrasena(fila[0]) if fila else None
+    _huella_cache[user_id] = (time.monotonic(), huella)
+    return huella
+
+
+@app.before_request
+def _limpieza_diaria():
+    if request.path not in ("/healthz", "/service-worker.js") and not request.path.startswith("/static"):
+        programar_limpieza()
+
+
+@app.before_request
+def _revocar_sesiones_viejas():
+    """Si la contraseña cambió o la cuenta se borró desde que se abrió esta sesión, se la cierra."""
+    user_id = session.get("user_id")
+    if not user_id or request.path.startswith("/static") or request.path in ("/healthz", "/service-worker.js"):
+        return None
+    huella = _huella_vigente(user_id)
+    if huella is _SIN_DATOS:
+        return None
+    if huella is None or (session.get("ph") and session["ph"] != huella):
+        session.clear()
+        return redirect("/login")
+    session.setdefault("ph", huella)  # sesiones abiertas antes de este control: se les anota la huella actual
+    return None
+
+
 @app.before_request
 def _borrar_inbox_guardado():
     # Si el usuario acepta/rechaza algo (cualquier POST), o abre el Inbox
@@ -366,6 +420,15 @@ def premium():
         return redirect('/login')
     return render_template('premium.html', ia_gratis_por_semana=PLANES_IA_GRATIS_POR_SEMANA, precios=PRECIOS)
 
+def _es_menor_de_edad(user_id):
+    try:
+        fecha = getUser(user_id).get_birth_date()
+        return bool(fecha and es_menor(fecha))
+    except Exception as e:
+        print(f"No se pudo leer la edad: {e}")
+        return False
+
+
 @app.route('/social')
 def social():
     if not session.get('user_id'):
@@ -379,7 +442,7 @@ def social():
         pestana = 'amigos'
 
     if pestana != 'actividad':
-        return render_template('social.html', pestana=pestana, es_moderador=es_moderador())
+        return render_template('social.html', pestana=pestana, es_moderador=es_moderador(), es_menor=_es_menor_de_edad(session['user_id']))
 
     nivel_pedido = request.args.get('nivel', '4')
     if nivel_pedido == 'todos':

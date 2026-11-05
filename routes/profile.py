@@ -1,4 +1,7 @@
-from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
+import json
+
+from flask import Blueprint, Response, abort, flash, jsonify, redirect, render_template, request, session, url_for
+from services.datos_personales import exportar as exportar_datos
 from services.auth_service import AuthService
 from services.avatar_service import AvatarService
 from services.deuda_service import DeudaService
@@ -166,6 +169,18 @@ def cambiar_contrasena():
                 error = err
 
     return render_template("cambiar_contrasena.html", error=error, exito=exito)
+
+
+@profile.route("/perfil/descargar-datos", methods=["POST"])
+def descargar_datos():
+    """Derecho de acceso: todos los datos de la persona en un archivo JSON."""
+    if not session.get("user_id"):
+        return redirect(url_for("auth.login"))
+    datos = exportar_datos(session["user_id"])
+    respuesta = Response(json.dumps(datos, ensure_ascii=False, indent=2), mimetype="application/json")
+    respuesta.headers["Content-Disposition"] = 'attachment; filename="mis-datos-ahora-que.json"'
+    respuesta.headers["Cache-Control"] = "no-store"
+    return respuesta
 
 
 @profile.route("/perfil/eliminar", methods=["POST"])

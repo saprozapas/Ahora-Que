@@ -24,6 +24,7 @@ from datetime import datetime
 import psycopg2
 from psycopg2 import errors
 
+from services.legal_info import es_menor
 from database import get_db_connection, release_db_connection
 from services.avatar_service import AvatarService
 from services.plan_service import PlanService
@@ -462,6 +463,13 @@ class SocialService:
                 raise SocialError("Las fotos tienen que ser imágenes JPEG válidas.")
         return fotos
 
+    @staticmethod
+    def _es_menor(connection, user_id):
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT "Fecha_Nac" FROM public."Usuarios" WHERE "Id_Usuario" = %s', (user_id,))
+            fila = cursor.fetchone()
+        return bool(fila and fila[0] and es_menor(fila[0]))
+
     def publicar(self, user_id, plan_id, texto, visibilidad, fotos=(), aspecto="cuadrada"):
         fotos = self._validar_fotos(fotos)
         if aspecto not in ASPECTOS:
@@ -473,6 +481,9 @@ class SocialService:
             raise SocialError("Elegí quién puede ver la publicación.")
 
         connection = get_db_connection()
+        if visibilidad == "publico" and self._es_menor(connection, user_id):
+            release_db_connection(connection)
+            raise SocialError("Con menos de 18 años tus publicaciones son solo para tus amigos.")
         try:
             with connection.cursor() as cursor:
                 cursor.execute(

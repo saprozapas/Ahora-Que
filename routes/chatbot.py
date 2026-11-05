@@ -95,6 +95,23 @@ def historial():
     return jsonify(mensajes=[_mensaje_para_cliente(m) for m in mensajes])
 
 
+_MENSAJES_RECIENTES = {}
+_LIMITE_MENSAJES = 40
+_VENTANA_MENSAJES = 3600
+
+
+def _pasa_el_limite_de_mensajes(user_id):
+    """Cada persona puede mandarle al asistente hasta 40 mensajes por hora (cuenta por proceso del servidor)."""
+    ahora = time.monotonic()
+    recientes = [t for t in _MENSAJES_RECIENTES.get(user_id, []) if ahora - t < _VENTANA_MENSAJES]
+    if len(recientes) >= _LIMITE_MENSAJES:
+        _MENSAJES_RECIENTES[user_id] = recientes
+        return True
+    recientes.append(ahora)
+    _MENSAJES_RECIENTES[user_id] = recientes
+    return False
+
+
 def _gustos_premium(user_id):
     """La memoria del asistente: con Premium se usa la descripción del perfil como gustos de la persona."""
     try:
@@ -108,6 +125,8 @@ def _gustos_premium(user_id):
 def _preparar_turno(user_id, datos):
     """Valida el pedido y arma lo que el bot necesita (lo comparten /mensaje
     y /mensaje_stream). Devuelve (turno, None), o (None, respuesta_de_error)."""
+    if _pasa_el_limite_de_mensajes(user_id):
+        return None, _error("Mandaste muchos mensajes seguidos. Probá de nuevo en un rato.", 429)
     if suscripcion_service.limite_ia_alcanzado(user_id):
         return None, _limite_semanal()
 

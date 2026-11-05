@@ -8,7 +8,8 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from models.user import User
 from services.auth_service import AuthService
 from services.password_policy import validar_contrasena
-from services.seguridad import url_publica
+from services.legal_info import FECHA_PRIVACIDAD, FECHA_TERMINOS, PROVEEDOR, VERSION_PRIVACIDAD, VERSION_TERMINOS
+from services.seguridad import huella_contrasena, url_publica
 from services.validaciones import validar_nombre, validar_username, validar_email
 from services.notification_service import NotificationService
 from werkzeug.security import check_password_hash,generate_password_hash
@@ -53,8 +54,10 @@ def login():
         hash_pass = user_login.get_password_hash()
 
         if hash_pass is not None and check_password_hash(hash_pass, password):
+            auth_service.limpiar_intentos_login(username_or_email)  # un login correcto no cuenta como intento
             session.permanent = True
             session["user_id"] = id_login
+            session["ph"] = huella_contrasena(hash_pass)
             session["user"] = {
                 "id": id_login,
                 "name": user_login.get_name(),
@@ -145,6 +148,12 @@ def register():
                 error="Tenés que aceptar los términos y condiciones para crear una cuenta.",
                 form_data=form_data,
             ), 400
+        if form_data.get("accept_privacy") != "on":
+            return render_template(
+                "register.html",
+                error="Tenés que aceptar el tratamiento de tus datos según la política de privacidad para crear una cuenta.",
+                form_data=form_data,
+            ), 400
 
         try:
             birth_date = datetime.strptime(birth_date_input, "%d/%m/%Y").date()
@@ -188,8 +197,13 @@ def register():
         codigo_hash = hashlib.sha256(codigo.encode("utf-8")).hexdigest()
         pending_user_id = None
         try:
+            aceptacion = {
+                "terminos": VERSION_TERMINOS,
+                "privacidad": VERSION_PRIVACIDAD,
+                "tutor": edad < EDAD_MAYORIA and form_data.get("guardian_ok") == "on",
+            }
             pending_user_id = auth_service.create_pending_registration(
-                User(name, birth_date, username, email, password_hash), codigo_hash
+                User(name, birth_date, username, email, password_hash), codigo_hash, aceptacion
             )
             link_confirmacion = url_publica("auth.confirmar_email", codigo=codigo)
             cuerpo = (
@@ -233,11 +247,11 @@ def register():
                     error="El mail ingresado ya está en uso.",
                     form_data=form_data,
                 ), 400
-        except psycopg2.errors.UndefinedTable:
-            current_app.logger.exception("Falta una tabla necesaria para completar el registro")
+        except (psycopg2.errors.UndefinedTable, psycopg2.errors.UndefinedColumn):
+            current_app.logger.exception("Falta una tabla o columna necesaria para completar el registro")
             return render_template(
                 "register.html",
-                error="Falta preparar la base de datos para confirmar registros. Ejecutá la migración de confirmación de correo.",
+                error="Falta preparar la base de datos para confirmar registros. Ejecutá las migraciones de confirmación de correo y de aceptaciones legales.",
                 form_data=form_data,
             ), 503
         except Exception:
@@ -279,12 +293,12 @@ def estado_confirmacion(user_id):
 
 @auth.route("/terminos-y-condiciones")
 def terminos_y_condiciones():
-    return render_template("terminos.html")
+    return render_template("terminos.html", version=VERSION_TERMINOS, fecha=FECHA_TERMINOS, proveedor=PROVEEDOR)
 
 
 @auth.route("/privacidad")
 def politica_privacidad():
-    return render_template("privacidad.html")
+    return render_template("privacidad.html", version=VERSION_PRIVACIDAD, fecha=FECHA_PRIVACIDAD, proveedor=PROVEEDOR)
 
 @auth.route("/logout")
 def logout():

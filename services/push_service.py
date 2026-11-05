@@ -6,9 +6,29 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from xml.sax.saxutils import escape
 
+import requests
 from flask import current_app
 
 from database import get_db_connection, release_db_connection
+
+
+# Los únicos servidores a los que se le manda un push: los de los navegadores (Chrome/Edge/Opera/Samsung por FCM,
+# Firefox, Safari y Edge por WNS). Cualquier otra dirección se rechaza: si no, el servidor le haría un POST a donde
+# la persona quiera (SSRF).
+_HOSTS_PUSH = ("fcm.googleapis.com", "push.services.mozilla.com", "push.apple.com", "notify.windows.com")
+
+
+def host_de_push_permitido(endpoint):
+    host = (urlsplit(endpoint).hostname or "").lower()
+    return any(host == h or host.endswith("." + h) for h in _HOSTS_PUSH)
+
+
+class _SesionSinRedirecciones(requests.Session):
+    """Un servicio de push nunca redirige: si lo hace, no se lo sigue (el POST no puede terminar en otro lado)."""
+
+    def request(self, *args, **kwargs):
+        kwargs["allow_redirects"] = False
+        return super().request(*args, **kwargs)
 
 
 class PushService:
@@ -16,7 +36,7 @@ class PushService:
         endpoint = suscripcion.get("endpoint")
         keys = suscripcion.get("keys") or {}
         p256dh, auth = keys.get("p256dh"), keys.get("auth")
-        if not isinstance(endpoint, str) or not endpoint.startswith("https://"):
+        if not isinstance(endpoint, str) or not endpoint.startswith("https://") or not host_de_push_permitido(endpoint):
             raise ValueError("El endpoint de push no es válido.")
         if (len(endpoint) > 2048 or not isinstance(p256dh, str) or not isinstance(auth, str)
                 or len(p256dh) > 512 or len(auth) > 512):
@@ -129,7 +149,11 @@ class PushService:
             ensure_ascii=False,
             separators=(",", ":"),
         )
+        sesion = _SesionSinRedirecciones()
         for endpoint, p256dh, auth in suscripciones:
+            if not host_de_push_permitido(endpoint):
+                self.eliminar_suscripcion(user_id, endpoint)  # una suscripción vieja a un destino que ya no se admite
+                continue
             try:
                 headers = None
                 if (urlsplit(endpoint).hostname or "").endswith(".notify.windows.com"):
@@ -153,6 +177,7 @@ class PushService:
                     ttl=60 * 60,
                     timeout=10,
                     headers=headers,
+                    requests_session=sesion,
                 )
                 enviados += 1
             except WebPushException as error:

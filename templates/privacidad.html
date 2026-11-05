@@ -9,7 +9,7 @@
 
   <header class="page-head">
     <h1 class="h2">Política de privacidad.</h1>
-    <p class="lead">Última actualización: 3 de noviembre de 2026 · Versión 1.1</p>
+    <p class="lead">Última actualización: {{ fecha }} · Versión {{ version }}</p>
   </header>
 
   <article class="prose">
@@ -17,12 +17,14 @@
     <p>Acá contamos, sin vueltas, qué datos tuyos usa Ahora Qué, para qué, con quién se comparten y qué podés hacer con ellos. Se rige por la Ley N.º 18.331 de Protección de Datos Personales de Uruguay y su reglamentación.</p>
 
     <h2 class="h3">1. Quién es el responsable</h2>
-    <p>El responsable del tratamiento es el equipo del proyecto académico Ahora Qué. Contacto para cualquier consulta o pedido sobre tus datos: <a href="mailto:ahora.que.app@gmail.com">ahora.que.app@gmail.com</a>.</p>
+    <p>El responsable del tratamiento es <strong>{{ proveedor.razon_social }}</strong> (RUT {{ proveedor.rut }}), con domicilio en {{ proveedor.domicilio }}. La base de datos de Ahora Qué está inscripta en el Registro de Bases de Datos Personales de la URCDP: {{ proveedor.urcdp }}. Contacto para cualquier consulta o pedido sobre tus datos: <a href="mailto:{{ proveedor.email }}">{{ proveedor.email }}</a>.</p>
+    <p>Los datos que te pedimos al registrarte (nombre, fecha de nacimiento, usuario, correo y contraseña) son obligatorios: sin ellos no podemos crear la cuenta. El resto es opcional y se indica como tal.</p>
 
     <h2 class="h3">2. Qué datos tratamos</h2>
     <ul>
       <li><strong>De tu cuenta:</strong> nombre, fecha de nacimiento, nombre de usuario, correo electrónico y tu contraseña (que guardamos transformada con un hash, nunca en texto legible).</li>
-      <li><strong>De tu perfil:</strong> la foto de perfil si la subís y tus preferencias de notificaciones.</li>
+      <li><strong>De tu perfil:</strong> la foto de perfil si la subís, la descripción que escribas y tus preferencias de notificaciones.</li>
+      <li><strong>Constancia de aceptación:</strong> al registrarte guardamos la fecha, la versión de los términos y de esta política que aceptaste y, si tenés menos de 18 años, tu declaración de que tu madre, padre o tutor te autoriza.</li>
       <li><strong>De tu uso de la app:</strong> amistades, grupos, invitaciones, planes, votos, calificaciones, mensajes del chat de grupos y mensajes privados, y lo que publiques en Social (textos, fotos, comentarios y "me gusta").</li>
       <li><strong>Ubicación (opcional):</strong> solo si, dentro de un plan confirmado, elegís compartir tu ubicación. Guardamos únicamente la última, nunca un historial.</li>
       <li><strong>Datos bancarios (opcionales):</strong> banco y número de cuenta, si querés que las personas que te deben dinero puedan transferirte. Y las deudas entre integrantes que se registran en la app.</li>
@@ -44,7 +46,7 @@
     <ul>
       <li><strong>Supabase</strong> (base de datos, servidores en Ohio, EE. UU.): guarda toda la información de la cuenta.</li>
       <li><strong>Render</strong> (alojamiento de la aplicación, EE. UU.): ejecuta la aplicación.</li>
-      <li><strong>Groq</strong> (inteligencia artificial, EE. UU.): recibe los mensajes que le escribís al asistente, el nombre del grupo y la cantidad de integrantes cuando armás un plan en grupo.</li>
+      <li><strong>Groq</strong> (inteligencia artificial, EE. UU.): recibe los mensajes que le escribís al asistente. Cuando armás un plan en grupo, además recibe el nombre del grupo, la cantidad de integrantes, el presupuesto del grupo, los próximos días con integrantes ocupados, cuántas personas pueden o no pueden en los planes y horarios que se están votando, las ideas que el grupo rechazó y los planes mejor y peor puntuados (siempre cantidades y nombres de planes: el asistente no sabe quién votó qué). Si tenés Premium, también recibe la descripción de tu perfil (la memoria del asistente), y para las sugerencias semanales del Inicio, esa descripción y los lugares de tus planes.</li>
       <li><strong>Brevo</strong> (envío de correo, Unión Europea): recibe tu correo y el contenido de los mensajes que te enviamos (confirmación de cuenta, recuperación de contraseña, avisos) y los mensajes del formulario de contacto.</li>
       <li><strong>Servicios de notificaciones de tu navegador</strong> (Google, Apple o Mozilla, según tu navegador): solo si activás las notificaciones.</li>
       <li><strong>Proveedor de pagos</strong> (solo cuando Premium tenga cobros reales; hoy es una demostración y no interviene ninguno): procesa el pago y recibe directamente los datos de tu medio de pago. Nosotros no los vemos.</li>
@@ -53,7 +55,7 @@
     </ul>
 
     <h2 class="h3">6. Transferencias internacionales</h2>
-    <p>Varios de estos proveedores están fuera de Uruguay (principalmente en EE. UU.). Al aceptar esta política consentís esas transferencias. Elegimos proveedores reconocidos y compartimos solo lo necesario para que el servicio funcione.</p>
+    <p>Varios de estos proveedores están fuera de Uruguay (principalmente en EE. UU.). Algunos de esos países pueden no tener un nivel de protección de datos reconocido como adecuado por la URCDP. Por eso las transferencias se basan en tu consentimiento expreso, que te pedimos en una casilla propia al registrarte (art. 23 de la Ley 18.331). Elegimos proveedores reconocidos, firmamos con ellos sus condiciones de tratamiento de datos y compartimos solo lo necesario para que el servicio funcione.</p>
 
     <h2 class="h3">7. Asistente de inteligencia artificial</h2>
     <p>El asistente es una IA, no una persona. Tus conversaciones se guardan cifradas en nuestra base de datos, pero para generar cada respuesta el texto viaja a Groq. Por eso te pedimos que no escribas datos personales ni sensibles, tuyos o de otras personas. Las respuestas son orientativas y pueden tener errores.</p>
@@ -69,7 +71,9 @@
 
     <h2 class="h3">9. Cuánto tiempo los conservamos</h2>
     <ul>
-      <li>Tu cuenta y su contenido, hasta que la elimines.</li>
+      <li>Tu cuenta y su contenido, hasta que la elimines. La constancia de aceptación se borra junto con la cuenta.</li>
+      <li>Los mensajes del chat de los grupos, 14 días: después se borran solos.</li>
+      <li>Los registros de confirmación de cuenta vencidos y los intentos de inicio de sesión viejos se borran automáticamente cada día.</li>
       <li>El historial de altas y bajas de Premium, hasta que elimines tu cuenta. Si algún día se realizan cobros reales, los comprobantes de pago se conservarán el tiempo que exija la normativa tributaria, aunque elimines tu cuenta.</li>
       <li>La ubicación compartida en un plan, hasta que dejás de compartir, te bajás del plan o el plan termina.</li>
       <li>Los intentos de inicio de sesión, solo durante la ventana de 30 minutos que usamos para limitar los intentos.</li>
@@ -77,15 +81,18 @@
     </ul>
 
     <h2 class="h3">10. Tus derechos</h2>
-    <p>Podés acceder a tus datos, rectificarlos, actualizarlos, incluirlos o pedir su supresión. Muchas cosas las hacés vos mismo desde <a href="/perfil">tu perfil</a>, incluido <strong>eliminar tu cuenta</strong>, que borra tus datos y tu contenido. Para cualquier otro pedido, escribinos a <a href="mailto:ahora.que.app@gmail.com">ahora.que.app@gmail.com</a>: respondemos dentro de los plazos de la ley (cinco días hábiles para el acceso). Si no estás conforme con la respuesta, podés presentar un reclamo ante la <a href="https://www.gub.uy/unidad-reguladora-control-datos-personales" target="_blank" rel="noopener">Unidad Reguladora y de Control de Datos Personales (URCDP)</a>.</p>
+    <p>Podés acceder a tus datos, rectificarlos, actualizarlos, incluirlos o pedir su supresión. Muchas cosas las hacés vos mismo desde <a href="/perfil">tu perfil</a>, incluido <strong>eliminar tu cuenta</strong>, que borra tus datos y tu contenido. Desde tu perfil también podés <strong>descargar todos tus datos</strong> en un archivo. Para cualquier otro pedido (acceso, rectificación, actualización, inclusión, supresión o impugnar una valoración sobre vos), escribinos a <a href="mailto:{{ proveedor.email }}">{{ proveedor.email }}</a> desde el correo de tu cuenta o indicando tu usuario: verificamos tu identidad, <strong>respondemos dentro de los 5 días hábiles</strong> siguientes a tu pedido (para el acceso, la información es gratuita) y guardamos constancia del pedido y de la respuesta. No tomamos decisiones automatizadas sobre las personas: la IA solo sugiere planes y siempre decidís vos. Si no estás conforme con la respuesta, podés presentar un reclamo ante la <a href="https://www.gub.uy/unidad-reguladora-control-datos-personales" target="_blank" rel="noopener">Unidad Reguladora y de Control de Datos Personales (URCDP)</a>.</p>
 
     <h2 class="h3">11. Menores de edad</h2>
-    <p>Hace falta tener 13 años o más para crear una cuenta. Si tenés menos de 18 años, declarás contar con la autorización de tu madre, padre o tutor, y no podés contratar Premium. Si sos madre, padre o tutor y creés que un menor a tu cargo se registró sin tu autorización, escribinos y eliminamos la cuenta.</p>
+    <p>Hace falta tener 13 años o más para crear una cuenta. Si tenés menos de 18 años, declarás contar con la autorización de tu madre, padre o tutor, y no podés contratar Premium. Mientras seas menor, tus publicaciones en Social son solo para tus amistades, tu ubicación solo se comparte si vos lo elegís dentro de un plan y no hay mensajes privados con personas que no sean parte de tus grupos. Guardamos tu declaración de autorización. Si sos madre, padre o tutor y creés que un menor a tu cargo se registró sin tu autorización, escribinos y eliminamos la cuenta.</p>
 
     <h2 class="h3">12. Seguridad</h2>
-    <p>Protegemos los datos con conexión cifrada (HTTPS), contraseñas con hash, cifrado de las conversaciones del asistente y del número de cuenta bancaria, límites a los intentos de inicio de sesión y acceso restringido a la base de datos. Ningún sistema es infalible: si ocurriera una vulneración que afecte tus datos, la comunicaremos como corresponde.</p>
+    <p>Protegemos los datos con conexión cifrada (HTTPS), contraseñas con hash, cifrado de las conversaciones del asistente y del número de cuenta bancaria, límites a los intentos de inicio de sesión y acceso restringido a la base de datos. Ningún sistema es infalible: si ocurriera una vulneración de seguridad que afecte tus datos, la comunicamos a la URCDP dentro de las 72 horas desde que la constatamos y, si te afecta de forma significativa, también a vos (art. 38 de la Ley 19.670 y Decreto 64/020). Mantenemos un protocolo escrito y un registro de incidentes.</p>
 
-    <h2 class="h3">13. Cambios en esta política</h2>
+    <h2 class="h3">13. Datos de mapas y lugares</h2>
+    <p>Los lugares de la aplicación y los mapas usan datos de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© colaboradores de OpenStreetMap</a>, disponibles bajo la licencia abierta ODbL.</p>
+
+    <h2 class="h3">14. Cambios en esta política</h2>
     <p>Si la actualizamos, cambiaremos la fecha de arriba y, si el cambio es importante, te avisaremos dentro de la app o por correo.</p>
 
   </article>

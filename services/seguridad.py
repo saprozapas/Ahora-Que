@@ -14,6 +14,7 @@ Qué hace:
      (así request.is_secure da True).
   5. Los links de los mails (base_publica / url_publica) salen de PUBLIC_BASE_URL y no del Host de la petición.
 """
+import hashlib
 import os
 from urllib.parse import urlparse
 
@@ -25,6 +26,12 @@ _METODOS_SEGUROS = {"GET", "HEAD", "OPTIONS"}
 def en_produccion():
     """True en Render (define RENDER) o si se fuerza con COOKIE_SECURE=1 en el .env."""
     return bool(os.environ.get("RENDER")) or os.environ.get("COOKIE_SECURE") == "1"
+
+
+def huella_contrasena(password_hash):
+    """Una huella corta de la contraseña vigente. Va dentro de la cookie de sesión: si la contraseña cambia
+    (restablecerla, cambiarla) o la cuenta se borra, las sesiones que quedaron abiertas dejan de valer."""
+    return hashlib.sha256((password_hash or "").encode("utf-8")).hexdigest()[:16]
 
 
 def base_publica():

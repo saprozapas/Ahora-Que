@@ -7,6 +7,13 @@ import os
 
 from services.seguridad import en_produccion
 
+# Versión y fecha de los textos legales. Se muestran en terminos.html y privacidad.html y se guardan junto a la
+# aceptación de cada persona al registrarse (Aceptaciones_Legales). Subilas cada vez que cambie el texto.
+VERSION_TERMINOS = "1.2"
+FECHA_TERMINOS = "3 de noviembre de 2026"
+VERSION_PRIVACIDAD = "1.2"
+FECHA_PRIVACIDAD = "5 de noviembre de 2026"
+
 # Cambiala cada vez que se modifiquen las condiciones de Premium en terminos.html.
 # Se guarda en Premium_Historial junto a cada alta: así se puede probar a qué condiciones aceptó cada persona.
 VERSION_CONDICIONES_PREMIUM = "2026-11-03"
@@ -21,7 +28,17 @@ PROVEEDOR = {
     "rut": os.environ.get("PROVEEDOR_RUT", "[RUT: completar]"),
     "domicilio": os.environ.get("PROVEEDOR_DOMICILIO", "[Domicilio en Uruguay: completar]"),
     "email": os.environ.get("PROVEEDOR_EMAIL", "ahora.que.app@gmail.com"),
+    # Inscripción de la base de datos en el Registro de Bases de Datos Personales de la URCDP (Ley 18.331, art. 6).
+    "urcdp": os.environ.get("PROVEEDOR_URCDP", "[N.º de inscripción: completar]"),
 }
+
+
+def es_menor(fecha_nac, hoy=None):
+    """True si la persona tiene menos de 18 años (los menores tienen perfiles y publicaciones más protegidos)."""
+    from datetime import date
+    hoy = hoy or date.today()
+    edad = hoy.year - fecha_nac.year - ((hoy.month, hoy.day) < (fecha_nac.month, fecha_nac.day))
+    return edad < EDAD_MINIMA_PREMIUM
 
 
 def premium_demo_activo():

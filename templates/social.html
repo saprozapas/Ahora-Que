@@ -266,10 +266,14 @@
           <input type="radio" name="visibilidad" value="amigos" checked />
           <span>Mis amigos</span>
         </label>
+        {% if es_menor %}
+        <p class="soc-ayuda">Como tenés menos de 18 años, tus publicaciones son solo para tus amigos.</p>
+        {% else %}
         <label class="soc-opcion">
           <input type="radio" name="visibilidad" value="publico" />
           <span>Todos</span>
         </label>
+        {% endif %}
       </fieldset>
 
       <p class="soc-aviso" data-soc-publicar-error role="alert" hidden></p>
@@ -286,7 +290,7 @@
 </dialog>
 
 
-<script defer src="{{ url_for('static', filename='social.js', v='20261106-sereno') }}"></script>
+<script defer src="{{ url_for('static', filename='social.js', v='20261105-legal') }}"></script>
 
 {% endif %}
 

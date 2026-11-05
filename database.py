@@ -42,6 +42,7 @@ _libres = queue.LifoQueue(maxsize=_MAX_LIBRES)
 _hilo_iniciado = False
 _lock_hilo = threading.Lock()
 
+_ES_BLOQUEO = re.compile(r"\bFOR\s+(?:NO\s+KEY\s+)?(?:UPDATE|SHARE)\b", re.IGNORECASE)
 _ES_ESCRITURA = re.compile(
     r"^\s*(?:--[^\n]*\n\s*)*(INSERT|UPDATE|DELETE|MERGE|CREATE|ALTER|DROP|TRUNCATE|WITH)\b",
     re.IGNORECASE,
@@ -115,7 +116,10 @@ class _Cursor:
 
     def _necesita_begin(self, sql):
         texto = sql.decode() if isinstance(sql, bytes) else str(sql)
-        return not _en_transaccion(self._conn) and _ES_ESCRITURA.match(texto)
+        if _en_transaccion(self._conn):
+            return False
+        # Un SELECT ... FOR UPDATE solo bloquea dentro de una transacción: sin BEGIN, en autocommit, soltaría el bloqueo al instante.
+        return bool(_ES_ESCRITURA.match(texto) or _ES_BLOQUEO.search(texto))
 
     def execute(self, sql, params=None):
         # ponytail: medición temporal; sacar el try/finally cuando termine la optimización.

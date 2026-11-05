@@ -595,6 +595,8 @@ class PlanService:
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
+                if guardado and not self._puede_ver(cursor, plan_id, user_id):
+                    return False
                 cursor.execute(
                     """
                     INSERT INTO public."Usuario-Plan" ("Usuario_id", "Plan_id", "Confirmado", "Guardado")
@@ -605,11 +607,32 @@ class PlanService:
                     (user_id, plan_id, guardado),
                 )
             connection.commit()
+            return True
         except psycopg2.Error:
             connection.rollback()
             raise
         finally:
             release_db_connection(connection)
+
+    def _puede_ver(self, cursor, plan_id, user_id):
+        """Quién puede guardar un plan: su creador, quien ya tiene una relación con él (iba, lo guardó), integrantes de su
+        grupo y amigos de alguien que fue. Saber el id de un plan no alcanza."""
+        cursor.execute(
+            f"""
+            SELECT EXISTS (
+                SELECT 1 FROM public."Plan" p
+                WHERE p."id_Plan" = %(p)s
+                  AND (p."Creado_Por" = %(uid)s
+                       OR p."Grupo_id" IN (SELECT "Id_Grupo" FROM public."Usuario-Grupo" WHERE "Id_Usuario" = %(uid)s)
+                       OR EXISTS (SELECT 1 FROM public."Usuario-Plan" x WHERE x."Plan_id" = p."id_Plan" AND x."Usuario_id" = %(uid)s)
+                       OR EXISTS (SELECT 1 FROM public."Usuario-Plan" x
+                                  WHERE x."Plan_id" = p."id_Plan" AND x."Confirmado"
+                                    AND x."Usuario_id" IN ({self._amigos_sql()})))
+            )
+            """,
+            {"p": plan_id, "uid": user_id},
+        )
+        return bool(cursor.fetchone()[0])
 
     # --- Sumarse / bajarse / eliminar ---------------------------------------
 
@@ -715,6 +738,14 @@ class PlanService:
                 if fila is None or str(fila[0]) != str(user_id):
                     return None
                 nombre, grupo_id = fila[1], fila[2]
+                if grupo_id is not None:
+                    # Quien ya no está en el grupo no puede borrar sus planes.
+                    cursor.execute(
+                        'SELECT 1 FROM public."Usuario-Grupo" WHERE "Id_Grupo" = %s AND "Id_Usuario" = %s',
+                        (grupo_id, user_id),
+                    )
+                    if cursor.fetchone() is None:
+                        return None
 
                 # A quiénes avisar: los que iban y los que ya habían votado (menos quien lo borra).
                 cursor.execute(

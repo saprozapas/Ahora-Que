@@ -256,8 +256,10 @@ def barrio_cercano():
 def guardar(plan_id):
     if _sin_sesion():
         return redirect(url_for("auth.login"))
-    plan_service.set_guardado(plan_id, session["user_id"], True)
-    flash("Plan guardado.", "success")
+    if plan_service.set_guardado(plan_id, session["user_id"], True):
+        flash("Plan guardado.", "success")
+    else:
+        flash("No pudimos guardar ese plan.", "error")
     return redirect(request.referrer or url_for("planes.detalle", plan_id=plan_id))
 
 

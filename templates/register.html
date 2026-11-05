@@ -65,7 +65,12 @@
 
       <label class="check-row" for="accept_terms">
         <input id="accept_terms" name="accept_terms" type="checkbox" required {% if form_data.accept_terms == 'on' %}checked{% endif %} />
-        <span>Leí y acepto los <a href="{{ url_for('auth.terminos_y_condiciones') }}" target="_blank" rel="noopener">términos y condiciones</a> y la <a href="{{ url_for('auth.politica_privacidad') }}" target="_blank" rel="noopener">política de privacidad</a>, y consiento el tratamiento de mis datos personales para usar la aplicación.</span>
+        <span>Leí y acepto los <a href="{{ url_for('auth.terminos_y_condiciones') }}" target="_blank" rel="noopener">términos y condiciones</a>.</span>
+      </label>
+
+      <label class="check-row" for="accept_privacy">
+        <input id="accept_privacy" name="accept_privacy" type="checkbox" required {% if form_data.accept_privacy == 'on' %}checked{% endif %} />
+        <span>Leí la <a href="{{ url_for('auth.politica_privacidad') }}" target="_blank" rel="noopener">política de privacidad</a> y consiento de forma expresa el tratamiento de mis datos personales para usar Ahora Qué (incluido el envío de lo que escribo al asistente a un proveedor de IA en el exterior).</span>
       </label>
 
       <button class="btn btn--primary btn--lg btn--block auth__submit" type="submit">

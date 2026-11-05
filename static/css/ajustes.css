@@ -6540,7 +6540,6 @@ div.chat-fijado {
   background: color-mix(in srgb, var(--danger) 35%, transparent);
 }
 
-
 /* ==========================================================================
    Ventajas de Premium: modos de plan, memoria, Plan B y resumen semanal
    ========================================================================== */
@@ -6660,4 +6659,17 @@ div.chat-fijado {
   .resumen-sem__datos {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.app-footer__legal {
+  padding-block: var(--s-2) var(--s-4);
+  color: var(--ink-3);
+  font-size: 0.75rem;
+}
+.app-footer__legal p {
+  margin: 0;
+}
+.app-footer__legal a {
+  color: inherit;
+  text-decoration: underline;
 }

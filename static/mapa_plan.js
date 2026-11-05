@@ -47,7 +47,7 @@
     style: "https://tiles.openfreemap.org/styles/positron",
     center: [-56.1645, -34.9011],
     zoom: 12,
-    attributionControl: false,
+    attributionControl: { compact: false },
     dragRotate: false,
     pitchWithRotate: false,
     touchPitch: false,

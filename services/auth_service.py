@@ -59,8 +59,23 @@ class AuthService:
         finally:
             release_db_connection(connection)
 
-    def create_pending_registration(self, user, confirmation_code_hash):
-        """Guarda los datos de registro temporalmente, sin crear aún el usuario activo."""
+    def limpiar_intentos_login(self, username_or_email):
+        """Un login correcto borra los intentos de esa cuenta: solo los fallos se van acumulando."""
+        clave = self._clave_login(username_or_email)
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute('DELETE FROM public."Intentos_Login" WHERE "Clave_Identificador" = %s', (clave,))
+            connection.commit()
+        except psycopg2.Error:
+            connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
+
+    def create_pending_registration(self, user, confirmation_code_hash, aceptacion):
+        """Guarda los datos de registro temporalmente, sin crear aún el usuario activo.
+        `aceptacion` = {"terminos", "privacidad", "tutor"}: la constancia de lo que aceptó (Ley 18.331, art. 9)."""
         user_id = uuid4()
         connection = get_db_connection()
         try:
@@ -70,8 +85,9 @@ class AuthService:
                 )
                 cursor.execute(
                     '''SELECT 1 FROM public."Usuarios"
-                       WHERE lower("Mail") = lower(%s) OR lower("Username") = lower(%s) LIMIT 1''',
-                    (user.get_email(), user.get_username()),
+                       WHERE lower("Mail") = lower(%s) OR lower("Username") = lower(%s)
+                          OR lower("Username") = lower(%s) OR lower("Mail") = lower(%s) LIMIT 1''',
+                    (user.get_email(), user.get_username(), user.get_email(), user.get_username()),
                 )
                 if cursor.fetchone():
                     raise ValueError("El mail o el nombre de usuario ya está en uso.")
@@ -79,8 +95,9 @@ class AuthService:
                     """
                     INSERT INTO public."Confirmaciones_Registro"
                         ("Id_Usuario", "Codigo_Hash", "Nombre", "Mail", "Fecha_Nac",
-                         "Password_Hash", "Username", "Descripcion", "Expira_En")
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW() + INTERVAL '24 hours')
+                         "Password_Hash", "Username", "Descripcion", "Expira_En",
+                         "Version_Terminos", "Version_Privacidad", "Aceptado_En", "Tutor_Declarado")
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW() + INTERVAL '24 hours', %s, %s, NOW(), %s)
                     """,
                     (
                         str(user_id),
@@ -91,6 +108,9 @@ class AuthService:
                         user.get_password_hash(),
                         user.get_username(),
                         user.get_descripcion(),
+                        aceptacion["terminos"],
+                        aceptacion["privacidad"],
+                        aceptacion["tutor"],
                     ),
                 )
             connection.commit()
@@ -142,7 +162,8 @@ class AuthService:
                 cursor.execute("BEGIN")
                 cursor.execute(
                     '''SELECT "Id_Usuario", "Nombre", "Mail", "Fecha_Nac", "Password_Hash",
-                              "Username", "Descripcion", "Expira_En"
+                              "Username", "Descripcion", "Expira_En",
+                              "Version_Terminos", "Version_Privacidad", "Aceptado_En", "Tutor_Declarado"
                        FROM public."Confirmaciones_Registro"
                        WHERE "Codigo_Hash" = %s FOR UPDATE''',
                     (confirmation_code_hash,),
@@ -152,7 +173,8 @@ class AuthService:
                     connection.commit()
                     return "invalido", None
 
-                user_id, name, email, birth_date, password_hash, username, description, expires_at = pending
+                (user_id, name, email, birth_date, password_hash, username, description, expires_at,
+                 version_terminos, version_privacidad, aceptado_en, tutor_declarado) = pending
                 if expires_at <= datetime.now(timezone.utc):
                     cursor.execute(
                         'DELETE FROM public."Confirmaciones_Registro" WHERE "Id_Usuario" = %s',
@@ -167,6 +189,13 @@ class AuthService:
                        VALUES (%s, %s, %s, %s, %s, %s, %s)''',
                     (str(user_id), name, email, birth_date, password_hash, username, description),
                 )
+                if version_terminos:
+                    cursor.execute(
+                        '''INSERT INTO public."Aceptaciones_Legales"
+                           ("Id_Usuario", "Version_Terminos", "Version_Privacidad", "Aceptado_En", "Tutor_Declarado")
+                           VALUES (%s, %s, %s, %s, %s)''',
+                        (str(user_id), version_terminos, version_privacidad, aceptado_en, tutor_declarado),
+                    )
                 cursor.execute(
                     'DELETE FROM public."Confirmaciones_Registro" WHERE "Id_Usuario" = %s',
                     (str(user_id),),
@@ -295,8 +324,9 @@ class AuthService:
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    'SELECT "Id_Usuario" FROM public."Usuarios" WHERE lower("Username") = lower(%s) AND "Id_Usuario" != %s',
-                    (username, user_id),
+                    '''SELECT "Id_Usuario" FROM public."Usuarios"
+                       WHERE (lower("Username") = lower(%s) OR lower("Mail") = lower(%s)) AND "Id_Usuario" != %s''',
+                    (username, username, user_id),
                 )
                 if cursor.fetchone():
                     return False, "El nombre de usuario ya está en uso."
