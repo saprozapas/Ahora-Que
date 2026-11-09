@@ -970,7 +970,7 @@
      preguntar(msg) -> Promise<boolean>; preguntar(msg, false) es un aviso
      con solo "Aceptar". Escape o tocar afuera cuentan como cancelar.      */
 
-  const preguntar = (mensaje, conCancelar = true) =>
+  const preguntar = (mensaje, conCancelar = true, opciones = {}) =>
     new Promise((resolver) => {
       const dialogo = document.createElement("dialog");
       dialogo.className = "modal";
@@ -978,17 +978,26 @@
       dialogo.setAttribute("aria-labelledby", "preguntar-texto");
       dialogo.innerHTML = `
       <form method="dialog">
-        <div class="modal-body"><p id="preguntar-texto"></p></div>
+        <div class="modal-body"><p class="modal-titulo" id="preguntar-titulo" hidden></p><p id="preguntar-texto"></p></div>
         <div class="modal-actions">
           ${
             conCancelar
-              ? '<button class="btn btn--secondary" value="no" autofocus>Cancelar</button>'
+              ? '<button class="btn btn--secondary" value="no" autofocus data-no></button>'
               : ""
           }
-          <button class="btn btn--primary" value="si"${conCancelar ? "" : " autofocus"}>Aceptar</button>
+          <button class="btn btn--primary" value="si"${conCancelar ? "" : " autofocus"} data-si></button>
         </div>
       </form>`;
-      $("p", dialogo).textContent = mensaje;
+      $("#preguntar-texto", dialogo).textContent = mensaje;
+      $("[data-si]", dialogo).textContent = opciones.si || "Aceptar";
+      const botonNo = $("[data-no]", dialogo);
+      if (botonNo) botonNo.textContent = opciones.no || "Cancelar";
+      if (opciones.titulo) {
+        const titulo = $("#preguntar-titulo", dialogo);
+        titulo.textContent = opciones.titulo;
+        titulo.hidden = false;
+        dialogo.setAttribute("aria-labelledby", "preguntar-titulo");
+      }
 
       dialogo.addEventListener("click", (evento) => {
         if (evento.target === dialogo) {
@@ -1333,7 +1342,12 @@
 
         evento.preventDefault();
 
-        if (await preguntar(formulario.dataset.confirmar)) {
+        const opciones = {
+          titulo: formulario.dataset.confirmarTitulo,
+          si: formulario.dataset.confirmarSi,
+          no: formulario.dataset.confirmarNo,
+        };
+        if (await preguntar(formulario.dataset.confirmar, true, opciones)) {
           formulario.dataset.ok = "1";
           formulario.requestSubmit(evento.submitter);
         } else {

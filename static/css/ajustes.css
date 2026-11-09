@@ -503,7 +503,6 @@
 .dash-pend {
   display: grid;
   gap: var(--s-3);
-  min-height: 0;
 }
 .dash-pend__cab {
   display: flex;
@@ -805,7 +804,6 @@
 .dash-sug {
   display: grid;
   gap: var(--s-3);
-  min-height: 0;
   margin-top: var(--s-5);
 }
 .sug-lista {

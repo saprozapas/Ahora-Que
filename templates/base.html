@@ -40,12 +40,12 @@
     {# Sereno: tokens → componentes → marca → pantallas → grupos, social y asistente. #}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css', v='20261105-legal') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css', v='20261105-legal') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261105-legal') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css', v='20261109-aviso') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261105-legal') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/grupos.css', v='20261105-legal') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/social.css', v='20261105-legal') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css', v='20261105-legal') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261105-legal') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ajustes.css', v='20261109-inicio') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='sereno-ui.css', v='20261105-legal') }}" />
 
     <link
@@ -65,7 +65,7 @@
 
     <script
       defer
-      src="{{ url_for('static', filename='app.js', v='20261105-legal') }}"
+      src="{{ url_for('static', filename='app.js', v='20261109-aviso') }}"
     ></script>
 
     <script defer src="{{ url_for('static', filename='push-notifications.js', v='20261105-legal') }}"></script>
@@ -250,7 +250,12 @@
         <div class="flash-stack" role="status" aria-live="polite">
           {% for mensaje in mensajes %}
           <div class="flash-message">
-            <span class="flash-message-texto">{{ mensaje }}</span>
+            {% set lineas = mensaje.split('\n') %}
+            <span class="flash-message-texto">
+              {%- if lineas | length > 1 -%}
+              <span class="flash-message-titulo">{{ lineas[0] }}</span><span class="flash-message-detalle">{{ lineas[1:] | join(' ') }}</span>
+              {%- else -%}{{ mensaje }}{%- endif -%}
+            </span>
           </div>
           {% endfor %}
         </div>

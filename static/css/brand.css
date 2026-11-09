@@ -1085,8 +1085,11 @@ dialog.modal > form {
 }
 
 .flash-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--s-3);
-  padding: 8px 8px 8px 16px;
+  padding: 10px 8px 10px 16px;
   border: 0;
   border-radius: var(--r-md);
   background: var(--ink);
@@ -1098,9 +1101,14 @@ dialog.modal > form {
 }
 
 .flash-message-cerrar {
+  display: grid;
+  flex: none;
+  place-items: center;
   width: var(--ctl-icon);
   height: var(--ctl-icon);
   padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
   border: 0;
   border-radius: var(--r-sm);
   background: transparent;
@@ -2171,6 +2179,39 @@ textarea.input {
 }
 .flash-message-texto {
   flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+/* Aviso con título: la primera línea en negrita y el detalle más suave debajo. */
+.flash-message-titulo,
+.flash-message-detalle {
+  display: block;
+}
+.flash-message-titulo {
+  font-weight: 650;
+}
+.flash-message-detalle {
+  margin-top: 2px;
+  color: color-mix(in srgb, var(--on-ink) 72%, transparent);
+  font-size: 0.875em;
+  font-weight: 450;
+}
+
+/* Cartel de confirmación (preguntar() en app.js): título opcional sobre el texto. */
+.modal-titulo {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.modal-titulo[hidden] {
+  display: none;
+}
+.modal-titulo + p {
+  margin: 0;
+  color: var(--ink-2);
 }
 .groups-carousel {
   min-width: 0;

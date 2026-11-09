@@ -55,7 +55,10 @@
           {% if premium_demo %}<p class="susc__nota">Es una demostración: no hay ningún cobro asociado a tu suscripción.</p>{% endif %}
           <div class="susc__acciones">
             <form method="post" action="/suscripcion/cancelar"
-                  data-confirmar="¿Cancelar tu suscripción Premium? Volvés al plan gratis (1 plan por semana con la IA) y perdés las ventajas de Premium.">
+                  data-confirmar-titulo="¿Cancelar tu suscripción Premium?"
+                  data-confirmar="Volvés al plan gratis (1 plan por semana con la IA) y perdés las ventajas de Premium. Tus planes y tus grupos se quedan como están."
+                  data-confirmar-si="Sí, cancelar"
+                  data-confirmar-no="Seguir con Premium">
               <button class="btn btn--secondary" type="submit">Cancelar suscripción</button>
             </form>
           </div>

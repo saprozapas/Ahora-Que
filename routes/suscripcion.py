@@ -71,7 +71,7 @@ def cancelar():
         return redirect("/login")
     if suscripcion_service.es_premium(_uid()):
         suscripcion_service.cancelar_premium(_uid())
-        flash("Cancelaste tu suscripción Premium. Volviste al plan gratis.")
+        flash("Suscripción cancelada\nVolviste al plan gratis. Podés volver a Premium cuando quieras.")
     return redirect("/suscripcion")
 
 
@@ -121,7 +121,7 @@ def pagar():
             return redirect(f"/premium/pagar?ciclo={ciclo}")
 
         _enviar_comprobante(ciclo)
-        flash("¡Listo! Ya sos Premium. (Demostración: no se cobró nada.)")
+        flash("¡Listo, ya sos Premium!\nEs una demostración: no se cobró nada.")
         return redirect("/suscripcion")
 
     return render_template("premium_pagar.html", bancos=BANCOS, precios=PRECIOS, ciclo=ciclo)
