@@ -13,6 +13,7 @@ se arman igual con los candidatos, sin descripción personalizada.
 """
 
 import json
+import os
 import re
 import threading
 from collections import Counter
@@ -23,10 +24,14 @@ from psycopg2.extras import Json
 
 import ia_bridge
 from database import get_db_connection, release_db_connection
-from services import llm_service
+from services import llm_service, sugerencia_plantillas
 from services.plan_service import PlanService
 
 CANTIDAD = 3
+# TEMPORAL: por ahora los planes sugeridos NO usan Groq (para que los tokens se gasten solo en el asistente).
+# Cada persona conserva siempre los mismos 3 planes. Para volver a pedírselos al modelo cada semana:
+# poner SUGERENCIAS_CON_IA=1 en el entorno (Render o .env).
+CON_IA = os.environ.get("SUGERENCIAS_CON_IA", "0").strip().lower() in ("1", "true", "si", "sí", "yes")
 # Uruguay no tiene horario de verano: siempre UTC-3.
 _HUSO = timezone(timedelta(hours=-3))
 _candados = {}
@@ -95,8 +100,45 @@ class SugerenciaService:
             existentes = self.existentes(user_id, semana)
             if existentes:
                 return existentes
+            # Sin IA (por ahora): cada semana se repiten los planes de la anterior y no cambian nunca.
+            if not CON_IA and self._repetir_ultimos(user_id, semana):
+                return self.existentes(user_id, semana)
             self._generar(user_id, semana)
         return self.existentes(user_id, semana)
+
+    def _repetir_ultimos(self, user_id, semana):
+        """Copia a esta semana los planes más recientes que ya tenía la persona. False si no tenía ninguno."""
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'SELECT MAX("Semana") FROM public."Sugerencia_Semanal" WHERE "Id_Usuario" = %s AND "Semana" < %s',
+                    (user_id, semana),
+                )
+                anterior = cursor.fetchone()[0]
+                if anterior is None:
+                    return False
+                cursor.execute(
+                    """
+                    INSERT INTO public."Sugerencia_Semanal" ("Id_Usuario", "Semana", "Orden", "Nombre", "Descripcion", "Lugares")
+                    SELECT "Id_Usuario", %s, "Orden", "Nombre", "Descripcion", "Lugares"
+                    FROM public."Sugerencia_Semanal" WHERE "Id_Usuario" = %s AND "Semana" = %s
+                    ON CONFLICT ("Id_Usuario", "Semana", "Orden") DO NOTHING
+                    """,
+                    (semana, user_id, anterior),
+                )
+                copiadas = cursor.rowcount
+                cursor.execute(
+                    'DELETE FROM public."Sugerencia_Semanal" WHERE "Id_Usuario" = %s AND "Semana" < %s',
+                    (user_id, semana - timedelta(days=14)),
+                )
+            connection.commit()
+            return copiadas > 0
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            release_db_connection(connection)
 
     # --- Armado -----------------------------------------------------------------
 
@@ -166,7 +208,10 @@ class SugerenciaService:
         tipos = ia_bridge.tipos_por_lugar([c[0] for c in candidatos] + visitados[:20])
         favoritos = [t for t, _ in Counter(t for v in visitados for t in tipos.get(v, [])).most_common(4)]
 
-        planes = self._pedir_al_modelo(descripcion, historial, favoritos, barrios, candidatos, tipos)
+        if CON_IA:
+            planes = self._pedir_al_modelo(descripcion, historial, favoritos, barrios, candidatos, tipos)
+        else:  # sin modelo: no gasta tokens de Groq
+            planes = sugerencia_plantillas.armar_planes(candidatos, tipos, favoritos, barrios, f"{user_id}{semana}", CANTIDAD)
         planes = self._completar(planes, candidatos, tipos)
         self._guardar(user_id, semana, planes[:CANTIDAD])
 
