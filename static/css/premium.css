@@ -199,6 +199,7 @@
 .premium-card {
   position: relative;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto auto 1fr auto;
   gap: var(--s-4);
   padding: 36px;
@@ -219,6 +220,7 @@
 }
 .premium-card__cab {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--s-3);
@@ -274,7 +276,14 @@
   color: var(--ink-3);
   font-size: 0.875rem;
   line-height: 1.3;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+}
+/* Con las tarjetas lado a lado y poco ancho la nota se parte en dos líneas: las dos tarjetas reservan ese alto
+   para que el precio y la lista queden alineados entre sí. */
+@media (min-width: 901px) and (max-width: 1299px) {
+  .premium-card__nota {
+    min-height: 2.6em;
+  }
 }
 .premium-card__lista {
   display: grid;

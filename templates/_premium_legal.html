@@ -1,41 +1,46 @@
-{# Información que hay que mostrar ANTES de pagar (Ley 17.250 y Decreto 167/2021). Los datos del proveedor salen de services/legal_info.py. #}
-<section class="legal-premium" aria-labelledby="legal-premium-titulo">
-  <header class="legal-premium__cab">
-    <h2 id="legal-premium-titulo">Condiciones de Premium</h2>
+{# Información que hay que mostrar ANTES de pagar (Ley 17.250 y Decreto 167/2021). Los datos del proveedor salen de services/legal_info.py.
+   Es un menú desplegable que empieza cerrado: el título siempre se ve y se abre con un clic. #}
+<details class="legal-premium">
+  <summary class="legal-premium__cab">
+    <span class="legal-premium__titulo">Condiciones de Premium</span>
+    <span class="legal-premium__resumen">Precio final con IVA · renovación automática · cancelás cuando quieras</span>
+    <svg class="legal-premium__flecha" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </summary>
+  <div class="legal-premium__cuerpo">
     <p class="legal-premium__enlaces">
       Te enviamos un comprobante por correo · Detalle completo en los
       <a href="{{ url_for('auth.terminos_y_condiciones') }}#premium">términos y condiciones</a> y en la
       <a href="{{ url_for('auth.politica_privacidad') }}">política de privacidad</a>
     </p>
-  </header>
-  <dl class="legal-premium__lista">
-    <div>
-      <dt>Quién vende</dt>
-      <dd>{{ proveedor.razon_social }} · RUT {{ proveedor.rut }} · {{ proveedor.domicilio }}</dd>
-    </div>
-    <div>
-      <dt>Contacto</dt>
-      <dd><a href="mailto:{{ proveedor.email }}">{{ proveedor.email }}</a></dd>
-    </div>
-    <div>
-      <dt>Precio</dt>
-      <dd>En pesos uruguayos (UYU), IVA incluido. Es el precio final: no hay cargos ocultos.</dd>
-    </div>
-    <div>
-      <dt>Renovación</dt>
-      <dd>Se renueva solo, cada mes o cada año según la frecuencia que elijas, hasta que cancelés.</dd>
-    </div>
-    <div>
-      <dt>Cancelación</dt>
-      <dd>Cuando quieras, desde Tu suscripción y con un solo clic. Volvés al plan gratis.</dd>
-    </div>
-    <div>
-      <dt>Arrepentimiento</dt>
-      <dd>Podés arrepentirte dentro de los 5 días hábiles desde que contratás (art. 16 de la Ley N.º 17.250): avisanos por escrito al contacto. Si ya usaste Premium, pagás solo la parte prestada y te devolvemos el resto.</dd>
-    </div>
-    <div>
-      <dt>Quién puede contratar</dt>
-      <dd>Solo personas mayores de 18 años.</dd>
-    </div>
-  </dl>
-</section>
+    <dl class="legal-premium__lista">
+      <div>
+        <dt>Quién vende</dt>
+        <dd>{{ proveedor.razon_social }} · RUT {{ proveedor.rut }} · {{ proveedor.domicilio }}</dd>
+      </div>
+      <div>
+        <dt>Contacto</dt>
+        <dd><a href="mailto:{{ proveedor.email }}">{{ proveedor.email }}</a></dd>
+      </div>
+      <div>
+        <dt>Precio</dt>
+        <dd>En pesos uruguayos (UYU), IVA incluido. Es el precio final: no hay cargos ocultos.</dd>
+      </div>
+      <div>
+        <dt>Renovación</dt>
+        <dd>Se renueva solo, cada mes o cada año según la frecuencia que elijas, hasta que cancelés.</dd>
+      </div>
+      <div>
+        <dt>Cancelación</dt>
+        <dd>Cuando quieras, desde Tu suscripción y con un solo clic. Volvés al plan gratis.</dd>
+      </div>
+      <div>
+        <dt>Arrepentimiento</dt>
+        <dd>Podés arrepentirte dentro de los 5 días hábiles desde que contratás (art. 16 de la Ley N.º 17.250): avisanos por escrito al contacto. Si ya usaste Premium, pagás solo la parte prestada y te devolvemos el resto.</dd>
+      </div>
+      <div>
+        <dt>Quién puede contratar</dt>
+        <dd>Solo personas mayores de 18 años.</dd>
+      </div>
+    </dl>
+  </div>
+</details>

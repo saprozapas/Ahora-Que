@@ -23,7 +23,7 @@ _MONTEVIDEO = ZoneInfo("America/Montevideo")
 # Las notas aclaran que la suscripción se renueva sola: es información obligatoria antes de pagar.
 PRECIOS = {
     "mensual": {"por_mes": 199, "total": 199, "nota": "Se renueva cada mes hasta que canceles · IVA incluido", "descuento": 0},
-    "anual": {"por_mes": 159, "total": 1908, "nota": "$ 1.908 por año (ahorrás $ 480) · se renueva cada año hasta que canceles · IVA incluido", "descuento": 20},
+    "anual": {"por_mes": 159, "total": 1908, "nota": "$ 1.908 por año (ahorrás $ 480) · se renueva cada año · IVA incluido", "descuento": 20},
 }
 
 

@@ -57,31 +57,88 @@
 /* Condiciones de Premium: ficha Sereno (superficie con sombra, etiquetas chicas en mayúscula y valores en tinta suave). */
 .legal-premium {
   margin: var(--s-3) 0 0;
-  padding: 12px 18px 14px;
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--sh-card);
   color: var(--ink-2);
 }
+/* Menú desplegable: empieza cerrado; el título (con una línea de resumen) siempre se ve. */
 .legal-premium__cab {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 2px var(--s-4);
-  margin-bottom: var(--s-2);
+  align-items: center;
+  gap: var(--s-3);
+  padding: 12px 18px;
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  list-style: none;
 }
-.legal-premium h2 {
-  margin: 0;
-  color: var(--ink-3);
-  font-family: var(--font-sans);
+.legal-premium__cab::-webkit-details-marker {
+  display: none;
+}
+.legal-premium__cab:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+.legal-premium__titulo {
+  flex: none;
+  color: var(--ink);
   font-size: 0.75rem;
   font-weight: 650;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+.legal-premium__resumen {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.legal-premium__flecha {
+  flex: none;
+  margin-left: auto;
+  color: var(--ink-3);
+  transition: transform 220ms var(--ease-out, ease-out);
+}
+.legal-premium[open] .legal-premium__flecha {
+  transform: rotate(180deg);
+}
+.legal-premium[open] .legal-premium__resumen {
+  visibility: hidden;
+}
+.legal-premium__cuerpo {
+  padding: 0 18px 14px;
+}
+.legal-premium[open] .legal-premium__cuerpo {
+  animation: legal-abre 220ms var(--ease-out, ease-out);
+}
+@keyframes legal-abre {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .legal-premium__flecha {
+    transition: none;
+  }
+  .legal-premium[open] .legal-premium__cuerpo {
+    animation: none;
+  }
+}
+@media (max-width: 640px) {
+  .legal-premium__resumen {
+    display: none;
+  }
+}
 .legal-premium__enlaces {
-  margin: 0;
+  margin: 0 0 var(--s-2);
   color: var(--ink-3);
   font-size: 0.75rem;
   line-height: 1.35;

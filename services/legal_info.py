@@ -5,18 +5,17 @@ lo leen desde acá (ver routes/suscripcion.py, que lo inyecta en todas las plant
 """
 import os
 
-from services.seguridad import en_produccion
 
 # Versión y fecha de los textos legales. Se muestran en terminos.html y privacidad.html y se guardan junto a la
 # aceptación de cada persona al registrarse (Aceptaciones_Legales). Subilas cada vez que cambie el texto.
-VERSION_TERMINOS = "1.2"
-FECHA_TERMINOS = "3 de noviembre de 2026"
+VERSION_TERMINOS = "1.3"
+FECHA_TERMINOS = "9 de noviembre de 2026"
 VERSION_PRIVACIDAD = "1.2"
 FECHA_PRIVACIDAD = "5 de noviembre de 2026"
 
 # Cambiala cada vez que se modifiquen las condiciones de Premium en terminos.html.
 # Se guarda en Premium_Historial junto a cada alta: así se puede probar a qué condiciones aceptó cada persona.
-VERSION_CONDICIONES_PREMIUM = "2026-11-03"
+VERSION_CONDICIONES_PREMIUM = "2026-11-09"
 
 # Premium es solo para mayores de edad: un menor no puede contratar por su cuenta.
 EDAD_MINIMA_PREMIUM = 18
@@ -44,10 +43,7 @@ def es_menor(fecha_nac, hoy=None):
 def premium_demo_activo():
     """True si la demostración de pago está encendida.
 
-    - En tu computadora (no producción) siempre está encendida.
-    - En producción (Render) solo si definís PREMIUM_DEMO=1. Sin esa variable, /premium/pagar no
-      activa nada: así nadie se vuelve Premium gratis en un despliegue público por accidente.
+    Está encendida siempre (también en Render) para poder probar Premium: el cartel DEMO avisa que no se cobra nada.
+    Para apagarla en un despliegue real, definí PREMIUM_DEMO=0: /premium/pagar deja de activar Premium.
     """
-    if os.environ.get("PREMIUM_DEMO") == "1":
-        return True
-    return not en_produccion()
+    return os.environ.get("PREMIUM_DEMO", "1").strip() != "0"
