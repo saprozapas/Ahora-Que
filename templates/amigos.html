@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% from '_macros.html' import cara %}
+{% from '_macros.html' import cara, estrella %}
 
 {% block title %}Amigos — Ahora Qué{% endblock %}
 
@@ -69,7 +69,7 @@
       <a class="friend-row__who" href="{{ url_for('profile.perfil_publico', user_id=amigo.id) }}">
         {{ cara(amigo.id, amigo.user.get_name()) }}
         <span class="item__body">
-          <span class="item__name">{{ amigo.user.get_name() }}</span>
+          <span class="item__name">{{ amigo.user.get_name() }}{{ estrella(amigo.user.es_premium()) }}</span>
           {% if amigo.user.get_username() %}
           <span class="meta">@{{ amigo.user.get_username() }}</span>
           {% endif %}

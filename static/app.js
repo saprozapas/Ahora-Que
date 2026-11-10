@@ -1045,6 +1045,16 @@
       dialogo.showModal();
     });
 
+  /* La estrella del plan Premium, para los nombres que se arman desde JS. */
+  window.estrellaPremium = () => {
+    const estrella = document.createElement("span");
+    estrella.className = "estrella-premium";
+    estrella.title = "Plan Premium";
+    estrella.setAttribute("aria-label", "Plan Premium");
+    estrella.textContent = "★";
+    return estrella;
+  };
+
   /* ========================================================================
      13. CAMPOS EDITABLES DEL PERFIL
      ======================================================================== */

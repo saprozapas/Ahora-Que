@@ -575,6 +575,7 @@ function agregarMensaje(mensaje, anterior, destino = chatMessages) {
         nombre.classList.add("chat-message-author");
 
         nombre.appendChild(document.createTextNode(mensaje.username));
+        if (mensaje.premium) nombre.appendChild(window.estrellaPremium());
 
         mensajeDiv.appendChild(nombre);
     }

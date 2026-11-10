@@ -2269,6 +2269,12 @@ textarea.input {
 }
 
 /* ==========================================================================
-   Planes gratis / premium (templates/premium.html)
+   Planes gratis / premium (templates/premium.html) y estrella del nombre
    ========================================================================== */
+.estrella-premium {
+  color: #e8a500;
+  margin-left: 0.2em;
+  font-size: 0.9em;
+  line-height: 1;
+}
 /* Las pantallas de Premium (planes, pago y suscripción) tienen su propia hoja: static/css/premium.css. */

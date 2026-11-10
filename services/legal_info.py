@@ -8,7 +8,7 @@ import os
 
 # Versión y fecha de los textos legales. Se muestran en terminos.html y privacidad.html y se guardan junto a la
 # aceptación de cada persona al registrarse (Aceptaciones_Legales). Subilas cada vez que cambie el texto.
-VERSION_TERMINOS = "1.3"
+VERSION_TERMINOS = "1.4"
 FECHA_TERMINOS = "9 de noviembre de 2026"
 VERSION_PRIVACIDAD = "1.2"
 FECHA_PRIVACIDAD = "5 de noviembre de 2026"

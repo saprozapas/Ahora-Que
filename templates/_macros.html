@@ -1,5 +1,10 @@
 {# Piezas chicas que se repiten en varias pantallas. #}
 
+{# La estrella de quien tiene el plan Premium, junto a su nombre. #}
+{% macro estrella(premium) -%}
+{% if premium %}<span class="estrella-premium" title="Plan Premium" aria-label="Plan Premium">★</span>{% endif %}
+{%- endmacro %}
+
 {# La chispa del resumen, la misma de showcase.html. #}
 {% macro chispa() -%}
 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" /></svg>
